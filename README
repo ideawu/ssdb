@@ -30,4 +30,3 @@ src/
 tools/
 	ssdb-cli, ssdb-benchmark, ssdb-dump
 
-
