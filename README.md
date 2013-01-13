@@ -9,8 +9,8 @@ SSDB, also known as zdb, is a fast key-value(key-string, key-zset, key-hashmap) 
 * Client API supports including PHP, Python, Cpy
 * Online backup, fast recover
 * **Replication(master-slave), load balance**
-* Future Features
-  * Distributed 
+* <i>Future Features</i>
+  * <i>Distributed</i>
 
 ## PHP client API example
 
@@ -31,7 +31,7 @@ More...
 
 ![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png)
 
-View full SSDB vs Redis benchmark charts...
+[View full SSDB vs Redis benchmark charts...](http://www.ideawu.com/ssdb/)
 
 ### ssdb-bench
 
@@ -67,6 +67,8 @@ See Benchmark
 
 ```sh
 $ make
+
+# start master
 $ ./ssdb-server ssdb.conf
 
 # start slave
@@ -75,4 +77,10 @@ $ ./ssdb-server ssdb_slave.conf
 
 ## Who's using SSDB?
 
-See Users 
+See Users
+
+## About
+
+* [Author's homepage](http://www.ideawu.com/blog/)
+* [Cpy Scripting Language](https://code.google.com/p/cpy-scripting-language/)
+* [Google LevelDB](https://code.google.com/p/leveldb/)
