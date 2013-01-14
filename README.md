@@ -1,6 +1,6 @@
 # SSDB - A LevelDB server with zset data type
 
-SSDB, also known as zdb, is a fast key-value(key-string, key-zset, key-hashmap) persistent storage server, using Google LevelDB as storage engine. 
+SSDB, also known as zdb, is a fast key-value(key-string, key-zset, key-hashmap) NoSQL persistent storage server, using Google LevelDB as storage engine. 
 
 ## Features
 
@@ -23,7 +23,7 @@ $resp = $ssdb->get('key');
 echo $resp->data; // output: 123
 ```
 
-More...
+[More...](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API)
 
 ## Performance
 
