@@ -82,5 +82,6 @@ See Users
 ## About
 
 * [Author's homepage](http://www.ideawu.com/blog/)
+* [SSDB 中文文档](http://www.ideawu.net/blog/category/ssdb)
 * [Cpy Scripting Language](https://code.google.com/p/cpy-scripting-language/)
 * [Google LevelDB](https://code.google.com/p/leveldb/)
