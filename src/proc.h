@@ -68,6 +68,7 @@ class CommandProc{
 		int proc_multi_get(const Link &link, const Request &req, Response *resp);
 		int proc_multi_del(const Link &link, const Request &req, Response *resp);
 
+		int proc_zsize(const Link &link, const Request &req, Response *resp);
 		int proc_zset(const Link &link, const Request &req, Response *resp);
 		int proc_zget(const Link &link, const Request &req, Response *resp);
 		int proc_zdel(const Link &link, const Request &req, Response *resp);
@@ -76,6 +77,7 @@ class CommandProc{
 		int proc_zincr(const Link &link, const Request &req, Response *resp);
 		int proc_zdecr(const Link &link, const Request &req, Response *resp);
 
+		int proc_hsize(const Link &link, const Request &req, Response *resp);
 		int proc_hset(const Link &link, const Request &req, Response *resp);
 		int proc_hget(const Link &link, const Request &req, Response *resp);
 		int proc_hdel(const Link &link, const Request &req, Response *resp);

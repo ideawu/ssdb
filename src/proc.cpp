@@ -46,6 +46,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 	PROC(incr);
 	PROC(decr);
 
+	PROC(zsize);
 	PROC(zget);
 	PROC(zset);
 	PROC(zdel);
@@ -54,6 +55,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 	PROC(zincr);
 	PROC(zdecr);
 
+	PROC(hsize);
 	PROC(hget);
 	PROC(hset);
 	PROC(hdel);
@@ -274,6 +276,23 @@ int CommandProc::proc_decr(const Link &link, const Request &req, Response *resp)
 
 /* zset */
 
+int CommandProc::proc_zsize(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		int64_t ret = ssdb->zsize(req[1]);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			char buf[20];
+			sprintf(buf, "%lld", ret);
+			resp->push_back("ok");
+			resp->push_back(buf);
+		}
+	}
+	return 0;
+}
+
 int CommandProc::proc_zset(const Link &link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
@@ -316,6 +335,11 @@ int CommandProc::proc_zdel(const Link &link, const Request &req, Response *resp)
 			resp->push_back("error");
 		}else{
 			resp->push_back("ok");
+			if(ret == 0){
+				resp->push_back("0");
+			}else{
+				resp->push_back("1");
+			}
 		}
 	}
 	return 0;
@@ -383,6 +407,22 @@ int CommandProc::proc_zdecr(const Link &link, const Request &req, Response *resp
 
 
 /* hash */
+int CommandProc::proc_hsize(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		int64_t ret = ssdb->hsize(req[1]);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			char buf[20];
+			sprintf(buf, "%lld", ret);
+			resp->push_back("ok");
+			resp->push_back(buf);
+		}
+	}
+	return 0;
+}
 
 int CommandProc::proc_hset(const Link &link, const Request &req, Response *resp){
 	if(req.size() < 3){
@@ -426,6 +466,11 @@ int CommandProc::proc_hdel(const Link &link, const Request &req, Response *resp)
 			resp->push_back("error");
 		}else{
 			resp->push_back("ok");
+			if(ret == 0){
+				resp->push_back("0");
+			}else{
+				resp->push_back("1");
+			}
 		}
 	}
 	return 0;

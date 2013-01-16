@@ -6,21 +6,28 @@
 #include "ssdb.h"
 #include "util/strings.h"
 
-#define score_t int64_t
 #define encode_score(s) big_endian((uint64_t)(s))
 #define decode_score(s) big_endian((uint64_t)(s))
 
 static inline
+std::string encode_zsize_key(const Bytes &name){
+	std::string buf;
+	buf.append(1, DataType::ZSCORE);
+	buf.append(1, (uint8_t)name.size());
+	buf.append(name.data(), name.size());
+	return buf;
+}
+
+static inline
 std::string encode_zs_key(const Bytes &key, const Bytes &val){
 	std::string buf;
-	buf.append(1, DataType::Z_SCORE);
+	buf.append(1, DataType::ZSCORE);
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
 	buf.append(1, (uint8_t)val.size());
 	buf.append(val.data(), val.size());
 	return buf;
 }
-
 
 static inline
 std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score){
@@ -29,7 +36,7 @@ std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score)
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
 
-	score_t s = score.Int64();
+	int64_t s = score.Int64();
 	if(s < 0){
 		buf.append(1, '-');
 	}else{
@@ -37,7 +44,7 @@ std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score)
 	}
 	s = encode_score(s);
 
-	buf.append((char *)&s, sizeof(score_t));
+	buf.append((char *)&s, sizeof(int64_t));
 	buf.append(1, '=');
 	buf.append(val.data(), val.size());
 	return buf;
@@ -70,7 +77,7 @@ int decode_z_key(const Bytes &slice, std::string *key, std::string *val, std::st
 		return -1;
 	}
 	if(score){
-		score_t s = *(score_t *)(p + 1);
+		int64_t s = *(int64_t *)(p + 1);
 		s = decode_score(s);
 		char buf[21] = {0};
 		snprintf(buf, sizeof(buf), "%lld", (long long)s);

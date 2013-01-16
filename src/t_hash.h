@@ -4,6 +4,15 @@
 #include "ssdb.h"
 
 inline static
+std::string encode_hsize_key(const Bytes &name){
+	std::string buf;
+	buf.append(1, DataType::HSIZE);
+	buf.append(1, (uint8_t)name.size());
+	buf.append(name.data(), name.size());
+	return buf;
+}
+
+inline static
 std::string encode_hash_key(const Bytes &name, const Bytes &key){
 	std::string buf;
 	buf.append(1, DataType::HASH);

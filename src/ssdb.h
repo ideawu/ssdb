@@ -31,9 +31,11 @@ static inline double microtime(){
 class DataType{
 public:
 	static const int KV			= 'k';
-	static const int Z_SCORE	= 's';
+	static const int ZSCORE		= 's';
 	static const int ZSET		= 'z'; // sorted set(sorted by score)
+	static const int ZSIZE		= 'Z';
 	static const int HASH		= 'h'; // hashmap(sorted by key)
+	static const int HSIZE		= 'H';
 };
 
 class KIterator;
@@ -79,6 +81,7 @@ public:
 
 	/* hash */
 
+	int64_t hsize(const Bytes &name) const;
 	int hset(const Bytes &name, const Bytes &key, const Bytes &val) const;
 	int hget(const Bytes &name, const Bytes &key, std::string *val) const;
 	int hdel(const Bytes &name, const Bytes &key) const;
@@ -88,6 +91,7 @@ public:
 
 	/* zset */
 
+	int64_t zsize(const Bytes &name) const;
 	int zset(const Bytes &name, const Bytes &key, const Bytes &score) const;
 	int zget(const Bytes &name, const Bytes &key, std::string *score) const;
 	int zdel(const Bytes &name, const Bytes &key) const;

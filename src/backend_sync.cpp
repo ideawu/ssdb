@@ -49,6 +49,7 @@ void* BackendSync::_run_thread(void *arg){
 		usleep(1000 * 1000);
 
 		if(client.status == Client::OUT_OF_SYNC){
+			// TODO: tell slave to clear database
 			client.re_sync();
 		}
 
