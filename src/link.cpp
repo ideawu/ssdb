@@ -100,7 +100,7 @@ Link* Link::listen(const char *ip, int port){
 	if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
 		goto sock_err;
 	}
-	if(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == 1){
+	if(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
 		goto sock_err;
 	}
 	if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
