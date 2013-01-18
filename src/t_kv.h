@@ -7,7 +7,6 @@ static inline
 std::string encode_kv_key(const Bytes &key){
 	std::string buf;
 	buf.append(1, DataType::KV);
-	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
 	return buf;
 }
@@ -22,14 +21,7 @@ int decode_kv_key(const Bytes &slice, std::string *key){
 	p += 1;
 	size -= 1;
 
-	int len;
-	len = p[0];
-	p += 1;
-	size -= 1;
-	if(size < len){
-		return -1;
-	}
-	key->assign(p, len);
+	key->assign(p, size);
 	return 0;
 }
 
