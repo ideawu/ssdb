@@ -77,7 +77,11 @@ class SSDB{
 			case 'hdel':
 			case 'multi_set':
 			case 'multi_del':
-				return new SSDB_Response(resp[0]);
+				if(len(resp) > 1){
+					return new SSDB_Response(resp[0], resp[1]);
+				}else{
+					return new SSDB_Response(resp[0]);
+				}
 				break;
 			case 'incr':
 			case 'decr':
@@ -110,8 +114,11 @@ class SSDB{
 				return new SSDB_Response(resp[0], data);
 				break;
 			case 'scan':
+			case 'rscan':
 			case 'zscan':
+			case 'zrscan':
 			case 'hscan':
+			case 'hrscan':
 				if(resp[0] == 'ok'){
 					if(len(resp) % 2 == 1){
 						data = {'index':[], 'items':{}};

@@ -42,6 +42,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 	PROC(del);
 	PROC(multi_del);
 	PROC(scan);
+	PROC(rscan);
 	PROC(keys);
 	PROC(incr);
 	PROC(decr);
@@ -51,6 +52,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 	PROC(zset);
 	PROC(zdel);
 	PROC(zscan);
+	PROC(zrscan);
 	PROC(zkeys);
 	PROC(zincr);
 	PROC(zdecr);
@@ -60,6 +62,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 	PROC(hset);
 	PROC(hdel);
 	PROC(hscan);
+	PROC(hrscan);
 	PROC(hkeys);
 	PROC(hincr);
 	PROC(hdecr);
@@ -227,6 +230,22 @@ int CommandProc::proc_scan(const Link &link, const Request &req, Response *resp)
 	return 0;
 }
 
+int CommandProc::proc_rscan(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		int limit = req[3].Int();
+		KIterator *it = ssdb->rscan(req[1], req[2], limit);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->val);
+		}
+		delete it;
+	}
+	return 0;
+}
+
 int CommandProc::proc_keys(const Link &link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
@@ -361,6 +380,22 @@ int CommandProc::proc_zscan(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
+int CommandProc::proc_zrscan(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 6){
+		resp->push_back("client_error");
+	}else{
+		int limit = req[5].Int();
+		ZIterator *it = ssdb->zrscan(req[1], req[2], req[3], req[4], limit);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->score);
+		}
+		delete it;
+	}
+	return 0;
+}
+
 int CommandProc::proc_zkeys(const Link &link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
@@ -482,6 +517,22 @@ int CommandProc::proc_hscan(const Link &link, const Request &req, Response *resp
 	}else{
 		int limit = req[4].Int();
 		HIterator *it = ssdb->hscan(req[1], req[2], req[3], limit);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->val);
+		}
+		delete it;
+	}
+	return 0;
+}
+
+int CommandProc::proc_hrscan(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 5){
+		resp->push_back("client_error");
+	}else{
+		int limit = req[4].Int();
+		HIterator *it = ssdb->hrscan(req[1], req[2], req[3], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);

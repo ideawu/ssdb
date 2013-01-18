@@ -240,6 +240,13 @@ void init(int argc, char **argv){
 		fprintf(stderr, "error loading conf file: '%s'", conf_file);
 		exit(0);
 	}
+	{
+		std::string conf_dir = real_dirname(conf_file);
+		if(chdir(conf_dir.c_str()) == -1){
+			fprintf(stderr, "error chdir: %s\n", conf_dir.c_str());
+			exit(0);
+		}
+	}
 
 	std::string work_dir;
 	{

@@ -75,7 +75,11 @@ int SSDB::hdel(const Bytes &name, const Bytes &key) const{
 	}
 	size --;
 	std::string size_key = encode_hsize_key(name);
-	batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	if(size == 0){
+		batch.Delete(size_key);
+	}else{
+		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
 	batch.Delete(hkey);
 
 	s = db->Write(write_options, &batch);
@@ -83,6 +87,22 @@ int SSDB::hdel(const Bytes &name, const Bytes &key) const{
 		return -1;
 	}
 	return 1;
+}
+
+int SSDB::hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const{
+	int64_t val;
+	std::string old;
+	int ret = this->hget(name, key, &old);
+	if(ret == -1){
+		return -1;
+	}else if(ret == 0){
+		val = by;
+	}else{
+		val = str_to_int64(old.data(), old.size()) + by;
+	}
+
+	*new_val = int64_to_str(val);
+	return this->hset(name, key, *new_val);
 }
 
 HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const{
@@ -100,18 +120,20 @@ HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, 
 	return new HIterator(this->iterator(key_start, key_end, limit), name);
 }
 
-int SSDB::hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const{
-	int64_t val;
-	std::string old;
-	int ret = this->hget(name, key, &old);
-	if(ret == -1){
-		return -1;
-	}else if(ret == 0){
-		val = by;
-	}else{
-		val = str_to_int64(old.data(), old.size()) + by;
-	}
+HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const{
+	std::string key_start, key_end;
 
-	*new_val = int64_to_str(val);
-	return this->hset(name, key, *new_val);
+	key_start = encode_hash_key(name, start);
+	if(start.empty()){
+		key_start.append(1, 255);
+	}
+	if(end.empty()){
+		key_end = "";
+	}else{
+		key_end = encode_hash_key(name, end);
+	}
+	//dump(key_start.data(), key_start.size(), "scan.start");
+	//dump(key_end.data(), key_end.size(), "scan.end");
+
+	return new HIterator(this->rev_iterator(key_start, key_end, limit), name);
 }

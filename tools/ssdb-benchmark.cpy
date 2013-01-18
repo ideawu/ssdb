@@ -97,7 +97,7 @@ function prepare_data(num){
 }
 
 function make_connections(num, host, port){
-	sys.path.append(os.path.dirname(__file__) + '/../../api/python');
+	sys.path.append('../api/python');
 	import SSDB.SSDB;
 
 	links = {};
@@ -129,6 +129,9 @@ function benchmark(cmd, prepared_data, links){
 			reqs.append(['scan', ok - 1, k + '0', 10]);
 			#reqs.append(['scan', '0', 'z', 10]);
 		}
+		if(cmd == 'rscan'){
+			reqs.append(['scan', k + '0', ok - 1, 10]);
+		}
 		if(cmd == 'del'){
 			reqs.append(['del', k]);
 		}
@@ -145,6 +148,9 @@ function benchmark(cmd, prepared_data, links){
 		if(cmd == 'zscan'){
 			reqs.append(['zscan', 'z', k, s-1, s*2, 10]);
 		}
+		if(cmd == 'zrscan'){
+			reqs.append(['zscan', 'z', k, s*2, s-1, 10]);
+		}
 
 		if(cmd == 'hset'){
 			reqs.append(['hset', 'h', k, v]);
@@ -154,6 +160,9 @@ function benchmark(cmd, prepared_data, links){
 		}
 		if(cmd == 'hscan'){
 			reqs.append(['hscan', 'h', ok - 1, k + '0', 10]);
+		}
+		if(cmd == 'hrscan'){
+			reqs.append(['hscan', 'h', k + '0', ok - 1, 10]);
 		}
 		if(cmd == 'hdel'){
 			reqs.append(['hdel', 'h', k]);
@@ -194,8 +203,8 @@ function benchmark(cmd, prepared_data, links){
 				print resp;
 			}
 			if((cmd == 'zscan' || cmd == 'scan') && len(resp) == 1){
-				print resp;
-				print cmd + ' error ' + str(link.last_req);
+				#print resp;
+				#print cmd + ' error ' + str(link.last_req);
 			}
 			if(send_count % 10 == 1){
 				#time.sleep(0.001);
@@ -237,16 +246,19 @@ links = make_connections(num_conn, host, port);
 benchmark('set', prepared_data, links);
 benchmark('get', prepared_data, links);
 benchmark('scan', prepared_data, links);
+benchmark('rscan', prepared_data, links);
 benchmark('del', prepared_data, links);
 
 benchmark('zset', prepared_data, links);
 benchmark('zget', prepared_data, links);
 benchmark('zscan', prepared_data, links);
+benchmark('zrscan', prepared_data, links);
 benchmark('zdel', prepared_data, links);
 
 benchmark('hset', prepared_data, links);
 benchmark('hget', prepared_data, links);
 benchmark('hscan', prepared_data, links);
+benchmark('hrscan', prepared_data, links);
 benchmark('hdel', prepared_data, links);
 
 foreach(links as link){

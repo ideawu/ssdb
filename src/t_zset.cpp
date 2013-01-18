@@ -100,7 +100,11 @@ int SSDB::zdel(const Bytes &name, const Bytes &key) const{
 	}
 	size --;
 	std::string size_key = encode_zsize_key(name);
-	batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	if(size == 0){
+		batch.Delete(size_key);
+	}else{
+		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
 
 	// delete score
 	k0 = encode_zs_key(name, key);
@@ -116,6 +120,22 @@ int SSDB::zdel(const Bytes &name, const Bytes &key) const{
 		return -1;
 	}
 	return 1;
+}
+
+int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const{
+	int64_t val;
+	std::string old;
+	int ret = this->zget(name, key, &old);
+	if(ret == -1){
+		return -1;
+	}else if(ret == 0){
+		val = by;
+	}else{
+		val = str_to_int64(old.data(), old.size()) + by;
+	}
+
+	*new_val = int64_to_str(val);
+	return this->zset(name, key, *new_val);
 }
 
 ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
@@ -139,18 +159,23 @@ ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
 	return new ZIterator(this->iterator(key_start, key_end, limit), name);
 }
 
-int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const{
-	int64_t val;
-	std::string old;
-	int ret = this->zget(name, key, &old);
-	if(ret == -1){
-		return -1;
-	}else if(ret == 0){
-		val = by;
+ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
+		const Bytes &score_start, const Bytes &score_end, int limit) const{
+	std::string key_start, key_end;
+
+	if(score_start.empty()){
+		key_start = encode_z_key(name, key, SSDB_SCORE_MAX);
 	}else{
-		val = str_to_int64(old.data(), old.size()) + by;
+		key_start = encode_z_key(name, key, score_start);
+	}
+	if(score_end.empty()){
+		key_end = encode_z_key(name, "", SSDB_SCORE_MIN);
+	}else{
+		key_end = encode_z_key(name, "", score_end);
 	}
 
-	*new_val = int64_to_str(val);
-	return this->zset(name, key, *new_val);
+	//dump(key_start.data(), key_start.size(), "zscan.start");
+	//dump(key_end.data(), key_end.size(), "zscan.end");
+
+	return new ZIterator(this->rev_iterator(key_start, key_end, limit), name);
 }

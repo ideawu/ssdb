@@ -126,6 +126,11 @@ class SSDB{
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function rscan($key_start, $key_end, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function keys($key_start, $key_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -147,6 +152,11 @@ class SSDB{
 	}
 
 	function zscan($name, $key_start, $score_start, $score_end, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zrscan($name, $key_start, $score_start, $score_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -182,6 +192,11 @@ class SSDB{
 	}
 
 	function hscan($name, $key_start, $key_end, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function hrscan($name, $key_start, $key_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -259,8 +274,11 @@ class SSDB{
 				}
 				return new SSDB_Response($resp[0], $data);
 			case 'scan':
+			case 'rscan':
 			case 'zscan':
+			case 'zrscan':
 			case 'hscan':
+			case 'hrscan':
 			case 'multi_get':
 				if($resp[0] == 'ok'){
 					if(count($resp) % 2 == 1){

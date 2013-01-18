@@ -61,6 +61,7 @@ class CommandProc{
 		int proc_get(const Link &link, const Request &req, Response *resp);
 		int proc_del(const Link &link, const Request &req, Response *resp);
 		int proc_scan(const Link &link, const Request &req, Response *resp);
+		int proc_rscan(const Link &link, const Request &req, Response *resp);
 		int proc_keys(const Link &link, const Request &req, Response *resp);
 		int proc_incr(const Link &link, const Request &req, Response *resp);
 		int proc_decr(const Link &link, const Request &req, Response *resp);
@@ -73,6 +74,7 @@ class CommandProc{
 		int proc_zget(const Link &link, const Request &req, Response *resp);
 		int proc_zdel(const Link &link, const Request &req, Response *resp);
 		int proc_zscan(const Link &link, const Request &req, Response *resp);
+		int proc_zrscan(const Link &link, const Request &req, Response *resp);
 		int proc_zkeys(const Link &link, const Request &req, Response *resp);
 		int proc_zincr(const Link &link, const Request &req, Response *resp);
 		int proc_zdecr(const Link &link, const Request &req, Response *resp);
@@ -82,6 +84,7 @@ class CommandProc{
 		int proc_hget(const Link &link, const Request &req, Response *resp);
 		int proc_hdel(const Link &link, const Request &req, Response *resp);
 		int proc_hscan(const Link &link, const Request &req, Response *resp);
+		int proc_hrscan(const Link &link, const Request &req, Response *resp);
 		int proc_hkeys(const Link &link, const Request &req, Response *resp);
 		int proc_hincr(const Link &link, const Request &req, Response *resp);
 		int proc_hdecr(const Link &link, const Request &req, Response *resp);

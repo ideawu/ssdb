@@ -1,6 +1,5 @@
 * log rotate
 * copyrights
-* hsize, zsize
 
 * process write request in a seperate thread?
 * process scan request in seperate threads?

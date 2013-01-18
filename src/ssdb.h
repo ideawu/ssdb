@@ -18,7 +18,7 @@
 
 
 static const int SSDB_SCORE_WIDTH		= 9;
-static const int SSDB_KEY_LEN_MAX		= 100;
+static const int SSDB_KEY_LEN_MAX		= 200;
 
 
 static inline double microtime(){
@@ -62,6 +62,7 @@ public:
 
 	// return (start, end)
 	Iterator* iterator(const std::string &start, const std::string &end, int limit) const;
+	Iterator* rev_iterator(const std::string &start, const std::string &end, int limit) const;
 
 	/* raw operates */
 
@@ -74,10 +75,10 @@ public:
 	int set(const Bytes &key, const Bytes &val) const;
 	int get(const Bytes &key, std::string *val) const;
 	int del(const Bytes &key) const;
+	int incr(const Bytes &key, int64_t by, std::string *new_val) const;
 	// return (start, end)
 	KIterator* scan(const Bytes &start, const Bytes &end, int limit) const;
-
-	int incr(const Bytes &key, int64_t by, std::string *new_val) const;
+	KIterator* rscan(const Bytes &start, const Bytes &end, int limit) const;
 
 	/* hash */
 
@@ -85,9 +86,9 @@ public:
 	int hset(const Bytes &name, const Bytes &key, const Bytes &val) const;
 	int hget(const Bytes &name, const Bytes &key, std::string *val) const;
 	int hdel(const Bytes &name, const Bytes &key) const;
-	HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
-
 	int hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const;
+	HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
+	HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
 
 	/* zset */
 
@@ -95,14 +96,15 @@ public:
 	int zset(const Bytes &name, const Bytes &key, const Bytes &score) const;
 	int zget(const Bytes &name, const Bytes &key, std::string *score) const;
 	int zdel(const Bytes &name, const Bytes &key) const;
+	int zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const;
 	/**
 	 * scan by score, but won't return @key if key.score=score_start.
 	 * return (score_start, score_end)
 	 */
 	ZIterator* zscan(const Bytes &name, const Bytes &key,
 			const Bytes &score_start, const Bytes &score_end, int limit) const;
-
-	int zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const;
+	ZIterator* zrscan(const Bytes &name, const Bytes &key,
+			const Bytes &score_start, const Bytes &score_end, int limit) const;
 };
 
 

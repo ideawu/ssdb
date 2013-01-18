@@ -101,12 +101,6 @@ try{
 }
 
 
-all_commands = [
-	'set', 'get', 'del', 'scan', 'keys', 'incr', 'decr',
-	'zset', 'zget', 'zscan', 'zdel', 'zkeys', 'zincr', 'zdecr',
-	'hset', 'hget', 'hdel', 'hscan', 'hkeys', 'hincr', 'hdecr',
-];
-
 while(true){
 	line = '';
 	c = sprintf('ssdb %s:%s> ', host, str(port));
@@ -135,10 +129,7 @@ while(true){
 	}
 	cmd = ps[0];
 	args = ps[1 .. ];
-	if(!all_commands.__contains__(cmd)){
-		#print 'unknown command: ' + cmd;
-		#continue;
-	}
+
 	retry = 0;
 	max_retry = 5;
 	while(true){
@@ -189,14 +180,18 @@ while(true){
 				print resp.code;
 				break;
 			case 'scan':
+			case 'rscan':
 			case 'hscan':
+			case 'hrscan':
 				printf('%-15s %s\n', 'key', 'value');
+				print ('-' * 22);
 				foreach(resp.data['index'] as k){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
 				}
 				printf('%d result(s)\n', len(resp.data['index']));
 				break;
 			case 'zscan':
+			case 'zrscan':
 				printf('%-15s %s\n', 'key', 'score');
 				print ('-' * 22);
 				foreach(resp.data['index'] as k){
@@ -219,6 +214,7 @@ while(true){
 			case 'multi_hget':
 			case 'multi_zget':
 				printf('%-15s %s\n', 'key', 'value');
+				print ('-' * 22);
 				foreach(resp.data as k=>v){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
 				}

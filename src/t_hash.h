@@ -7,7 +7,6 @@ inline static
 std::string encode_hsize_key(const Bytes &name){
 	std::string buf;
 	buf.append(1, DataType::HSIZE);
-	buf.append(1, (uint8_t)name.size());
 	buf.append(name.data(), name.size());
 	return buf;
 }
@@ -18,6 +17,7 @@ std::string encode_hash_key(const Bytes &name, const Bytes &key){
 	buf.append(1, DataType::HASH);
 	buf.append(1, (uint8_t)name.size());
 	buf.append(name.data(), name.size());
+	buf.append(1, '=');
 	buf.append(key.data(), key.size());
 	return buf;
 }
@@ -44,6 +44,11 @@ int decode_hash_key(const Bytes &slice, std::string *name,
 	p += len;
 	size -= len;
 
+	p += 1;
+	size -= 1;
+	if(size < 0){
+		return -1;
+	}
 	key->assign(p, size);
 	return 0;
 }

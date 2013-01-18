@@ -63,5 +63,7 @@ if not is_compile:
 	sys.path.insert(0, os.path.dirname(dstfile))
 	try:
 		execfile(dstfile)
-	except:
+	except Exception,e:
+		import traceback
+		sys.stderr.write(traceback.format_exc())
 		pass
