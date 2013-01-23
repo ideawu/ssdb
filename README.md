@@ -73,6 +73,9 @@ $ ./ssdb-server ssdb.conf
 
 # start slave
 $ ./ssdb-server ssdb_slave.conf
+
+# ssdb command line
+$ ./tools/ssdb-cli
 ```
 
 ## Who's using SSDB?
