@@ -97,7 +97,7 @@ int SyncLogQueue::find(uint64_t seq, SyncLog *log){
 
 int SyncLogQueue::find_last(SyncLog *log){
 	Locking l(&mutex);
-	log_debug("");
+	//log_debug("");
 
 	if(this->size == 0){
 		return 0;
