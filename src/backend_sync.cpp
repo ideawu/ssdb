@@ -46,7 +46,7 @@ void* BackendSync::_run_thread(void *arg){
 	int idle = 0;
 	while(1){
 		// TEST: simulate slow network
-		usleep(1000 * 1000);
+		//usleep(1000 * 1000);
 
 		if(client.status == Client::OUT_OF_SYNC){
 			// TODO: tell slave to clear database
