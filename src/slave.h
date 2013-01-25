@@ -16,10 +16,15 @@ class Slave{
 		std::string master_ip;
 		int master_port;
 
-		static void* _run_thread(void *arg);
 		std::string status_key();
 		void load_status();
 		void save_status();
+
+		volatile bool thread_quit;
+		pthread_t run_thread_tid;
+		static void* _run_thread(void *arg);
+
+		void stop();
 	public:
 		Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port);
 		~Slave();

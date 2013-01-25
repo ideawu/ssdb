@@ -4,8 +4,10 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <limits.h>
 
 class Logger{
 	public:
@@ -22,8 +24,17 @@ class Logger{
 		static int get_level(const char *levelname);
 	private:
 		FILE *fp;
+		char filename[PATH_MAX];
 		int level_;
 		pthread_mutex_t *mutex;
+
+		uint64_t rotate_size;
+		struct{
+			uint64_t w_curr;
+			uint64_t w_total;
+		}stats;
+
+		void rotate();
 		void threadsafe();
 	public:
 		Logger();
@@ -38,7 +49,8 @@ class Logger{
 		}
 
 		int open(FILE *fp, int level=LEVEL_DEBUG, bool is_threadsafe=false);
-		int open(const char *filename, int level=LEVEL_DEBUG, bool is_threadsafe=false);
+		int open(const char *filename, int level=LEVEL_DEBUG,
+			bool is_threadsafe=false, uint64_t rotate_size=0);
 		void close();
 
 		int logv(int level, const char *fmt, va_list ap);
@@ -53,7 +65,8 @@ class Logger{
 
 
 int log_open(FILE *fp, int level=Logger::LEVEL_DEBUG, bool is_threadsafe=false);
-int log_open(const char *filename, int level=Logger::LEVEL_DEBUG, bool is_threadsafe=false);
+int log_open(const char *filename, int level=Logger::LEVEL_DEBUG,
+	bool is_threadsafe=false, uint64_t rotate_size=0);
 int log_level();
 void set_log_level(int level);
 int log_write(int level, const char *fmt, ...);
@@ -61,17 +74,15 @@ int log_write(int level, const char *fmt, ...);
 
 #ifdef NDEBUG
 	#define log_trace(fmt, args...)
-	#define log_info(fmt, args...)	\
-		log_write(Logger::LEVEL_INFO,  fmt, ##args)
 #else
 	#define log_trace(fmt, args...)	\
 		log_write(Logger::LEVEL_TRACE, "%s(%d): " fmt, __FILE__, __LINE__, ##args)
-	#define log_info(fmt, args...)	\
-		log_write(Logger::LEVEL_INFO,  "%s(%d): " fmt, __FILE__, __LINE__, ##args)
 #endif
 
 #define log_debug(fmt, args...)	\
 	log_write(Logger::LEVEL_DEBUG, "%s(%d): " fmt, __FILE__, __LINE__, ##args)
+#define log_info(fmt, args...)	\
+	log_write(Logger::LEVEL_INFO,  "%s(%d): " fmt, __FILE__, __LINE__, ##args)
 #define log_warn(fmt, args...)	\
 	log_write(Logger::LEVEL_WARN,  "%s(%d): " fmt, __FILE__, __LINE__, ##args)
 #define log_error(fmt, args...)	\

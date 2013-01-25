@@ -1,6 +1,9 @@
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <limits.h>
 #include "log.h"
 
 static Logger logger;
@@ -9,8 +12,8 @@ int log_open(FILE *fp, int level, bool is_threadsafe){
 	return logger.open(fp, level, is_threadsafe);
 }
 
-int log_open(const char *filename, int level, bool is_threadsafe){
-	return logger.open(filename, level, is_threadsafe);
+int log_open(const char *filename, int level, bool is_threadsafe, uint64_t rotate_size){
+	return logger.open(filename, level, is_threadsafe, rotate_size);
 }
 
 int log_level(){
@@ -35,6 +38,11 @@ Logger::Logger(){
 	fp = stdout;
 	level_ = LEVEL_DEBUG;
 	mutex = NULL;
+
+	filename[0] = '\0';
+	rotate_size = 0;
+	stats.w_curr = 0;
+	stats.w_total = 0;
 }
 
 Logger::~Logger(){
@@ -64,16 +72,32 @@ int Logger::open(FILE *fp, int level, bool is_threadsafe){
 	return 0;
 }
 
-int Logger::open(const char *filename, int level, bool is_threadsafe){
+int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t rotate_size){
+	if(strlen(filename) > PATH_MAX - 20){
+		fprintf(stderr, "log filename too long!");
+		return -1;
+	}
+	strcpy(this->filename, filename);
+
 	FILE *fp;
 	if(strcmp(filename, "stdout") == 0){
 		fp = stdout;
 	}else if(strcmp(filename, "stderr") == 0){
 		fp = stderr;
 	}else{
-		fp = fopen(filename, "a+");
+		fp = fopen(filename, "a");
 		if(fp == NULL){
 			return -1;
+		}
+
+		struct stat st;
+		int ret = fstat(fileno(fp), &st);
+		if(ret == -1){
+			fprintf(stderr, "fstat log file %s error!", filename);
+			return -1;
+		}else{
+			this->rotate_size = rotate_size;
+			stats.w_curr = st.st_size;
 		}
 	}
 	return this->open(fp, level, is_threadsafe);
@@ -83,6 +107,32 @@ void Logger::close(){
 	if(fp != stdin && fp != stdout){
 		fclose(fp);
 	}
+}
+
+void Logger::rotate(){
+	fclose(fp);
+	char newpath[PATH_MAX];
+	time_t time;
+	struct timeval tv;
+	struct tm *tm;
+	gettimeofday(&tv, NULL);
+	time = tv.tv_sec;
+	tm = localtime(&time);
+	sprintf(newpath, "%s.%04d%02d%02d-%02d%02d%02d",
+		this->filename,
+		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+		tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+	//printf("rename %s => %s\n", this->filename, newpath);
+	int ret = rename(this->filename, newpath);
+	if(ret == -1){
+		return;
+	}
+	fp = fopen(this->filename, "a");
+	if(fp == NULL){
+		return;
+	}
+	stats.w_curr = 0;
 }
 
 int Logger::get_level(const char *levelname){
@@ -171,6 +221,12 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	}
 	fwrite(buf, len, 1, this->fp);
 	fflush(this->fp);
+
+	stats.w_curr += len;
+	stats.w_total += len;
+	if(rotate_size > 0 && stats.w_curr > rotate_size){
+		this->rotate();
+	}
 	if(this->mutex){
 		pthread_mutex_unlock(this->mutex);
 	}

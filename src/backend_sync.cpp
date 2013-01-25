@@ -10,6 +10,23 @@ BackendSync::BackendSync(const SSDB *ssdb){
 }
 
 BackendSync::~BackendSync(){
+	thread_quit = true;
+	int retry = 0;
+	int MAX_RETRY = 50;
+	while(retry++ < MAX_RETRY){
+		// there is something wrong that sleep make other threads
+		// unable to acquire the mutex
+		{
+			Locking l(&mutex);
+			if(workers.empty()){
+				break;
+			}
+		}
+		usleep(100 * 1000);
+	}
+	if(retry >= MAX_RETRY){
+		log_info("Backend worker not exit expectedly");
+	}
 	log_debug("BackendSync finalized");
 }
 
@@ -25,11 +42,13 @@ void BackendSync::proc(const Link *link){
 		log_error("can't create thread: %s", strerror(err));
 		delete link;
 	}
+	Locking l(&mutex);
+	workers[tid] = tid;
 }
 
 void* BackendSync::_run_thread(void *arg){
 	struct run_arg *p = (struct run_arg*)arg;
-	const BackendSync *backend = p->backend;
+	BackendSync *backend = (BackendSync *)p->backend;
 	Link *link = (Link *)p->link;
 	delete p;
 
@@ -44,7 +63,7 @@ void* BackendSync::_run_thread(void *arg){
 	client.init();
 
 	int idle = 0;
-	while(1){
+	while(!backend->thread_quit){
 		// TEST: simulate slow network
 		//usleep(1000 * 1000);
 
@@ -71,7 +90,7 @@ void* BackendSync::_run_thread(void *arg){
 				}
 			}
 			// sleep longer to reduce logs.find
-			usleep(500 * 1000);
+			usleep(200 * 1000);
 		}else{
 			idle = 0;
 		}
@@ -82,8 +101,11 @@ void* BackendSync::_run_thread(void *arg){
 		}
 	}
 
-	log_info("fd: %d, delete link", link->fd());
+	log_info("SyncClient quit, fd: %d, delete link", link->fd());
 	delete link;
+
+	Locking l(&backend->mutex);
+	backend->workers.erase(pthread_self());
 	return (void *)NULL;
 }
 
@@ -156,6 +178,7 @@ void BackendSync::Client::dump(){
 		log_info("fd: %d, dump end", link->fd());
 
 		output->append_record("dump_end");
+		// TODO: send max_seq
 		output->append('\n');
 	}else{
 		Bytes key = this->iter->key();
@@ -163,7 +186,7 @@ void BackendSync::Client::dump(){
 		this->last_key = key.String();
 		log_trace("fd: %d, dump: %s", link->fd(), hexmem(key.data(), key.size()).c_str());
 
-		output->append_record("sync_set");
+		output->append_record("dump_set");
 		output->append_record("0");
 		output->append_record(key);
 		output->append_record(val);
@@ -174,7 +197,7 @@ void BackendSync::Client::dump(){
 int BackendSync::Client::sync(SyncLogQueue *logs){
 	Buffer *output = link->output;
 
-	SyncLog log;
+	Synclog log;
 	int ret;
 	if(this->status == Client::DUMP && this->next_seq == 0){
 		ret = logs->find_last(&log);
@@ -207,7 +230,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 	}else{
 		char buf[20];
 		snprintf(buf, sizeof(buf), "%llu", log.seq());
-		if(log.type() == SyncLog::SET){
+		if(log.type() == Synclog::SET){
 			std::string val;
 			int ret = backend->ssdb->raw_get(log.key(), &val);
 			if(ret == -1){
@@ -227,7 +250,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				output->append_record(val);
 				output->append('\n');
 			}
-		}else if(log.type() == SyncLog::DEL){
+		}else if(log.type() == Synclog::DEL){
 				log_trace("fd: %d, sync: del %llu %s",
 					link->fd(),
 					log.seq(),

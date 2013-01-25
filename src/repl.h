@@ -11,7 +11,7 @@
 #include "util/bytes.h"
 
 
-class SyncLog{
+class Synclog{
 	public:
 		static const char SET = 's';
 		static const char DEL = 'd';
@@ -21,11 +21,11 @@ class SyncLog{
 	public:
 		static const int MIN_SIZE = sizeof(uint64_t) + 1;
 
-		SyncLog(){}
-		SyncLog(std::string &s){
+		Synclog(){}
+		Synclog(std::string &s){
 			buf = s;
 		}
-		SyncLog(uint64_t seq, char type, const leveldb::Slice &key);
+		Synclog(uint64_t seq, char type, const leveldb::Slice &key);
 
 		uint64_t seq() const;
 		char type() const;
@@ -51,29 +51,29 @@ class SyncLogQueue{
 			int ret = start + offset;
 			return ret < total? ret : (ret - total);
 		}
-		virtual int find_by_pos(int pos, SyncLog *log) = 0;
+		virtual int find_by_pos(int pos, Synclog *log) = 0;
 	public:
 		uint64_t seq_min;
 		uint64_t seq_max;
-		virtual void put(const SyncLog &log) = 0;
+		virtual void put(const Synclog &log) = 0;
 		/** @returns
 		 1 : log.seq greater than or equal to seq
 		 0 : not found
 		 -1: error
 		 */
-		virtual int find(uint64_t seq, SyncLog *log);
-		virtual int find_last(SyncLog *log);
+		virtual int find(uint64_t seq, Synclog *log);
+		virtual int find_last(Synclog *log);
 };
 
 class MemorySyncLogQueue : public SyncLogQueue{
 	private:
-		SyncLog *ptr; // array of SyncLog
+		Synclog *ptr; // array of Synclog
 	protected:
-		int find_by_pos(int pos, SyncLog *log);
+		int find_by_pos(int pos, Synclog *log);
 	public:
 		MemorySyncLogQueue();
 		~MemorySyncLogQueue();
-		void put(const SyncLog &log);
+		void put(const Synclog &log);
 };
 
 
@@ -84,11 +84,11 @@ class PersistentSyncLogQueue : public SyncLogQueue{
 		uint64_t find_seq_at_pos(int pos);
 		int find_most_greater_seq_pos(uint64_t low_seq, int spos, int epos);
 	protected:
-		int find_by_pos(int pos, SyncLog *log);
+		int find_by_pos(int pos, Synclog *log);
 	public:
 		PersistentSyncLogQueue(leveldb::DB *db);
 		~PersistentSyncLogQueue();
-		void put(const SyncLog &log);
+		void put(const Synclog &log);
 };
 
 

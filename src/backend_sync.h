@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <vector>
 #include <string>
+#include <map>
 
 #include "ssdb.h"
 #include "link.h"
 #include "util/lock.h"
+#include "util/thread.h"
 
 class BackendSync{
 	private:
@@ -21,6 +23,9 @@ class BackendSync{
 			const Link *link;
 			const BackendSync *backend;
 		};
+		volatile bool thread_quit;
+		Mutex mutex;
+		std::map<pthread_t, pthread_t> workers;
 		static void* _run_thread(void *arg);
 		const SSDB *ssdb;
 	public:

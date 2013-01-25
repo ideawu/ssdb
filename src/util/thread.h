@@ -22,6 +22,7 @@ class Queue{
 		~Queue();
 
 		bool empty();
+		int size();
 		int push(const T item);
 		int pop(T *data);
 };
@@ -74,11 +75,8 @@ class WorkerPool{
 		~WorkerPool();
 
 		int fd_result();
-
 		void add_job(JOB job);
-
 		void get_result(JOB *job);
-
 		int start();
 		int stop();
 };
@@ -106,6 +104,17 @@ bool Queue<T>::empty(){
 		return -1;
 	}
 	ret = items.empty();
+	pthread_mutex_unlock(&mutex);
+	return ret;
+}
+
+template <class T>
+int Queue<T>::size(){
+	int ret = -1;
+	if(pthread_mutex_lock(&mutex) != 0){
+		return -1;
+	}
+	ret = items.size();
 	pthread_mutex_unlock(&mutex);
 	return ret;
 }

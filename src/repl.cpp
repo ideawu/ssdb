@@ -24,7 +24,7 @@ MyReplication::MyReplication(leveldb::DB* meta_db){
 			seq = p_logs->seq_max - backlog;
 		}
 		for(; seq<=p_logs->seq_max; seq++){
-			SyncLog log;
+			Synclog log;
 			int ret = p_logs->find(seq, &log);
 			if(ret != 1){
 				log_error("error loading sync logs from leveldb, seq: %llu", seq);
@@ -43,40 +43,40 @@ MyReplication::~MyReplication(){
 }
 
 void MyReplication::Put(uint64_t seq, const leveldb::Slice& key, const leveldb::Slice& val){
-	SyncLog log(seq, SyncLog::SET, key);
+	Synclog log(seq, Synclog::SET, key);
 	log_trace("%llu, set %s", seq, hexmem(key.data(), key.size()).c_str());
 	logs->put(log);
 }
 
 void MyReplication::Delete(uint64_t seq, const leveldb::Slice& key){
-	SyncLog log(seq, SyncLog::DEL, key);
+	Synclog log(seq, Synclog::DEL, key);
 	log_trace("%llu, del %s", seq, hexmem(key.data(), key.size()).c_str());
 	logs->put(log);
 }
 
-/* SyncLog */
+/* Synclog */
 
-SyncLog::SyncLog(uint64_t seq, char type, const leveldb::Slice &key){
+Synclog::Synclog(uint64_t seq, char type, const leveldb::Slice &key){
 	buf.append((char *)(&seq), sizeof(uint64_t));
 	buf.push_back(type);
 	buf.append(key.data(), key.size());
 }
 
-uint64_t SyncLog::seq() const{
+uint64_t Synclog::seq() const{
 	return *((uint64_t *)(buf.data()));
 }
 
-char SyncLog::type() const{
+char Synclog::type() const{
 	return buf[sizeof(uint64_t)];
 }
 
-const Bytes SyncLog::key() const{
+const Bytes Synclog::key() const{
 	return Bytes(buf.data() + KEY_POS, buf.size() - KEY_POS);
 }
 
 /* SyncLogQueue */
 
-int SyncLogQueue::find(uint64_t seq, SyncLog *log){
+int SyncLogQueue::find(uint64_t seq, Synclog *log){
 	Locking l(&mutex);
 
 	if(this->size == 0 || seq > this->seq_max){
@@ -95,9 +95,8 @@ int SyncLogQueue::find(uint64_t seq, SyncLog *log){
 	return find_by_pos(pos, log);
 }
 
-int SyncLogQueue::find_last(SyncLog *log){
+int SyncLogQueue::find_last(Synclog *log){
 	Locking l(&mutex);
-	//log_debug("");
 
 	if(this->size == 0){
 		return 0;
@@ -114,20 +113,20 @@ MemorySyncLogQueue::MemorySyncLogQueue(){
 	this->seq_max = 0;
 	this->size = 0;
 	this->start = 0;
-	this->ptr = new SyncLog[this->total];
+	this->ptr = new Synclog[this->total];
 }
 
 MemorySyncLogQueue::~MemorySyncLogQueue(){
 	delete[] this->ptr;
 }
 
-int MemorySyncLogQueue::find_by_pos(int pos, SyncLog *log){
+int MemorySyncLogQueue::find_by_pos(int pos, Synclog *log){
 	assert(pos < this->total);
 	*log = this->ptr[pos];
 	return 1;
 }
 
-void MemorySyncLogQueue::put(const SyncLog &log){
+void MemorySyncLogQueue::put(const Synclog &log){
 	Locking l(&mutex);
 
 	int idx = this->index(this->size);
@@ -157,7 +156,7 @@ static inline std::string encode_key(int pos){
 }
 
 uint64_t PersistentSyncLogQueue::find_seq_at_pos(int pos){
-	SyncLog log;
+	Synclog log;
 	if(find_by_pos(pos, &log) == 0){
 		return 0;
 	}
@@ -232,7 +231,7 @@ PersistentSyncLogQueue::PersistentSyncLogQueue(leveldb::DB *meta_db){
 PersistentSyncLogQueue::~PersistentSyncLogQueue(){
 }
 
-void PersistentSyncLogQueue::put(const SyncLog &log){
+void PersistentSyncLogQueue::put(const Synclog &log){
 	Locking l(&mutex);
 	int idx = this->index(this->size);
 
@@ -258,7 +257,7 @@ void PersistentSyncLogQueue::put(const SyncLog &log){
 		start, size, seq_min, seq_max);
 }
 
-int PersistentSyncLogQueue::find_by_pos(int pos, SyncLog *log){
+int PersistentSyncLogQueue::find_by_pos(int pos, Synclog *log){
 	leveldb::ReadOptions read_options;
 	std::string val;
 	//log_debug("get pos: %d", pos);
@@ -269,10 +268,10 @@ int PersistentSyncLogQueue::find_by_pos(int pos, SyncLog *log){
 		return 0;
 	}
 	if(s.ok()){
-		if(val.size() < SyncLog::MIN_SIZE){
+		if(val.size() < Synclog::MIN_SIZE){
 			return 0;
 		}
-		*log = SyncLog(val);
+		*log = Synclog(val);
 		return 1;
 	}
 	return 0;

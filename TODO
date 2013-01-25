@@ -1,4 +1,6 @@
-* log rotate
+* redesign replication
+  * redesign SynclogQueue
+  * diff-patch after sync recover
 * copyrights
 
 * process write request in a seperate thread?

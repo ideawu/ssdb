@@ -12,9 +12,13 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
 	this->last_key = "";
 
 	load_status();
+	log_debug("next_seq: %llu, last_key: %s",
+		next_seq, hexmem(last_key.data(), last_key.size()).c_str());
 }
 
 Slave::~Slave(){
+	log_debug("stopping slave thread...");
+	stop();
 	log_debug("Slave finalized");
 }
 
@@ -58,10 +62,19 @@ void Slave::save_status(){
 }
 
 void Slave::start(){
-	pthread_t tid;
-	int err = pthread_create(&tid, NULL, &Slave::_run_thread, this);
+	thread_quit = false;
+	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
 	if(err != 0){
 		log_error("can't create thread: %s", strerror(err));
+	}
+}
+
+void Slave::stop(){
+	thread_quit = true;
+	void *tret;
+	int err = pthread_join(run_thread_tid, &tret);
+    if(err != 0){
+		log_error("can't join thread: %s", strerror(err));
 	}
 }
 
@@ -124,14 +137,17 @@ void* Slave::_run_thread(void *arg){
 
 	int retry = 0;
 	const std::vector<Bytes> *req;
-	while(true){
+	while(!slave->thread_quit){
 		if(link == NULL){
-			if(retry){
-				int t = retry > 15? 15 : retry;
-				usleep(t * 1000 * 1000);
-				log_info("[%d] connecting to master at %s:%d...", retry, ip, port);
+			usleep(100 * 1000);
+			if(retry > 100){
+				retry = 61;
 			}
-			link = connect(ip, port, slave->next_seq, slave->last_key);
+			// TODO: 找一个公式
+			if(retry == 0 || retry == 10 || retry == 30 || retry == 60 || retry == 100){
+				log_info("[%d] connecting to master at %s:%d...", retry, ip, port);
+				link = connect(ip, port, slave->next_seq, slave->last_key);
+			}
 			if(link == NULL){
 				retry ++;
 				continue;
@@ -158,31 +174,47 @@ void* Slave::_run_thread(void *arg){
 		}
 
 		Bytes cmd = req->at(0);
-		if(cmd == "sync_set"){
-			log_trace("recv sync: %s", serialize_req(*req).c_str());
+		if(cmd == "dump_begin"){
+			log_info("dump begin");
+			// TODO: patch-diff old data
+		}else if(cmd == "dump_end"){
+			log_info("dump end, step in sync");
+			slave->last_key = "";
+			slave->save_status();
+		}else if(cmd == "dump_set"){
+			log_debug("%s", serialize_req(*req).c_str());
 			if(req->size() != 4){
-				log_warn("invalid set params!");
+				log_warn("invalid dump_set params!");
 				break;
 			}
-			uint64_t seq = req->at(1).Uint64();
 			Bytes key = req->at(2);
 			Bytes val = req->at(3);
-			if(seq == 0){
-				// dump
-				slave->last_key = key.String();
-			}else{
-				// sync
-				slave->next_seq = seq + 1;
-			}
+			slave->last_key = key.String();
 
 			int ret = ssdb->raw_set(key, val);
 			if(ret == -1){
 				log_error("ssdb.raw_set error!");
 			}
+			slave->save_status();
+		}else if(cmd == "sync_set"){
+			log_debug("%s", serialize_req(*req).c_str());
+			if(req->size() != 4){
+				log_warn("invalid sync_set params!");
+				break;
+			}
+			uint64_t seq = req->at(1).Uint64();
+			Bytes key = req->at(2);
+			Bytes val = req->at(3);
+			// sync
+			slave->next_seq = seq + 1;
 
+			int ret = ssdb->raw_set(key, val);
+			if(ret == -1){
+				log_error("ssdb.raw_set error!");
+			}
 			slave->save_status();
 		}else if(cmd == "sync_del"){
-			log_trace("recv sync: %s", serialize_req(*req).c_str());
+			log_debug("%s", serialize_req(*req).c_str());
 			if(req->size() != 3){
 				log_warn("invalid del params!");
 				break;
@@ -203,9 +235,6 @@ void* Slave::_run_thread(void *arg){
 			}
 
 			slave->save_status();
-		}else if(cmd == "dump_end"){
-			log_info("dump end, step in sync");
-			slave->last_key = "";
 		}else if(cmd == "noop"){
 			//
 		}else{

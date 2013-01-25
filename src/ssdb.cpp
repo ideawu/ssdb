@@ -15,11 +15,11 @@ SSDB::SSDB(){
 }
 
 SSDB::~SSDB(){
-	if(db){
-		delete db;
-	}
 	if(slave){
 		delete slave;
+	}
+	if(db){
+		delete db;
 	}
 	if(replication){
 		delete replication;

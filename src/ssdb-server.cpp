@@ -24,7 +24,7 @@ void init(int argc, char **argv);
 void run(int argc, char **argv);
 
 
-bool quit = false;
+volatile bool quit = false;
 Config *conf = NULL;
 SSDB *ssdb = NULL;
 Link *serv_link = NULL;
@@ -267,13 +267,15 @@ void init(int argc, char **argv){
 	}
 
 	std::string log_output;
+	int log_rotate_size = 0;
 	{ // logger
 		int log_level = Logger::get_level(conf->get_str("logger.level"));
+		log_rotate_size = conf->get_num("logger.rotate.size");
 		log_output = conf->get_str("logger.output");
 		if(log_output == ""){
 			log_output = "stdout";
 		}
-		if(log_open(log_output.c_str(), log_level, true) == -1){
+		if(log_open(log_output.c_str(), log_level, true, log_rotate_size) == -1){
 			fprintf(stderr, "error open log file: %s", log_output.c_str());
 			exit(0);
 		}
@@ -283,6 +285,7 @@ void init(int argc, char **argv){
 	log_info("conf_file  : %s", conf_file);
 	log_info("work_dir   : %s", work_dir.c_str());
 	log_info("log_output : %s", log_output.c_str());
+	log_info("log_rotate_size : %d", log_rotate_size);
 
 	if(is_daemon){
 		daemonize();
