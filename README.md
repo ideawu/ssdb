@@ -5,7 +5,7 @@ SSDB, also known as zdb, is a fast key-value(key-string, key-zset, key-hashmap) 
 ## Features
 
 * LevelDB client-server support, written in C/C++
-* Persistent key-value, key-zset, key-hashmap storage([https://github.com/ideawu/ssdb/wiki/Commands](Commands))
+* Persistent key-value, key-zset, key-hashmap storage([Commands](https://github.com/ideawu/ssdb/wiki/Commands))
 * Client API supports including [PHP](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API), Python, Cpy
 * Online backup, fast recover
 * **Replication(master-slave), load balance**
