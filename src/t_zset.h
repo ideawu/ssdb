@@ -12,7 +12,7 @@
 static inline
 std::string encode_zsize_key(const Bytes &name){
 	std::string buf;
-	buf.append(1, DataType::ZSCORE);
+	buf.append(1, DataType::ZSIZE);
 	buf.append(name.data(), name.size());
 	return buf;
 }
