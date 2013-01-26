@@ -12,6 +12,20 @@ std::string encode_hsize_key(const Bytes &name){
 }
 
 inline static
+int decode_hsize_key(const Bytes &slice, std::string *name){
+	int size = slice.size();
+	if(size < 1){
+		return -1;
+	}
+	const char *p = slice.data();
+	p += 1;
+	size -= 1;
+
+	name->assign(p, size);
+	return 0;
+}
+
+inline static
 std::string encode_hash_key(const Bytes &name, const Bytes &key){
 	std::string buf;
 	buf.append(1, DataType::HASH);

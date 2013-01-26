@@ -65,7 +65,9 @@ void* BackendSync::_run_thread(void *arg){
 	int idle = 0;
 	while(!backend->thread_quit){
 		// TEST: simulate slow network
+		#ifndef NDEBUG
 		//usleep(1000 * 1000);
+		#endif
 
 		if(client.status == Client::OUT_OF_SYNC){
 			// TODO: tell slave to clear database
@@ -116,7 +118,7 @@ BackendSync::Client::Client(const BackendSync *backend){
 	status = Client::INIT;
 	this->backend = backend;
 	link = NULL;
-	next_seq = 0;
+	last_seq = 0;
 	last_key = "";
 	iter = NULL;
 }
@@ -129,29 +131,36 @@ BackendSync::Client::~Client(){
 
 void BackendSync::Client::init(){
 	const std::vector<Bytes>* req = this->link->last_recv();
-	next_seq = 0;
+	last_seq = 0;
 	if(req->size() > 1){
-		next_seq = req->at(1).Uint64();
+		last_seq = req->at(1).Uint64();
 	}
 	last_key = "";
 	if(req->size() > 2){
 		last_key = req->at(2).String();
 	}
-	if(next_seq == 0 || last_key != ""){
-		if(next_seq == 0){
+	if(last_seq == 0 || last_key != ""){
+		if(last_seq == 0){
 			// in case that slave has an error that last_key is not empty
 			last_key = "";
 			log_info("fd: %d, new slave, make a full dumping", link->fd());
 		}else{
 			// last_key != ""
 			// a slave must reset its last_key when receiving 'dump_end' command
-			log_info("fd: %d, recover dumping", link->fd());
+			log_info("fd: %d, dump, seq: %llu, key: %s",
+				link->fd(),
+				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+				);
 		}
 		std::string end = "";
 		int limit = 2147483647;
 		this->iter = backend->ssdb->iterator(last_key, end, limit);
 		this->status = Client::DUMP;
 	}else{
+		log_info("fd: %d, sync, seq: %llu, key: %s",
+			link->fd(),
+			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+			);
 		this->status = Client::SYNC;
 	}
 }
@@ -165,7 +174,7 @@ void BackendSync::Client::re_sync(){
 	int limit = 2147483647;
 	this->iter = backend->ssdb->iterator(start, end, limit);
 	this->status = Client::DUMP;
-	this->next_seq = 0;
+	this->last_seq = 0;
 	this->last_key = "";
 }
 
@@ -176,9 +185,7 @@ void BackendSync::Client::dump(){
 		this->iter = NULL;
 		this->status = Client::SYNC;
 		log_info("fd: %d, dump end", link->fd());
-
 		output->append_record("dump_end");
-		// TODO: send max_seq
 		output->append('\n');
 	}else{
 		Bytes key = this->iter->key();
@@ -187,7 +194,13 @@ void BackendSync::Client::dump(){
 		log_trace("fd: %d, dump: %s", link->fd(), hexmem(key.data(), key.size()).c_str());
 
 		output->append_record("dump_set");
-		output->append_record("0");
+		if(this->last_seq > 0){
+			char buf[20];
+			snprintf(buf, sizeof(buf), "%llu", this->last_seq);
+			output->append_record(buf);
+		}else{
+			output->append_record("0");
+		}
 		output->append_record(key);
 		output->append_record(val);
 		output->append('\n');
@@ -197,21 +210,26 @@ void BackendSync::Client::dump(){
 int BackendSync::Client::sync(SyncLogQueue *logs){
 	Buffer *output = link->output;
 
+	uint64_t expect_seq = this->last_seq + 1;
 	Synclog log;
 	int ret;
-	if(this->status == Client::DUMP && this->next_seq == 0){
+	if(this->status == Client::DUMP && this->last_seq == 0){
 		ret = logs->find_last(&log);
 	}else{
-		ret = logs->find(this->next_seq, &log);
+		ret = logs->find(expect_seq, &log);
 	}
 	if(ret == 0){
 		return 0;
 	}
-
-	uint64_t expect_seq = this->next_seq;
-	this->next_seq = log.seq() + 1;
+		log_trace("fd: %d, seq: %llu, key: %s",
+			link->fd(),
+			log.seq(),
+			hexmem(log.key().data(), log.key().size()).c_str());
 
 	if(this->iter && log.key() > this->last_key){
+		// update last_seq
+		this->last_seq = log.seq();
+
 		log_trace("fd: %d, seq: %llu, drop: %s, last_key: %s",
 			link->fd(),
 			log.seq(),
@@ -220,14 +238,17 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 		return 0;
 	}
 
-	if(expect_seq != 0 && log.seq() != expect_seq){
-		log_warn("fd: %d, OUT_OF_SYNC! seq: %llu, next_seq: %llu",
+	if(this->last_seq != 0 && log.seq() != expect_seq){
+		log_warn("fd: %d, OUT_OF_SYNC! seq: %llu, last_seq: %llu",
 			link->fd(),
 			log.seq(),
 			expect_seq
 			);
 		this->status = Client::OUT_OF_SYNC;
 	}else{
+		// update last_seq
+		this->last_seq = log.seq();
+
 		char buf[20];
 		snprintf(buf, sizeof(buf), "%llu", log.seq());
 		if(log.type() == Synclog::SET){
@@ -251,10 +272,10 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				output->append('\n');
 			}
 		}else if(log.type() == Synclog::DEL){
-				log_trace("fd: %d, sync: del %llu %s",
-					link->fd(),
-					log.seq(),
-					hexmem(log.key().data(), log.key().size()).c_str());
+			log_trace("fd: %d, sync: del %llu %s",
+				link->fd(),
+				log.seq(),
+				hexmem(log.key().data(), log.key().size()).c_str());
 
 			output->append_record("sync_del");
 			output->append_record(buf);

@@ -179,3 +179,28 @@ ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
 
 	return new ZIterator(this->rev_iterator(key_start, key_end, limit), name);
 }
+
+int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, int limit,
+		std::vector<std::string> *list) const{
+	std::string start;
+	std::string end;
+	start = encode_zsize_key(name_s);
+	if(!end.empty()){
+		end = encode_zsize_key(name_e);
+	}
+	Iterator *it = this->iterator(start, end, limit);
+	while(it->next()){
+		Bytes ks = it->key();
+		//dump(ks.data(), ks.size());
+		if(ks.data()[0] != DataType::ZSIZE){
+			break;
+		}
+		std::string n;
+		if(decode_zsize_key(ks, &n) == -1){
+			continue;
+		}
+		list->push_back(n);
+	}
+	delete it;
+	return 0;
+}

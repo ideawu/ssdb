@@ -36,36 +36,38 @@ CommandProc::CommandProc(const SSDB *ssdb){
 
 #define PROC(c) proc_map[#c] = &CommandProc::proc_##c
 	PROC(get);
-	PROC(multi_get);
 	PROC(set);
-	PROC(multi_set);
 	PROC(del);
-	PROC(multi_del);
+	PROC(incr);
+	PROC(decr);
 	PROC(scan);
 	PROC(rscan);
 	PROC(keys);
-	PROC(incr);
-	PROC(decr);
-
-	PROC(zsize);
-	PROC(zget);
-	PROC(zset);
-	PROC(zdel);
-	PROC(zscan);
-	PROC(zrscan);
-	PROC(zkeys);
-	PROC(zincr);
-	PROC(zdecr);
+	PROC(multi_get);
+	PROC(multi_set);
+	PROC(multi_del);
 
 	PROC(hsize);
 	PROC(hget);
 	PROC(hset);
 	PROC(hdel);
+	PROC(hincr);
+	PROC(hdecr);
 	PROC(hscan);
 	PROC(hrscan);
 	PROC(hkeys);
-	PROC(hincr);
-	PROC(hdecr);
+	PROC(hlist);
+
+	PROC(zsize);
+	PROC(zget);
+	PROC(zset);
+	PROC(zdel);
+	PROC(zincr);
+	PROC(zdecr);
+	PROC(zscan);
+	PROC(zrscan);
+	PROC(zkeys);
+	PROC(zlist);
 
 	PROC(dump);
 	PROC(sync);
@@ -411,6 +413,25 @@ int CommandProc::proc_zkeys(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
+int CommandProc::proc_zlist(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		int limit = req[3].Int();
+		std::vector<std::string> list;
+		int ret = ssdb->zlist(req[1], req[2], limit, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
+	}
+	return 0;
+}
+
 // dir := +1|-1
 static int _zincr(const SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
@@ -556,6 +577,25 @@ int CommandProc::proc_hkeys(const Link &link, const Request &req, Response *resp
 			resp->push_back(it->key);
 		}
 		delete it;
+	}
+	return 0;
+}
+
+int CommandProc::proc_hlist(const Link &link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		int limit = req[3].Int();
+		std::vector<std::string> list;
+		int ret = ssdb->hlist(req[1], req[2], limit, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
 	}
 	return 0;
 }

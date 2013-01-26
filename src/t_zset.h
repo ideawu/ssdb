@@ -17,6 +17,20 @@ std::string encode_zsize_key(const Bytes &name){
 	return buf;
 }
 
+inline static
+int decode_zsize_key(const Bytes &slice, std::string *name){
+	int size = slice.size();
+	if(size < 1){
+		return -1;
+	}
+	const char *p = slice.data();
+	p += 1;
+	size -= 1;
+
+	name->assign(p, size);
+	return 0;
+}
+
 static inline
 std::string encode_zs_key(const Bytes &key, const Bytes &val){
 	std::string buf;

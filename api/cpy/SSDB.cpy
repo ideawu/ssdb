@@ -4,7 +4,7 @@
  * @author: ideawu
  * @link: http://www.ideawu.com/
  *
- * SSDB cpy API.
+ * SSDB Cpy client SDK.
  */
 
 import socket;
@@ -83,12 +83,6 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
-			case 'incr':
-			case 'decr':
-			case 'zincr':
-			case 'zdecr':
-			case 'hincr':
-			case 'hdecr':
 			case 'get':
 			case 'zget':
 			case 'hget':
@@ -102,9 +96,34 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+			case 'incr':
+			case 'decr':
+			case 'zincr':
+			case 'zdecr':
+			case 'hincr':
+			case 'hdecr':
+			case 'hsize':
+			case 'zsize':
+				if(resp[0] == 'ok'){
+					if(len(resp) == 2){
+						try{
+							val = int(resp[1]);
+							return new SSDB_Response('ok', val);
+						}catch(Exception e){
+							return new SSDB_Response('server_error', 'Invalid response');
+						}
+					}else{
+						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					return new SSDB_Response(resp[0]);
+				}
+				break;
 			case 'keys':
 			case 'zkeys':
 			case 'hkeys':
+			case 'hlist':
+			case 'zlist':
 				data = [];
 				if(resp[0] == 'ok'){
 					for(i=1; i<len(resp); i++){
@@ -115,8 +134,6 @@ class SSDB{
 				break;
 			case 'scan':
 			case 'rscan':
-			case 'zscan':
-			case 'zrscan':
 			case 'hscan':
 			case 'hrscan':
 				if(resp[0] == 'ok'){
@@ -125,6 +142,30 @@ class SSDB{
 						for(i=1; i<len(resp); i+=2){
 							k = resp[i];
 							v = resp[i + 1];
+							data['index'].append(k);
+							data['items'][k] = v;
+						}
+						return new SSDB_Response('ok', data);
+					}else{
+						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					return new SSDB_Response(resp[0]);
+				}
+				break;
+			case 'zscan':
+			case 'zrscan':
+				if(resp[0] == 'ok'){
+					if(len(resp) % 2 == 1){
+						data = {'index':[], 'items':{}};
+						for(i=1; i<len(resp); i+=2){
+							k = resp[i];
+							v = resp[i + 1];
+							try{
+								v = int(v);
+							}catch(Exception e){
+								v = -1;
+							}
 							data['index'].append(k);
 							data['items'][k] = v;
 						}

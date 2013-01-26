@@ -42,7 +42,7 @@ struct BackendSync::Client{
 
 	int status;
 	Link *link;
-	uint64_t next_seq;
+	uint64_t last_seq;
 	std::string last_key;
 	Iterator *iter;
 	const BackendSync *backend;

@@ -109,9 +109,7 @@ HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, 
 	std::string key_start, key_end;
 
 	key_start = encode_hash_key(name, start);
-	if(end.empty()){
-		key_end = "";
-	}else{
+	if(!end.empty()){
 		key_end = encode_hash_key(name, end);
 	}
 	//dump(key_start.data(), key_start.size(), "scan.start");
@@ -127,13 +125,35 @@ HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end,
 	if(start.empty()){
 		key_start.append(1, 255);
 	}
-	if(end.empty()){
-		key_end = "";
-	}else{
+	if(!end.empty()){
 		key_end = encode_hash_key(name, end);
 	}
 	//dump(key_start.data(), key_start.size(), "scan.start");
 	//dump(key_end.data(), key_end.size(), "scan.end");
 
 	return new HIterator(this->rev_iterator(key_start, key_end, limit), name);
+}
+
+int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, int limit,
+		std::vector<std::string> *list) const{
+	std::string start;
+	std::string end;
+	start = encode_hsize_key(name_s);
+	if(!end.empty()){
+		end = encode_hsize_key(name_e);
+	}
+	Iterator *it = this->iterator(start, end, limit);
+	while(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] != DataType::HSIZE){
+			break;
+		}
+		std::string n;
+		if(decode_hsize_key(ks, &n) == -1){
+			continue;
+		}
+		list->push_back(n);
+	}
+	delete it;
+	return 0;
 }

@@ -5,7 +5,7 @@
  * @author: ideawu
  * @link: http://www.ideawu.com/
  *
- * SSDB PHP API.
+ * SSDB PHP client SDK.
  */
 
 class SSDB_Response{
@@ -136,6 +136,8 @@ class SSDB{
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	/* zset */
+
 	function zset($name, $item, $score){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -175,6 +177,18 @@ class SSDB{
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
+
+	function zsize($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zlist($name_start, $name_end, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	/* hashmap */
 
 	function hset($name, $key, $val){
 		$args = func_get_args();
@@ -216,6 +230,16 @@ class SSDB{
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function hsize($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function hlist($name_start, $name_end, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function __call($cmd, $params=array()){
 		$req = array($cmd);
 		foreach($params as $p){
@@ -253,6 +277,8 @@ class SSDB{
 			case 'get':
 			case 'zget':
 			case 'hget':
+			case 'hsize':
+			case 'zsize':
 				if($resp[0] == 'ok'){
 					if(count($resp) == 2){
 						return new SSDB_Response('ok', $resp[1]);
@@ -266,6 +292,8 @@ class SSDB{
 			case 'keys':
 			case 'zkeys':
 			case 'hkeys':
+			case 'hlist':
+			case 'zlist':
 				$data = array();
 				if($resp[0] == 'ok'){
 					for($i=1; $i<count($resp); $i++){

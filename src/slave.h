@@ -8,7 +8,7 @@
 
 class Slave{
 	private:
-		uint64_t next_seq;
+		uint64_t last_seq;
 		std::string last_key;
 
 		const SSDB *ssdb;

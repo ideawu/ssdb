@@ -8,18 +8,27 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
 	this->master_ip = std::string(ip);
 	this->master_port = port;
 
-	this->next_seq = 0;
+	this->last_seq = 0;
 	this->last_key = "";
 
 	load_status();
-	log_debug("next_seq: %llu, last_key: %s",
-		next_seq, hexmem(last_key.data(), last_key.size()).c_str());
+	log_debug("last_seq: %llu, last_key: %s",
+		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
 }
 
 Slave::~Slave(){
 	log_debug("stopping slave thread...");
 	stop();
 	log_debug("Slave finalized");
+}
+
+void Slave::stop(){
+	thread_quit = true;
+	void *tret;
+	int err = pthread_join(run_thread_tid, &tret);
+    if(err != 0){
+		log_error("can't join thread: %s", strerror(err));
+	}
 }
 
 std::string Slave::status_key(){
@@ -44,10 +53,10 @@ void Slave::load_status(){
 		if(status.size() < sizeof(uint64_t)){
 			log_error("invlid format of status");
 		}else{
-			next_seq = *((uint64_t *)(status.data()));
+			last_seq = *((uint64_t *)(status.data()));
 			last_key = std::string(status.data() + sizeof(uint64_t), status.size() - sizeof(uint64_t));
 			log_debug("load_status seq: %llu, key: %s",
-				next_seq,
+				last_seq,
 				hexmem(last_key.data(), last_key.size()).c_str());
 		}
 	}
@@ -56,7 +65,7 @@ void Slave::load_status(){
 void Slave::save_status(){
 	std::string key = status_key();
 	std::string status;
-	status.append((char *)&this->next_seq, sizeof(uint64_t));
+	status.append((char *)&this->last_seq, sizeof(uint64_t));
 	status.append(this->last_key);
 	meta_db->Put(leveldb::WriteOptions(), key, status);
 }
@@ -66,15 +75,6 @@ void Slave::start(){
 	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
 	if(err != 0){
 		log_error("can't create thread: %s", strerror(err));
-	}
-}
-
-void Slave::stop(){
-	thread_quit = true;
-	void *tret;
-	int err = pthread_join(run_thread_tid, &tret);
-    if(err != 0){
-		log_error("can't join thread: %s", strerror(err));
 	}
 }
 
@@ -102,15 +102,16 @@ static std::string serialize_req(T &req){
 	return ret;
 }
 
-static Link* connect(const char *ip, int port, uint64_t next_seq, std::string &last_key){
+static Link* connect(const char *ip, int port, uint64_t last_seq, std::string &last_key){
 	Link *link = Link::connect(ip, port);
 	if(link == NULL){
 		log_error("failed to connect to master: %s:%d!", ip, port);
 		goto err;
 	}
+	// TODO: set link.recv_timeout
 
 	char seq_buf[20];
-	sprintf(seq_buf, "%llu", next_seq);
+	sprintf(seq_buf, "%llu", last_seq);
 
 	link->output->append_record("sync");
 	link->output->append_record(seq_buf);
@@ -146,7 +147,7 @@ void* Slave::_run_thread(void *arg){
 			// TODO: 找一个公式
 			if(retry == 0 || retry == 10 || retry == 30 || retry == 60 || retry == 100){
 				log_info("[%d] connecting to master at %s:%d...", retry, ip, port);
-				link = connect(ip, port, slave->next_seq, slave->last_key);
+				link = connect(ip, port, slave->last_seq, slave->last_key);
 			}
 			if(link == NULL){
 				retry ++;
@@ -187,9 +188,13 @@ void* Slave::_run_thread(void *arg){
 				log_warn("invalid dump_set params!");
 				break;
 			}
+			uint64_t seq = req->at(1).Uint64();
 			Bytes key = req->at(2);
 			Bytes val = req->at(3);
 			slave->last_key = key.String();
+			if(seq > 0){
+				slave->last_seq = seq;
+			}
 
 			int ret = ssdb->raw_set(key, val);
 			if(ret == -1){
@@ -206,7 +211,7 @@ void* Slave::_run_thread(void *arg){
 			Bytes key = req->at(2);
 			Bytes val = req->at(3);
 			// sync
-			slave->next_seq = seq + 1;
+			slave->last_seq = seq;
 
 			int ret = ssdb->raw_set(key, val);
 			if(ret == -1){
@@ -221,13 +226,7 @@ void* Slave::_run_thread(void *arg){
 			}
 			uint64_t seq = req->at(1).Uint64();
 			Bytes key = req->at(2);
-			if(seq == 0){
-				// dump
-				slave->last_key = key.String();
-			}else{
-				// sync
-				slave->next_seq = seq + 1;
-			}
+			slave->last_seq = seq;
 
 			int ret = ssdb->raw_del(key);
 			if(ret == -1){

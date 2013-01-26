@@ -169,6 +169,8 @@ while(true){
 			case 'zdecr':
 			case 'hincr':
 			case 'hdecr':
+			case 'hsize':
+			case 'zsize':
 				print repr_data(resp.data);
 				break;
 			case 'set':
@@ -204,6 +206,15 @@ while(true){
 			case 'zkeys':
 			case 'hkeys':
 				printf('  %15s\n', 'key');
+				print ('-' * 17);
+				foreach(resp.data as k){
+					printf('  %15s\n', repr_data(k));
+				}
+				printf('%d result(s)\n', len(resp.data));
+				break;
+			case 'hlist':
+			case 'zlist':
+				printf('  %15s\n', 'name');
 				print ('-' * 17);
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));

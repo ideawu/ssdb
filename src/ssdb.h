@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
+#include <vector>
 #include "leveldb/db.h"
 #include "leveldb/options.h"
 
@@ -89,6 +90,8 @@ public:
 	int hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const;
 	HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
 	HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
+	int hlist(const Bytes &name_s, const Bytes &name_e, int limit,
+			std::vector<std::string> *list) const;
 
 	/* zset */
 
@@ -105,6 +108,8 @@ public:
 			const Bytes &score_start, const Bytes &score_end, int limit) const;
 	ZIterator* zrscan(const Bytes &name, const Bytes &key,
 			const Bytes &score_start, const Bytes &score_end, int limit) const;
+	int zlist(const Bytes &name_s, const Bytes &name_e, int limit,
+			std::vector<std::string> *list) const;
 };
 
 
