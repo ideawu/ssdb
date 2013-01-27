@@ -80,7 +80,7 @@ $ ./tools/ssdb-cli
 
 ## Who's using SSDB?
 
-See Users
+See [Users](https://github.com/ideawu/ssdb/wiki/Users)
 
 ## About
 
