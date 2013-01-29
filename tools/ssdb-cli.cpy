@@ -90,6 +90,7 @@ if(opt_err){
 host = opts['-h'];
 port = int(opts['-p']);
 
+sys.path.append('./api/python');
 sys.path.append('../api/python');
 import SSDB.SSDB;
 
@@ -132,8 +133,12 @@ while(true){
 
 	retry = 0;
 	max_retry = 5;
+	import datetime;
+	stime = datetime.datetime.now();
 	while(true){
+		stime = datetime.datetime.now();
 		resp = link.request(cmd, args);
+		etime = datetime.datetime.now();
 		if(resp.code == 'disconnected'){
 			link.close();
 			time.sleep(retry);
@@ -156,8 +161,11 @@ while(true){
 		}
 	}
 
+	ts = etime - stime;
+	time_consume = ts.seconds + ts.microseconds/1000000.;
 	if(!resp.ok()){
 		print 'error: ' + resp.code;
+		printf('(%.3f sec)\n', time_consume);
 	}else{
 		switch(cmd){
 			case 'get':
@@ -172,6 +180,7 @@ while(true){
 			case 'hsize':
 			case 'zsize':
 				print repr_data(resp.data);
+				printf('(%.3f sec)\n', time_consume);
 				break;
 			case 'set':
 			case 'zset':
@@ -180,6 +189,7 @@ while(true){
 			case 'zdel':
 			case 'hdel':
 				print resp.code;
+				printf('(%.3f sec)\n', time_consume);
 				break;
 			case 'scan':
 			case 'rscan':
@@ -190,7 +200,7 @@ while(true){
 				foreach(resp.data['index'] as k){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
 				}
-				printf('%d result(s)\n', len(resp.data['index']));
+				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
 				break;
 			case 'zscan':
 			case 'zrscan':
@@ -200,7 +210,7 @@ while(true){
 					score = resp.data['items'][k];
 					printf('  %-15s: %s\n', repr_data(repr_data(k)), score);
 				}
-				printf('%d result(s)\n', len(resp.data['index']));
+				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
 				break;
 			case 'keys':
 			case 'zkeys':
@@ -210,7 +220,7 @@ while(true){
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
-				printf('%d result(s)\n', len(resp.data));
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
 				break;
 			case 'hlist':
 			case 'zlist':
@@ -219,7 +229,7 @@ while(true){
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
-				printf('%d result(s)\n', len(resp.data));
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
 				break;
 			case 'multi_get':
 			case 'multi_hget':
@@ -229,10 +239,11 @@ while(true){
 				foreach(resp.data as k=>v){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
 				}
-				printf('%d result(s)\n', len(resp.data));
+				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
 				break;
 			default:
 				print repr_data(resp.code), repr_data(resp.data);
+				printf('(%.3f sec)\n', time_consume);
 				break;
 		}
 	}
