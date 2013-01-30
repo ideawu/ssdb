@@ -45,11 +45,11 @@ class Iterator{
 				return false;
 			}
 			if(direction == FORWARD){
-				if(!end.empty() && it->key() >= end){
+				if(!end.empty() && it->key() > end){
 					return false;
 				}
 			}else{
-				if(!end.empty() && it->key() <= end){
+				if(!end.empty() && it->key() < end){
 					return false;
 				}
 			}
