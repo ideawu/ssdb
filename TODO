@@ -1,5 +1,3 @@
-* hlist, zlist
-
 * redesign replication
   * redesign SynclogQueue
   * diff-patch after sync recover
