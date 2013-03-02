@@ -82,7 +82,7 @@ $ ./tools/ssdb-cli
 
 See [Users](https://github.com/ideawu/ssdb/wiki/Users)
 
-## About
+## Links
 
 * [Author's homepage](http://www.ideawu.com/blog/)
 * [SSDB 中文文档](http://www.ideawu.net/blog/category/ssdb)
