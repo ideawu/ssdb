@@ -8,7 +8,8 @@
  * SSDB PHP client SDK.
  */
 
-class SSDB_Response{
+class SSDB_Response
+{
 	public $code;
 	public $data = null;
 	public $message;
@@ -40,7 +41,8 @@ class SSDB_Response{
 	}
 }
 
-class SSDB{
+class SSDB
+{
 	private $debug = false;
 	public $sock = null;
 	private $_closed = false;
