@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <string>
+#include <pthread.h>
+#include <vector>
 #include "ssdb.h"
 #include "link.h"
 
@@ -12,6 +14,7 @@ class Slave{
 		std::string last_key;
 
 		const SSDB *ssdb;
+		Link *link;
 		leveldb::DB* meta_db;
 		std::string master_ip;
 		int master_port;
@@ -23,8 +26,13 @@ class Slave{
 		volatile bool thread_quit;
 		pthread_t run_thread_tid;
 		static void* _run_thread(void *arg);
+		int proc_sync_cmd(const std::vector<Bytes> *req);
 
+		int connect();
 		void stop();
+		bool connected(){
+			return link != NULL;
+		}
 	public:
 		Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port);
 		~Slave();

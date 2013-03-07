@@ -1,2 +1,10 @@
 *.o
+.DS_Store
+*.pyc
+var/*
+var_slave/*
+*.swp
+*_cpy_*
+ssdb-server
+tools/ssdb-dump
 

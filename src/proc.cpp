@@ -101,7 +101,7 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 
 	if(log_level() >= Logger::LEVEL_DEBUG){
 		std::string log_buf = serialize_req(*resp);
-		log_debug("resp: %s", log_buf.c_str());
+		log_debug("req: %s, resp: %s", req[0].String().c_str(), log_buf.c_str());
 	}
 
 	return ret;

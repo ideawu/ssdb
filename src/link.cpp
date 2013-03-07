@@ -148,6 +148,9 @@ int Link::read(){
 	int want;
 	input->nice();
 	while((want = input->space()) > 0){
+		if(want > 128 * 1024){
+			want = 128 * 1024;
+		}
 		// test
 		//want = 1;
 		int len = ::read(sock, input->slot(), want);

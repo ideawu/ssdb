@@ -62,9 +62,10 @@ void run(int argc, char **argv){
 
 	while(!quit){
 		if(ready_list.empty()){
+			// only sleep 1ms, give links that are not in ready_list a chance
 			events = select.wait(1);
 		}else{
-			events = select.wait(0);
+			events = select.wait(200);
 		}
 		if(events == NULL){
 			log_fatal("events.wait error: %s", strerror(errno));

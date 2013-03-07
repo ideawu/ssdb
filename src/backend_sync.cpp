@@ -6,8 +6,8 @@
 #include "repl.h"
 
 BackendSync::BackendSync(const SSDB *ssdb){
-	this->ssdb = ssdb;
 	thread_quit = false;
+	this->ssdb = ssdb;
 }
 
 BackendSync::~BackendSync(){
@@ -85,7 +85,7 @@ void* BackendSync::_run_thread(void *arg){
 		}
 		if(is_empty){
 			idle ++;
-			if(idle == 4){
+			if(idle == 10){
 				idle = 0;
 				if(link->send("noop") == -1){
 					log_debug("fd: %d, send error", link->fd());
@@ -148,7 +148,7 @@ void BackendSync::Client::init(){
 		}else{
 			// last_key != ""
 			// a slave must reset its last_key when receiving 'dump_end' command
-			log_info("fd: %d, dump, seq: %llu, key: %s",
+			log_info("fd: %d, dump recover, seq: %llu, key: %s",
 				link->fd(),
 				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
 				);
@@ -158,7 +158,7 @@ void BackendSync::Client::init(){
 		this->iter = backend->ssdb->iterator(last_key, end, limit);
 		this->status = Client::DUMP;
 	}else{
-		log_info("fd: %d, sync, seq: %llu, key: %s",
+		log_info("fd: %d, sync recover, seq: %llu, key: %s",
 			link->fd(),
 			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
 			);
@@ -222,11 +222,13 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 	if(ret == 0){
 		return 0;
 	}
-		log_trace("fd: %d, seq: %llu, key: %s",
-			link->fd(),
-			log.seq(),
-			hexmem(log.key().data(), log.key().size()).c_str());
-
+	/*
+	log_trace("fd: %d, seq: %llu, key: %s",
+		link->fd(),
+		log.seq(),
+		hexmem(log.key().data(), log.key().size()).c_str());
+	*/
+	
 	if(this->iter && log.key() > this->last_key){
 		// update last_seq
 		this->last_seq = log.seq();
@@ -261,7 +263,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				log_trace("skip not found: %s", hexmem(log.key().data(), log.key().size()).c_str());
 				// not found, ignore
 			}else{
-				log_trace("fd: %d, sync: set %llu %s",
+				log_trace("fd: %d, sync_set %llu %s",
 					link->fd(),
 					log.seq(),
 					hexmem(log.key().data(), log.key().size()).c_str());
@@ -273,7 +275,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				output->append('\n');
 			}
 		}else if(log.type() == Synclog::DEL){
-			log_trace("fd: %d, sync: del %llu %s",
+			log_trace("fd: %d, sync_del %llu %s",
 				link->fd(),
 				log.seq(),
 				hexmem(log.key().data(), log.key().size()).c_str());
