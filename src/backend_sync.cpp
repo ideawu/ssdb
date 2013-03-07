@@ -7,6 +7,7 @@
 
 BackendSync::BackendSync(const SSDB *ssdb){
 	this->ssdb = ssdb;
+	thread_quit = false;
 }
 
 BackendSync::~BackendSync(){
