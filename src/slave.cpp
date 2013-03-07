@@ -3,6 +3,7 @@
 #include "slave.h"
 
 Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
+	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta_db = meta_db;
 	this->master_ip = std::string(ip);
