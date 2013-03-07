@@ -1,5 +1,6 @@
 #ifndef UTIL_FDE_SELECT_H
 #define UTIL_FDE_SELECT_H
+#include<log.h>
 
 Fdevents::Fdevents(){
 	maxfd = -1;
@@ -38,7 +39,7 @@ int Fdevents::del(int fd){
 
 	struct Fdevent *fde = get_fde(fd);
 	fde->s_flags = FDEVENT_NONE;
-	while(this->events[maxfd]->s_flags == 0){
+	while(maxfd >= 0 && this->events[maxfd]->s_flags == 0){
 		maxfd --;
 	}
 	return 0;
