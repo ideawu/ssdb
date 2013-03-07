@@ -1,7 +1,13 @@
 LEVELDB=leveldb-1.8.0
 LEVELDB_PATH = ../deps/${LEVELDB}
 CFLAGS += -I./ -I${LEVELDB_PATH}/include
+
+ifeq ($(shell uname), Darwin)
+CLIBS += -L${LEVELDB_PATH} -lleveldb
+else
 CLIBS += -static -L${LEVELDB_PATH} -lleveldb
+endif
+
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o proc.o link.o backend_dump.o backend_sync.o repl.o slave.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
 EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.exe
