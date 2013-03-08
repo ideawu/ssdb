@@ -72,7 +72,7 @@ void* BackendSync::_run_thread(void *arg){
 
 		if(client.status == Client::OUT_OF_SYNC){
 			// TODO: tell slave to clear database
-			client.re_sync();
+			client.reset_sync();
 		}
 
 		bool is_empty = true;
@@ -145,6 +145,7 @@ void BackendSync::Client::init(){
 			// in case that slave has an error that last_key is not empty
 			last_key = "";
 			log_info("fd: %d, new slave, make a full dumping", link->fd());
+			// TODO: send dump_begin
 		}else{
 			// last_key != ""
 			// a slave must reset its last_key when receiving 'dump_end' command
@@ -166,7 +167,7 @@ void BackendSync::Client::init(){
 	}
 }
 
-void BackendSync::Client::re_sync(){
+void BackendSync::Client::reset_sync(){
 	if(this->iter){
 		delete this->iter;
 	}
@@ -177,6 +178,7 @@ void BackendSync::Client::re_sync(){
 	this->status = Client::DUMP;
 	this->last_seq = 0;
 	this->last_key = "";
+	// TODO: send dump_begin
 }
 
 void BackendSync::Client::dump(){

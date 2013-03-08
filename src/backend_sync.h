@@ -50,7 +50,7 @@ struct BackendSync::Client{
 	Client(const BackendSync *backend);
 	~Client();
 	void init();
-	void re_sync();
+	void reset_sync();
 	void dump();
 	int sync(SyncLogQueue *logs);
 };
