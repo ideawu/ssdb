@@ -15,6 +15,7 @@ $port = 8888;
 
 try{
 	$ssdb = new SSDB($host, $port);
+	//$ssdb->easy();
 }catch(Exception $e){
 	die(__LINE__ . ' ' . $e->getMessage());
 }

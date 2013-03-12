@@ -48,6 +48,8 @@ class SSDB
 	public $sock = null;
 	private $_closed = false;
 	private $recv_buf = '';
+	private $_easy = false;
+	public $last_resp = null;
 
 	function __construct($host, $port, $timeout_ms=200){
 		$this->sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -65,6 +67,16 @@ class SSDB
 			socket_set_option($this->sock, SOL_TCP, TCP_NODELAY, 1);
 		}
 	}
+	
+	/**
+	 * After this method invoked, all requesting methods
+	 * will not return a SSDB_Response object.
+	 * And some certain methods like get/zget will return false
+	 * when response is not ok(not_found, etc)
+	 */
+	function easy(){
+		$this->_easy = true;
+	}
 
 	function close(){
 		if(!$this->_closed){
@@ -76,6 +88,21 @@ class SSDB
 
 	function closed(){
 		return $this->_closed;
+	}
+
+	function __call($cmd, $params=array()){
+		$resp = $this->call__($cmd, $params);
+		$this->last_resp = $resp;
+		if($this->_easy){
+			if(!$resp->ok() && !is_array($resp->data)){
+				return false;
+			}else{
+				return $resp->data;
+			}
+		}else{
+			$resp->cmd = $cmd;
+			return $resp;
+		}
 	}
 
 	// all supported are listed, for documentation purpose
@@ -321,12 +348,6 @@ class SSDB
 	function hlist($name_start, $name_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function __call($cmd, $params=array()){
-		$resp = $this->call__($cmd, $params);
-		$resp->cmd = $cmd;
-		return $resp;
 	}
 	
 	function call__($cmd, $params=array()){
