@@ -8,6 +8,14 @@
  * SSDB PHP client SDK.
  */
 
+class SimpleSSDB extends SSDB
+{
+	function __construct($host, $port, $timeout_ms=200){
+		parent::__construct($host, $port, $timeout_ms);
+		$this->easy();
+	}
+}
+
 class SSDB_Response
 {
 	public $cmd;
@@ -69,7 +77,7 @@ class SSDB
 	}
 	
 	/**
-	 * After this method invoked, all requesting methods
+	 * After this method invoked with yesno=true, all requesting methods
 	 * will not return a SSDB_Response object.
 	 * And some certain methods like get/zget will return false
 	 * when response is not ok(not_found, etc)
