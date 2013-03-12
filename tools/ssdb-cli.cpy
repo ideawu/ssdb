@@ -168,6 +168,31 @@ while(true){
 		printf('(%.3f sec)\n', time_consume);
 	}else{
 		switch(cmd){
+            case 'exists':
+            case 'hexists':
+            case 'zexists':
+                if(resp.data == true){
+                    printf('true\n');
+                }else{
+                    printf('false\n');
+                }
+				printf('(%.3f sec)\n', time_consume);
+                break;
+            case 'multi_exists':
+            case 'multi_hexists':
+            case 'multi_zexists':
+				printf('%-15s %s\n', 'key', 'value');
+				print ('-' * 25);
+                foreach(resp.data as k=>v){
+                    if(v == true){
+                        s = 'true';
+                    }else{
+                        s = 'false';
+                    }
+					printf('  %-15s : %s\n', repr_data(k), s);
+                }
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+                break;
 			case 'get':
 			case 'zget':
 			case 'hget':
@@ -179,6 +204,9 @@ while(true){
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
+            case 'multi_del':
+            case 'multi_hdel':
+            case 'multi_zdel':
 				print repr_data(resp.data);
 				printf('(%.3f sec)\n', time_consume);
 				break;
@@ -196,7 +224,7 @@ while(true){
 			case 'hscan':
 			case 'hrscan':
 				printf('%-15s %s\n', 'key', 'value');
-				print ('-' * 22);
+				print ('-' * 25);
 				foreach(resp.data['index'] as k){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
 				}
@@ -205,7 +233,7 @@ while(true){
 			case 'zscan':
 			case 'zrscan':
 				printf('%-15s %s\n', 'key', 'score');
-				print ('-' * 22);
+				print ('-' * 25);
 				foreach(resp.data['index'] as k){
 					score = resp.data['items'][k];
 					printf('  %-15s: %s\n', repr_data(repr_data(k)), score);
@@ -235,11 +263,11 @@ while(true){
 			case 'multi_hget':
 			case 'multi_zget':
 				printf('%-15s %s\n', 'key', 'value');
-				print ('-' * 22);
+				print ('-' * 25);
 				foreach(resp.data as k=>v){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
 				break;
 			default:
 				print repr_data(resp.code), repr_data(resp.data);

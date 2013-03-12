@@ -1,6 +1,7 @@
 #ifndef UTIL_FDE_SELECT_H
 #define UTIL_FDE_SELECT_H
-#include<log.h>
+#include <errno.h>
+#include "log.h"
 
 Fdevents::Fdevents(){
 	maxfd = -1;
@@ -62,6 +63,8 @@ const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 	struct Fdevent *fde;
 	int i, ret;
 
+	ready_events.clear();
+	
 	fd_set t_readset = readset;
 	fd_set t_writeset = writeset;
 
@@ -73,11 +76,12 @@ const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 		ret = ::select(maxfd + 1, &t_readset, &t_writeset, NULL, NULL);
 	}
 	if(ret < 0){
-		// error!
+		if(errno == EINTR){
+			return &ready_events;
+		}
 		return NULL;
 	}
 
-	ready_events.clear();
 	if(ret > 0){
 		for(i = 0; i <= maxfd && (int)ready_events.size() < ret; i++){
 			fde = this->events[i];

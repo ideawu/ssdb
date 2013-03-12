@@ -57,6 +57,24 @@ echo $ssdb->multi_set(array('a' => '1', 'b' => 2)) . "\n";
 echo $ssdb->multi_get(array('a', 'b')) . "\n";
 echo $ssdb->multi_del(array('a', 'b')) . "\n";
 echo $ssdb->multi_get(array('a', 'b')) . "\n";
+echo $ssdb->multi_hsize(array('test', 'a')) . "\n";
+echo $ssdb->multi_zsize(array('test', 'a')) . "\n";
+echo "\n";
+
+echo $ssdb->multi_hset('test', array('a'=>1, 'b'=>2)) . "\n";
+echo $ssdb->multi_zset('test', array('a'=>1, 'b'=>2)) . "\n";
+echo $ssdb->multi_hget('test', array('a', 'b')) . "\n";
+echo $ssdb->multi_zget('test', array('a', 'b')) . "\n";
+echo $ssdb->multi_hdel('test', array('a', 'b')) . "\n";
+echo $ssdb->multi_zdel('test', array('a', 'b')) . "\n";
+
+echo "\n";
+echo $ssdb->exists('test') . "\n";
+echo $ssdb->hexists('test') . "\n";
+echo $ssdb->zexists('test') . "\n";
+echo $ssdb->multi_exists(array('test', 'a')) . "\n";
+echo $ssdb->multi_hexists(array('test', 'a')) . "\n";
+echo $ssdb->multi_zexists(array('test', 'a')) . "\n";
 
 $ssdb->close();
 

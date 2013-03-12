@@ -40,7 +40,7 @@ repl.o: ssdb.h repl.h repl.cpp
 slave.o: ssdb.h slave.h slave.cpp
 	g++ ${CFLAGS} -c slave.cpp
 
-proc.o: ssdb.h proc.h proc.cpp
+proc.o: ssdb.h proc.h proc.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp
 	g++ ${CFLAGS} -c proc.cpp
 
 backend_dump.o: ssdb.h backend_dump.h backend_dump.cpp

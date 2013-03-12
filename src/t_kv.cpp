@@ -1,5 +1,38 @@
 #include "t_kv.h"
 
+int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset) const{
+	leveldb::WriteBatch batch;
+	std::vector<Bytes>::const_iterator it;
+	it = kvs.begin() + offset;
+	for(; it != kvs.end(); it += 2){
+		const Bytes &key = *it;
+		const Bytes &val = *(it + 1);
+		std::string buf = encode_kv_key(key);
+		batch.Put(buf, val.Slice());
+	}
+	leveldb::Status s = db->Write(write_options, &batch);
+	if(!s.ok()){
+		log_error("multi_set error: %s", s.ToString().c_str());
+		return -1;
+	}
+	return kvs.size() - offset;
+}
+
+int SSDB::multi_del(const std::vector<Bytes> &keys, int offset) const{
+	leveldb::WriteBatch batch;
+	for(; offset < keys.size(); offset += 1){
+		const Bytes &key = keys[offset];
+		std::string buf = encode_kv_key(key);
+		batch.Delete(buf);
+	}
+	leveldb::Status s = db->Write(write_options, &batch);
+	if(!s.ok()){
+		log_error("multi_del error: %s", s.ToString().c_str());
+		return -1;
+	}
+	return keys.size() - offset;
+}
+
 int SSDB::set(const Bytes &key, const Bytes &val) const{
 	std::string buf = encode_kv_key(key);
 

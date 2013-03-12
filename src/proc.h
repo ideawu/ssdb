@@ -57,6 +57,22 @@ class CommandProc{
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 
+#define _DEF_PROC(f) int proc_##f(const Link &link, const Request &req, Response *resp)
+		_DEF_PROC(exists);
+		_DEF_PROC(multi_exists);
+		_DEF_PROC(hexists);
+		_DEF_PROC(multi_hexists);
+		_DEF_PROC(multi_hget);
+		_DEF_PROC(multi_hset);
+		_DEF_PROC(multi_hdel);
+		_DEF_PROC(multi_hsize);
+		_DEF_PROC(zexists);
+		_DEF_PROC(multi_zexists);
+		_DEF_PROC(multi_zget);
+		_DEF_PROC(multi_zset);
+		_DEF_PROC(multi_zdel);
+		_DEF_PROC(multi_zsize);
+#undef _DEF_PROC
 		int proc_set(const Link &link, const Request &req, Response *resp);
 		int proc_get(const Link &link, const Request &req, Response *resp);
 		int proc_del(const Link &link, const Request &req, Response *resp);

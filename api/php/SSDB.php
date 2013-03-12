@@ -10,6 +10,7 @@
 
 class SSDB_Response
 {
+	public $cmd;
 	public $code;
 	public $data = null;
 	public $message;
@@ -26,10 +27,10 @@ class SSDB_Response
 	function __toString(){
 		if($this->code == 'ok'){
 			$s = $this->data === null? '' : json_encode($this->data);
-			return $this->code . ' ' . $s;
 		}else{
-			return $this->code . ' ' . $this->message;
+			$s = $this->message;
 		}
+		return sprintf('%-13s %12s %s', $this->cmd, $this->code, $s);
 	}
 
 	function ok(){
@@ -79,17 +80,92 @@ class SSDB
 
 	// all supported are listed, for documentation purpose
 
-	function set($key, $val){
+	function multi_set($kvs=array()){
+		$args = array();
+		foreach($kvs as $k=>$v){
+			$args[] = $k;
+			$args[] = $v;
+		}
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_get($args=array()){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function multi_set($pairs=array()){
-		$args = array();
-		foreach($pairs as $k=>$v){
+	function multi_del($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_exists($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_hexists($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_zexists($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_hsize($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_zsize($keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_hget($name, $keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_zget($name, $keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_hdel($name, $keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_zdel($name, $keys=array()){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_hset($name, $kvs=array()){
+		$args = array($name);
+		foreach($kvs as $k=>$v){
 			$args[] = $k;
 			$args[] = $v;
 		}
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function multi_zset($name, $kvs=array()){
+		$args = array($name);
+		foreach($kvs as $k=>$v){
+			$args[] = $k;
+			$args[] = $v;
+		}
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	/**/
+
+	function set($key, $val){
+		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
@@ -103,22 +179,17 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function exists($key){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function get($key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function multi_get($keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
 	function del($key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_del($keys=array()){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -146,6 +217,11 @@ class SSDB
 	}
 
 	function zget($name, $item){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zexists($key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -202,6 +278,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function hexists($key){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function hdel($name, $key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -243,6 +324,12 @@ class SSDB
 	}
 
 	function __call($cmd, $params=array()){
+		$resp = $this->call__($cmd, $params);
+		$resp->cmd = $cmd;
+		return $resp;
+	}
+	
+	function call__($cmd, $params=array()){
 		$req = array($cmd);
 		foreach($params as $p){
 			if(is_array($p)){
@@ -267,20 +354,27 @@ class SSDB
 			case 'del':
 			case 'zdel':
 			case 'hdel':
+			case 'hsize':
+			case 'zsize':
+			case 'exists':
+			case 'hexists':
+			case 'zexists':
 			case 'multi_set':
 			case 'multi_del':
-				return new SSDB_Response($resp[0], $resp[1]);
+			case 'multi_hset':
+			case 'multi_hdel':
+			case 'multi_zset':
+			case 'multi_zdel':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
 			case 'zdecr':
 			case 'hincr':
 			case 'hdecr':
-			case 'get':
 			case 'zget':
+				return new SSDB_Response($resp[0], intval($resp[1]));
+			case 'get':
 			case 'hget':
-			case 'hsize':
-			case 'zsize':
 				if($resp[0] == 'ok'){
 					if(count($resp) == 2){
 						return new SSDB_Response('ok', $resp[1]);
@@ -309,7 +403,14 @@ class SSDB
 			case 'zrscan':
 			case 'hscan':
 			case 'hrscan':
+			case 'multi_hsize':
+			case 'multi_zsize':
 			case 'multi_get':
+			case 'multi_hget':
+			case 'multi_zget':
+			case 'multi_exists':
+			case 'multi_hexists':
+			case 'multi_zexists':
 				if($resp[0] == 'ok'){
 					if(count($resp) % 2 == 1){
 						$data = array();

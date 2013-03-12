@@ -1,6 +1,58 @@
 #include "t_hash.h"
 #include "ssdb.h"
 
+static int hset_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
+		const Bytes &name, const Bytes &key, const Bytes &val);
+static int hdel_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
+	 	const Bytes &name, const Bytes &key);
+
+int SSDB::multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset) const{
+	leveldb::Status s;
+	leveldb::WriteBatch batch;
+	int ret = 0;
+	
+	std::vector<Bytes>::const_iterator it;
+	it = kvs.begin() + offset;
+	for(; it != kvs.end(); it += 2){
+		const Bytes &key = *it;
+		const Bytes &val = *(it + 1);
+		int tmp = hset_one(this, batch, name, key, val);
+		if(tmp == -1){
+			return -1;
+		}
+		ret += tmp;
+	}
+	if(ret > 0){
+		s = db->Write(write_options, &batch);
+		if(!s.ok()){
+			log_error("zdel error: %s", s.ToString().c_str());
+			return -1;
+		}
+	}
+	return ret;
+}
+
+int SSDB::multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset) const{
+	leveldb::Status s;
+	leveldb::WriteBatch batch;
+	int ret = 0;
+	
+	std::vector<Bytes>::const_iterator it;
+	it = keys.begin() + offset;
+	for(; it != keys.end(); it++){
+		const Bytes &key = *it;
+		ret += hdel_one(this, batch, name, key);
+	}
+	if(ret > 0){
+		s = db->Write(write_options, &batch);
+		if(!s.ok()){
+			log_error("zdel error: %s", s.ToString().c_str());
+			return -1;
+		}
+	}
+	return ret;
+}
+
 int64_t SSDB::hsize(const Bytes &name) const{
 	std::string size_key = encode_hsize_key(name);
 	std::string val;
@@ -21,29 +73,17 @@ int64_t SSDB::hsize(const Bytes &name) const{
 }
 
 int SSDB::hset(const Bytes &name, const Bytes &key, const Bytes &val) const{
-	std::string hkey = encode_hash_key(name, key);
-	std::string dbval;
 	leveldb::Status s;
 	leveldb::WriteBatch batch;
-
-	if(this->hget(name, key, &dbval) == 0){
-		int64_t size = this->hsize(name);
-		if(size == -1){
+	
+	int ret = hset_one(this, batch, name, key, val);
+	if(ret > 0){
+		s = db->Write(write_options, &batch);
+		if(!s.ok()){
 			return -1;
 		}
-		size ++;
-		std::string size_key = encode_hsize_key(name);
-		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
-	if(dbval != val){
-		batch.Put(hkey, val.Slice());
-	}
-
-	s = db->Write(write_options, &batch);
-	if(!s.ok()){
-		return -1;
-	}
-	return 1;
+	return ret;
 }
 
 int SSDB::hget(const Bytes &name, const Bytes &key, std::string *val) const{
@@ -60,33 +100,17 @@ int SSDB::hget(const Bytes &name, const Bytes &key, std::string *val) const{
 }
 
 int SSDB::hdel(const Bytes &name, const Bytes &key) const{
-	std::string hkey = encode_hash_key(name, key);
-	std::string dbval;
 	leveldb::Status s;
 	leveldb::WriteBatch batch;
-
-	if(this->hget(name, key, &dbval) == 0){
-		return 0;
+	
+	int ret = hdel_one(this, batch, name, key);
+	if(ret > 0){
+		s = db->Write(write_options, &batch);
+		if(!s.ok()){
+			return -1;
+		}
 	}
-
-	int64_t size = this->hsize(name);
-	if(size == -1){
-		return -1;
-	}
-	size --;
-	std::string size_key = encode_hsize_key(name);
-	if(size == 0){
-		batch.Delete(size_key);
-	}else{
-		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
-	}
-	batch.Delete(hkey);
-
-	s = db->Write(write_options, &batch);
-	if(!s.ok()){
-		return -1;
-	}
-	return 1;
+	return ret;
 }
 
 int SSDB::hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val) const{
@@ -156,4 +180,46 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, int limit,
 	}
 	delete it;
 	return 0;
+}
+
+static int hset_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
+		const Bytes &name, const Bytes &key, const Bytes &val){
+	std::string dbval;
+	if(ssdb->hget(name, key, &dbval) == 0){
+		int64_t size = ssdb->hsize(name);
+		if(size == -1){
+			return -1;
+		}
+		size ++;
+		std::string size_key = encode_hsize_key(name);
+		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
+	if(dbval != val){
+		std::string hkey = encode_hash_key(name, key);
+		batch.Put(hkey, val.Slice());
+	}
+	return 1;
+}
+
+static int hdel_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
+	 	const Bytes &name, const Bytes &key){
+	std::string dbval;
+	if(ssdb->hget(name, key, &dbval) == 0){
+		return 0;
+	}
+
+	int64_t size = ssdb->hsize(name);
+	if(size == -1){
+		return -1;
+	}
+	size --;
+	std::string size_key = encode_hsize_key(name);
+	if(size == 0){
+		batch.Delete(size_key);
+	}else{
+		batch.Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
+	std::string hkey = encode_hash_key(name, key);
+	batch.Delete(hkey);
+	return 1;
 }

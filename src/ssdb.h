@@ -80,6 +80,8 @@ public:
 	// return (start, end)
 	KIterator* scan(const Bytes &start, const Bytes &end, int limit) const;
 	KIterator* rscan(const Bytes &start, const Bytes &end, int limit) const;
+	int multi_set(const std::vector<Bytes> &kvs, int offset=0) const;
+	int multi_del(const std::vector<Bytes> &keys, int offset=0) const;
 
 	/* hash */
 
@@ -92,6 +94,8 @@ public:
 	HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const;
 	int hlist(const Bytes &name_s, const Bytes &name_e, int limit,
 			std::vector<std::string> *list) const;
+	int multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0) const;
+	int multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0) const;
 
 	/* zset */
 
@@ -110,6 +114,8 @@ public:
 			const Bytes &score_start, const Bytes &score_end, int limit) const;
 	int zlist(const Bytes &name_s, const Bytes &name_e, int limit,
 			std::vector<std::string> *list) const;
+	int multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0) const;
+	int multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0) const;
 };
 
 
