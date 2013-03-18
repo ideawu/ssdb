@@ -13,8 +13,9 @@
 
 class Synclog{
 	public:
-		static const char SET = 's';
-		static const char DEL = 'd';
+		static const char SET  = 's';
+		static const char DEL  = 'd';
+		static const char NOOP = 'n';
 	private:
 		std::string buf;
 		static const int KEY_POS = sizeof(uint64_t) + 1;
@@ -25,6 +26,7 @@ class Synclog{
 		Synclog(std::string &s){
 			buf = s;
 		}
+		Synclog(uint64_t seq, char type);
 		Synclog(uint64_t seq, char type, const leveldb::Slice &key);
 
 		uint64_t seq() const;
@@ -43,7 +45,6 @@ class Synclog{
 class SyncLogQueue{
 	protected:
 		Mutex mutex;
-		int total;
 		int start;
 		int size;
 
@@ -53,6 +54,7 @@ class SyncLogQueue{
 		}
 		virtual int find_by_pos(int pos, Synclog *log) = 0;
 	public:
+		int total;
 		uint64_t seq_min;
 		uint64_t seq_max;
 		virtual void put(const Synclog &log) = 0;
@@ -80,7 +82,7 @@ class MemorySyncLogQueue : public SyncLogQueue{
 class PersistentSyncLogQueue : public SyncLogQueue{
 	private:
 		leveldb::DB* meta_db;
-		leveldb::WriteOptions write_options;
+
 		uint64_t find_seq_at_pos(int pos);
 		int find_most_greater_seq_pos(uint64_t low_seq, int spos, int epos);
 	protected:
@@ -101,6 +103,7 @@ class MyReplication : public leveldb::Replication{
 
 		PersistentSyncLogQueue *logs;
 
+		void Noop(uint64_t seq);
 		void Put(uint64_t seq, const leveldb::Slice &key, const leveldb::Slice &val);
 		void Delete(uint64_t seq, const leveldb::Slice &key);
 };

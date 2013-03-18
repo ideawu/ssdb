@@ -23,7 +23,8 @@ int SSDB::multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offse
 		ret += tmp;
 	}
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
 			return -1;
@@ -44,7 +45,8 @@ int SSDB::multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 		ret += hdel_one(this, batch, name, key);
 	}
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
 			return -1;
@@ -57,8 +59,9 @@ int64_t SSDB::hsize(const Bytes &name) const{
 	std::string size_key = encode_hsize_key(name);
 	std::string val;
 	leveldb::Status s;
+	leveldb::ReadOptions read_opts;
 
-	s = db->Get(read_options, size_key, &val);
+	s = db->Get(read_opts, size_key, &val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
@@ -78,7 +81,8 @@ int SSDB::hset(const Bytes &name, const Bytes &key, const Bytes &val) const{
 	
 	int ret = hset_one(this, batch, name, key, val);
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			return -1;
 		}
@@ -88,8 +92,9 @@ int SSDB::hset(const Bytes &name, const Bytes &key, const Bytes &val) const{
 
 int SSDB::hget(const Bytes &name, const Bytes &key, std::string *val) const{
 	std::string dbkey = encode_hash_key(name, key);
+	leveldb::ReadOptions read_opts;
 
-	leveldb::Status s = db->Get(read_options, dbkey, val);
+	leveldb::Status s = db->Get(read_opts, dbkey, val);
 	if(s.IsNotFound()){
 		return 0;
 	}
@@ -105,7 +110,8 @@ int SSDB::hdel(const Bytes &name, const Bytes &key) const{
 	
 	int ret = hdel_one(this, batch, name, key);
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			return -1;
 		}

@@ -10,8 +10,6 @@ SSDB::SSDB(){
 	meta_db = NULL;
 	slave = NULL;
 	replication = NULL;
-	iterate_options.fill_cache = false;
-	options.create_if_missing = true;
 }
 
 SSDB::~SSDB(){
@@ -38,7 +36,6 @@ SSDB::~SSDB(){
 SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	std::string main_db_path = base_dir + "/data";
 	std::string meta_db_path = base_dir + "/meta";
-	std::string role = conf.get_str("replication.role");
 	int cache_size = conf.get_num("leveldb.cache_size");
 	int write_buffer_size = conf.get_num("leveldb.write_buffer_size");
 	int block_size = conf.get_num("leveldb.block_size");
@@ -52,10 +49,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	if(block_size <= 0){
 		block_size = 4;
 	}
-	// work as master if not implicitly configured as slave
-	role = role == "slave"? "slave" : "master";
 
-	log_info("role       : %s", role.c_str());
 	log_info("main_db    : %s", main_db_path.c_str());
 	log_info("meta_db    : %s", meta_db_path.c_str());
 	log_info("cache_size : %d MB", cache_size);
@@ -64,6 +58,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 
 	SSDB *ssdb = new SSDB();
 	//
+	ssdb->options.create_if_missing = true;
 	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
 	ssdb->options.block_cache = leveldb::NewLRUCache(cache_size * 1048576);
 	ssdb->options.block_size = block_size * 1024;
@@ -79,7 +74,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		}
 	}
 
-	if(role == "master"){
+	{
 		MyReplication *repl = new MyReplication(ssdb->meta_db);
 		ssdb->replication = repl;
 		ssdb->options.replication = repl;
@@ -91,7 +86,6 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		goto err;
 	}
 
-	// a master can also be a slave
 	{ // slave
 		std::string ip;
 		int port;
@@ -114,6 +108,8 @@ err:
 
 Iterator* SSDB::iterator(const std::string &start, const std::string &end, int limit) const{
 	leveldb::Iterator *it;
+	leveldb::ReadOptions iterate_options;
+	iterate_options.fill_cache = false;
 	it = db->NewIterator(iterate_options);
 	it->Seek(start);
 	if(it->Valid() && it->key() == start){
@@ -124,6 +120,8 @@ Iterator* SSDB::iterator(const std::string &start, const std::string &end, int l
 
 Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, int limit) const{
 	leveldb::Iterator *it;
+	leveldb::ReadOptions iterate_options;
+	iterate_options.fill_cache = false;
 	it = db->NewIterator(iterate_options);
 	it->Seek(start);
 	if(!it->Valid()){
@@ -140,8 +138,10 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 
 /* raw operates */
 
-int SSDB::raw_set(const Bytes &key, const Bytes &val) const{
-	leveldb::Status s = db->Put(write_options, key.Slice(), val.Slice());
+int SSDB::raw_set(const Bytes &key, const Bytes &val, bool repl) const{
+	leveldb::WriteOptions write_opts;
+	write_opts.repl = repl;
+	leveldb::Status s = db->Put(write_opts, key.Slice(), val.Slice());
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
 		return -1;
@@ -163,8 +163,10 @@ int SSDB::raw_get(const Bytes &key, std::string *val) const{
 	return 1;
 }
 
-int SSDB::raw_del(const Bytes &key) const{
-	leveldb::Status s = db->Delete(write_options, key.Slice());
+int SSDB::raw_del(const Bytes &key, bool repl) const{
+	leveldb::WriteOptions write_opts;
+	write_opts.repl = repl;
+	leveldb::Status s = db->Delete(write_opts, key.Slice());
 	if(!s.ok()){
 		log_error("del error: %s", s.ToString().c_str());
 		return -1;

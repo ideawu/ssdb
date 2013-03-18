@@ -49,9 +49,6 @@ private:
 	leveldb::DB* db;
 	leveldb::DB* meta_db;
 	leveldb::Options options;
-	leveldb::ReadOptions read_options;
-	leveldb::ReadOptions iterate_options;
-	leveldb::WriteOptions write_options;
 
 	Slave *slave;
 	SSDB();
@@ -67,9 +64,10 @@ public:
 
 	/* raw operates */
 
-	int raw_set(const Bytes &key, const Bytes &val) const;
+	// repl: whether to sync this operation to slaves
+	int raw_set(const Bytes &key, const Bytes &val, bool repl=false) const;
 	int raw_get(const Bytes &key, std::string *val) const;
-	int raw_del(const Bytes &key) const;
+	int raw_del(const Bytes &key, bool repl=false) const;
 
 	/* key value */
 

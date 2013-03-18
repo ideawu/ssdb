@@ -120,6 +120,7 @@ BackendSync::Client::Client(const BackendSync *backend){
 	this->backend = backend;
 	link = NULL;
 	last_seq = 0;
+	last_noop_seq = 0;
 	last_key = "";
 	iter = NULL;
 }
@@ -254,8 +255,8 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 		// update last_seq
 		this->last_seq = log.seq();
 
-		char buf[20];
-		snprintf(buf, sizeof(buf), "%llu", log.seq());
+		char seq_buf[20];
+		snprintf(seq_buf, sizeof(seq_buf), "%llu", log.seq());
 		if(log.type() == Synclog::SET){
 			std::string val;
 			int ret = backend->ssdb->raw_get(log.key(), &val);
@@ -271,7 +272,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 					hexmem(log.key().data(), log.key().size()).c_str());
 
 				output->append_record("sync_set");
-				output->append_record(buf);
+				output->append_record(seq_buf);
 				output->append_record(log.key());
 				output->append_record(val);
 				output->append('\n');
@@ -283,9 +284,21 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				hexmem(log.key().data(), log.key().size()).c_str());
 
 			output->append_record("sync_del");
-			output->append_record(buf);
+			output->append_record(seq_buf);
 			output->append_record(log.key());
 			output->append('\n');
+		}else if(log.type() == Synclog::NOOP){
+			if(this->last_seq - this->last_noop_seq >= logs->total/2){
+				this->last_noop_seq = this->last_seq;
+				
+				log_trace("fd: %d, sync_noop %llu",
+					link->fd(),
+					log.seq());
+
+				output->append_record("sync_noop");
+				output->append_record(seq_buf);
+				output->append('\n');
+			}
 		}else{
 			log_error("unknown sync log type: %d", log.type());
 		}

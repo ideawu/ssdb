@@ -42,6 +42,12 @@ MyReplication::~MyReplication(){
 	//delete p_logs;
 }
 
+void MyReplication::Noop(uint64_t seq){
+	Synclog log(seq, Synclog::NOOP);
+	log_trace("%llu, noop", seq);
+	logs->put(log);
+}
+
 void MyReplication::Put(uint64_t seq, const leveldb::Slice& key, const leveldb::Slice& val){
 	Synclog log(seq, Synclog::SET, key);
 	log_trace("%llu, set %s", seq, hexmem(key.data(), key.size()).c_str());
@@ -54,7 +60,13 @@ void MyReplication::Delete(uint64_t seq, const leveldb::Slice& key){
 	logs->put(log);
 }
 
+
 /* Synclog */
+
+Synclog::Synclog(uint64_t seq, char type){
+	buf.append((char *)(&seq), sizeof(uint64_t));
+	buf.push_back(type);
+}
 
 Synclog::Synclog(uint64_t seq, char type, const leveldb::Slice &key){
 	buf.append((char *)(&seq), sizeof(uint64_t));
@@ -238,7 +250,9 @@ void PersistentSyncLogQueue::put(const Synclog &log){
 	std::string key_buf = encode_key(idx);
 	leveldb::Slice b(log.data(), log.size());
 	leveldb::Status s;
-	s = meta_db->Put(write_options, key_buf, b);
+	leveldb::WriteOptions options;
+	
+	s = meta_db->Put(options, key_buf, b);
 	if(!s.ok()){
 		log_error("meta_db set error: %s", s.ToString().c_str());
 	}else{

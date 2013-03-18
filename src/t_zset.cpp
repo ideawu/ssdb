@@ -13,8 +13,9 @@ int64_t SSDB::zsize(const Bytes &name) const{
 	std::string size_key = encode_zsize_key(name);
 	std::string val;
 	leveldb::Status s;
+	leveldb::ReadOptions read_opts;
 
-	s = db->Get(read_options, size_key, &val);
+	s = db->Get(read_opts, size_key, &val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
@@ -30,7 +31,9 @@ int64_t SSDB::zsize(const Bytes &name) const{
 
 int SSDB::zget(const Bytes &name, const Bytes &key, std::string *score) const{
 	std::string buf = encode_zs_key(name, key);
-	leveldb::Status s = db->Get(read_options, buf, score);
+	leveldb::ReadOptions read_opts;
+	
+	leveldb::Status s = db->Get(read_opts, buf, score);
 	if(s.IsNotFound()){
 		return 0;
 	}
@@ -47,7 +50,8 @@ int SSDB::zset(const Bytes &name, const Bytes &key, const Bytes &score) const{
 	
 	int ret = zset_one(this, batch, name, key, score);
 	if(ret == 1){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zset error: %s", s.ToString().c_str());
 			return -1;
@@ -62,7 +66,8 @@ int SSDB::zdel(const Bytes &name, const Bytes &key) const{
 	
 	int ret = zdel_one(this, batch, name, key);
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
 			return -1;
@@ -104,7 +109,8 @@ int SSDB::multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offse
 		ret += tmp;
 	}
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
 			return -1;
@@ -125,7 +131,8 @@ int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 		ret += zdel_one(this, batch, name, key);
 	}
 	if(ret > 0){
-		s = db->Write(write_options, &batch);
+		leveldb::WriteOptions write_opts;
+		s = db->Write(write_opts, &batch);
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
 			return -1;

@@ -188,9 +188,15 @@ struct WriteOptions {
   //
   // Default: false
   bool sync;
+  
+  // by @ideawu
+  // Whether this write operation should be replicated to slaves
+  //
+  // Default: true
+  bool repl;
 
   WriteOptions()
-      : sync(false) {
+      : sync(false), repl(true) {
   }
 };
 

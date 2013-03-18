@@ -234,7 +234,24 @@ int Slave::proc_sync_cmd(const std::vector<Bytes> *req){
 			log_error("ssdb.raw_del error!");
 		}
 		this->save_status();
+	}else if(cmd == "sync_noop"){
+		log_debug("%s", serialize_req(*req).c_str());
+		if(req->size() != 2){
+			log_warn("invalid del params!");
+			return 0;
+		}
+		uint64_t seq = req->at(1).Uint64();
+		this->last_seq = seq;
+		this->save_status();
 	}else if(cmd == "noop"){
+		if(req->size() >= 2){
+			uint64_t seq = req->at(1).Uint64();
+			if(this->last_seq != seq){
+				log_debug("noop last_seq: %llu, seq: %llu", this->last_seq, seq);
+				this->last_seq = seq;
+				this->save_status();
+			}
+		}
 		//log_trace("recv noop");
 	}else{
 		log_warn("unknow sync command: %s", serialize_req(*req).c_str());
