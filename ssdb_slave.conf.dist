@@ -1,0 +1,30 @@
+# ssdb-server config
+
+# relative to running path, must exists
+work_dir = ./var_slave
+
+server:
+	ip: 127.0.0.1
+	port: 8889
+
+replication:
+	# master | slave
+	role: slave
+	slaveof:
+		ip: 127.0.0.1
+		port: 8888
+
+logger:
+	level: info
+	output: log_slave.txt
+	rotate:
+		size: 200000000
+
+leveldb:
+	# in MB
+	cache_size: 20
+	# in KB
+	block_size: 4
+	# in MB
+	write_buffer_size: 4
+
