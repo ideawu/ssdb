@@ -8,7 +8,7 @@
 #ifdef NDEBUG
 	static const int LOG_QUEUE_SIZE  = 10 * 1000 * 1000;
 #else
-	static const int LOG_QUEUE_SIZE  = 1000;
+	static const int LOG_QUEUE_SIZE  = 10000;
 #endif
 
 MyReplication::MyReplication(leveldb::DB* meta_db){
