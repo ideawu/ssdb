@@ -7,4 +7,5 @@ var_slave/*
 *_cpy_*
 ssdb-server
 tools/ssdb-dump
+_pack
 
