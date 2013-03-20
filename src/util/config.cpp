@@ -122,8 +122,8 @@ Config::~Config(){
 
 Config* Config::add(const char *key, const char *val, int lineno){
 	if(key[0] != '#' && this->find_child(key)){
-		log_error("line: %d, duplicated '%s'", lineno, key);
-		return NULL;
+		//log_error("line: %d, duplicated '%s'", lineno, key);
+		//return NULL;
 	}
 
 	Config *child = new Config(key, val);

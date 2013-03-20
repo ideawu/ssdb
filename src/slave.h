@@ -28,8 +28,8 @@ class Slave{
 		static void* _run_thread(void *arg);
 		int proc_sync_cmd(const std::vector<Bytes> *req);
 
+		int connect_retry;
 		int connect();
-		void stop();
 		bool connected(){
 			return link != NULL;
 		}
@@ -37,6 +37,7 @@ class Slave{
 		Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port);
 		~Slave();
 		void start();
+		void stop();
 };
 
 #endif

@@ -12,6 +12,7 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
 
 	this->last_seq = 0;
 	this->last_key = "";
+	connect_retry = 0;
 
 	load_status();
 	log_debug("last_seq: %llu, last_key: %s",
@@ -20,11 +21,21 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
 
 Slave::~Slave(){
 	log_debug("stopping slave thread...");
-	stop();
+	if(!thread_quit){
+		stop();
+	}
 	if(link){
 		delete link;
 	}
 	log_debug("Slave finalized");
+}
+
+void Slave::start(){
+	thread_quit = false;
+	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
+	if(err != 0){
+		log_error("can't create thread: %s", strerror(err));
+	}
 }
 
 void Slave::stop(){
@@ -37,12 +48,12 @@ void Slave::stop(){
 }
 
 std::string Slave::status_key(){
-	std::string key = "slave.status|";
-	key.append(master_ip);
-	key.append("|");
-	char buf[10];
-	sprintf(buf, "%d", master_port);
-	key.append(buf);
+	std::string key;
+	if(key.empty()){
+		char buf[100];
+		snprintf(buf, sizeof(buf), "slave.status|%s|%d", master_ip.c_str(), master_port);
+		key.assign(buf);
+	}
 	return key;
 }
 
@@ -73,14 +84,6 @@ void Slave::save_status(){
 	status.append((char *)&this->last_seq, sizeof(uint64_t));
 	status.append(this->last_key);
 	meta_db->Put(leveldb::WriteOptions(), key, status);
-}
-
-void Slave::start(){
-	thread_quit = false;
-	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
-	if(err != 0){
-		log_error("can't create thread: %s", strerror(err));
-	}
 }
 
 template<class T>
@@ -135,22 +138,22 @@ err:
 }
 
 int Slave::connect(){
-	static int retry = 0;
 	const char *ip = this->master_ip.c_str();
 	int port = this->master_port;
 	
-	if(++retry > 101){
-		retry = 62;
+	if(++connect_retry > 101){
+		connect_retry = 62;
 	}
+	//log_debug("%d", retry);
 	// TODO: 找一个公式
-	if(retry == 1 || retry == 11 || retry == 31 || retry == 61 || retry == 101){
-		log_info("[%d] connecting to master at %s:%d...", retry, ip, port);
+	if(connect_retry == 1 || connect_retry == 31 || connect_retry == 61 || connect_retry == 101){
+		log_info("[%d] connecting to master at %s:%d...", connect_retry, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
 			log_error("failed to connect to master: %s:%d!", ip, port);
 			goto err;
 		}else{
-			retry = 0;
+			connect_retry = 0;
 			char seq_buf[20];
 			sprintf(seq_buf, "%llu", this->last_seq);
 

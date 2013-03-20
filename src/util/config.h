@@ -30,9 +30,6 @@ class Config{
 	private:
 		Config *parent;
 		int depth;
-		std::string key;
-		std::string val;
-		std::vector<Config *> children;
 
 		Config(const std::string &key="", const std::string &val=""){
 			this->parent = NULL;
@@ -49,11 +46,15 @@ class Config{
 		int save(FILE *fp) const;
 		int save(const char *filename) const;
 
+		std::vector<Config *> children;
+		std::string key;
+		std::string val;
+
 		const Config* get(const char *key) const;
 		int num() const;
 		int get_num(const char *key) const;
-		const char *str() const;
-		const char * get_str(const char *key) const;
+		const char* str() const;
+		const char* get_str(const char *key) const;
 
 		bool is_comment() const{
 			return key[0] == '#';

@@ -16,6 +16,11 @@ SSDB::~SSDB(){
 	if(slave){
 		delete slave;
 	}
+	for(std::vector<Slave *>::iterator it = slaves.begin(); it != slaves.end(); it++){
+		Slave *slave = *it;
+		slave->stop();
+		delete slave;
+	}
 	if(db){
 		delete db;
 	}
@@ -86,6 +91,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		goto err;
 	}
 
+	/*
 	{ // slave
 		std::string ip;
 		int port;
@@ -95,6 +101,29 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 			ssdb->slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port);
 			ssdb->slave->start();
 			log_info("slaveof: %s:%d", ip.c_str(), port);
+		}
+	}
+	*/
+	{ // slaves
+		const Config *repl_conf = conf.get("replication");
+		if(repl_conf != NULL){
+			log_debug("");
+			std::vector<Config *> children = repl_conf->children;
+			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
+				Config *c = *it;
+				if(c->key != "slaveof"){
+					continue;
+				}
+				const char *ip = c->get_str("ip");
+				int port = c->get_num("port");
+				if(ip == "" || port <= 0 || port > 65535){
+					continue;
+				}
+				log_info("slaveof: %s:%d", ip, port);
+				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip, port);
+				slave->start();
+				ssdb->slaves.push_back(slave);
+			}
 		}
 	}
 

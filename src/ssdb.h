@@ -51,6 +51,8 @@ private:
 	leveldb::Options options;
 
 	Slave *slave;
+	std::vector<Slave *> slaves;
+	
 	SSDB();
 public:
 	~SSDB();
