@@ -251,6 +251,12 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	// for migrate from Redis::zAdd()
+	function zadd($key, $score, $value){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function zget($name, $item){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -359,6 +365,14 @@ class SSDB
 	}
 	
 	function call__($cmd, $params=array()){
+		$cmd = strtolower($cmd);
+		// act like Redis::zAdd($key, $score, $value);
+		if($cmd == 'zadd'){
+			$cmd = 'zset';
+			$t = $params[0];
+			$params[0] = $params[1];
+			$params[1] = $t;
+		}
 		$req = array($cmd);
 		foreach($params as $p){
 			if(is_array($p)){
