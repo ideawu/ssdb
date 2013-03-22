@@ -45,11 +45,11 @@ MyReplication::~MyReplication(){
 void MyReplication::Put(uint64_t seq, const leveldb::Slice& key, const leveldb::Slice& val, bool is_mirror){
 	if(is_mirror){
 		Synclog log(seq, Synclog::MIRROR_SET, key);
-		log_trace("mirror_set %llu %s", hexmem(key.data(), key.size()).c_str(), seq);
+		log_trace("mirror_set %llu %s", seq, hexmem(key.data(), key.size()).c_str());
 		logs->put(log);
 	}else{
 		Synclog log(seq, Synclog::SET, key);
-		log_trace("set %llu %s", hexmem(key.data(), key.size()).c_str(), seq);
+		log_trace("set %llu %s", seq, hexmem(key.data(), key.size()).c_str());
 		logs->put(log);
 	}
 }
@@ -57,11 +57,11 @@ void MyReplication::Put(uint64_t seq, const leveldb::Slice& key, const leveldb::
 void MyReplication::Delete(uint64_t seq, const leveldb::Slice& key, bool is_mirror){
 	if(is_mirror){
 		Synclog log(seq, Synclog::MIRROR_DEL, key);
-		log_trace("mirror_del %llu %s", hexmem(key.data(), key.size()).c_str(), seq);
+		log_trace("mirror_del %llu %s", seq, hexmem(key.data(), key.size()).c_str());
 		logs->put(log);
 	}else{
 		Synclog log(seq, Synclog::DEL, key);
-		log_trace("del %llu %s", hexmem(key.data(), key.size()).c_str(), seq);
+		log_trace("del %llu %s", seq, hexmem(key.data(), key.size()).c_str());
 		logs->put(log);
 	}
 }
