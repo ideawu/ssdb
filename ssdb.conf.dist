@@ -19,7 +19,7 @@ leveldb:
 	# in MB
 	cache_size: 200
 	# in KB
-	block_size: 4
+	block_size: 32
 	# in MB
-	write_buffer_size: 4
+	write_buffer_size: 64
 
