@@ -15,7 +15,8 @@ class Synclog{
 	public:
 		static const char SET  = 's';
 		static const char DEL  = 'd';
-		static const char NOOP = 'n';
+		static const char MIRROR_SET  = 'S';
+		static const char MIRROR_DEL  = 'D';
 	private:
 		std::string buf;
 		static const int KEY_POS = sizeof(uint64_t) + 1;
@@ -103,9 +104,8 @@ class MyReplication : public leveldb::Replication{
 
 		PersistentSyncLogQueue *logs;
 
-		void Noop(uint64_t seq);
-		void Put(uint64_t seq, const leveldb::Slice &key, const leveldb::Slice &val);
-		void Delete(uint64_t seq, const leveldb::Slice &key);
+		void Put(uint64_t seq, const leveldb::Slice &key, const leveldb::Slice &val, bool mirror);
+		void Delete(uint64_t seq, const leveldb::Slice &key, bool mirror);
 };
 
 #endif

@@ -2,17 +2,18 @@
 #include "slave.h"
 #include "util/fde.h"
 
-Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
+Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta_db = meta_db;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
+	this->is_mirror = is_mirror;
+	
 	this->link = NULL;
-
 	this->last_seq = 0;
 	this->last_key = "";
-	connect_retry = 0;
+	this->connect_retry = 0;
 
 	load_status();
 	log_debug("last_seq: %llu, last_key: %s",
@@ -110,33 +111,6 @@ static std::string serialize_req(T &req){
 	return ret;
 }
 
-static Link* connect(const char *ip, int port, uint64_t last_seq, std::string &last_key){
-	Link *link = Link::connect(ip, port);
-	if(link == NULL){
-		log_error("failed to connect to master: %s:%d!", ip, port);
-		goto err;
-	}
-	// TODO: set link.recv_timeout
-
-	char seq_buf[20];
-	sprintf(seq_buf, "%llu", last_seq);
-
-	link->output->append_record("sync");
-	link->output->append_record(seq_buf);
-	link->output->append_record(last_key);
-	link->output->append('\n');
-
-	if(link->flush() == -1){
-		log_error("network error");
-		goto err;
-	}
-
-	log_info("ready to receive sync commands...");
-	return link;
-err:
-	return NULL;
-}
-
 int Slave::connect(){
 	const char *ip = this->master_ip.c_str();
 	int port = this->master_port;
@@ -160,6 +134,9 @@ int Slave::connect(){
 			link->output->append_record("sync");
 			link->output->append_record(seq_buf);
 			link->output->append_record(this->last_key);
+			if(is_mirror){
+				link->output->append_record("mirror");
+			}
 			link->output->append('\n');
 
 			if(link->flush() == -1){
@@ -217,7 +194,7 @@ int Slave::proc_sync_cmd(const std::vector<Bytes> *req){
 		// sync
 		this->last_seq = seq;
 
-		int ret = ssdb->raw_set(key, val);
+		int ret = ssdb->raw_set(key, val, this->is_mirror);
 		if(ret == -1){
 			log_error("ssdb.raw_set error!");
 		}
@@ -232,19 +209,10 @@ int Slave::proc_sync_cmd(const std::vector<Bytes> *req){
 		Bytes key = req->at(2);
 		this->last_seq = seq;
 
-		int ret = ssdb->raw_del(key);
+		int ret = ssdb->raw_del(key, this->is_mirror);
 		if(ret == -1){
 			log_error("ssdb.raw_del error!");
 		}
-		this->save_status();
-	}else if(cmd == "sync_noop"){
-		log_debug("%s", serialize_req(*req).c_str());
-		if(req->size() != 2){
-			log_warn("invalid del params!");
-			return 0;
-		}
-		uint64_t seq = req->at(1).Uint64();
-		this->last_seq = seq;
 		this->save_status();
 	}else if(cmd == "noop"){
 		if(req->size() >= 2){

@@ -7,33 +7,25 @@ namespace leveldb{
 namespace {
 	class Handler : public WriteBatch::Handler {
 		public:
-			bool noop;
+			bool is_mirror;
 			Replication *repl_;
 			SequenceNumber sequence_;
 
 			void Put(const leveldb::Slice& key, const leveldb::Slice& value) {
-				if(noop){
-					repl_->Noop(sequence_);
-				}else{
-					repl_->Put(sequence_, key, value);
-				}
+				repl_->Put(sequence_, key, value, is_mirror);
 				sequence_++;
 			}
 			void Delete(const leveldb::Slice& key) {
-				if(noop){
-					repl_->Noop(sequence_);
-				}else{
-					repl_->Delete(sequence_, key);
-				}
+				repl_->Delete(sequence_, key, is_mirror);
 				sequence_++;
 			}
 	};
 }
 
-void Replication::Write(const leveldb::WriteBatch* batch, bool repl){
+void Replication::Write(const leveldb::WriteBatch* batch, bool is_mirror){
 	Handler handler;
-	handler.noop  = !repl;
 	handler.repl_ = this;
+	handler.is_mirror  = is_mirror;
 	handler.sequence_ = WriteBatchInternal::Sequence(batch);
 	batch->Iterate(&handler);
 }

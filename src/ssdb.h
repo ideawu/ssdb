@@ -67,9 +67,9 @@ public:
 	/* raw operates */
 
 	// repl: whether to sync this operation to slaves
-	int raw_set(const Bytes &key, const Bytes &val, bool repl=false) const;
+	int raw_set(const Bytes &key, const Bytes &val, bool is_mirror=false) const;
+	int raw_del(const Bytes &key, bool is_mirror=false) const;
 	int raw_get(const Bytes &key, std::string *val) const;
-	int raw_del(const Bytes &key, bool repl=false) const;
 
 	/* key value */
 

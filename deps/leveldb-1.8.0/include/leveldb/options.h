@@ -190,13 +190,13 @@ struct WriteOptions {
   bool sync;
   
   // by @ideawu
-  // Whether this write operation should be replicated to slaves
+  // Whether this write operation is from another mirror server
   //
-  // Default: true
-  bool repl;
+  // Default: false
+  bool is_mirror;
 
   WriteOptions()
-      : sync(false), repl(true) {
+      : sync(false), is_mirror(false) {
   }
 };
 

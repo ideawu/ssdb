@@ -39,12 +39,8 @@ Config* Config::load(const char *filename){
 		}
 
 		/* 有效行以 \t* 开头 */
-		int indent = 0;
-		char *key = buf;
-		while(*key == '\t'){
-			indent++;
-			key++;
-		}
+		int indent = strspn(buf, "\t");
+		char *key = buf + indent;
 
 		if(indent <= last_indent){
 			for(int i = indent; i <= last_indent; i++){
@@ -54,8 +50,10 @@ Config* Config::load(const char *filename){
 				}
 			}
 		}else if(indent > last_indent + 1){
-			log_error("invalid indent line(%d)", lineno);
-			goto err;
+			if(*key != '#'){
+				log_error("invalid indent line(%d)", lineno);
+				goto err;
+			}
 		}
 
 		/* 注释行以 \t*# 开头 */

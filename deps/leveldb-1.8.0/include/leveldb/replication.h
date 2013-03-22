@@ -9,13 +9,11 @@ namespace leveldb {
 
 class Replication{
 	public:
-		// if repl == false, the WriteBatch will be translated into a
-		// NOOP operation and send to slaves. The NOOP is needed to
-		// sync replication sequence number.
-		void Write(const leveldb::WriteBatch* batch, bool repl=true);
-		virtual void Noop(uint64_t seq)=0;
-		virtual void Put(uint64_t seq, const leveldb::Slice& key, const leveldb::Slice& value)=0;
-		virtual void Delete(uint64_t seq, const leveldb::Slice& key)=0;
+		// if mirror == true, the operation will be sync to all slaves,
+		// but not mirror servers.
+		void Write(const leveldb::WriteBatch* batch, bool mirror);
+		virtual void Put(uint64_t seq, const leveldb::Slice& key, const leveldb::Slice& value, bool mirror=false)=0;
+		virtual void Delete(uint64_t seq, const leveldb::Slice& key, bool mirror=false)=0;
 };
 
 }  // namespace leveldb

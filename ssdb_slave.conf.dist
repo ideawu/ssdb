@@ -9,6 +9,8 @@ server:
 
 replication:
 	slaveof:
+		# sync|mirror, default is sync
+		type: sync
 		ip: 127.0.0.1
 		port: 8888
 

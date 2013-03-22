@@ -123,6 +123,7 @@ BackendSync::Client::Client(const BackendSync *backend){
 	last_noop_seq = 0;
 	last_key = "";
 	iter = NULL;
+	is_mirror = false;
 }
 
 BackendSync::Client::~Client(){
@@ -141,7 +142,15 @@ void BackendSync::Client::init(){
 	if(req->size() > 2){
 		last_key = req->at(2).String();
 	}
-	if(last_seq == 0 || last_key != ""){
+	// is_mirror
+	std::string type = "sync";
+	if(req->size() > 3){
+		if(req->at(3).String() == "mirror"){
+			type = "mirror";
+			is_mirror = true;
+		}
+	}
+	if(!is_mirror && (last_seq == 0 || last_key != "")){
 		if(last_seq == 0){
 			// in case that slave has an error that last_key is not empty
 			last_key = "";
@@ -160,7 +169,8 @@ void BackendSync::Client::init(){
 		this->iter = backend->ssdb->iterator(last_key, end, limit);
 		this->status = Client::DUMP;
 	}else{
-		log_info("fd: %d, sync recover, seq: %llu, key: %s",
+		log_info("[%s]fd: %d, sync recover, seq: %llu, key: %s",
+			type.c_str(),
 			link->fd(),
 			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
 			);
@@ -175,7 +185,9 @@ void BackendSync::Client::reset_sync(){
 	std::string start = "";
 	std::string end = "";
 	int limit = 2147483647;
-	this->iter = backend->ssdb->iterator(start, end, limit);
+	if(!is_mirror){
+		this->iter = backend->ssdb->iterator(start, end, limit);
+	}
 	this->status = Client::DUMP;
 	this->last_seq = 0;
 	this->last_key = "";
@@ -257,7 +269,22 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 
 		char seq_buf[20];
 		snprintf(seq_buf, sizeof(seq_buf), "%llu", log.seq());
-		if(log.type() == Synclog::SET){
+		char log_type = log.type();
+		
+		// a synclog from a mirror server will not be send to another mirror server
+		if(this->is_mirror && (log_type == Synclog::MIRROR_SET || log_type == Synclog::MIRROR_DEL)){
+			if(this->last_seq - this->last_noop_seq >= logs->total/2){
+				this->last_noop_seq = this->last_seq;
+				
+				log_trace("fd: %d, sync noop %llu",
+					link->fd(),
+					log.seq());
+
+				output->append_record("noop");
+				output->append_record(seq_buf);
+				output->append('\n');
+			}
+		}else if(log_type == Synclog::SET || log_type == Synclog::MIRROR_SET){
 			std::string val;
 			int ret = backend->ssdb->raw_get(log.key(), &val);
 			if(ret == -1){
@@ -277,7 +304,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 				output->append_record(val);
 				output->append('\n');
 			}
-		}else if(log.type() == Synclog::DEL){
+		}else if(log_type == Synclog::DEL || log_type == Synclog::MIRROR_DEL){
 			log_trace("fd: %d, sync_del %llu %s",
 				link->fd(),
 				log.seq(),
@@ -287,18 +314,6 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 			output->append_record(seq_buf);
 			output->append_record(log.key());
 			output->append('\n');
-		}else if(log.type() == Synclog::NOOP){
-			if(this->last_seq - this->last_noop_seq >= logs->total/2){
-				this->last_noop_seq = this->last_seq;
-				
-				log_trace("fd: %d, sync_noop %llu",
-					link->fd(),
-					log.seq());
-
-				output->append_record("sync_noop");
-				output->append_record(seq_buf);
-				output->append('\n');
-			}
 		}else{
 			log_error("unknown sync log type: %d", log.type());
 		}

@@ -1162,7 +1162,7 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
         status = WriteBatchInternal::InsertInto(updates, mem_);
       }
       if (repl_ && status.ok()) {
-		repl_->Write(updates, options.repl);
+		repl_->Write(updates, options.is_mirror);
 	  }
       mutex_.Lock();
     }

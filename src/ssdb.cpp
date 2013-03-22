@@ -107,20 +107,28 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
-			log_debug("");
 			std::vector<Config *> children = repl_conf->children;
 			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
 				Config *c = *it;
 				if(c->key != "slaveof"){
 					continue;
 				}
-				const char *ip = c->get_str("ip");
+				std::string ip = c->get_str("ip");
 				int port = c->get_num("port");
 				if(ip == "" || port <= 0 || port > 65535){
 					continue;
 				}
-				log_info("slaveof: %s:%d", ip, port);
-				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip, port);
+				bool is_mirror = false;
+				std::string type = c->get_str("type");
+				if(type == "mirror"){
+					is_mirror = true;
+				}else{
+					type = "sync";
+					is_mirror = false;
+				}
+				
+				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
+				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port, is_mirror);
 				slave->start();
 				ssdb->slaves.push_back(slave);
 			}
@@ -167,12 +175,23 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 
 /* raw operates */
 
-int SSDB::raw_set(const Bytes &key, const Bytes &val, bool repl) const{
+int SSDB::raw_set(const Bytes &key, const Bytes &val, bool is_mirror) const{
 	leveldb::WriteOptions write_opts;
-	write_opts.repl = repl;
+	write_opts.is_mirror = is_mirror;
 	leveldb::Status s = db->Put(write_opts, key.Slice(), val.Slice());
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
+		return -1;
+	}
+	return 1;
+}
+
+int SSDB::raw_del(const Bytes &key, bool is_mirror) const{
+	leveldb::WriteOptions write_opts;
+	write_opts.is_mirror = is_mirror;
+	leveldb::Status s = db->Delete(write_opts, key.Slice());
+	if(!s.ok()){
+		log_error("del error: %s", s.ToString().c_str());
 		return -1;
 	}
 	return 1;
@@ -187,17 +206,6 @@ int SSDB::raw_get(const Bytes &key, std::string *val) const{
 	}
 	if(!s.ok()){
 		log_error("get error: %s", s.ToString().c_str());
-		return -1;
-	}
-	return 1;
-}
-
-int SSDB::raw_del(const Bytes &key, bool repl) const{
-	leveldb::WriteOptions write_opts;
-	write_opts.repl = repl;
-	leveldb::Status s = db->Delete(write_opts, key.Slice());
-	if(!s.ok()){
-		log_error("del error: %s", s.ToString().c_str());
 		return -1;
 	}
 	return 1;
