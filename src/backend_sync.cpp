@@ -185,9 +185,7 @@ void BackendSync::Client::reset_sync(){
 	std::string start = "";
 	std::string end = "";
 	int limit = 2147483647;
-	if(!is_mirror){
-		this->iter = backend->ssdb->iterator(start, end, limit);
-	}
+	this->iter = backend->ssdb->iterator(start, end, limit);
 	this->status = Client::DUMP;
 	this->last_seq = 0;
 	this->last_key = "";
@@ -244,6 +242,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 		hexmem(log.key().data(), log.key().size()).c_str());
 	*/
 	
+	// writes that are out of dumped range will be discarded.
 	if(this->iter && log.key() > this->last_key){
 		// update last_seq
 		this->last_seq = log.seq();
@@ -253,7 +252,7 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 			log.seq(),
 			hexmem(log.key().data(), log.key().size()).c_str(),
 			hexmem(this->last_key.data(), this->last_key.size()).c_str());
-		return 0;
+		return 1;
 	}
 
 	if(this->last_seq != 0 && log.seq() != expect_seq){
@@ -263,61 +262,61 @@ int BackendSync::Client::sync(SyncLogQueue *logs){
 			expect_seq
 			);
 		this->status = Client::OUT_OF_SYNC;
-	}else{
-		// update last_seq
-		this->last_seq = log.seq();
+		return 1;
+	}
+	
+	// update last_seq
+	this->last_seq = log.seq();
 
-		char seq_buf[20];
-		snprintf(seq_buf, sizeof(seq_buf), "%llu", log.seq());
-		char log_type = log.type();
+	char seq_buf[20];
+	snprintf(seq_buf, sizeof(seq_buf), "%llu", log.seq());
+	char log_type = log.type();
 		
-		// a synclog from a mirror server will not be send to another mirror server
-		if(this->is_mirror && (log_type == Synclog::MIRROR_SET || log_type == Synclog::MIRROR_DEL)){
-			if(this->last_seq - this->last_noop_seq >= logs->total/2){
-				this->last_noop_seq = this->last_seq;
+	// a synclog from a mirror server will not be send to another mirror server
+	if(this->is_mirror && (log_type == Synclog::MIRROR_SET || log_type == Synclog::MIRROR_DEL)){
+		if(this->last_seq - this->last_noop_seq >= logs->total/2){
+			this->last_noop_seq = this->last_seq;
 				
-				log_trace("fd: %d, sync noop %llu",
-					link->fd(),
-					log.seq());
+			log_trace("fd: %d, sync noop %llu",
+				link->fd(),
+				log.seq());
 
-				output->append_record("noop");
-				output->append_record(seq_buf);
-				output->append('\n');
-			}
-		}else if(log_type == Synclog::SET || log_type == Synclog::MIRROR_SET){
-			std::string val;
-			int ret = backend->ssdb->raw_get(log.key(), &val);
-			if(ret == -1){
-				log_error("raw_get error!");
-			}else if(ret == 0){
-				log_trace("skip not found: %s", hexmem(log.key().data(), log.key().size()).c_str());
-				// not found, ignore
-			}else{
-				log_trace("fd: %d, sync_set %llu %s",
-					link->fd(),
-					log.seq(),
-					hexmem(log.key().data(), log.key().size()).c_str());
-
-				output->append_record("sync_set");
-				output->append_record(seq_buf);
-				output->append_record(log.key());
-				output->append_record(val);
-				output->append('\n');
-			}
-		}else if(log_type == Synclog::DEL || log_type == Synclog::MIRROR_DEL){
-			log_trace("fd: %d, sync_del %llu %s",
+			output->append_record("noop");
+			output->append_record(seq_buf);
+			output->append('\n');
+		}
+	}else if(log_type == Synclog::SET || log_type == Synclog::MIRROR_SET){
+		std::string val;
+		int ret = backend->ssdb->raw_get(log.key(), &val);
+		if(ret == -1){
+			log_error("raw_get error!");
+		}else if(ret == 0){
+			log_trace("skip not found: %s", hexmem(log.key().data(), log.key().size()).c_str());
+			// not found, ignore
+		}else{
+			log_trace("fd: %d, sync_set %llu %s",
 				link->fd(),
 				log.seq(),
 				hexmem(log.key().data(), log.key().size()).c_str());
 
-			output->append_record("sync_del");
+			output->append_record("sync_set");
 			output->append_record(seq_buf);
 			output->append_record(log.key());
+			output->append_record(val);
 			output->append('\n');
-		}else{
-			log_error("unknown sync log type: %d", log.type());
 		}
-		return 1;
+	}else if(log_type == Synclog::DEL || log_type == Synclog::MIRROR_DEL){
+		log_trace("fd: %d, sync_del %llu %s",
+			link->fd(),
+			log.seq(),
+			hexmem(log.key().data(), log.key().size()).c_str());
+
+		output->append_record("sync_del");
+		output->append_record(seq_buf);
+		output->append_record(log.key());
+		output->append('\n');
+	}else{
+		log_error("unknown sync log type: %d", log.type());
 	}
-	return 0;
+	return 1;
 }
