@@ -181,11 +181,14 @@ void BackendSync::Client::init(){
 void BackendSync::Client::reset_sync(){
 	if(this->iter){
 		delete this->iter;
+		this->iter = NULL;
 	}
 	std::string start = "";
 	std::string end = "";
 	int limit = 2147483647;
-	this->iter = backend->ssdb->iterator(start, end, limit);
+	if(!is_mirror){
+		this->iter = backend->ssdb->iterator(start, end, limit);
+	}
 	this->status = Client::DUMP;
 	this->last_seq = 0;
 	this->last_key = "";
