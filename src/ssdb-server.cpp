@@ -61,9 +61,9 @@ void run(int argc, char **argv){
 	CommandProc proc(ssdb);
 
 	while(!quit){
-		if(ready_list.empty()){
-			// only sleep 1ms, give links that are not in ready_list a chance
-			events = select.wait(1);
+		if(!ready_list.empty()){
+			// give links that are not in ready_list a chance
+			events = select.wait(0);
 		}else{
 			events = select.wait(200);
 		}
