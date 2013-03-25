@@ -49,7 +49,7 @@ void Slave::stop(){
 }
 
 std::string Slave::status_key(){
-	std::string key;
+	static std::string key;
 	if(key.empty()){
 		char buf[100];
 		snprintf(buf, sizeof(buf), "slave.status|%s|%d", master_ip.c_str(), master_port);
