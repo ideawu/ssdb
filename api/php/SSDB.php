@@ -262,7 +262,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zexists($key){
+	function zexists($name){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -319,7 +319,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hexists($key){
+	function hexists($name){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
