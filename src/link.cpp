@@ -42,11 +42,13 @@ void Link::close(){
 }
 
 void Link::nodelay(bool enable){
-	int opt = 1;
-	if(!enable){
-		opt = 0;
-	}
+	int opt = enable? 1 : 0;
 	::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void *)&opt, sizeof(opt));
+}
+
+void Link::keepalive(bool enable){
+	int opt = enable? 1 : 0;
+	::setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&opt, sizeof(opt));
 }
 
 void Link::noblock(bool enable){
@@ -78,6 +80,7 @@ Link* Link::connect(const char *ip, int port){
 	log_debug("fd: %d, connect to %s:%d", sock, ip, port);
 	link = new Link();
 	link->sock = sock;
+	link->keepalive(true);
 	return link;
 sock_err:
 	log_debug("connect to %s:%d failed: %s", ip, port, strerror(errno));
@@ -140,6 +143,7 @@ Link* Link::accept(){
 
 	link = new Link();
 	link->sock = client_sock;
+	link->keepalive(true);
 	return link;
 }
 

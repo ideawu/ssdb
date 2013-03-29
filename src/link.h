@@ -26,6 +26,7 @@ class Link{
 		// noblock(true) is supposed to corperate with IO Multiplex,
 		// otherwise, flush() may cause a lot unneccessary write calls.
 		void noblock(bool enable=true);
+		void keepalive(bool enable=true);
 
 		int fd() const{
 			return sock;
