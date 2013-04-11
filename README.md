@@ -27,13 +27,24 @@ echo $resp->data; // output: 123
 
 ## Performance
 
+### Typical performance
+
+Total 1000 requests.
+
+```
+writeseq  :    2.640 ms/op     37.0 MB/s
+writerand :    7.631 ms/op	    12.8 MB/s
+readseq   :    0.480 ms/op	   203.3 MB/s
+readrand  :    0.257 ms/op	   379.8 MB/s
+```
+
 ### SSDB vs Redis
 
 ![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png)
 
 [View full SSDB vs Redis benchmark charts...](http://www.ideawu.com/ssdb/)
 
-### ssdb-bench
+### Concurrency benchmark
 
 ```
 ======= set =======
