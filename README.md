@@ -33,9 +33,9 @@ Total 1000 requests.
 
 ```
 writeseq  :    2.640 ms/op     37.0 MB/s
-writerand :    7.631 ms/op	    12.8 MB/s
-readseq   :    0.480 ms/op	   203.3 MB/s
-readrand  :    0.257 ms/op	   379.8 MB/s
+writerand :    7.631 ms/op     12.8 MB/s
+readseq   :    0.480 ms/op    203.3 MB/s
+readrand  :    0.257 ms/op    379.8 MB/s
 ```
 
 ### SSDB vs Redis
