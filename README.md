@@ -32,10 +32,10 @@ echo $resp->data; // output: 123
 Total 1000 requests.
 
 ```
-writeseq  :    2.640 ms/op     37.0 MB/s
-writerand :    7.631 ms/op     12.8 MB/s
-readseq   :    0.480 ms/op    203.3 MB/s
-readrand  :    0.257 ms/op    379.8 MB/s
+writeseq  :    0.546 ms/op      178.7 MB/s
+writerand :    0.519 ms/op      188.1 MB/s
+readseq   :    0.304 ms/op      321.6 MB/s
+readrand  :    0.310 ms/op      315.0 MB/s
 ```
 
 ### SSDB vs Redis
