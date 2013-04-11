@@ -48,28 +48,49 @@ readrand  :    0.310 ms/op      315.0 MB/s
 
 ```
 ======= set =======
-qps: 13639, time: 0.733 s
+qps: 31852, time: 0.031 s
 
 ======= get =======
-qps: 19944, time: 0.501 s
+qps: 29103, time: 0.034 s
 
 ======= scan =======
-qps: 18515, time: 0.540 s
+qps: 25871, time: 0.039 s
+
+======= rscan =======
+qps: 31181, time: 0.032 s
 
 ======= del =======
-qps: 21256, time: 0.470 s
+qps: 33042, time: 0.030 s
 
 ======= zset =======
-qps: 14894, time: 0.671 s
+qps: 24352, time: 0.041 s
 
 ======= zget =======
-qps: 19049, time: 0.525 s
+qps: 27836, time: 0.036 s
 
 ======= zscan =======
-qps: 8271, time: 1.209 s
+qps: 10442, time: 0.096 s
+
+======= zrscan =======
+qps: 28224, time: 0.035 s
 
 ======= zdel =======
-qps: 15641, time: 0.639 s
+qps: 27137, time: 0.037 s
+
+======= hset =======
+qps: 31507, time: 0.032 s
+
+======= hget =======
+qps: 28388, time: 0.035 s
+
+======= hscan =======
+qps: 25319, time: 0.039 s
+
+======= hrscan =======
+qps: 30399, time: 0.033 s
+
+======= hdel =======
+qps: 29741, time: 0.034 s
 ```
 
 See Benchmark 
