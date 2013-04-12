@@ -59,6 +59,7 @@ function repr_data(str){
 		}else{
 		}
 	}
+	ret = ret.replace("\\\\", "\\");
 	return ret;
 }
 
