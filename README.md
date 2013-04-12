@@ -1,6 +1,6 @@
 # SSDB - A LevelDB server with zset data type
 
-SSDB, also known as zdb, is a fast key-value(key-string, key-zset, key-hashmap) NoSQL persistent storage server, using Google LevelDB as storage engine. 
+SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL persistent storage server, using Google LevelDB as storage engine. 
 
 ## Features
 
@@ -102,6 +102,9 @@ $ make
 
 # start master
 $ ./ssdb-server ssdb.conf
+
+# or start as daemon
+$ ./ssdb-server -d ssdb.conf
 
 # start slave
 $ ./ssdb-server ssdb_slave.conf
