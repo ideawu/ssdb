@@ -130,6 +130,9 @@ int CommandProc::proc_zset(const Link &link, const Request &req, Response *resp)
 			resp->push_back("error");
 		}else{
 			resp->push_back("ok");
+			char buf[20];
+			sprintf(buf, "%d", ret);
+			resp->push_back(buf);
 		}
 	}
 	return 0;

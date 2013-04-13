@@ -98,8 +98,58 @@ class SSDB
 		return $this->_closed;
 	}
 
+	private $batch_mode = false;
+	private $batch_cmds = array();
+
+	function batch(){
+		$this->batch_mode = true;
+		$this->batch_cmds = array();
+		return $this;
+	}
+
+	function multi(){
+		return $this->batch();
+	}
+
+	function exec(){
+		$ret = array();
+		foreach($this->batch_cmds as $op){
+			list($cmd, $params) = $op;
+			$this->send_req($cmd, $params);
+		}
+		foreach($this->batch_cmds as $op){
+			list($cmd, $params) = $op;
+			$resp = $this->recv_resp($cmd);
+			$resp = $this->check_easy_resp($cmd, $resp);
+			$ret[] = $resp;
+		}
+		$this->batch_mode = false;
+		$this->batch_cmds = array();
+		return $ret;
+	}
+
 	function __call($cmd, $params=array()){
-		$resp = $this->call__($cmd, $params);
+		$cmd = strtolower($cmd);
+		// act like Redis::zAdd($key, $score, $value);
+		if($cmd == 'zadd'){
+			$cmd = 'zset';
+			$t = $params[1];
+			$params[1] = $params[2];
+			$params[2] = $t;
+		}
+
+		if($this->batch_mode){
+			$this->batch_cmds[] = array($cmd, $params);
+			return $this;
+		}
+
+		$this->send_req($cmd, $params);
+		$resp = $this->recv_resp($cmd);
+		$resp = $this->check_easy_resp($cmd, $resp);
+		return $resp;
+	}
+
+	private function check_easy_resp($cmd, $resp){
 		$this->last_resp = $resp;
 		if($this->_easy){
 			if(!$resp->ok() && !is_array($resp->data)){
@@ -364,15 +414,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 	
-	function call__($cmd, $params=array()){
-		$cmd = strtolower($cmd);
-		// act like Redis::zAdd($key, $score, $value);
-		if($cmd == 'zadd'){
-			$cmd = 'zset';
-			$t = $params[0];
-			$params[0] = $params[1];
-			$params[1] = $t;
-		}
+	private function send_req($cmd, $params){
 		$req = array($cmd);
 		foreach($params as $p){
 			if(is_array($p)){
@@ -382,9 +424,10 @@ class SSDB
 			}
 		}
 		$this->send($req);
+	}
 
+	private function recv_resp($cmd){
 		$resp = $this->recv();
-
 		if($resp === false){
 			return new SSDB_Response('error', 'Unknown error');
 		}else if(!$resp){
