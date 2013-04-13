@@ -73,6 +73,14 @@ int main(int argc, char **argv){
 		printf("output_folder[%s] exists!\n", output_folder);
 		return 0;
 	}
+	if(mkdir(output_folder, 0777) == -1){
+		perror("error create backup directory!");
+		return 0;
+	}
+
+	std::string data_dir = "";
+	data_dir.append(output_folder);
+	data_dir.append("/data");
 
 	// connect to server
 	Link *link = Link::connect(ip, port);
@@ -88,7 +96,7 @@ int main(int argc, char **argv){
 	leveldb::Options options;
 	leveldb::Status status;
 	options.create_if_missing = true;
-	status = leveldb::DB::Open(options, output_folder, &db);
+	status = leveldb::DB::Open(options, data_dir.c_str(), &db);
 	if(!status.ok()){
 		printf("open leveldb: %s error!\n", output_folder);
 		return 0;
