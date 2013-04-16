@@ -5,7 +5,8 @@ all:
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
 	cd deps/${LEVELDB}; make
-	$(eval export CFLAGS=-DNDEBUG)
+	#$(eval export CFLAGS=-DNDEBUG)
+	$(eval export CFLAGS=)
 	@sh build.sh
 	cd src/util; make
 	cd src; make
@@ -18,7 +19,7 @@ clean:
 	rm -f api/python/SSDB.pyc
 	rm -rf db_test
 	cd deps/cpy; make clean
-	cd deps/${LEVELDB}; make clean
+	#cd deps/${LEVELDB}; make clean
 	cd src/util; make clean
 	cd src; make clean
 	cd tools; make clean
