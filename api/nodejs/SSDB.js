@@ -9,13 +9,16 @@
 
 var net = require('net');
 
-exports.connect = function(host, port){
+exports.connect = function(host, port, timeout){
 	var self = this;
 	var recv_buf = new Buffer(0);
 	var callbacks = [];
 
 	var sock = new net.Socket();
 	sock.connect(port, host);
+	sock.setNoDelay(true);
+	sock.setKeepAlive(true);
+	sock.setTimeout(timeout || 0); 
 
 	self.close = function(){
 		sock.end();
