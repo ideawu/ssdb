@@ -458,7 +458,8 @@ class SSDB
 			case 'hincr':
 			case 'hdecr':
 			case 'zget':
-				return new SSDB_Response($resp[0], intval($resp[1]));
+				$val = isset($resp[1])? intval($resp[1]) : 0;
+				return new SSDB_Response($resp[0], $val);
 			case 'get':
 			case 'hget':
 				if($resp[0] == 'ok'){
