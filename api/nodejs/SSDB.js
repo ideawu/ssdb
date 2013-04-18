@@ -9,16 +9,36 @@
 
 var net = require('net');
 
-exports.connect = function(host, port, timeout){
+// timeout: microseconds, if ommitted, it will be considered as listener
+// callback(err, ssdb)
+exports.connect = function(host, port, timeout, listener){
 	var self = this;
 	var recv_buf = new Buffer(0);
 	var callbacks = [];
+	var connected = false;
+
+	if(typeof(timeout) == 'function'){
+		listener = timeout;
+		timeout = 0;
+	}
+	listener = listener || function(){};
 
 	var sock = new net.Socket();
-	sock.connect(port, host);
-	sock.setNoDelay(true);
-	sock.setKeepAlive(true);
-	sock.setTimeout(timeout || 0); 
+	sock.on('error', function(e){
+		if(!connected){
+			listener('connect_failed', e);
+		}else{
+			var callback = callbacks.shift();
+			callback(['error']);
+		}
+	});
+	sock.connect(port, host, function(){
+		connected = true;
+		sock.setNoDelay(true);
+		sock.setKeepAlive(true);
+		sock.setTimeout(timeout);
+		listener(0, self);
+	});
 
 	self.close = function(){
 		sock.end();
@@ -27,7 +47,7 @@ exports.connect = function(host, port, timeout){
 	self.request = function(cmd, params, callback){
 		var arr = [cmd].concat(params);
 		self.send_request(arr);
-		callbacks.push(callback);
+		callbacks.push(callback || function(){});
 	}
 
 	function build_buffer(arr){
@@ -78,10 +98,9 @@ exports.connect = function(host, port, timeout){
 			if(!resp){
 				break;
 			}
+			resp[0] = resp[0].toString();
 			var callback = callbacks.shift();
-			if(callback){
-				callback(resp);
-			}
+			callback(resp);
 		}
 	});
 
@@ -194,10 +213,13 @@ exports.connect = function(host, port, timeout){
 /*
 example:
 var SSDB = require('./SSDB.js');
-var ssdb = SSDB.connect(host, port);
-
-ssdb.set('a', new Date(), function(){
-	console.log('set a');
+var ssdb = SSDB.connect(host, port, function(err){
+	if(err){
+		return;
+	}
+	ssdb.set('a', new Date(), function(){
+		console.log('set a');
+	});
 });
 */
 
