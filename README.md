@@ -113,9 +113,11 @@ $ ./ssdb-server ssdb_slave.conf
 $ ./tools/ssdb-cli
 ```
 
+See [Compile and Install wiki](https://github.com/ideawu/ssdb/wiki/Compile_and_Install)
+
 ## Who's using SSDB?
 
-See [Users](https://github.com/ideawu/ssdb/wiki/Users)
+See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 
 ## Links
 
