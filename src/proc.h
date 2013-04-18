@@ -58,6 +58,7 @@ class CommandProc{
 		BackendSync *backend_sync;
 
 #define _DEF_PROC(f) int proc_##f(const Link &link, const Request &req, Response *resp)
+		_DEF_PROC(info);
 		_DEF_PROC(exists);
 		_DEF_PROC(multi_exists);
 		_DEF_PROC(hexists);

@@ -64,6 +64,8 @@ public:
 	Iterator* iterator(const std::string &start, const std::string &end, int limit) const;
 	Iterator* rev_iterator(const std::string &start, const std::string &end, int limit) const;
 
+	std::vector<std::string> info() const;
+
 	/* raw operates */
 
 	// repl: whether to sync this operation to slaves

@@ -270,6 +270,18 @@ while(true){
 				}
 				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
 				break;
+            case 'info':
+                is_val = false;
+                for(i=1; i<len(resp.data); i++){
+                    s = resp.data[i];
+                    if(is_val){
+                        s = '    ' + s.replace('\n', '\n    ');
+                    }
+                    print s;
+                    is_val = !is_val;
+                }
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+               break;
 			default:
 				print repr_data(resp.code), repr_data(resp.data);
 				printf('(%.3f sec)\n', time_consume);

@@ -1,3 +1,4 @@
+#include "version.h"
 #include "proc.h"
 #include "t_kv.h"
 #include "t_hash.h"
@@ -85,6 +86,7 @@ CommandProc::CommandProc(const SSDB *ssdb){
 
 	PROC(dump);
 	PROC(sync);
+	PROC(info);
 #undef PROC
 }
 
@@ -130,6 +132,19 @@ int CommandProc::proc_dump(const Link &link, const Request &req, Response *resp)
 int CommandProc::proc_sync(const Link &link, const Request &req, Response *resp){
 	backend_sync->proc(&link);
 	return PROC_BACKEND;
+}
+
+int CommandProc::proc_info(const Link &link, const Request &req, Response *resp){
+	resp->push_back("ok");
+	resp->push_back("ssdb-server");
+	resp->push_back("version");
+	resp->push_back(SSDB_VERSION);
+
+	std::vector<std::string> tmp = ssdb->info();
+	for(int i=0; i<tmp.size(); i++){
+		std::string block = tmp[i];
+		resp->push_back(block);
+	}
 }
 
 #include "proc_kv.cpp"

@@ -210,3 +210,31 @@ int SSDB::raw_get(const Bytes &key, std::string *val) const{
 	}
 	return 1;
 }
+
+std::vector<std::string> SSDB::info() const{
+	//  "leveldb.num-files-at-level<N>" - return the number of files at level <N>,
+	//     where <N> is an ASCII representation of a level number (e.g. "0").
+	//  "leveldb.stats" - returns a multi-line string that describes statistics
+	//     about the internal operation of the DB.
+	//  "leveldb.sstables" - returns a multi-line string that describes all
+	//     of the sstables that make up the db contents.
+	std::vector<std::string> info;
+	std::vector<std::string> keys;
+	for(int i=0; i<7; i++){
+		char buf[128];
+		snprintf(buf, sizeof(buf), "leveldb.num-files-at-level%d", i);
+		keys.push_back(buf);
+	}
+	keys.push_back("leveldb.stats");
+	keys.push_back("leveldb.sstables");
+
+	for(int i=0; i<keys.size(); i++){
+		std::string key = keys[i];
+		std::string val;
+		if(db->GetProperty(key, &val)){
+			info.push_back(key);
+			info.push_back(val);
+		}
+	}
+	return info;
+}
