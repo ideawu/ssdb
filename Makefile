@@ -1,3 +1,4 @@
+PREFIX=/usr/local/ssdb
 
 $(shell sh build.sh > build_config.mk)
 include build_config.mk
@@ -12,6 +13,13 @@ all:
 	cd src; make
 	cd tools; make
 
+install:
+	mkdir -p ${PREFIX}
+	mkdir -p ${PREFIX}/deps
+	cp -r api ${PREFIX}
+	cp -r tools/* ${PREFIX}
+	cp -r deps/cpy ${PREFIX}/deps
+	chmod ugo+rwx ${PREFIX}
 
 clean:
 	rm -f *.exe.stackdump
