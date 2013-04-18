@@ -296,7 +296,7 @@ class SSDB
 
 	/* zset */
 
-	function zset($name, $item, $score){
+	function zset($name, $key, $score){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -307,7 +307,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zget($name, $item){
+	function zget($name, $key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -317,7 +317,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zdel($name, $item){
+	function zdel($name, $key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -337,12 +337,12 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zincr($name, $item, $score){
+	function zincr($name, $key, $score){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zdecr($name, $item, $score){
+	function zdecr($name, $key, $score){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}

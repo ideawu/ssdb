@@ -89,6 +89,7 @@ exports.connect = function(host, port, timeout, listener){
 		var req = build_buffer(bs);
 		sock.write(req);
 		//console.log('write ' + req.length + ' bytes');
+		//console.log('write: ' + req);
 	}
 
 	sock.on('data', function(data){
@@ -202,6 +203,220 @@ exports.connect = function(host, port, timeout, listener){
 			if(callback){
 				var err = resp[0] == 'ok'? 0 : resp[0];
 				callback(err);
+			}
+		});
+	}
+
+	// callback(err, {index:[], items:{key:score}})
+	self.scan = function(key_start, key_end, limit, callback){
+		self.request('scan', [key_start, key_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length % 2 != 1){
+					callback('error');
+				}else{
+					var data = {index: [], items: {}};
+					for(var i=1; i<resp.length; i+=2){
+						var k = resp[i].toString();
+						var v = resp[i+1].toString();
+						data.index.push(k);
+						data.items[k] = v;
+					}
+					callback(err, data);
+				}
+			}
+		});
+	}
+
+	// callback(err, [])
+	self.keys = function(key_start, key_end, limit, callback){
+		self.request('keys', [key_start, key_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				var data = [];
+				for(var i=1; i<resp.length; i++){
+					var k = resp[i].toString();
+					data.push(k);
+				}
+				callback(err, data);
+			}
+		});
+	}
+
+	//////////////////////////////////////////////
+
+	// callback(score)
+	self.zget = function(name, key, callback){
+		self.request('zget', [name, key], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length == 2){
+					var score = parseInt(resp[1]);
+					callback(err, score);
+				}else{
+					var score = 0;
+					callback('error');
+				}
+			}
+		});
+	}
+
+	// callback(size)
+	self.zsize = function(name, callback){
+		self.request('zsize', [name], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length == 2){
+					var size = parseInt(resp[1]);
+					callback(err, size);
+				}else{
+					var score = 0;
+					callback('error');
+				}
+			}
+		});
+	}
+
+	// callback(err);
+	self.zset = function(name, key, score, callback){
+		self.request('zset', [name, key, score], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				callback(err);
+			}
+		});
+	}
+
+	// callback(err);
+	self.zdel = function(name, key, callback){
+		self.request('zdel', [name, key], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				callback(err);
+			}
+		});
+	}
+
+	// callback(err, {index:[], items:{key:score}})
+	self.zscan = function(name, key_start, score_start, score_end, limit, callback){
+		self.request('zscan', [name, key_start, score_start, score_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length % 2 != 1){
+					callback('error');
+				}else{
+					var data = {index: [], items: {}};
+					for(var i=1; i<resp.length; i+=2){
+						var k = resp[i].toString();
+						var v = parseInt(resp[i+1]);
+						data.index.push(k);
+						data.items[k] = v;
+					}
+					callback(err, data);
+				}
+			}
+		});
+	}
+
+	// callback(err, [])
+	self.zlist = function(name_start, name_end, limit, callback){
+		self.request('zlist', [name_start, name_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				var data = [];
+				for(var i=1; i<resp.length; i++){
+					var k = resp[i].toString();
+					data.push(k);
+				}
+				callback(err, data);
+			}
+		});
+	}
+
+	//////////////////////////////////////////////
+
+	// callback(val)
+	self.hget = function(name, key, callback){
+		self.request('hget', [name, key], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length == 2){
+					callback(err, resp[1]);
+				}else{
+					callback('error');
+				}
+			}
+		});
+	}
+
+	// callback(err);
+	self.hset = function(name, key, val, callback){
+		self.request('hset', [name, key, val], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				callback(err);
+			}
+		});
+	}
+
+	// callback(err);
+	self.hdel = function(name, key, callback){
+		self.request('hdel', [name, key], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				callback(err);
+			}
+		});
+	}
+
+	// callback(err, {index:[], items:{key:score}})
+	self.hscan = function(name, key_start, key_end, limit, callback){
+		self.request('hscan', [name, key_start, key_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length % 2 != 1){
+					callback('error');
+				}else{
+					var data = {index: [], items: {}};
+					for(var i=1; i<resp.length; i+=2){
+						var k = resp[i].toString();
+						var v = resp[i+1].toString();
+						data.index.push(k);
+						data.items[k] = v;
+					}
+					callback(err, data);
+				}
+			}
+		});
+	}
+
+	// callback(err, [])
+	self.hlist = function(name_start, name_end, limit, callback){
+		self.request('hlist', [name_start, name_end, limit], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				var data = [];
+				for(var i=1; i<resp.length; i++){
+					var k = resp[i].toString();
+					data.push(k);
+				}
+				callback(err, data);
+			}
+		});
+	}
+
+	// callback(size)
+	self.hsize = function(name, callback){
+		self.request('hsize', [name], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length == 2){
+					var size = parseInt(resp[1]);
+					callback(err, size);
+				}else{
+					var score = 0;
+					callback('error');
+				}
 			}
 		});
 	}
