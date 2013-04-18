@@ -1,13 +1,13 @@
-LEVELDB=leveldb-1.8.0
+
+$(shell sh build.sh > build_config.mk)
+include build_config.mk
 
 all:
 	chmod u+x deps/${LEVELDB}/build_detect_platform
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
 	cd deps/${LEVELDB}; make
-	#$(eval export CFLAGS=-DNDEBUG)
-	$(eval export CFLAGS=)
-	@sh build.sh
+	$(eval export CFLAGS=-DNDEBUG)
 	cd src/util; make
 	cd src; make
 	cd tools; make

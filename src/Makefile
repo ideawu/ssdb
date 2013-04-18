@@ -1,12 +1,9 @@
-LEVELDB=leveldb-1.8.0
+include ../build_config.mk
+
 LEVELDB_PATH = ../deps/${LEVELDB}
 CFLAGS += -I./ -I${LEVELDB_PATH}/include
-
-ifeq ($(shell uname), Darwin)
-CLIBS += -L${LEVELDB_PATH} -lleveldb
-else
-CLIBS += -static -L${LEVELDB_PATH} -lleveldb
-endif
+CLIBS += -L${LEVELDB_PATH} ${LEVELDB_PATH}/libleveldb.a
+CLIBS += ${PLATFORM_LDFLAGS}
 
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o proc.o link.o backend_dump.o backend_sync.o repl.o slave.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
@@ -14,8 +11,8 @@ EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.e
 
 
 all: ssdb.h ${OBJS}
-	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} -lpthread ssdb-server.cpp
-	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} -lpthread ssdb-dump.cpp
+	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-server.cpp
+	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
 
 objs: ssdb.h ${OBJS}
 
@@ -51,5 +48,4 @@ backend_sync.o: ssdb.h backend_sync.h backend_sync.cpp
 
 clean:
 	rm -f ${EXES} ${OBJS}
-	rm -f ../*.exe.stackdump
 
