@@ -9,7 +9,7 @@
 
 var net = require('net');
 
-// timeout: microseconds, if ommitted, it will be considered as listener
+// timeout: microseconds, if ommitted, it will be treated as listener
 // callback(err, ssdb)
 exports.connect = function(host, port, timeout, listener){
 	var self = this;
