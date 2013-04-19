@@ -40,7 +40,7 @@ readrand  :    0.310 ms/op      315.0 MB/s
 
 ### SSDB vs Redis
 
-![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png)
+![Benchmark vs Redis](https://a248.e.akamai.net/camo.github.com/e4f078b24ac603f4af874c3fbac6f9908d521e20/687474703a2f2f7777772e6964656177752e636f6d2f737364622f737364622d76732d72656469732e706e67)
 
 [View full SSDB vs Redis benchmark charts...](http://www.ideawu.com/ssdb/)
 
