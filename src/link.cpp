@@ -109,7 +109,7 @@ Link* Link::listen(const char *ip, int port){
 	if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
 		goto sock_err;
 	}
-	if(::listen(sock, 5) == -1){
+	if(::listen(sock, 1024) == -1){
 		goto sock_err;
 	}
 	log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
