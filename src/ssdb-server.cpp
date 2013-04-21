@@ -59,6 +59,7 @@ void run(int argc, char **argv){
 	Fdevents select;
 	select.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
 	CommandProc proc(ssdb);
+	int link_count = 0;
 
 	while(!quit){
 		if(!ready_list.empty()){
@@ -79,12 +80,11 @@ void run(int argc, char **argv){
 					log_error("accept fail!");
 					continue;
 				}
-				//
+				link_count ++;
 				link->nodelay();
 				link->noblock();
-				//
 				select.set(link->fd(), FDEVENT_IN, 1, link);
-				log_info("new link: %d", link->fd());
+				log_info("new link: %d, link_count: %d", link->fd(), link_count);
 			}else{
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
@@ -93,6 +93,7 @@ void run(int argc, char **argv){
 					log_trace("fd: %d read: %d", link->fd(), len);
 					if(len <= 0){
 						log_info("fd: %d, read: %d, delete link", link->fd(), len);
+						link_count --;
 						select.del(link->fd());
 						delete link;
 					}else{
@@ -103,6 +104,7 @@ void run(int argc, char **argv){
 					log_trace("fd: %d write: %d", link->fd(), len);
 					if(len <= 0){
 						log_info("fd: %d, write: %d, delete link", link->fd(), len);
+						link_count --;
 						select.del(link->fd());
 						delete link;
 					}else if(link->output->empty()){
@@ -126,6 +128,7 @@ void run(int argc, char **argv){
 			const Request *req = link->recv();
 			if(req == NULL){
 				log_warn("fd: %d, link parse error, delete link", link->fd());
+				link_count --;
 				select.del(link->fd());
 				delete link;
 				continue;
@@ -142,16 +145,19 @@ void run(int argc, char **argv){
 			int status = proc.proc(*link, *req, &resp);
 			if(status == PROC_ERROR){
 				log_info("fd: %d, proc error, delete link", link->fd());
+				link_count --;
 				select.del(link->fd());
 				delete link;
 				continue;
 			}else if(status == PROC_BACKEND){
+				link_count --;
 				select.del(link->fd());
 				continue;
 			}
 
 			if(link->send(resp) == -1){
 				log_info("fd: %d, send error, delete link", link->fd());
+				link_count --;
 				select.del(link->fd());
 				delete link;
 				continue;

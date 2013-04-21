@@ -9,9 +9,10 @@
 #include "util/log.h"
 
 #define MAX_PACKET_SIZE		32 * 1024 * 1024
+#define ZERO_BUFFER_SIZE	8
 
-int Link::min_recv_buf = 128 * 1024;
-int Link::min_send_buf = 128 * 1024;
+int Link::min_recv_buf = 8 * 1024;
+int Link::min_send_buf = 8 * 1024;
 
 
 Link::Link(bool is_server){
@@ -20,8 +21,11 @@ Link::Link(bool is_server){
 	if(is_server){
 		input = output = NULL;
 	}else{
-		input = new Buffer(Link::min_recv_buf);
-		output = new Buffer(Link::min_send_buf);
+		// alloc memory lazily
+		//input = new Buffer(Link::min_recv_buf);
+		//output = new Buffer(Link::min_send_buf);
+		input = new Buffer(ZERO_BUFFER_SIZE);
+		output = new Buffer(ZERO_BUFFER_SIZE);
 	}
 }
 
@@ -154,13 +158,13 @@ Link* Link::accept(){
 }
 
 int Link::read(){
+	if(input->total() == ZERO_BUFFER_SIZE){
+		input->grow();
+	}
 	int ret = 0;
 	int want;
 	input->nice();
 	while((want = input->space()) > 0){
-		if(want > 128 * 1024){
-			want = 128 * 1024;
-		}
 		// test
 		//want = 1;
 		int len = ::read(sock, input->slot(), want);
@@ -190,6 +194,9 @@ int Link::read(){
 }
 
 int Link::write(){
+	if(output->total() == ZERO_BUFFER_SIZE){
+		output->grow();
+	}
 	int ret = 0;
 	int want;
 	while((want = output->size()) > 0){

@@ -168,7 +168,7 @@ class Buffer{
 		// 保证不改变后半段的数据, 以便使已生成的 Bytes 不失效.
 		void nice();
 		// 扩大缓冲区
-		int grow(int require=0);
+		int grow();
 
 		std::string stats() const;
 		int read_record(Bytes *s);

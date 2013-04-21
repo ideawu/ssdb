@@ -143,8 +143,11 @@ class SSDB
 			return $this;
 		}
 
-		$this->send_req($cmd, $params);
-		$resp = $this->recv_resp($cmd);
+		if($this->send_req($cmd, $params) === false){
+			$resp = new SSDB_Response('error', 'send error');
+		}else{
+			$resp = $this->recv_resp($cmd);
+		}
 		$resp = $this->check_easy_resp($cmd, $resp);
 		return $resp;
 	}
@@ -423,7 +426,7 @@ class SSDB
 				$req[] = $p;
 			}
 		}
-		$this->send($req);
+		return $this->send($req);
 	}
 
 	private function recv_resp($cmd){
@@ -530,7 +533,7 @@ class SSDB
 		}
 		try{
 			while(true){
-				$ret = socket_write($this->sock, $s);
+				$ret = @socket_write($this->sock, $s);
 				if($ret == 0){
 					return false;
 				}
@@ -550,7 +553,7 @@ class SSDB
 			$ret = $this->parse();
 			if($ret === null){
 				try{
-					$data = socket_read($this->sock, 1024*128);
+					$data = @socket_read($this->sock, 1024*128);
 					if($this->debug){
 						echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
 					}

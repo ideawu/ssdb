@@ -20,14 +20,16 @@ void Buffer::nice(){
 	}
 }
 
-int Buffer::grow(int require){ // 扩大缓冲区
+int Buffer::grow(){ // 扩大缓冲区
 	int n;
-	if(require <= 0){
-		n = 2 * total_;
+	if(total_ < 8 * 1024){
+		n = 8 * 1024;
+	}else if(total_ < 512 * 1024){
+		n = 8 * total_;
 	}else{
-		n = ((require - 1)/total_ + 2) * total_;
+		n = 2 * total_;
 	}
-	//log_debug("%d => %d", total_, n);
+	//log_debug("Buffer resize %d => %d", total_, n);
 	char *p = (char *)realloc(buf, n);
 	if(p == NULL){
 		return -1;
@@ -98,7 +100,7 @@ int Buffer::append_record(const Bytes &s){
 	// 16 is the maximum length of literal string of s.size()
 	int size = 16 + s.size() + 1;
 	while(size > this->space()){
-		if(this->grow(size) == -1){
+		if(this->grow() == -1){
 			return -1;
 		}
 	}
@@ -133,7 +135,7 @@ int Buffer::append(char c){
 
 int Buffer::append(const void *p, int size){
 	while(size > this->space()){
-		if(this->grow(size) == -1){
+		if(this->grow() == -1){
 			return -1;
 		}
 	}
@@ -148,13 +150,5 @@ int Buffer::append(const char *p){
 }
 
 int Buffer::append(const Bytes &s){
-	while(s.size() > this->space()){
-		if(this->grow(s.size()) == -1){
-			return -1;
-		}
-	}
-
-	memcpy(this->slot(), s.data(), s.size());
-	size_ += s.size();
-	return s.size();
+	return this->append(s.data(), s.size());
 }

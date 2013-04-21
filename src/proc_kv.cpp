@@ -51,6 +51,7 @@ int CommandProc::proc_set(const Link &link, const Request &req, Response *resp){
 			resp->push_back("error");
 		}else{
 			resp->push_back("ok");
+			resp->push_back("1");
 		}
 	}
 	return 0;
