@@ -141,6 +141,12 @@ Link* Link::accept(){
 	inet_ntop(AF_INET, &addr.sin_addr, ip_str, sizeof(ip_str));
 	log_debug("accept: %d, from %s:%d", client_sock, ip_str, ntohs(addr.sin_port));
 
+	struct linger opt = {1, 0};
+	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
+	if (ret != 0) {
+		log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
+	}
+
 	link = new Link();
 	link->sock = client_sock;
 	link->keepalive(true);

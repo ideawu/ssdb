@@ -65,7 +65,7 @@ void run(int argc, char **argv){
 			// give links that are not in ready_list a chance
 			events = select.wait(0);
 		}else{
-			events = select.wait(200);
+			events = select.wait(500);
 		}
 		if(events == NULL){
 			log_fatal("events.wait error: %s", strerror(errno));
@@ -101,7 +101,7 @@ void run(int argc, char **argv){
 				}else if(fde->events & FDEVENT_OUT){
 					int len = link->write();
 					log_trace("fd: %d write: %d", link->fd(), len);
-					if(len < 0){
+					if(len <= 0){
 						log_info("fd: %d, write: %d, delete link", link->fd(), len);
 						select.del(link->fd());
 						delete link;
