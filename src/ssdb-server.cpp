@@ -88,7 +88,12 @@ void run(int argc, char **argv){
 			}else{
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
-				if(fde->events & FDEVENT_IN){
+				if(fde->events & FDEVENT_ERR){
+					log_info("fd: %d error, delete link", link->fd());
+					link_count --;
+					select.del(link->fd());
+					delete link;
+				}else if(fde->events & FDEVENT_IN){
 					int len = link->read();
 					log_trace("fd: %d read: %d", link->fd(), len);
 					if(len <= 0){

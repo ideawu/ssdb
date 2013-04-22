@@ -9,7 +9,7 @@ Buffer::Buffer(int total){
 }
 
 Buffer::~Buffer(){
-	delete buf;
+	free(buf);
 }
 
 void Buffer::nice(){

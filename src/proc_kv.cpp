@@ -40,6 +40,7 @@ int CommandProc::proc_multi_exists(const Link &link, const Request &req, Respons
 			}
 		}
 	}
+	return 0;
 }
 
 int CommandProc::proc_set(const Link &link, const Request &req, Response *resp){

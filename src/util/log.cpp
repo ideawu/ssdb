@@ -48,7 +48,7 @@ Logger::Logger(){
 Logger::~Logger(){
 	if(mutex){
 		pthread_mutex_destroy(mutex);
-		delete mutex;
+		free(mutex);
 	}
 	this->close();
 }
@@ -56,7 +56,7 @@ Logger::~Logger(){
 void Logger::threadsafe(){
 	if(mutex){
 		pthread_mutex_destroy(mutex);
-		delete mutex;
+		free(mutex);
 		mutex = NULL;
 	}
 	mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
