@@ -1,11 +1,7 @@
 #ifndef SSDB_H_
 #define SSDB_H_
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
+#include "include.h"
 #include <vector>
 #include "leveldb/db.h"
 #include "leveldb/options.h"

@@ -1,6 +1,6 @@
 LEVELDB=leveldb-1.8.0
 LEVELDB_PATH = ../../deps/${LEVELDB}
-CFLAGS += -I./ -I${LEVELDB_PATH}/include
+CFLAGS += -I${LEVELDB_PATH}/include -I../../deps/jemalloc-3.3.1/include
 CLIBS +=  -L${LEVELDB_PATH} -lleveldb
 OBJS = log.o fde.o config.o bytes.o
 EXES = 

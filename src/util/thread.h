@@ -1,11 +1,7 @@
 #ifndef UTIL_THREAD_H_
 #define UTIL_THREAD_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
+#include "../include.h"
 #include <pthread.h>
 #include <queue>
 #include <vector>

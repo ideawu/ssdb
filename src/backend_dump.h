@@ -1,6 +1,7 @@
 #ifndef SSDB_BACKEND_DUMP_H_
 #define SSDB_BACKEND_DUMP_H_
 
+#include "include.h"
 #include "ssdb.h"
 #include "link.h"
 

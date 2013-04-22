@@ -1,8 +1,7 @@
 #ifndef SSDB_ZSET_H_
 #define SSDB_ZSET_H_
 
-#include <stdint.h>
-#include <stdlib.h>
+#include "include.h"
 #include "ssdb.h"
 #include "util/strings.h"
 

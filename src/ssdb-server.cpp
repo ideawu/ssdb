@@ -1,11 +1,7 @@
+#include "include.h"
 #include <vector>
 #include <string>
 #include <list>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
 
 #include "version.h"
 #include "ssdb.h"

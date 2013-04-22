@@ -1,6 +1,3 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "repl.h"
 #include "util/log.h"
 #include "util/strings.h"

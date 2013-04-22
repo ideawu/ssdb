@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "ssdb.h"
 #include "slave.h"
 #include "leveldb/iterator.h"

@@ -1,13 +1,8 @@
 #ifndef UTIL_LOG_H
 #define UTIL_LOG_H
 
-#include <unistd.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "../include.h"
 #include <pthread.h>
-#include <limits.h>
 
 class Logger{
 	public:

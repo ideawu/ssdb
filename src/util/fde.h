@@ -1,6 +1,8 @@
 #ifndef UTIL_FDE_H
 #define UTIL_FDE_H
 
+#include "../include.h"
+
 #ifdef __linux__
 	#define HAVE_EPOLL 1
 #endif

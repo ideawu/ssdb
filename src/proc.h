@@ -1,6 +1,7 @@
 #ifndef SSDB_PROC_H_
 #define SSDB_PROC_H_
 
+#include "include.h"
 #include <map>
 #include <vector>
 #include <string>

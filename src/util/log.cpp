@@ -1,9 +1,3 @@
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <limits.h>
 #include "log.h"
 
 static Logger logger;

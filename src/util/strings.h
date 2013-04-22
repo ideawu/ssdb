@@ -1,11 +1,7 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <unistd.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
+#include "../include.h"
 #include <string>
 
 inline static
@@ -156,7 +152,6 @@ std::string double_to_str(double v){
 	return std::string(buf);
 }
 
-/**/
 
 // is big endia. TODO: auto detect
 #if 0

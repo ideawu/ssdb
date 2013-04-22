@@ -1,7 +1,7 @@
 #ifndef SSDB_REPL_H_
 #define SSDB_REPL_H_
 
-#include <stdint.h>
+#include "include.h"
 #include <string>
 #include "leveldb/db.h"
 #include "leveldb/options.h"

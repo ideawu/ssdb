@@ -1,6 +1,3 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "fde.h"
 
 struct Fdevent* Fdevents::get_fde(int fd){

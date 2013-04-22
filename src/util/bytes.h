@@ -1,10 +1,7 @@
 #ifndef UTIL_BYTES_H_
 #define UTIL_BYTES_H_
 
-#include <string>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "../include.h"
 #include "leveldb/slice.h"
 #include "strings.h"
 
