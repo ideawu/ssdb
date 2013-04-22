@@ -4,6 +4,6 @@ prefix=/usr/local
 exec_prefix=/usr/local
 libdir=${exec_prefix}/lib
 
-DYLD_INSERT_LIBRARIES=${libdir}/libjemalloc.1.dylib
-export DYLD_INSERT_LIBRARIES
+LD_PRELOAD=${libdir}/libjemalloc.so.1
+export LD_PRELOAD
 exec "$@"
