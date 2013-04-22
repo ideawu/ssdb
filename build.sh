@@ -1,5 +1,16 @@
 #!/bin/sh
-echo LEVELDB=leveldb-1.8.0
+
+echo ""
+echo "building jemalloc..."
+DIR=`pwd`
+cd deps/jemalloc-3.3.1
+if [ ! -f Makefile ]; then
+	./configure
+   	make
+fi
+cd $DIR
+echo "building jemalloc finished"
+echo ""
 
 
 echo "#ifndef SSDB_VERSION" > src/version.h
@@ -44,4 +55,7 @@ case "$TARGET_OS" in
         exit 1
 esac
 
-echo PLATFORM_LDFLAGS=$PLATFORM_LDFLAGS
+rm build_config.mk
+echo "LEVELDB=leveldb-1.8.0" >> build_config.mk
+echo "PLATFORM_LDFLAGS=$PLATFORM_LDFLAGS" >> build_config.mk
+

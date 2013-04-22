@@ -1,13 +1,12 @@
 PREFIX=/usr/local/ssdb
 
-$(shell sh build.sh > build_config.mk)
+$(shell sh build.sh 1>&2)
 include build_config.mk
 
 all:
 	chmod u+x deps/${LEVELDB}/build_detect_platform
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
-	cd deps/jemalloc-3.3.1; if [ ! -f Makefile ]; then ./configure; make; fi
 	cd deps/${LEVELDB}; make
 	$(eval export CFLAGS=-DNDEBUG)
 	cd src/util; make
