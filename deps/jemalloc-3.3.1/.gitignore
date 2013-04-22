@@ -22,5 +22,4 @@
 !test/*.exp
 /VERSION
 /bin/jemalloc.sh
-/test
 
