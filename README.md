@@ -17,10 +17,10 @@ SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL per
 ```php
 <?php
 require_once('SSDB.php');
-$ssdb = new SSDB('127.0.0.1', 8888);
+$ssdb = new SimpleSSDB('127.0.0.1', 8888);
 $resp = $ssdb->set('key', '123');
 $resp = $ssdb->get('key');
-echo $resp->data; // output: 123
+echo $resp; // output: 123
 ```
 
 [More...](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API)
