@@ -141,10 +141,11 @@ int CommandProc::proc_info(const Link &link, const Request &req, Response *resp)
 	resp->push_back(SSDB_VERSION);
 
 	std::vector<std::string> tmp = ssdb->info();
-	for(int i=0; i<tmp.size(); i++){
+	for(int i=0; i<(int)tmp.size(); i++){
 		std::string block = tmp[i];
 		resp->push_back(block);
 	}
+	return 0;
 }
 
 #include "proc_kv.cpp"

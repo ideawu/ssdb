@@ -1,17 +1,18 @@
 #include "t_kv.h"
+#include "leveldb/write_batch.h"
 
 int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset) const{
-	leveldb::WriteBatch batch;
+	binlogs->begin();
 	std::vector<Bytes>::const_iterator it;
 	it = kvs.begin() + offset;
 	for(; it != kvs.end(); it += 2){
 		const Bytes &key = *it;
 		const Bytes &val = *(it + 1);
 		std::string buf = encode_kv_key(key);
-		batch.Put(buf, val.Slice());
+		binlogs->Put(buf, val.Slice());
+		binlogs->log(BinlogType::SYNC, BinlogCommand::KSET, buf);
 	}
-	leveldb::WriteOptions write_opts;
-	leveldb::Status s = db->Write(write_opts, &batch);
+	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
 		log_error("multi_set error: %s", s.ToString().c_str());
 		return -1;
@@ -20,14 +21,14 @@ int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset) const{
 }
 
 int SSDB::multi_del(const std::vector<Bytes> &keys, int offset) const{
-	leveldb::WriteBatch batch;
-	leveldb::WriteOptions write_opts;
-	for(; offset < keys.size(); offset += 1){
+	binlogs->begin();
+	for(; offset < (int)keys.size(); offset += 1){
 		const Bytes &key = keys[offset];
 		std::string buf = encode_kv_key(key);
-		batch.Delete(buf);
+		binlogs->Delete(buf);
+		binlogs->log(BinlogType::SYNC, BinlogCommand::KDEL, buf);
 	}
-	leveldb::Status s = db->Write(write_opts, &batch);
+	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
 		log_error("multi_del error: %s", s.ToString().c_str());
 		return -1;
@@ -37,9 +38,10 @@ int SSDB::multi_del(const std::vector<Bytes> &keys, int offset) const{
 
 int SSDB::set(const Bytes &key, const Bytes &val) const{
 	std::string buf = encode_kv_key(key);
-	leveldb::WriteOptions write_opts;
-
-	leveldb::Status s = db->Put(write_opts, buf, val.Slice());
+	binlogs->begin();
+	binlogs->Put(buf, val.Slice());
+	binlogs->log(BinlogType::SYNC, BinlogCommand::KSET, buf);
+	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
 		return -1;
@@ -64,9 +66,10 @@ int SSDB::get(const Bytes &key, std::string *val) const{
 
 int SSDB::del(const Bytes &key) const{
 	std::string buf = encode_kv_key(key);
-	leveldb::WriteOptions write_opts;
-	
-	leveldb::Status s = db->Delete(write_opts, buf);
+	binlogs->begin();
+	binlogs->Delete(buf);
+	binlogs->log(BinlogType::SYNC, BinlogCommand::KDEL, buf);
+	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
 		log_error("del error: %s", s.ToString().c_str());
 		return -1;

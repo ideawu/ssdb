@@ -9,36 +9,14 @@
 #include "util/log.h"
 #include "util/bytes.h"
 #include "util/config.h"
-
 #include "iterator.h"
-#include "repl.h"
-
-
-static const int SSDB_SCORE_WIDTH		= 9;
-static const int SSDB_KEY_LEN_MAX		= 200;
-
-
-static inline double microtime(){
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	double ret = now.tv_sec + now.tv_usec/1000.0/1000.0;
-	return ret;
-}
-
-class DataType{
-public:
-	static const int KV			= 'k';
-	static const int ZSCORE		= 's';
-	static const int ZSET		= 'z'; // sorted set(sorted by score)
-	static const int ZSIZE		= 'Z';
-	static const int HASH		= 'h'; // hashmap(sorted by key)
-	static const int HSIZE		= 'H';
-};
+#include "binlog.h"
 
 class KIterator;
 class HIterator;
 class ZIterator;
 class Slave;
+
 
 class SSDB{
 private:
@@ -46,14 +24,13 @@ private:
 	leveldb::DB* meta_db;
 	leveldb::Options options;
 
-	Slave *slave;
 	std::vector<Slave *> slaves;
 	
 	SSDB();
 public:
+	BinlogQueue *binlogs;
+	
 	~SSDB();
-	const MyReplication *replication;
-
 	static SSDB* open(const Config &conf, const std::string &base_dir);
 
 	// return (start, end)

@@ -31,9 +31,9 @@ int decode_zsize_key(const Bytes &slice, std::string *name){
 }
 
 static inline
-std::string encode_zs_key(const Bytes &key, const Bytes &val){
+std::string encode_zset_key(const Bytes &key, const Bytes &val){
 	std::string buf;
-	buf.append(1, DataType::ZSCORE);
+	buf.append(1, DataType::ZSET);
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
 	buf.append(1, (uint8_t)val.size());
@@ -44,7 +44,7 @@ std::string encode_zs_key(const Bytes &key, const Bytes &val){
 static inline
 std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score){
 	std::string buf;
-	buf.append(1, DataType::ZSET);
+	buf.append(1, DataType::ZSCORE);
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
 
@@ -134,7 +134,7 @@ class ZIterator{
 				Bytes vs = it->val();
 				//dump(ks.data(), ks.size(), "z.next");
 				//dump(vs.data(), vs.size(), "z.next");
-				if(ks.data()[0] != DataType::ZSET){
+				if(ks.data()[0] != DataType::ZSCORE){
 					return false;
 				}
 				if(decode_z_key(ks, NULL, &key, &score) == -1){

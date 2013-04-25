@@ -29,6 +29,11 @@ Link *serv_link = NULL;
 int main(int argc, char **argv){
 	welcome();
 	init(argc, argv);
+	
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
+	
 	run(argc, argv);
 
 	if(serv_link){
@@ -219,10 +224,6 @@ void init(int argc, char **argv){
 		exit(0);
 	}
 
-	signal(SIGPIPE, SIG_IGN);
-	signal(SIGINT, signal_handler);
-	signal(SIGTERM, signal_handler);
-
 	bool is_daemon = false;
 	const char *conf_file = NULL;
 	for(int i=1; i<argc; i++){
@@ -292,6 +293,7 @@ void init(int argc, char **argv){
 	log_info("starting ssdb server...");
 	log_info("conf_file  : %s", conf_file);
 	log_info("work_dir   : %s", work_dir.c_str());
+	log_info("log_level  : %s", conf->get_str("logger.level"));
 	log_info("log_output : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 

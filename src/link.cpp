@@ -280,7 +280,7 @@ const std::vector<Bytes>* Link::recv(){
 		}
 
 		char head_str[20];
-		if(head_len > sizeof(head_str) - 1){
+		if(head_len > (int)sizeof(head_str) - 1){
 			return NULL;
 		}
 		memcpy(head_str, head, head_len - 1); // no '\n'

@@ -8,6 +8,7 @@
 
 #include "ssdb.h"
 #include "link.h"
+#include "binlog.h"
 #include "util/lock.h"
 #include "util/thread.h"
 
@@ -52,8 +53,8 @@ struct BackendSync::Client{
 	~Client();
 	void init();
 	void reset_sync();
-	void dump();
-	int sync(SyncLogQueue *logs);
+	int dump();
+	int sync(BinlogQueue *logs);
 };
 
 #endif

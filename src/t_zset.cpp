@@ -30,7 +30,7 @@ int64_t SSDB::zsize(const Bytes &name) const{
 }
 
 int SSDB::zget(const Bytes &name, const Bytes &key, std::string *score) const{
-	std::string buf = encode_zs_key(name, key);
+	std::string buf = encode_zset_key(name, key);
 	leveldb::ReadOptions read_opts;
 	
 	leveldb::Status s = db->Get(read_opts, buf, score);
@@ -235,7 +235,7 @@ static int zset_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
 		batch.Delete(k1);
 
 		// update score
-		k0 = encode_zs_key(name, key);
+		k0 = encode_zset_key(name, key);
 		v.assign(score.data(), score.size());
 		batch.Put(k0, v);
 
@@ -270,7 +270,7 @@ static int zdel_one(const SSDB *ssdb, leveldb::WriteBatch &batch, const Bytes &n
 	}
 
 	// delete score
-	k0 = encode_zs_key(name, key);
+	k0 = encode_zset_key(name, key);
 	batch.Delete(k0);
 
 	// delete zset key

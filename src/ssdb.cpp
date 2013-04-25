@@ -7,14 +7,10 @@
 SSDB::SSDB(){
 	db = NULL;
 	meta_db = NULL;
-	slave = NULL;
-	replication = NULL;
+	binlogs = NULL;
 }
 
 SSDB::~SSDB(){
-	if(slave){
-		delete slave;
-	}
 	for(std::vector<Slave *>::iterator it = slaves.begin(); it != slaves.end(); it++){
 		Slave *slave = *it;
 		slave->stop();
@@ -23,8 +19,8 @@ SSDB::~SSDB(){
 	if(db){
 		delete db;
 	}
-	if(replication){
-		delete replication;
+	if(binlogs){
+		delete binlogs;
 	}
 	if(options.block_cache){
 		delete options.block_cache;
@@ -78,31 +74,13 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		}
 	}
 
-	{
-		MyReplication *repl = new MyReplication(ssdb->meta_db);
-		ssdb->replication = repl;
-		ssdb->options.replication = repl;
-	}
-
 	status = leveldb::DB::Open(ssdb->options, main_db_path, &ssdb->db);
 	if(!status.ok()){
 		log_error("open main_db failed");
 		goto err;
 	}
+	ssdb->binlogs = new BinlogQueue(ssdb->db);
 
-	/*
-	{ // slave
-		std::string ip;
-		int port;
-		ip = conf.get_str("replication.slaveof.ip");
-		port = conf.get_num("replication.slaveof.port");
-		if(ip != ""){
-			ssdb->slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port);
-			ssdb->slave->start();
-			log_info("slaveof: %s:%d", ip.c_str(), port);
-		}
-	}
-	*/
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
@@ -227,7 +205,7 @@ std::vector<std::string> SSDB::info() const{
 	keys.push_back("leveldb.stats");
 	keys.push_back("leveldb.sstables");
 
-	for(int i=0; i<keys.size(); i++){
+	for(size_t i=0; i<keys.size(); i++){
 		std::string key = keys[i];
 		std::string val;
 		if(db->GetProperty(key, &val)){

@@ -91,8 +91,8 @@ template<class T>
 static std::string serialize_req(T &req){
 	std::string ret;
 	char buf[50];
-	for(int i=0; i<req.size(); i++){
-		if(i >= 5 && i < req.size() - 1){
+	for(int i=0; i<(int)req.size(); i++){
+		if(i >= 5 && i < (int)req.size() - 1){
 			sprintf(buf, "[%d more...]", (int)req.size() - i - 1);
 			ret.append(buf);
 			break;
@@ -104,7 +104,7 @@ static std::string serialize_req(T &req){
 			sprintf(buf, "[%d bytes]", (int)req[i].size());
 			ret.append(buf);
 		}
-		if(i < req.size() - 1){
+		if(i < (int)req.size() - 1){
 			ret.append(" ");
 		}
 	}

@@ -1,5 +1,6 @@
 #include "t_hash.h"
 #include "ssdb.h"
+#include "leveldb/write_batch.h"
 
 static int hset_one(const SSDB *ssdb, leveldb::WriteBatch &batch,
 		const Bytes &name, const Bytes &key, const Bytes &val);

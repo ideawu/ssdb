@@ -37,6 +37,10 @@ Config* Config::load(const char *filename){
 		int indent = strspn(buf, "\t");
 		char *key = buf + indent;
 
+		if(*key == '#'){
+			cfg->add("#", key + 1, lineno);
+			continue;
+		}
 		if(indent <= last_indent){
 			for(int i = indent; i <= last_indent; i++){
 				/* 第一个配置时, 此条件为真 */
@@ -45,22 +49,11 @@ Config* Config::load(const char *filename){
 				}
 			}
 		}else if(indent > last_indent + 1){
-			if(*key != '#'){
-				log_error("invalid indent line(%d)", lineno);
-				goto err;
-			}
+			log_error("invalid indent line(%d)", lineno);
+			goto err;
 		}
-
-		/* 注释行以 \t*# 开头 */
-		if(*key == '#'){
-			log_trace("%s", key);
-			cfg = cfg->add("#", key + 1, lineno);
-			if(cfg == NULL){
-				goto err;
-			}
-			last_indent = indent;
-			continue;
-		}else if(isspace(*key)){
+		
+		if(isspace(*key)){
 			log_error("invalid line(%d): unexpected whitespace char '%c'", lineno, *key);
 			goto err;
 		}
