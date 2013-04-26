@@ -1,6 +1,6 @@
-#include <errno.h>
-#include "slave.h"
 #include "util/fde.h"
+#include "slave.h"
+#include "t_kv.h"
 
 Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
@@ -18,6 +18,8 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, b
 	load_status();
 	log_debug("last_seq: %llu, last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+	this->last_seq = 0;
+	this->last_key = "";
 }
 
 Slave::~Slave(){
@@ -154,82 +156,6 @@ err:
 	return -1;
 }
 
-int Slave::proc_sync_cmd(const std::vector<Bytes> *req){
-	Bytes cmd = req->at(0);
-	if(cmd == "dump_begin"){
-		log_info("dump begin");
-		// TODO: patch-diff old data
-	}else if(cmd == "dump_end"){
-		log_info("dump end, step in sync");
-		this->last_key = "";
-		this->save_status();
-	}else if(cmd == "dump_set"){
-		log_debug("%s", serialize_req(*req).c_str());
-		if(req->size() != 4){
-			log_warn("invalid dump_set params!");
-			return 0;
-		}
-		uint64_t seq = req->at(1).Uint64();
-		Bytes key = req->at(2);
-		Bytes val = req->at(3);
-		this->last_key = key.String();
-		if(seq > 0){
-			this->last_seq = seq;
-		}
-
-		int ret = ssdb->raw_set(key, val);
-		if(ret == -1){
-			log_error("ssdb.raw_set error!");
-		}
-		this->save_status();
-	}else if(cmd == "sync_set"){
-		log_debug("%s", serialize_req(*req).c_str());
-		if(req->size() != 4){
-			log_warn("invalid sync_set params!");
-			return 0;
-		}
-		uint64_t seq = req->at(1).Uint64();
-		Bytes key = req->at(2);
-		Bytes val = req->at(3);
-		// sync
-		this->last_seq = seq;
-
-		int ret = ssdb->raw_set(key, val, this->is_mirror);
-		if(ret == -1){
-			log_error("ssdb.raw_set error!");
-		}
-		this->save_status();
-	}else if(cmd == "sync_del"){
-		log_debug("%s", serialize_req(*req).c_str());
-		if(req->size() != 3){
-			log_warn("invalid del params!");
-			return 0;
-		}
-		uint64_t seq = req->at(1).Uint64();
-		Bytes key = req->at(2);
-		this->last_seq = seq;
-
-		int ret = ssdb->raw_del(key, this->is_mirror);
-		if(ret == -1){
-			log_error("ssdb.raw_del error!");
-		}
-		this->save_status();
-	}else if(cmd == "noop"){
-		if(req->size() >= 2){
-			uint64_t seq = req->at(1).Uint64();
-			if(this->last_seq != seq){
-				log_debug("noop last_seq: %llu, seq: %llu", this->last_seq, seq);
-				this->last_seq = seq;
-				this->save_status();
-			}
-		}
-		//log_trace("recv noop");
-	}else{
-		log_warn("unknow sync command: %s", serialize_req(*req).c_str());
-	}
-	return 0;
-}
-
 void* Slave::_run_thread(void *arg){
 	Slave *slave = (Slave *)arg;
 	const std::vector<Bytes> *req;
@@ -237,8 +163,9 @@ void* Slave::_run_thread(void *arg){
 	const Fdevents::events_t *events;
 	int idle = 0;
 	bool reconnect = false;
+	
 #define RECV_TIMEOUT	200
-#define MAX_RECV_IDLE	10 * 1000/RECV_TIMEOUT
+#define MAX_RECV_IDLE	30 * 1000/RECV_TIMEOUT
 
 	while(!slave->thread_quit){
 		if(reconnect){
@@ -285,7 +212,7 @@ void* Slave::_run_thread(void *arg){
 			}else if(req->empty()){
 				break;
 			}else{
-				if(slave->proc_sync_cmd(req) == -1){
+				if(slave->proc(*req) == -1){
 					goto quit_;
 				}
 			}
@@ -297,3 +224,88 @@ quit_:
 	log_info("Slave thread quit");
 	return (void *)NULL;
 }
+
+int Slave::proc(const std::vector<Bytes> &req){
+	Binlog log;
+	if(log.load(req[0].Slice()) == -1){
+		log_error("invalid binlog!");
+		return 0;
+	}
+	log_debug("%s", log.dumps().c_str());
+	switch(log.type()){
+		case BinlogType::NOOP:
+			this->proc_sync(log, req);
+			break;
+		case BinlogType::DUMP:
+			this->proc_dump(log, req);
+			break;
+		case BinlogType::SYNC:
+		case BinlogType::MIRROR:
+			this->proc_sync(log, req);
+			break;
+		default:
+			break;
+	}
+	return 0;
+}
+
+int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
+	uint64_t seq = log.seq();
+	if(this->last_seq != seq){
+		log_debug("noop last_seq: %llu, seq: %llu", this->last_seq, seq);
+		this->last_seq = seq;
+		this->save_status();
+	}
+	return 0;
+}
+
+int Slave::proc_dump(const Binlog &log, const std::vector<Bytes> &req){
+	switch(log.cmd()){
+		case BinlogCommand::BEGIN:
+			log_info("dump begin");
+			break;
+		case BinlogCommand::END:
+			log_info("dump end, step in sync");
+			this->last_key = "";
+			this->save_status();
+			break;
+		default:
+			proc_sync(log, req);
+			break;
+	}
+	return 0;
+}
+
+int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
+	switch(log.cmd()){
+		case BinlogCommand::KSET:
+			if(req.size() != 2){
+				//
+			}else{
+				std::string key;
+				if(decode_kv_key(log.key(), &key) == -1){
+					//
+				}else{
+					Bytes val = req[1];
+					log_trace("set %s %s",
+						hexmem(key.data(), key.size()).c_str(),
+						hexmem(val.data(), val.size()).c_str());
+					//ssdb->set(key, val);
+					//this->save_status();
+				}
+			}
+			break;
+		case BinlogCommand::KDEL:
+			break;
+		case BinlogCommand::HSET:
+			break;
+		case BinlogCommand::HDEL:
+			break;
+		case BinlogCommand::ZSET:
+			break;
+		case BinlogCommand::ZDEL:
+			break;
+	}
+	return 0;
+}
+

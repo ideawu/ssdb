@@ -45,14 +45,14 @@ struct BackendSync::Client{
 	uint64_t last_seq;
 	uint64_t last_noop_seq;
 	std::string last_key;
-	Iterator *iter;
 	const BackendSync *backend;
 	bool is_mirror;
 
 	Client(const BackendSync *backend);
 	~Client();
 	void init();
-	void reset_sync();
+	void reset();
+	void noop();
 	int dump();
 	int sync(BinlogQueue *logs);
 };

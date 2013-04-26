@@ -64,47 +64,41 @@ void* BackendSync::_run_thread(void *arg){
 
 	int idle = 0;
 	while(!backend->thread_quit){
-		// TEST: simulate slow network
-		#ifndef NDEBUG
-		//usleep(1000 * 1000);
-		#endif
-
+		// TODO: test
+		//usleep(2000 * 1000);
+		
 		if(client.status == Client::OUT_OF_SYNC){
-			client.reset_sync();
-		}
-
-		bool is_empty = true;
-		if(client.dump()){
-			is_empty = false;
-		}
-		if(client.sync(logs)){
-			is_empty = false;
-		}
-		if(is_empty){
-			idle ++;
-			if(idle == 30){
-				idle = 0;
-				client.last_noop_seq = client.last_seq;
-				Binlog noop(client.last_seq, BinlogType::NOOP, BinlogCommand::NONE, "");
-				//log_trace("fd: %d, %s", link->fd(), noop.dumps().c_str());
-				if(link->send(noop.repr()) == -1){
-					log_debug("fd: %d, send error", link->fd());
-					break;
+			client.reset();
+		}else{
+			bool is_empty = true;
+			if(client.status == Client::DUMP){
+				if(client.dump()){
+					is_empty = false;
 				}
 			}
-			// sleep longer to reduce logs.find
-			usleep(200 * 1000);
-		}else{
-			idle = 0;
+			if(client.sync(logs)){
+				is_empty = false;
+			}
+			if(is_empty){
+				if(idle == 30){
+					idle = 0;
+					client.noop();
+				}else{
+					idle ++;
+					// sleep longer to reduce logs.find
+					usleep(200 * 1000);
+				}
+			}else{
+				idle = 0;
+			}
 		}
-
 		if(link->flush() == -1){
 			log_debug("fd: %d, send error", link->fd());
 			break;
 		}
 	}
 
-	log_info("SyncClient quit, fd: %d, delete link", link->fd());
+	log_info("Sync Client quit, fd: %d, delete link", link->fd());
 	delete link;
 
 	Locking l(&backend->mutex);
@@ -122,14 +116,10 @@ BackendSync::Client::Client(const BackendSync *backend){
 	last_seq = 0;
 	last_noop_seq = 0;
 	last_key = "";
-	iter = NULL;
 	is_mirror = false;
 }
 
 BackendSync::Client::~Client(){
-	if(iter){
-		delete iter;
-	}
 }
 
 void BackendSync::Client::init(){
@@ -150,108 +140,101 @@ void BackendSync::Client::init(){
 			is_mirror = true;
 		}
 	}
-	if(!is_mirror && last_seq == 0){
-		// in case that slave has an error that last_key is not empty
+	if(last_seq == 0){
 		log_info("fd: %d, new slave, make a full dumping", link->fd());
-		this->reset_sync();
-	}else if(!is_mirror && last_key != ""){
-		// a slave must reset its last_key when receiving 'dump_end' command
-		log_info("fd: %d, dump recover, seq: %llu, key: %s",
-			link->fd(),
-			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
-			);
-		std::string end = "";
-		this->iter = backend->ssdb->iterator(last_key, end, -1);
-		this->status = Client::DUMP;
+		this->reset();
 	}else{
-		log_info("[%s]fd: %d, sync recover, seq: %llu, key: %s",
-			type.c_str(),
-			link->fd(),
-			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
-			);
-		this->status = Client::SYNC;
+		if(last_key == ""){
+			// when upgrade from 1.x.x to 2.x.x
+			// the slave should not send 'sync 0', because this will results in a full dump
+			// so the slave will send 'sync 1', but actually it expects to receive
+			// binlogs from seq=1(it hasn't received any binlog yet, its last_seq is 0)
+			if(last_seq == 1){
+				 last_seq = 0;
+			}
+			log_info("[%s]fd: %d, sync recover, seq: %llu, key: %s",
+				type.c_str(),
+				link->fd(),
+				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+				);
+			this->status = Client::SYNC;
+		}else{
+			// a slave must reset its last_key when receiving 'dump_end' command
+			log_info("fd: %d, dump recover, seq: %llu, key: %s",
+				link->fd(),
+				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+				);
+			std::string end = "";
+			this->status = Client::DUMP;
+		}
 	}
 }
 
-void BackendSync::Client::reset_sync(){
+void BackendSync::Client::reset(){
 	log_info("fd: %d, dump begin", link->fd());
-	if(this->iter){
-		delete this->iter;
-		this->iter = NULL;
-	}
-	std::string start = "";
-	std::string end = "";
-	if(!is_mirror){
-		this->iter = backend->ssdb->iterator(start, end, -1);
-	}
 	this->status = Client::DUMP;
 	this->last_seq = 0;
 	this->last_key = "";
 
-	Buffer *output = link->output;
-	Binlog log(0, BinlogType::DUMP, BinlogCommand::BEGIN, "");
+	Binlog log(this->last_seq, BinlogType::DUMP, BinlogCommand::BEGIN, "");
 	log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-	output->append_record(log.repr());
-	output->append_record("dump_begin");
-	output->append('\n');
+	link->send(log.repr(), "dump_begin");
+}
+
+void BackendSync::Client::noop(){
+	this->last_noop_seq = this->last_seq;
+	Binlog noop(this->last_seq, BinlogType::NOOP, BinlogCommand::NONE, "");
+	//log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+	link->send(noop.repr());
 }
 
 int BackendSync::Client::dump(){
-	if(this->iter == NULL){
-		return 0;
-	}
-	
-	Buffer *output = link->output;
+	Iterator *iter = backend->ssdb->iterator(this->last_key, "", -1);
 	for(int i=0; i<1000; i++){
-		if(!this->iter->next()){
+		if(!iter->next()){
 			log_info("fd: %d, dump end", link->fd());
-			delete this->iter;
-			this->iter = NULL;
 			this->status = Client::SYNC;
-		
-			Binlog log(0, BinlogType::DUMP, BinlogCommand::END, "");
+
+			Binlog log(this->last_seq, BinlogType::DUMP, BinlogCommand::END, "");
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-			output->append_record(log.repr());
-			output->append_record("dump_end");
-			output->append('\n');
+			link->send(log.repr(), "dump_end");
 			break;
 		}else{
-			Bytes key = this->iter->key();
-			Bytes val = this->iter->val();
-
-			if(key.size() > 0){
-				char cmd = -1;
-				char data_type = key.data()[0];
-				if(data_type == DataType::KV){
-					cmd = BinlogCommand::KSET;
-				}else if(data_type == DataType::HASH){
-					cmd = BinlogCommand::HSET;
-				}else if(data_type == DataType::ZSET){
-					cmd = BinlogCommand::ZSET;
-				}else{
-					// ignore
-				}
-				if(cmd > 0){
-					this->last_key = key.String();
-					Binlog log(this->last_seq, BinlogType::DUMP, cmd, key.Slice());
-					log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-					output->append_record(log.repr());
-					output->append_record(val);
-					output->append('\n');
-					break;
-				}
+			Bytes key = iter->key();
+			Bytes val = iter->val();
+			this->last_key = key.String();
+			
+			if(key.size() == 0){
+				continue;
 			}
+			
+			char cmd = 0;
+			char data_type = key.data()[0];
+			if(data_type == DataType::KV){
+				cmd = BinlogCommand::KSET;
+			}else if(data_type == DataType::HASH){
+				cmd = BinlogCommand::HSET;
+			}else if(data_type == DataType::ZSET){
+				cmd = BinlogCommand::ZSET;
+			}else{
+				continue;
+			}
+			
+			Binlog log(this->last_seq, BinlogType::DUMP, cmd, key.Slice());
+			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+			link->send(log.repr(), val);
+			break;
 		}
 	}
+	
+	delete iter;
 	return 1;
 }
 
 int BackendSync::Client::sync(BinlogQueue *logs){
-	Buffer *output = link->output;
-
 	uint64_t expect_seq = this->last_seq + 1;
 	Binlog log;
-	int ret;
+	int ret = 0;
 	if(this->status == Client::DUMP && this->last_seq == 0){
 		ret = logs->find_last(&log);
 	}else{
@@ -263,7 +246,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 	//log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 	
 	// writes that are out of dumped range will be discarded.
-	if(this->iter && log.key() > this->last_key){
+	if(this->status == Client::DUMP && log.key() > this->last_key){
 		// update last_seq
 		this->last_seq = log.seq();
 
@@ -290,14 +273,10 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 	char type = log.type();
 	if(type == BinlogType::MIRROR && this->is_mirror){
 		if(this->last_seq - this->last_noop_seq >= 100){
-			this->last_noop_seq = this->last_seq;
-			Binlog noop(this->last_seq, BinlogType::NOOP, BinlogCommand::NONE, "");
-			//log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-			output->append_record(noop.repr());
-			output->append('\n');
+			this->noop();
 		}
 	}else{
-		int ret;
+		int ret = 0;
 		std::string val;
 		switch(log.cmd()){
 			case BinlogCommand::KSET:
@@ -311,18 +290,14 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 					log_trace("fd: %d, skip not found: %s", link->fd(), log.dumps().c_str());
 				}else{
 					log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-
-					output->append_record(log.repr());
-					output->append_record(val);
-					output->append('\n');
+					link->send(log.repr(), val);
 				}
 				break;
 			case BinlogCommand::KDEL:
 			case BinlogCommand::HDEL:
 			case BinlogCommand::ZDEL:
 				log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-				output->append_record(log.repr());
-				output->append('\n');
+				link->send(log.repr());
 				break;
 		}
 	}

@@ -40,6 +40,7 @@ class Link{
 		int read();
 		int write();
 		// flush buffered data to network
+		// REQURES: nonblock
 		int flush();
 
 		/**

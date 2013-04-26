@@ -141,7 +141,7 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 	if(!it->Valid()){
 		it->SeekToLast();
 	}else{
-		it->Prev();
+		//it->Prev();
 	}
 	if(it->Valid() && it->key() == start){
 		it->Prev();
@@ -215,3 +215,30 @@ std::vector<std::string> SSDB::info() const{
 	}
 	return info;
 }
+
+/*
+int SSDB::key_range(char data_type, std::string *start, std::string *end) const{
+	leveldb::ReadOptions iterate_options;
+	leveldb::Iterator *it = db->NewIterator(iterate_options);
+
+	std::string start_str;
+	start_str.push_back(data_type);
+	
+	it->Seek(key_str);
+	if(!it->Valid()){
+		// Iterator::prev requires Valid, so we seek to last
+		it->SeekToLast();
+	}
+	// UINT64_MAX is not used
+	if(it->Valid()){
+		it->Prev();
+	}
+	std::string ret;
+	if(it->Valid()){
+		leveldb::Slice key = it->key();
+		ret.assign(key.data(), key.size());
+	}
+	delete it;
+	return ret;
+}
+*/

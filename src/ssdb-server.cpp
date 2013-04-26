@@ -161,7 +161,8 @@ void run(int argc, char **argv){
 				continue;
 			}
 
-			if(link->send(resp) == -1){
+			link->send(resp);
+			if(link->write() == -1){
 				log_info("fd: %d, send error, delete link", link->fd());
 				link_count --;
 				select.del(link->fd());

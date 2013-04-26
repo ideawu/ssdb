@@ -339,7 +339,7 @@ int Link::send(const std::vector<std::string> &resp){
 		output->append_record(resp[i]);
 	}
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const std::vector<Bytes> &resp){
@@ -347,20 +347,20 @@ int Link::send(const std::vector<Bytes> &resp){
 		output->append_record(resp[i]);
 	}
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1){
 	output->append_record(s1);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2){
 	output->append_record(s1);
 	output->append_record(s2);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3){
@@ -368,7 +368,7 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3){
 	output->append_record(s2);
 	output->append_record(s3);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4){
@@ -377,7 +377,7 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s
 	output->append_record(s3);
 	output->append_record(s4);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4, const Bytes &s5){
@@ -387,9 +387,8 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s
 	output->append_record(s4);
 	output->append_record(s5);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
-
 
 #if 0
 int main(){

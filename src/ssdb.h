@@ -33,7 +33,7 @@ public:
 	~SSDB();
 	static SSDB* open(const Config &conf, const std::string &base_dir);
 
-	// return (start, end)
+	// return (start, end), not include start, end
 	Iterator* iterator(const std::string &start, const std::string &end, int limit) const;
 	Iterator* rev_iterator(const std::string &start, const std::string &end, int limit) const;
 

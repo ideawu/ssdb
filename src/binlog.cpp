@@ -147,6 +147,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	this->min_seq = 0;
 	this->last_seq = 0;
 	this->tran_seq = 0;
+	this->capacity = LOG_QUEUE_SIZE;
 	
 	Binlog log;
 	if(this->find_last(&log) == 1){
@@ -155,9 +156,9 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	if(this->find_next(1, &log) == 1){
 		this->min_seq = log.seq();
 	}
-	log_debug("synclog, min_seq: %llu, last_seq: %llu", this->min_seq, this->last_seq);
+	log_debug("binlogs.capacity: %d, min_seq: %llu, last_seq: %llu", capacity, min_seq, last_seq);
 
-	// TODO: start cleaning thread
+	// TODO: startup cleaning thread
 	/*
 	*/
 	// TEST:
@@ -213,7 +214,7 @@ void BinlogQueue::Delete(const leveldb::Slice& key){
 	batch.Delete(key);
 }
 	
-int BinlogQueue::find_next(uint64_t next_seq, Binlog *log){
+int BinlogQueue::find_next(uint64_t next_seq, Binlog *log) const{
 	uint64_t ret = 0;
 	std::string key_str = encode_seq_key(next_seq);
 	leveldb::ReadOptions iterate_options;
@@ -234,7 +235,7 @@ int BinlogQueue::find_next(uint64_t next_seq, Binlog *log){
 	return ret;
 }
 
-int BinlogQueue::find_last(Binlog *log){
+int BinlogQueue::find_last(Binlog *log) const{
 	uint64_t ret = 0;
 	std::string key_str = encode_seq_key(UINT64_MAX);
 	leveldb::ReadOptions iterate_options;

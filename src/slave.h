@@ -27,7 +27,11 @@ class Slave{
 		volatile bool thread_quit;
 		pthread_t run_thread_tid;
 		static void* _run_thread(void *arg);
-		int proc_sync_cmd(const std::vector<Bytes> *req);
+		
+		int proc(const std::vector<Bytes> &req);
+		int proc_noop(const Binlog &log, const std::vector<Bytes> &req);
+		int proc_dump(const Binlog &log, const std::vector<Bytes> &req);
+		int proc_sync(const Binlog &log, const std::vector<Bytes> &req);
 
 		int connect_retry;
 		int connect();

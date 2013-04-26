@@ -46,6 +46,7 @@ class BinlogQueue{
 		uint64_t min_seq;
 		uint64_t last_seq;
 		uint64_t tran_seq;
+		int capacity;
 		leveldb::WriteBatch batch;
 	public:
 		BinlogQueue(leveldb::DB *db);
@@ -66,8 +67,8 @@ class BinlogQueue{
 		 0 : not found
 		 -1: error
 		 */
-		int find_next(uint64_t seq, Binlog *log);
-		int find_last(Binlog *log);
+		int find_next(uint64_t seq, Binlog *log) const;
+		int find_last(Binlog *log) const;
 };
 
 
