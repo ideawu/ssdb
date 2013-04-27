@@ -49,6 +49,8 @@ class BinlogQueue{
 		int capacity;
 		leveldb::WriteBatch batch;
 	public:
+		Mutex mutex;
+
 		BinlogQueue(leveldb::DB *db);
 		~BinlogQueue();
 		
@@ -69,6 +71,22 @@ class BinlogQueue{
 		 */
 		int find_next(uint64_t seq, Binlog *log) const;
 		int find_last(Binlog *log) const;
+};
+
+class Transaction{
+private:
+	BinlogQueue *logs;
+public:
+	Transaction(BinlogQueue *logs){
+		this->logs = logs;
+		logs->mutex.lock();
+		logs->begin();
+	}
+	
+	~Transaction(){
+		logs->rollback();
+		logs->mutex.unlock();
+	}
 };
 
 

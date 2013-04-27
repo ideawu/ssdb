@@ -13,12 +13,13 @@ class Slave{
 		uint64_t last_seq;
 		std::string last_key;
 
-		const SSDB *ssdb;
+		SSDB *ssdb;
 		Link *link;
 		leveldb::DB* meta_db;
 		std::string master_ip;
 		int master_port;
 		bool is_mirror;
+		char log_type;
 
 		std::string status_key();
 		void load_status();
@@ -39,7 +40,7 @@ class Slave{
 			return link != NULL;
 		}
 	public:
-		Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror=false);
+		Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror=false);
 		~Slave();
 		void start();
 		void stop();

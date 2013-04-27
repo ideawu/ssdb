@@ -152,9 +152,8 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 
 /* raw operates */
 
-int SSDB::raw_set(const Bytes &key, const Bytes &val, bool is_mirror) const{
+int SSDB::raw_set(const Bytes &key, const Bytes &val) const{
 	leveldb::WriteOptions write_opts;
-	write_opts.is_mirror = is_mirror;
 	leveldb::Status s = db->Put(write_opts, key.Slice(), val.Slice());
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
@@ -163,9 +162,8 @@ int SSDB::raw_set(const Bytes &key, const Bytes &val, bool is_mirror) const{
 	return 1;
 }
 
-int SSDB::raw_del(const Bytes &key, bool is_mirror) const{
+int SSDB::raw_del(const Bytes &key) const{
 	leveldb::WriteOptions write_opts;
-	write_opts.is_mirror = is_mirror;
 	leveldb::Status s = db->Delete(write_opts, key.Slice());
 	if(!s.ok()){
 		log_error("del error: %s", s.ToString().c_str());

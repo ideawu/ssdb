@@ -30,7 +30,7 @@ static std::string serialize_req(T &req){
 	return ret;
 }
 
-CommandProc::CommandProc(const SSDB *ssdb){
+CommandProc::CommandProc(SSDB *ssdb){
 	this->ssdb = ssdb;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
@@ -100,10 +100,7 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 	if(req.size() <= 0){
 		return -1;
 	}
-	if(log_level() >= Logger::LEVEL_DEBUG){
-		std::string log_buf = serialize_req(req);
-		log_debug("req: %s", log_buf.c_str());
-	}
+	log_debug("req: %s", serialize_req(req).c_str());
 
 	int ret = 0;
 	proc_map_t::iterator it = proc_map.find(req[0]);
@@ -115,9 +112,9 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 		ret = (this->*p)(link, req, resp);
 	}
 
-	if(log_level() >= Logger::LEVEL_DEBUG){
+	if(ret != PROC_BACKEND){
 		std::string log_buf = serialize_req(*resp);
-		log_debug("req: %s, resp: %s", req[0].String().c_str(), log_buf.c_str());
+		log_debug("req: %s, resp: %s", req[0].String().c_str(), serialize_req(*resp).c_str());
 	}
 
 	return ret;

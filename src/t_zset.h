@@ -18,29 +18,43 @@ std::string encode_zsize_key(const Bytes &name){
 
 inline static
 int decode_zsize_key(const Bytes &slice, std::string *name){
-	int size = slice.size();
-	if(size < 1){
+	Decoder decoder(slice.data(), slice.size());
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	const char *p = slice.data();
-	p += 1;
-	size -= 1;
-
-	name->assign(p, size);
+	if(decoder.read_data(name) == -1){
+		return -1;
+	}
 	return 0;
 }
 
 static inline
-std::string encode_zset_key(const Bytes &key, const Bytes &val){
+std::string encode_zset_key(const Bytes &name, const Bytes &key){
 	std::string buf;
 	buf.append(1, DataType::ZSET);
+	buf.append(1, (uint8_t)name.size());
+	buf.append(name.data(), name.size());
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
-	buf.append(1, (uint8_t)val.size());
-	buf.append(val.data(), val.size());
 	return buf;
 }
 
+static inline
+int decode_zset_key(const Bytes &slice, std::string *name, std::string *key){
+	Decoder decoder(slice.data(), slice.size());
+	if(decoder.skip(1) == -1){
+		return -1;
+	}
+	if(decoder.read_8_data(name) == -1){
+		return -1;
+	}
+	if(decoder.read_8_data(key) == -1){
+		return -1;
+	}
+	return 0;
+}
+
+// type, len, key, score, =, val
 static inline
 std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score){
 	std::string buf;
@@ -63,49 +77,33 @@ std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score)
 }
 
 static inline
-int decode_z_key(const Bytes &slice, std::string *key, std::string *val, std::string *score){
-	int size = slice.size();
-	if(size < 1){
+int decode_zscore_key(const Bytes &slice, std::string *key, std::string *val, std::string *score){
+	Decoder decoder(slice.data(), slice.size());
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	const char *p = slice.data();
-	p += 1;
-	size -= 1;
-
-	int len;
-	len = (uint8_t)p[0];
-	p += 1;
-	size -= 1;
-	if(size < len){
+	if(decoder.read_8_data(key) == -1){
 		return -1;
 	}
-	if(key){
-		key->assign(p, len);
-	}
-	p += len;
-	size -= len;
-
-	if(size < SSDB_SCORE_WIDTH){
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	if(score){
-		int64_t s = *(int64_t *)(p + 1);
-		s = decode_score(s);
-		char buf[21] = {0};
-		snprintf(buf, sizeof(buf), "%lld", (long long)s);
-		score->assign(buf);
+	int64_t s;
+	if(decoder.read_int64(&s) == -1){
+		return -1;
+	}else{
+		if(score != NULL){
+			s = decode_score(s);
+			char buf[21] = {0};
+			snprintf(buf, sizeof(buf), "%lld", (long long)s);
+			score->assign(buf);
+		}
 	}
-	p += SSDB_SCORE_WIDTH;
-	size -= SSDB_SCORE_WIDTH;
-
-	if(size < 1){
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	p += 1;
-	size -= 1;
-
-	if(val){
-		val->assign(p, size);
+	if(decoder.read_data(key) == -1){
+		return -1;
 	}
 	return 0;
 }
@@ -137,7 +135,7 @@ class ZIterator{
 				if(ks.data()[0] != DataType::ZSCORE){
 					return false;
 				}
-				if(decode_z_key(ks, NULL, &key, &score) == -1){
+				if(decode_zscore_key(ks, NULL, &key, &score) == -1){
 					continue;
 				}
 				return true;

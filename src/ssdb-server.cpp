@@ -291,11 +291,11 @@ void init(int argc, char **argv){
 		}
 	}
 
-	log_info("starting ssdb server...");
-	log_info("conf_file  : %s", conf_file);
-	log_info("work_dir   : %s", work_dir.c_str());
-	log_info("log_level  : %s", conf->get_str("logger.level"));
-	log_info("log_output : %s", log_output.c_str());
+	log_info("ssdb-server %s", SSDB_VERSION);
+	log_info("conf_file       : %s", conf_file);
+	log_info("work_dir        : %s", work_dir.c_str());
+	log_info("log_level       : %s", conf->get_str("logger.level"));
+	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 
 	if(is_daemon){

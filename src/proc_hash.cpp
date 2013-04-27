@@ -129,7 +129,7 @@ int CommandProc::proc_hsize(const Link &link, const Request &req, Response *resp
 			resp->push_back("error");
 		}else{
 			char buf[20];
-			sprintf(buf, "%lld", ret);
+			sprintf(buf, "%llu", ret);
 			resp->push_back("ok");
 			resp->push_back(buf);
 		}
@@ -258,7 +258,7 @@ int CommandProc::proc_hlist(const Link &link, const Request &req, Response *resp
 }
 
 // dir := +1|-1
-static int _hincr(const SSDB *ssdb, const Request &req, Response *resp, int dir){
+static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{

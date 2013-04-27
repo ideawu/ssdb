@@ -69,29 +69,31 @@ void* BackendSync::_run_thread(void *arg){
 		
 		if(client.status == Client::OUT_OF_SYNC){
 			client.reset();
-		}else{
-			bool is_empty = true;
-			if(client.status == Client::DUMP){
-				if(client.dump()){
-					is_empty = false;
-				}
-			}
-			if(client.sync(logs)){
+			continue;
+		}
+		
+		bool is_empty = true;
+		if(client.status == Client::DUMP){
+			if(client.dump()){
 				is_empty = false;
 			}
-			if(is_empty){
-				if(idle == 30){
-					idle = 0;
-					client.noop();
-				}else{
-					idle ++;
-					// sleep longer to reduce logs.find
-					usleep(200 * 1000);
-				}
-			}else{
-				idle = 0;
-			}
 		}
+		if(client.sync(logs)){
+			is_empty = false;
+		}
+		if(is_empty){
+			if(idle == 10){
+				idle = 0;
+				client.noop();
+			}else{
+				idle ++;
+				// sleep longer to reduce logs.find
+				usleep(300 * 1000);
+			}
+		}else{
+			idle = 0;
+		}
+
 		if(link->flush() == -1){
 			log_debug("fd: %d, send error", link->fd());
 			break;
@@ -117,9 +119,14 @@ BackendSync::Client::Client(const BackendSync *backend){
 	last_noop_seq = 0;
 	last_key = "";
 	is_mirror = false;
+	iter = NULL;
 }
 
 BackendSync::Client::~Client(){
+	if(iter){
+		delete iter;
+		iter = NULL;
+	}
 }
 
 void BackendSync::Client::init(){
@@ -152,7 +159,7 @@ void BackendSync::Client::init(){
 			if(last_seq == 1){
 				 last_seq = 0;
 			}
-			log_info("[%s]fd: %d, sync recover, seq: %llu, key: %s",
+			log_info("[%s]fd: %d, sync recover, seq: %llu, key: '%s'",
 				type.c_str(),
 				link->fd(),
 				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
@@ -160,7 +167,7 @@ void BackendSync::Client::init(){
 			this->status = Client::SYNC;
 		}else{
 			// a slave must reset its last_key when receiving 'dump_end' command
-			log_info("fd: %d, dump recover, seq: %llu, key: %s",
+			log_info("fd: %d, dump recover, seq: %llu, key: '%s'",
 				link->fd(),
 				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
 				);
@@ -189,11 +196,16 @@ void BackendSync::Client::noop(){
 }
 
 int BackendSync::Client::dump(){
-	Iterator *iter = backend->ssdb->iterator(this->last_key, "", -1);
+	if(this->iter == NULL){
+		log_trace("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
+		this->iter = backend->ssdb->iterator(this->last_key, "", -1);
+	}
 	for(int i=0; i<1000; i++){
 		if(!iter->next()){
 			log_info("fd: %d, dump end", link->fd());
 			this->status = Client::SYNC;
+			delete this->iter;
+			this->iter = NULL;
 
 			Binlog log(this->last_seq, BinlogType::DUMP, BinlogCommand::END, "");
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
@@ -223,48 +235,51 @@ int BackendSync::Client::dump(){
 			Binlog log(this->last_seq, BinlogType::DUMP, cmd, key.Slice());
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), val);
+			//if(link->output->size() > 1024 * 1024){
 			break;
+			//}
 		}
 	}
 	
-	delete iter;
 	return 1;
 }
 
 int BackendSync::Client::sync(BinlogQueue *logs){
-	uint64_t expect_seq = this->last_seq + 1;
 	Binlog log;
-	int ret = 0;
-	if(this->status == Client::DUMP && this->last_seq == 0){
-		ret = logs->find_last(&log);
-	}else{
-		ret = logs->find_next(expect_seq, &log);
-	}
-	if(ret == 0){
-		return 0;
-	}
-	//log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-	
-	// writes that are out of dumped range will be discarded.
-	if(this->status == Client::DUMP && log.key() > this->last_key){
-		// update last_seq
-		this->last_seq = log.seq();
-
-		log_trace("fd: %d, last_key: '%s', drop: %s",
-			link->fd(),
-			hexmem(this->last_key.data(), this->last_key.size()).c_str(),
-			log.dumps().c_str());
-		return 1;
-	}
-
-	if(this->last_seq != 0 && log.seq() != expect_seq){
-		log_warn("fd: %d, OUT_OF_SYNC! seq: %llu, last_seq: %llu",
-			link->fd(),
-			log.seq(),
-			expect_seq
-			);
-		this->status = Client::OUT_OF_SYNC;
-		return 1;
+	while(1){
+		int ret = 0;
+		uint64_t expect_seq = this->last_seq + 1;
+		if(this->status == Client::DUMP && this->last_seq == 0){
+			ret = logs->find_last(&log);
+		}else{
+			ret = logs->find_next(expect_seq, &log);
+		}
+		if(ret == 0){
+			return 0;
+		}
+		// writes that are out of dumped range will be discarded.
+		if(this->status == Client::DUMP && log.key() > this->last_key){
+			log_trace("fd: %d, last_key: '%s', drop: %s",
+				link->fd(),
+				hexmem(this->last_key.data(), this->last_key.size()).c_str(),
+				log.dumps().c_str());
+			this->last_seq = log.seq();
+			if(this->iter){
+				delete this->iter;
+				this->iter = NULL;
+			}
+			continue;
+		}
+		if(this->last_seq != 0 && log.seq() != expect_seq){
+			log_warn("fd: %d, OUT_OF_SYNC! seq: %llu, last_seq: %llu",
+				link->fd(),
+				log.seq(),
+				expect_seq
+				);
+			this->status = Client::OUT_OF_SYNC;
+			return 1;
+		}
+		break;
 	}
 	
 	// update last_seq

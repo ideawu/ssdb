@@ -197,7 +197,7 @@ int CommandProc::proc_keys(const Link &link, const Request &req, Response *resp)
 }
 
 // dir := +1|-1
-static int _incr(const SSDB *ssdb, const Request &req, Response *resp, int dir){
+static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() <= 1){
 		resp->push_back("client_error");
 	}else{

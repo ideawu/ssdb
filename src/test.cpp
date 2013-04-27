@@ -80,7 +80,9 @@ int main(int argc, char **argv){
 			if(log.load(req->at(0).Slice()) == -1){
 				continue;
 			}
-			log_debug("%s", log.dumps().c_str());
+			if(log.type() != BinlogType::NOOP){
+				log_debug("%s", log.dumps().c_str());
+			}
 			switch(log.type()){
 				case BinlogType::NOOP:
 					proc_sync(log, *req);
@@ -128,9 +130,6 @@ void proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 					//
 				}else{
 					Bytes val = req[1];
-					log_debug("set %s %s",
-						hexmem(key.data(), key.size()).c_str(),
-						hexmem(val.data(), val.size()).c_str());
 					// ssdb->set(key, val);
 				}
 			}

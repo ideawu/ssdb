@@ -260,7 +260,7 @@ int CommandProc::proc_zlist(const Link &link, const Request &req, Response *resp
 }
 
 // dir := +1|-1
-static int _zincr(const SSDB *ssdb, const Request &req, Response *resp, int dir){
+static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{

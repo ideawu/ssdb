@@ -47,6 +47,8 @@ struct BackendSync::Client{
 	std::string last_key;
 	const BackendSync *backend;
 	bool is_mirror;
+	
+	Iterator *iter;
 
 	Client(const BackendSync *backend);
 	~Client();

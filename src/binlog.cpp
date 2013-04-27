@@ -201,7 +201,7 @@ void BinlogQueue::log(char type, char cmd, const leveldb::Slice &key){
 
 void BinlogQueue::log(char type, char cmd, const std::string &key){
 	leveldb::Slice s(key);
-	this->log(cmd, type, s);
+	this->log(type, cmd, s);
 }
 
 // leveldb put

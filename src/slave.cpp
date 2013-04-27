@@ -1,14 +1,22 @@
 #include "util/fde.h"
 #include "slave.h"
 #include "t_kv.h"
+#include "t_hash.h"
+#include "t_zset.h"
+#include "include.h"
 
-Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
+Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta_db = meta_db;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
 	this->is_mirror = is_mirror;
+	if(this->is_mirror){
+		log_type = BinlogType::MIRROR;
+	}else{
+		log_type = BinlogType::SYNC;
+	}
 	
 	this->link = NULL;
 	this->last_seq = 0;
@@ -18,8 +26,6 @@ Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, b
 	load_status();
 	log_debug("last_seq: %llu, last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
-	this->last_seq = 0;
-	this->last_key = "";
 }
 
 Slave::~Slave(){
@@ -54,7 +60,7 @@ std::string Slave::status_key(){
 	static std::string key;
 	if(key.empty()){
 		char buf[100];
-		snprintf(buf, sizeof(buf), "slave.status|%s|%d", master_ip.c_str(), master_port);
+		snprintf(buf, sizeof(buf), "new.slave.status|%s|%d", master_ip.c_str(), master_port);
 		key.assign(buf);
 	}
 	return key;
@@ -66,6 +72,8 @@ void Slave::load_status(){
 	leveldb::Status s;
 	s = meta_db->Get(leveldb::ReadOptions(), key, &status);
 	if(s.IsNotFound()){
+		this->last_seq = 1;
+		this->last_key = "";
 		return;
 	}
 	if(s.ok()){
@@ -74,9 +82,6 @@ void Slave::load_status(){
 		}else{
 			last_seq = *((uint64_t *)(status.data()));
 			last_key = std::string(status.data() + sizeof(uint64_t), status.size() - sizeof(uint64_t));
-			log_debug("load_status seq: %llu, key: %s",
-				last_seq,
-				hexmem(last_key.data(), last_key.size()).c_str());
 		}
 	}
 }
@@ -231,10 +236,16 @@ int Slave::proc(const std::vector<Bytes> &req){
 		log_error("invalid binlog!");
 		return 0;
 	}
-	log_debug("%s", log.dumps().c_str());
+	if(log.type() != BinlogType::NOOP){
+		if(this->is_mirror){
+			log_debug("[mirror] %s", log.dumps().c_str());
+		}else{
+			log_debug("[sync] %s", log.dumps().c_str());
+		}
+	}
 	switch(log.type()){
 		case BinlogType::NOOP:
-			this->proc_sync(log, req);
+			this->proc_noop(log, req);
 			break;
 		case BinlogType::DUMP:
 			this->proc_dump(log, req);
@@ -279,33 +290,91 @@ int Slave::proc_dump(const Binlog &log, const std::vector<Bytes> &req){
 int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 	switch(log.cmd()){
 		case BinlogCommand::KSET:
-			if(req.size() != 2){
-				//
-			}else{
+			{
+				if(req.size() != 2){
+					break;
+				}
 				std::string key;
 				if(decode_kv_key(log.key(), &key) == -1){
-					//
-				}else{
-					Bytes val = req[1];
-					log_trace("set %s %s",
-						hexmem(key.data(), key.size()).c_str(),
-						hexmem(val.data(), val.size()).c_str());
-					//ssdb->set(key, val);
-					//this->save_status();
+					break;
 				}
+				Bytes val = req[1];
+				log_trace("set %s", hexmem(key.data(), key.size()).c_str());
+				ssdb->set(key, req[1], log_type);
 			}
 			break;
 		case BinlogCommand::KDEL:
+			{
+				std::string key;
+				if(decode_kv_key(log.key(), &key) == -1){
+					break;
+				}
+				log_trace("del %s", hexmem(key.data(), key.size()).c_str());
+				ssdb->del(key, log_type);
+			}
 			break;
 		case BinlogCommand::HSET:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name, key;
+				if(decode_hash_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				Bytes val = req[1];
+				log_trace("hset %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				ssdb->hset(name, key, req[1], log_type);
+			}
 			break;
 		case BinlogCommand::HDEL:
+			{
+				std::string name, key;
+				if(decode_hash_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("hdel %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				ssdb->hdel(name, key, log_type);
+			}
 			break;
 		case BinlogCommand::ZSET:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name, key;
+				if(decode_zset_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				Bytes val = req[1];
+				log_trace("zset %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				ssdb->zset(name, key, req[1], log_type);
+			}
 			break;
 		case BinlogCommand::ZDEL:
+			{
+				std::string name, key;
+				if(decode_zset_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("zdel %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				ssdb->zdel(name, key, log_type);
+			}
+			break;
+		default:
+			log_error("unknown binlog, type=%d, cmd=%d", log.type(), log.cmd());
 			break;
 	}
+	this->last_seq = log.seq();
+	this->save_status();
 	return 0;
 }
 

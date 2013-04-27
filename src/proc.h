@@ -26,7 +26,7 @@ typedef std::vector<std::string> Response;
 
 class CommandProc{
 	public:
-		CommandProc(const SSDB *ssdb);
+		CommandProc(SSDB *ssdb);
 		~CommandProc();
 		int proc(const Link &link, const Request &req, Response *resp);
 
@@ -53,7 +53,7 @@ class CommandProc{
 		typedef __gnu_cxx::hash_map<Bytes, proc_t, BytesHash, BytesEqual> proc_map_t;
 #endif
 	private:
-		const SSDB *ssdb;
+		SSDB *ssdb;
 		proc_map_t proc_map;
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;

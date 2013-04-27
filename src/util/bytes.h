@@ -178,5 +178,58 @@ class Buffer{
 		int append_record(const Bytes &s);
 };
 
+
+class Decoder{
+private:
+	const char *p;
+	int size;
+	Decoder(){}
+public:
+	Decoder(const char *p, int size){
+		this->p = p;
+		this->size = size;
+	}
+	int skip(int n){
+		if(size < n){
+			return -1;
+		}
+		p += n;
+		size -= n;
+		return n;
+	}
+	int read_int64(int64_t *ret){
+		if(size < sizeof(*ret)){
+			return -1;
+		}
+		*ret = *(int64_t *)p;
+		p += sizeof(*ret);
+		size -= sizeof(*ret);
+		return sizeof(*ret);
+	}
+	int read_data(std::string *ret){
+		ret->assign(p, size);
+		p += size;
+		size = 0;
+		return ret->size();
+	}
+	int read_8_data(std::string *ret=NULL){
+		if(size < 1){
+			return -1;
+		}
+		int len = (uint8_t)p[0];
+		p += 1;
+		size -= 1;
+		if(size < len){
+			return -1;
+		}
+		if(ret){
+			ret->assign(p, len);
+		}
+		p += len;
+		size -= len;
+		return 1 + len;
+	}
+};
+
 #endif
 

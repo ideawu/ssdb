@@ -20,6 +20,10 @@
 
 #include <jemalloc/jemalloc.h>
 
+#ifndef UINT64_MAX
+	#define UINT64_MAX        18446744073709551615ULL
+#endif
+
 
 
 static const int SSDB_SCORE_WIDTH		= 9;
