@@ -56,6 +56,6 @@ case "$TARGET_OS" in
 esac
 
 rm -f build_config.mk
-echo "LEVELDB=leveldb-1.8.0" >> build_config.mk
+echo "LEVELDB=leveldb-1.9.0" >> build_config.mk
 echo "PLATFORM_LDFLAGS=$PLATFORM_LDFLAGS" >> build_config.mk
 

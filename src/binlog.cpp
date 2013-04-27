@@ -158,7 +158,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	}
 	log_debug("binlogs.capacity: %d, min_seq: %llu, last_seq: %llu", capacity, min_seq, last_seq);
 
-	// TODO: startup cleaning thread
+	// TODO: start cleaning thread
 	/*
 	*/
 	// TEST:
@@ -194,9 +194,8 @@ leveldb::Status BinlogQueue::commit(){
 
 void BinlogQueue::log(char type, char cmd, const leveldb::Slice &key){
 	tran_seq ++;
-	std::string log_key = encode_seq_key(tran_seq);
 	Binlog log(tran_seq, type, cmd, key);
-	batch.Put(log_key, log.repr());
+	batch.Put(encode_seq_key(tran_seq), log.repr());
 }
 
 void BinlogQueue::log(char type, char cmd, const std::string &key){
