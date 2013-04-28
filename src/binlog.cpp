@@ -5,7 +5,7 @@
 #ifdef NDEBUG
 	static const int LOG_QUEUE_SIZE  = 10 * 1000 * 1000;
 #else
-	static const int LOG_QUEUE_SIZE  = 10000;
+	static const int LOG_QUEUE_SIZE  = 10;
 #endif
 
 /*
@@ -158,9 +158,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	}
 	log_debug("binlogs.capacity: %d, min_seq: %llu, last_seq: %llu", capacity, min_seq, last_seq);
 
-	// TODO: start cleaning thread
 	/*
-	*/
 	// TEST:
 	uint64_t seq = this->min_seq;
 	while(this->find_next(seq, &log) == 1){
@@ -168,9 +166,27 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 		std::string s = log.dumps();
 		log_trace("%s", s.c_str());
 	}
+	*/
+
+	// start cleaning thread
+	thread_quit = false;
+	pthread_t tid;
+	int err = pthread_create(&tid, NULL, &BinlogQueue::log_clean_thread_func, this);
+	if(err != 0){
+		log_fatal("can't create thread: %s", strerror(err));
+		exit(0);
+	}
 }
 
 BinlogQueue::~BinlogQueue(){
+	thread_quit = true;
+	for(int i=0; i<20; i++){
+		if(thread_quit == false){
+			break;
+		}
+		usleep(100 * 1000);
+	}
+	log_debug("BinlogQueue finalized");
 }
 
 void BinlogQueue::begin(){
@@ -261,4 +277,36 @@ int BinlogQueue::find_last(Binlog *log) const{
 	}
 	delete it;
 	return ret;
+}
+
+int BinlogQueue::del(uint64_t seq){
+	leveldb::Status s = db->Delete(leveldb::WriteOptions(), encode_seq_key(seq));
+	if(!s.ok()){
+		return -1;
+	}
+	return 0;
+}
+
+void* BinlogQueue::log_clean_thread_func(void *arg){
+	BinlogQueue *logs = (BinlogQueue *)arg;
+	
+	while(!logs->thread_quit){
+		usleep(200 * 1000);
+				
+		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.2){
+			continue;
+		}
+		
+		int count = logs->last_seq - logs->min_seq - LOG_QUEUE_SIZE + 1;
+		uint64_t old = logs->min_seq;
+		for(int i=0; i<count; i++){
+			logs->del(logs->min_seq);
+			logs->min_seq ++;
+		}
+		log_debug("clean logs(%llu ~ %llu), max: %llu", old, logs->min_seq-1, logs->last_seq);
+	}
+	log_debug("clean_thread quit");
+	
+	logs->thread_quit = false;
+	return (void *)NULL;
 }

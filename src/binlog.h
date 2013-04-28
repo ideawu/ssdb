@@ -48,6 +48,10 @@ class BinlogQueue{
 		uint64_t tran_seq;
 		int capacity;
 		leveldb::WriteBatch batch;
+
+		volatile bool thread_quit;
+		static void* log_clean_thread_func(void *arg);
+		int del(uint64_t seq);
 	public:
 		Mutex mutex;
 

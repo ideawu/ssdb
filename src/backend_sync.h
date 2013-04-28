@@ -24,9 +24,9 @@ class BackendSync{
 			const BackendSync *backend;
 		};
 		volatile bool thread_quit;
+		static void* _run_thread(void *arg);
 		Mutex mutex;
 		std::map<pthread_t, pthread_t> workers;
-		static void* _run_thread(void *arg);
 		const SSDB *ssdb;
 	public:
 		BackendSync(const SSDB *ssdb);
