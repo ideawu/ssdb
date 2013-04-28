@@ -70,6 +70,7 @@ Link* Link::connect(const char *ip, int port){
 	int sock = -1;
 
 	struct sockaddr_in addr;
+	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((short)port);
 	inet_pton(AF_INET, ip, &addr.sin_addr);
@@ -100,6 +101,7 @@ Link* Link::listen(const char *ip, int port){
 
 	int opt = 1;
 	struct sockaddr_in addr;
+	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((short)port);
 	inet_pton(AF_INET, ip, &addr.sin_addr);
