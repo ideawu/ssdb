@@ -152,7 +152,7 @@ int Slave::connect(){
 				link = NULL;
 				goto err;
 			}
-			log_info("ready to receive sync commands...");
+			log_info("ready to receive binlogs...");
 			return 1;
 		}
 	}

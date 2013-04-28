@@ -287,23 +287,35 @@ int BinlogQueue::del(uint64_t seq){
 	return 0;
 }
 
+int BinlogQueue::del_range(uint64_t start, uint64_t end){
+	while(start <= end){
+		leveldb::WriteBatch batch;
+		for(int count = 0; start <= end && count < 1000; start++, count++){
+			batch.Delete(encode_seq_key(start));
+		}
+		leveldb::Status s = db->Write(leveldb::WriteOptions(), &batch);
+		if(!s.ok()){
+			return -1;
+		}
+	}
+	return 0;
+}
+
 void* BinlogQueue::log_clean_thread_func(void *arg){
 	BinlogQueue *logs = (BinlogQueue *)arg;
 	
 	while(!logs->thread_quit){
 		usleep(200 * 1000);
-				
-		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.2){
+
+		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.1){
 			continue;
 		}
 		
-		int count = logs->last_seq - logs->min_seq - LOG_QUEUE_SIZE + 1;
-		uint64_t old = logs->min_seq;
-		for(int i=0; i<count; i++){
-			logs->del(logs->min_seq);
-			logs->min_seq ++;
-		}
-		log_debug("clean logs(%llu ~ %llu), max: %llu", old, logs->min_seq-1, logs->last_seq);
+		uint64_t start = logs->min_seq;
+		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
+		logs->del_range(start, end);
+		logs->min_seq = end + 1;
+		log_debug("clean logs[%llu ~ %llu], max: %llu", start, end, logs->last_seq);
 	}
 	log_debug("clean_thread quit");
 	

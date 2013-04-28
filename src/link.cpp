@@ -70,6 +70,7 @@ Link* Link::connect(const char *ip, int port){
 	int sock = -1;
 
 	struct sockaddr_in addr;
+	bzero(&addr, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons((short)port);
 	inet_pton(AF_INET, ip, &addr.sin_addr);
@@ -175,7 +176,7 @@ int Link::read(){
 			}else if(errno == EWOULDBLOCK){
 				break;
 			}else{
-				log_debug("fd: %d, read: -1, want: %d, error: %s", sock, want, strerror(errno));
+				//log_debug("fd: %d, read: -1, want: %d, error: %s", sock, want, strerror(errno));
 				return -1;
 			}
 		}else{
@@ -210,7 +211,7 @@ int Link::write(){
 			}else if(errno == EWOULDBLOCK){
 				break;
 			}else{
-				log_debug("fd: %d, write: -1, error: %s", sock, strerror(errno));
+				//log_debug("fd: %d, write: -1, error: %s", sock, strerror(errno));
 				return -1;
 			}
 		}else{
@@ -326,7 +327,7 @@ const std::vector<Bytes>* Link::recv(){
 				log_error("fd: %d, unable to resize input buffer!", this->sock);
 				return NULL;
 			}
-			log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());
+			//log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());
 		}
 	}
 

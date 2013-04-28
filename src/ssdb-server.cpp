@@ -96,7 +96,7 @@ void run(int argc, char **argv){
 					delete link;
 				}else if(fde->events & FDEVENT_IN){
 					int len = link->read();
-					log_trace("fd: %d read: %d", link->fd(), len);
+					//log_trace("fd: %d read: %d", link->fd(), len);
 					if(len <= 0){
 						log_info("fd: %d, read: %d, delete link", link->fd(), len);
 						link_count --;

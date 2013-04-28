@@ -100,7 +100,7 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 	if(req.size() <= 0){
 		return -1;
 	}
-	log_debug("req: %s", serialize_req(req).c_str());
+	double stime = microtime();
 
 	int ret = 0;
 	proc_map_t::iterator it = proc_map.find(req[0]);
@@ -112,10 +112,11 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 		ret = (this->*p)(link, req, resp);
 	}
 
-	if(ret != PROC_BACKEND){
-		std::string log_buf = serialize_req(*resp);
-		log_debug("req: %s, resp: %s", req[0].String().c_str(), serialize_req(*resp).c_str());
-	}
+	double ts = 1000 *(microtime() - stime);
+	log_debug("time: %.3f, req: %s, resp: %s",
+		 ts,
+		 serialize_req(req).c_str(),
+		 serialize_req(*resp).c_str());
 
 	return ret;
 }

@@ -52,6 +52,8 @@ class BinlogQueue{
 		volatile bool thread_quit;
 		static void* log_clean_thread_func(void *arg);
 		int del(uint64_t seq);
+		// [start, end] includesive
+		int del_range(uint64_t start, uint64_t end);
 	public:
 		Mutex mutex;
 

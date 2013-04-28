@@ -13,8 +13,7 @@ EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.e
 
 all: ssdb.h ${OBJS}
 	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-server.cpp
-#	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
-	g++ -o ../test ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} test.cpp
+	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
 
 objs: ssdb.h ${OBJS}
 	
@@ -32,9 +31,6 @@ t_zset.o: ssdb.h t_zset.h t_zset.cpp
 
 link.o: ssdb.h link.h link.cpp
 	g++ ${CFLAGS} -c link.cpp
-
-#repl.o: ssdb.h repl.h repl.cpp
-#	g++ ${CFLAGS} -c repl.cpp
 
 binlog.o: ssdb.h binlog.h binlog.cpp
 	g++ ${CFLAGS} -c binlog.cpp
