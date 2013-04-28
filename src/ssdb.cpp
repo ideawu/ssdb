@@ -195,13 +195,15 @@ std::vector<std::string> SSDB::info() const{
 	//     of the sstables that make up the db contents.
 	std::vector<std::string> info;
 	std::vector<std::string> keys;
+	/*
 	for(int i=0; i<7; i++){
 		char buf[128];
 		snprintf(buf, sizeof(buf), "leveldb.num-files-at-level%d", i);
 		keys.push_back(buf);
 	}
+	*/
 	keys.push_back("leveldb.stats");
-	keys.push_back("leveldb.sstables");
+	//keys.push_back("leveldb.sstables");
 
 	for(size_t i=0; i<keys.size(); i++){
 		std::string key = keys[i];

@@ -1,10 +1,69 @@
 #include "version.h"
+#include "util/log.h"
+#include "util/strings.h"
 #include "proc.h"
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
-#include "util/log.h"
-#include "util/strings.h"
+
+#define PROC(c, f) {#c, f, 0, &CommandProc::proc_##c, 0, 0}
+static CommandProc::Command commands[] = {
+	PROC(info, "r"),
+		
+	PROC(get, "r"),
+	PROC(set, "w"),
+	PROC(del, "w"),
+	PROC(incr, "w"),
+	PROC(decr, "w"),
+	PROC(scan, "r"),
+	PROC(rscan, "r"),
+	PROC(keys, "r"),
+	PROC(exists, "r"),
+	PROC(multi_exists, "r"),
+	PROC(multi_get, "r"),
+	PROC(multi_set, "w"),
+	PROC(multi_del, "w"),
+
+	PROC(hsize, "r"),
+	PROC(hget, "r"),
+	PROC(hset, "w"),
+	PROC(hdel, "w"),
+	PROC(hincr, "w"),
+	PROC(hdecr, "w"),
+	PROC(hscan, "r"),
+	PROC(hrscan, "r"),
+	PROC(hkeys, "r"),
+	PROC(hlist, "r"),
+	PROC(hexists, "r"),
+	PROC(multi_hexists, "r"),
+	PROC(multi_hsize, "r"),
+	PROC(multi_hget, "r"),
+	PROC(multi_hset, "w"),
+	PROC(multi_hdel, "w"),
+
+	PROC(zsize, "r"),
+	PROC(zget, "r"),
+	PROC(zset, "w"),
+	PROC(zdel, "w"),
+	PROC(zincr, "w"),
+	PROC(zdecr, "w"),
+	PROC(zscan, "r"),
+	PROC(zrscan, "r"),
+	PROC(zkeys, "r"),
+	PROC(zlist, "r"),
+	PROC(zexists, "r"),
+	PROC(multi_zexists, "r"),
+	PROC(multi_zsize, "r"),
+	PROC(multi_zget, "r"),
+	PROC(multi_zset, "w"),
+	PROC(multi_zdel, "w"),
+
+	PROC(dump, "b"),
+	PROC(sync, "b"),
+
+	{NULL, NULL, 0, NULL}
+};
+#undef PROC
 
 template<class T>
 static std::string serialize_req(T &req){
@@ -35,59 +94,22 @@ CommandProc::CommandProc(SSDB *ssdb){
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
 
-#define PROC(c) proc_map[#c] = &CommandProc::proc_##c
-	PROC(get);
-	PROC(set);
-	PROC(del);
-	PROC(incr);
-	PROC(decr);
-	PROC(scan);
-	PROC(rscan);
-	PROC(keys);
-	PROC(exists);
-	PROC(multi_exists);
-	PROC(multi_get);
-	PROC(multi_set);
-	PROC(multi_del);
-
-	PROC(hsize);
-	PROC(hget);
-	PROC(hset);
-	PROC(hdel);
-	PROC(hincr);
-	PROC(hdecr);
-	PROC(hscan);
-	PROC(hrscan);
-	PROC(hkeys);
-	PROC(hlist);
-	PROC(hexists);
-	PROC(multi_hexists);
-	PROC(multi_hsize);
-	PROC(multi_hget);
-	PROC(multi_hset);
-	PROC(multi_hdel);
-
-	PROC(zsize);
-	PROC(zget);
-	PROC(zset);
-	PROC(zdel);
-	PROC(zincr);
-	PROC(zdecr);
-	PROC(zscan);
-	PROC(zrscan);
-	PROC(zkeys);
-	PROC(zlist);
-	PROC(zexists);
-	PROC(multi_zexists);
-	PROC(multi_zsize);
-	PROC(multi_zget);
-	PROC(multi_zset);
-	PROC(multi_zdel);
-
-	PROC(dump);
-	PROC(sync);
-	PROC(info);
-#undef PROC
+	for(Command *cmd=commands; cmd->name; cmd++){
+		for(const char *p=cmd->sflags; *p!='\0'; p++){
+			switch(*p){
+				case 'r':
+					cmd->flags |= FLAG_READ;
+					break;
+				case 'w':
+					cmd->flags |= FLAG_WRITE;
+					break;
+				case 'b':
+					cmd->flags |= FLAG_BACKEND;
+					break;
+			}
+		}
+		proc_map[cmd->name] = cmd;
+	}
 }
 
 CommandProc::~CommandProc(){
@@ -103,20 +125,25 @@ int CommandProc::proc(const Link &link, const Request &req, Response *resp){
 	double stime = microtime();
 
 	int ret = 0;
+	Command *cmd = NULL;
 	proc_map_t::iterator it = proc_map.find(req[0]);
 	if(it == proc_map.end()){
 		resp->push_back("client_error");
 		resp->push_back("Unknown Command: " + req[0].String());
 	}else{
-		proc_t p = it->second;
+		cmd = it->second;
+		proc_t p = cmd->proc;
 		ret = (this->*p)(link, req, resp);
 	}
 
 	double ts = 1000 *(microtime() - stime);
-	log_debug("time: %.3f, req: %s, resp: %s",
-		 ts,
+	log_debug("time: %.3f, req: %s, resp: %s", ts,
 		 serialize_req(req).c_str(),
 		 serialize_req(*resp).c_str());
+	if(cmd){
+		cmd->calls += 1;
+		cmd->ts += ts;
+	}
 
 	return ret;
 }
@@ -137,6 +164,14 @@ int CommandProc::proc_info(const Link &link, const Request &req, Response *resp)
 	resp->push_back("ssdb-server");
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
+	
+	for(Command *cmd=commands; cmd->name; cmd++){
+		char buf[64];
+		snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
+		resp->push_back(buf);
+		snprintf(buf, sizeof(buf), "%llu %.0f", cmd->calls, cmd->ts);
+		resp->push_back(buf);
+	}
 
 	std::vector<std::string> tmp = ssdb->info();
 	for(int i=0; i<(int)tmp.size(); i++){
