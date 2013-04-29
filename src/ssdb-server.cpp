@@ -6,7 +6,7 @@
 #include "version.h"
 #include "ssdb.h"
 #include "link.h"
-#include "proc.h"
+#include "serv.h"
 #include "util/fde.h"
 #include "util/config.h"
 #include "util/daemon.h"
@@ -25,6 +25,8 @@ Config *conf = NULL;
 SSDB *ssdb = NULL;
 Link *serv_link = NULL;
 
+typedef std::vector<Link *> ready_list_t;
+
 
 int main(int argc, char **argv){
 	welcome();
@@ -41,28 +43,72 @@ int main(int argc, char **argv){
 		delete serv_link;
 	}
 	if(ssdb){
+		log_debug("free ssdb");
 		delete ssdb;
 	}
 	if(conf){
+		log_debug("free conf");
 		delete conf;
 	}
 	log_info("ssdb server exit.");
 	return 0;
 }
 
+int proc_result(ProcJob &job, Fdevents &select, ready_list_t &ready_list){	
+	Link *link = job.link;
+			
+	if(job.result == PROC_ERROR){
+		log_info("fd: %d, proc error, delete link", link->fd());
+		select.del(link->fd());
+		delete link;
+		return PROC_ERROR;
+	}
+	if(job.cmd){
+		job.cmd->calls += 1;
+		job.cmd->time_wait += job.time_wait;
+		job.cmd->time_proc += job.time_proc;
+	}
+
+	if(!link->output->empty()){
+		//log_trace("add %d to select.out", link->fd());
+		select.set(link->fd(), FDEVENT_OUT, 1, link);
+		if(select.isset(link->fd(), FDEVENT_IN)){
+			//log_trace("delete %d from select.in", link->fd());
+			select.clr(link->fd(), FDEVENT_IN);
+		}
+	}else{
+		if(link->input->empty()){
+			if(!select.isset(link->fd(), FDEVENT_IN)){
+				//log_trace("add %d to select.in", link->fd());
+				select.set(link->fd(), FDEVENT_IN, 1, link);
+			}
+		}else{
+			if(select.isset(link->fd(), FDEVENT_IN)){
+				//log_trace("delete %d from select.in", link->fd());
+				select.clr(link->fd(), FDEVENT_IN);
+			}
+			ready_list.push_back(link);
+		}
+	}
+	return PROC_OK;
+}
+
 void run(int argc, char **argv){
-	typedef std::vector<Link *> ready_list_t;
 	ready_list_t ready_list;
 	ready_list_t ready_list_2;
 	ready_list_t::iterator it;
 	const Fdevents::events_t *events;
+	Server serv(ssdb);
 
 	Fdevents select;
 	select.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
-	CommandProc proc(ssdb);
+	//select.set(serv.writer.fd(), FDEVENT_IN, 0, &serv);
+	
 	int link_count = 0;
-
 	while(!quit){
+		ready_list.clear();
+		ready_list_2.clear();
+		
 		if(!ready_list.empty()){
 			// give links that are not in ready_list a chance
 			events = select.wait(0);
@@ -84,8 +130,22 @@ void run(int argc, char **argv){
 				link_count ++;
 				link->nodelay();
 				link->noblock();
+				link->create_time = microtime();
+				link->active_time = link->create_time;
+				
 				select.set(link->fd(), FDEVENT_IN, 1, link);
 				log_info("new link: %d, link_count: %d", link->fd(), link_count);
+			}else if(fde->data.ptr == &serv){
+				/*
+				ProcJob job;
+				if(serv.writer.pop(&job) == 0){
+					log_fatal("reading result from workers error!");
+					exit(0);
+				}
+				if(proc_result(job, select, ready_list_2) == PROC_ERROR){
+					link_count --;
+				}
+				*/
 			}else{
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
@@ -107,7 +167,7 @@ void run(int argc, char **argv){
 					}
 				}else if(fde->events & FDEVENT_OUT){
 					int len = link->write();
-					log_trace("fd: %d write: %d", link->fd(), len);
+					//log_trace("fd: %d write: %d", link->fd(), len);
 					if(len <= 0){
 						log_info("fd: %d, write: %d, delete link", link->fd(), len);
 						link_count --;
@@ -127,7 +187,6 @@ void run(int argc, char **argv){
 			}
 		}
 
-		ready_list_2.clear();
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
 
@@ -146,50 +205,19 @@ void run(int argc, char **argv){
 				}
 				continue;
 			}
-
-			Response resp;
-			int status = proc.proc(*link, *req, &resp);
-			if(status == PROC_ERROR){
-				log_info("fd: %d, proc error, delete link", link->fd());
-				link_count --;
-				select.del(link->fd());
-				delete link;
-				continue;
-			}else if(status == PROC_BACKEND){
+	
+			ProcJob job;
+			job.link = link;
+			serv.proc(&job);
+			if(job.result == PROC_BACKEND){
 				link_count --;
 				select.del(link->fd());
 				continue;
 			}
-
-			link->send(resp);
-			if(link->write() == -1){
-				log_info("fd: %d, send error, delete link", link->fd());
+			link->active_time = microtime();
+			
+			if(proc_result(job, select, ready_list_2) == PROC_ERROR){
 				link_count --;
-				select.del(link->fd());
-				delete link;
-				continue;
-			}
-
-			if(!link->output->empty()){
-				//log_trace("add %d to select.out", link->fd());
-				select.set(link->fd(), FDEVENT_OUT, 1, link);
-				if(select.isset(link->fd(), FDEVENT_IN)){
-					//log_trace("delete %d from select.in", link->fd());
-					select.clr(link->fd(), FDEVENT_IN);
-				}
-			}else{
-				if(link->input->empty()){
-					if(!select.isset(link->fd(), FDEVENT_IN)){
-						//log_trace("add %d to select.in", link->fd());
-						select.set(link->fd(), FDEVENT_IN, 1, link);
-					}
-				}else{
-					if(select.isset(link->fd(), FDEVENT_IN)){
-						//log_trace("delete %d from select.in", link->fd());
-						select.clr(link->fd(), FDEVENT_IN);
-					}
-					ready_list_2.push_back(link);
-				}
 			}
 		} // end foreach ready link
 		ready_list.swap(ready_list_2);

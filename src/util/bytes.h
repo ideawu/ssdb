@@ -198,19 +198,24 @@ public:
 		return n;
 	}
 	int read_int64(int64_t *ret){
-		if(size < sizeof(*ret)){
+		if(size < sizeof(int64_t)){
 			return -1;
 		}
-		*ret = *(int64_t *)p;
-		p += sizeof(*ret);
-		size -= sizeof(*ret);
-		return sizeof(*ret);
+		if(ret){
+			*ret = *(int64_t *)p;
+		}
+		p += sizeof(int64_t);
+		size -= sizeof(int64_t);
+		return sizeof(int64_t);
 	}
 	int read_data(std::string *ret){
-		ret->assign(p, size);
+		int n = size;
+		if(ret){
+			ret->assign(p, size);
+		}
 		p += size;
 		size = 0;
-		return ret->size();
+		return n;
 	}
 	int read_8_data(std::string *ret=NULL){
 		if(size < 1){

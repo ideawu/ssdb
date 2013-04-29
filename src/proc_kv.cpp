@@ -1,12 +1,46 @@
 /* kv */
 
-int CommandProc::proc_exists(const Link &link, const Request &req, Response *resp){
+static int proc_get(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		std::string val;
+		int ret = serv->ssdb->get(req[1], &val);
+		if(ret == 1){
+			resp->push_back("ok");
+			resp->push_back(val);
+		}else if(ret == 0){
+			resp->push_back("not_found");
+		}else{
+			log_error("fail");
+			resp->push_back("fail");
+		}
+	}
+	return 0;
+}
+
+static int proc_set(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		int ret = serv->ssdb->set(req[1], req[2]);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			resp->push_back("1");
+		}
+	}
+	return 0;
+}
+
+static int proc_exists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
 		const Bytes key = req[1];
 		std::string val;
-		int ret = ssdb->get(key, &val);
+		int ret = serv->ssdb->get(key, &val);
 		if(ret == 1){
 			resp->push_back("ok");
 			resp->push_back("1");
@@ -21,7 +55,7 @@ int CommandProc::proc_exists(const Link &link, const Request &req, Response *res
 	return 0;
 }
 
-int CommandProc::proc_multi_exists(const Link &link, const Request &req, Response *resp){
+static int proc_multi_exists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -29,7 +63,7 @@ int CommandProc::proc_multi_exists(const Link &link, const Request &req, Respons
 		for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
 			const Bytes key = *it;
 			std::string val;
-			int ret = ssdb->get(key, &val);
+			int ret = serv->ssdb->get(key, &val);
 			resp->push_back(key.String());
 			if(ret == 1){
 				resp->push_back("1");
@@ -43,26 +77,11 @@ int CommandProc::proc_multi_exists(const Link &link, const Request &req, Respons
 	return 0;
 }
 
-int CommandProc::proc_set(const Link &link, const Request &req, Response *resp){
-	if(req.size() < 3){
-		resp->push_back("client_error");
-	}else{
-		int ret = ssdb->set(req[1], req[2]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			resp->push_back("1");
-		}
-	}
-	return 0;
-}
-
-int CommandProc::proc_multi_set(const Link &link, const Request &req, Response *resp){
+static int proc_multi_set(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3 || req.size() % 2 != 1){
 		resp->push_back("client_error");
 	}else{
-		int ret = ssdb->multi_set(req, 1);
+		int ret = serv->ssdb->multi_set(req, 1);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -75,11 +94,11 @@ int CommandProc::proc_multi_set(const Link &link, const Request &req, Response *
 	return 0;
 }
 
-int CommandProc::proc_multi_del(const Link &link, const Request &req, Response *resp){
+static int proc_multi_del(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		int ret = ssdb->multi_del(req, 1);
+		int ret = serv->ssdb->multi_del(req, 1);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -92,14 +111,14 @@ int CommandProc::proc_multi_del(const Link &link, const Request &req, Response *
 	return 0;
 }
 
-int CommandProc::proc_multi_get(const Link &link, const Request &req, Response *resp){
+static int proc_multi_get(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
 		resp->push_back("ok");
 		for(int i=1; i<req.size(); i++){
 			std::string val;
-			int ret = ssdb->get(req[i], &val);
+			int ret = serv->ssdb->get(req[i], &val);
 			if(ret == 1){
 				resp->push_back(req[i].String());
 				resp->push_back(val);
@@ -114,30 +133,11 @@ int CommandProc::proc_multi_get(const Link &link, const Request &req, Response *
 	return 0;
 }
 
-int CommandProc::proc_get(const Link &link, const Request &req, Response *resp){
+static int proc_del(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		std::string val;
-		int ret = ssdb->get(req[1], &val);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back(val);
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			log_error("fail");
-			resp->push_back("fail");
-		}
-	}
-	return 0;
-}
-
-int CommandProc::proc_del(const Link &link, const Request &req, Response *resp){
-	if(req.size() < 2){
-		resp->push_back("client_error");
-	}else{
-		int ret = ssdb->del(req[1]);
+		int ret = serv->ssdb->del(req[1]);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -147,12 +147,12 @@ int CommandProc::proc_del(const Link &link, const Request &req, Response *resp){
 	return 0;
 }
 
-int CommandProc::proc_scan(const Link &link, const Request &req, Response *resp){
+static int proc_scan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[3].Int();
-		KIterator *it = ssdb->scan(req[1], req[2], limit);
+		KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -163,12 +163,12 @@ int CommandProc::proc_scan(const Link &link, const Request &req, Response *resp)
 	return 0;
 }
 
-int CommandProc::proc_rscan(const Link &link, const Request &req, Response *resp){
+static int proc_rscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[3].Int();
-		KIterator *it = ssdb->rscan(req[1], req[2], limit);
+		KIterator *it = serv->ssdb->rscan(req[1], req[2], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -179,12 +179,12 @@ int CommandProc::proc_rscan(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
-int CommandProc::proc_keys(const Link &link, const Request &req, Response *resp){
+static int proc_keys(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[3].Int();
-		KIterator *it = ssdb->scan(req[1], req[2], limit);
+		KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
 		it->return_val(false);
 
 		resp->push_back("ok");
@@ -217,12 +217,11 @@ static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-int CommandProc::proc_incr(const Link &link, const Request &req, Response *resp){
-	return _incr(ssdb, req, resp, 1);
+static int proc_incr(Server *serv, Link *link, const Request &req, Response *resp){
+	return _incr(serv->ssdb, req, resp, 1);
 }
 
-int CommandProc::proc_decr(const Link &link, const Request &req, Response *resp){
-	return _incr(ssdb, req, resp, -1);
+static int proc_decr(Server *serv, Link *link, const Request &req, Response *resp){
+	return _incr(serv->ssdb, req, resp, -1);
 }
-
 

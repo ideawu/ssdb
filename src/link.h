@@ -18,6 +18,9 @@ class Link{
 
 		Buffer *input;
 		Buffer *output;
+		
+		double create_time;
+		double active_time;
 
 		Link(bool is_server=false);
 		~Link();

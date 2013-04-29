@@ -24,22 +24,32 @@
 typedef std::vector<Bytes> Request;
 typedef std::vector<std::string> Response;
 
+#include "util/thread.h"
+
+class CommandProc;
+typedef int (CommandProc::*proc_t)(Link *link, const Request &req, Response *resp);
+
+typedef struct{
+	const char *name;
+	const char *sflags;
+	int flags;
+	proc_t proc;
+	uint64_t calls;
+	double ts;
+}Command;
+
+typedef struct{
+	CommandProc *serv;
+	Link *link;
+	Command *cmd;
+}ProcJob;
+
 class CommandProc{
 	public:
 		CommandProc(SSDB *ssdb);
 		~CommandProc();
-		int proc(const Link &link, const Request &req, Response *resp);
+		int proc(Link *link, const Request &req, Response *resp);
 
-		typedef int (CommandProc::*proc_t)(const Link &link, const Request &req, Response *resp);
-		
-		typedef struct{
-			const char *name;
-			const char *sflags;
-			int flags;
-			proc_t proc;
-			uint64_t calls;
-			double ts;
-		}Command;
 	private:
 		struct BytesEqual{
 			bool operator()(const Bytes &s1, const Bytes &s2) const {
@@ -71,8 +81,16 @@ class CommandProc{
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 
+		class WriteProc : public WorkerPool<WriteProc, ProcJob>::Worker{
+		public:
+			void init();
+			void destroy();
+			int proc(ProcJob job);
+		};
+		WorkerPool<WriteProc, ProcJob> write_proc;
+
 	public:
-#define DEF_PROC(f) int proc_##f(const Link &link, const Request &req, Response *resp)
+#define DEF_PROC(f) int proc_##f(Link *link, const Request &req, Response *resp)
 		DEF_PROC(info);
 		
 		DEF_PROC(get);

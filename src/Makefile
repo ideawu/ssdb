@@ -6,14 +6,15 @@ CLIBS += -L${LEVELDB_PATH} ${LEVELDB_PATH}/libleveldb.a
 CLIBS += ../deps/jemalloc-3.3.1/lib/libjemalloc.a
 CLIBS += ${PLATFORM_LDFLAGS}
 
-OBJS = ssdb.o t_kv.o t_hash.o t_zset.o proc.o link.o backend_dump.o backend_sync.o slave.o binlog.o
+OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
+	backend_dump.o backend_sync.o slave.o binlog.o serv.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
 EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.exe
 
 
 all: ssdb.h ${OBJS}
 	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-server.cpp
-	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
+#	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
 
 objs: ssdb.h ${OBJS}
 	
@@ -38,8 +39,8 @@ binlog.o: ssdb.h binlog.h binlog.cpp
 slave.o: ssdb.h slave.h slave.cpp
 	g++ ${CFLAGS} -c slave.cpp
 
-proc.o: ssdb.h proc.h proc.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp
-	g++ ${CFLAGS} -c proc.cpp
+serv.o: ssdb.h serv.h serv.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp
+	g++ ${CFLAGS} -c serv.cpp
 
 backend_dump.o: ssdb.h backend_dump.h backend_dump.cpp
 	g++ ${CFLAGS} -c backend_dump.cpp

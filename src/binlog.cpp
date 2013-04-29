@@ -2,12 +2,6 @@
 #include "util/log.h"
 #include "util/strings.h"
 
-#ifdef NDEBUG
-	static const int LOG_QUEUE_SIZE  = 10 * 1000 * 1000;
-#else
-	static const int LOG_QUEUE_SIZE  = 10;
-#endif
-
 /*
 logs = new MemorySyncLogQueue(backlog);
 p_logs = new PersistentSyncLogQueue(meta_db);
@@ -180,7 +174,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 
 BinlogQueue::~BinlogQueue(){
 	thread_quit = true;
-	for(int i=0; i<20; i++){
+	while(1){
 		if(thread_quit == false){
 			break;
 		}
@@ -315,7 +309,8 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
 		logs->del_range(start, end);
 		logs->min_seq = end + 1;
-		log_debug("clean logs[%llu ~ %llu], max: %llu", start, end, logs->last_seq);
+		log_debug("clean %d logs[%llu ~ %llu], %d left, max: %llu",
+			end-start+1, start, end, logs->last_seq - logs->min_seq + 1, logs->last_seq);
 	}
 	log_debug("clean_thread quit");
 	

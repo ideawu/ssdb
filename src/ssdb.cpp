@@ -16,11 +16,11 @@ SSDB::~SSDB(){
 		slave->stop();
 		delete slave;
 	}
-	if(db){
-		delete db;
-	}
 	if(binlogs){
 		delete binlogs;
+	}
+	if(db){
+		delete db;
 	}
 	if(options.block_cache){
 		delete options.block_cache;
@@ -31,6 +31,7 @@ SSDB::~SSDB(){
 	if(meta_db){
 		delete meta_db;
 	}
+	log_debug("SSDB finalized");
 }
 
 SSDB* SSDB::open(const Config &conf, const std::string &base_dir){

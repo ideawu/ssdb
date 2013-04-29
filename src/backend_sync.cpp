@@ -130,7 +130,7 @@ BackendSync::Client::~Client(){
 }
 
 void BackendSync::Client::init(){
-	const std::vector<Bytes>* req = this->link->last_recv();
+	const std::vector<Bytes> *req = this->link->last_recv();
 	last_seq = 0;
 	if(req->size() > 1){
 		last_seq = req->at(1).Uint64();

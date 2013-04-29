@@ -1,10 +1,10 @@
 /* zset */
 
-int CommandProc::proc_zexists(const Link &link, const Request &req, Response *resp){
+static int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		int64_t ret = ssdb->zsize(req[1]);
+		int64_t ret = serv->ssdb->zsize(req[1]);
 		if(ret == -1){
 			resp->push_back("error");
 			resp->push_back("0");
@@ -19,14 +19,14 @@ int CommandProc::proc_zexists(const Link &link, const Request &req, Response *re
 	return 0;
 }
 
-int CommandProc::proc_multi_zexists(const Link &link, const Request &req, Response *resp){
+static int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
 		resp->push_back("ok");
 		for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
 			const Bytes &key = *it;
-			int64_t ret = ssdb->zsize(key);
+			int64_t ret = serv->ssdb->zsize(key);
 			resp->push_back(key.String());
 			if(ret > 0){
 				resp->push_back("1");
@@ -38,14 +38,14 @@ int CommandProc::proc_multi_zexists(const Link &link, const Request &req, Respon
 	return 0;
 }
 
-int CommandProc::proc_multi_zsize(const Link &link, const Request &req, Response *resp){
+static int proc_multi_zsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
 		resp->push_back("ok");
 		for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
 			const Bytes &key = *it;
-			int64_t ret = ssdb->zsize(key);
+			int64_t ret = serv->ssdb->zsize(key);
 			resp->push_back(key.String());
 			if(ret == -1){
 				resp->push_back("-1");
@@ -59,12 +59,12 @@ int CommandProc::proc_multi_zsize(const Link &link, const Request &req, Response
 	return 0;
 }
 
-int CommandProc::proc_multi_zset(const Link &link, const Request &req, Response *resp){
+static int proc_multi_zset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
 	}else{
 		const Bytes &name = req[1];
-		int ret = ssdb->multi_zset(name, req, 2);
+		int ret = serv->ssdb->multi_zset(name, req, 2);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -77,12 +77,12 @@ int CommandProc::proc_multi_zset(const Link &link, const Request &req, Response 
 	return 0;
 }
 
-int CommandProc::proc_multi_zdel(const Link &link, const Request &req, Response *resp){
+static int proc_multi_zdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
 		const Bytes &name = req[1];
-		int ret = ssdb->multi_zdel(name, req, 2);
+		int ret = serv->ssdb->multi_zdel(name, req, 2);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -95,7 +95,7 @@ int CommandProc::proc_multi_zdel(const Link &link, const Request &req, Response 
 	return 0;
 }
 
-int CommandProc::proc_multi_zget(const Link &link, const Request &req, Response *resp){
+static int proc_multi_zget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -106,7 +106,7 @@ int CommandProc::proc_multi_zget(const Link &link, const Request &req, Response 
 		for(; it!=req.end(); it+=1){
 			const Bytes &key = *it;
 			std::string score;
-			int ret = ssdb->zget(name, key, &score);
+			int ret = serv->ssdb->zget(name, key, &score);
 			if(ret == 1){
 				resp->push_back(key.String());
 				resp->push_back(score);
@@ -121,11 +121,11 @@ int CommandProc::proc_multi_zget(const Link &link, const Request &req, Response 
 	return 0;
 }
 
-int CommandProc::proc_zset(const Link &link, const Request &req, Response *resp){
+static int proc_zset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int ret = ssdb->zset(req[1], req[2], req[3]);
+		int ret = serv->ssdb->zset(req[1], req[2], req[3]);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -138,11 +138,11 @@ int CommandProc::proc_zset(const Link &link, const Request &req, Response *resp)
 	return 0;
 }
 
-int CommandProc::proc_zsize(const Link &link, const Request &req, Response *resp){
+static int proc_zsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		int64_t ret = ssdb->zsize(req[1]);
+		int64_t ret = serv->ssdb->zsize(req[1]);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -155,10 +155,10 @@ int CommandProc::proc_zsize(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
-int CommandProc::proc_zget(const Link &link, const Request &req, Response *resp){
+static int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() >= 3){
 		std::string score;
-		int ret = ssdb->zget(req[1], req[2], &score);
+		int ret = serv->ssdb->zget(req[1], req[2], &score);
 		if(ret == 1){
 			resp->push_back("ok");
 			resp->push_back(score);
@@ -174,11 +174,11 @@ int CommandProc::proc_zget(const Link &link, const Request &req, Response *resp)
 	return 0;
 }
 
-int CommandProc::proc_zdel(const Link &link, const Request &req, Response *resp){
+static int proc_zdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		int ret = ssdb->zdel(req[1], req[2]);
+		int ret = serv->ssdb->zdel(req[1], req[2]);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -193,12 +193,12 @@ int CommandProc::proc_zdel(const Link &link, const Request &req, Response *resp)
 	return 0;
 }
 
-int CommandProc::proc_zscan(const Link &link, const Request &req, Response *resp){
+static int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[5].Int();
-		ZIterator *it = ssdb->zscan(req[1], req[2], req[3], req[4], limit);
+		ZIterator *it = serv->ssdb->zscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -209,12 +209,12 @@ int CommandProc::proc_zscan(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
-int CommandProc::proc_zrscan(const Link &link, const Request &req, Response *resp){
+static int proc_zrscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[5].Int();
-		ZIterator *it = ssdb->zrscan(req[1], req[2], req[3], req[4], limit);
+		ZIterator *it = serv->ssdb->zrscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -225,12 +225,12 @@ int CommandProc::proc_zrscan(const Link &link, const Request &req, Response *res
 	return 0;
 }
 
-int CommandProc::proc_zkeys(const Link &link, const Request &req, Response *resp){
+static int proc_zkeys(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[5].Int();
-		ZIterator *it = ssdb->zscan(req[1], req[2], req[3], req[4], limit);
+		ZIterator *it = serv->ssdb->zscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -240,13 +240,13 @@ int CommandProc::proc_zkeys(const Link &link, const Request &req, Response *resp
 	return 0;
 }
 
-int CommandProc::proc_zlist(const Link &link, const Request &req, Response *resp){
+static int proc_zlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		int limit = req[3].Int();
 		std::vector<std::string> list;
-		int ret = ssdb->zlist(req[1], req[2], limit, &list);
+		int ret = serv->ssdb->zlist(req[1], req[2], limit, &list);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -280,12 +280,12 @@ static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-int CommandProc::proc_zincr(const Link &link, const Request &req, Response *resp){
-	return _zincr(ssdb, req, resp, 1);
+static int proc_zincr(Server *serv, Link *link, const Request &req, Response *resp){
+	return _zincr(serv->ssdb, req, resp, 1);
 }
 
-int CommandProc::proc_zdecr(const Link &link, const Request &req, Response *resp){
-	return _zincr(ssdb, req, resp, -1);
+static int proc_zdecr(Server *serv, Link *link, const Request &req, Response *resp){
+	return _zincr(serv->ssdb, req, resp, -1);
 }
 
 
