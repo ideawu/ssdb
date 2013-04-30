@@ -83,7 +83,7 @@ Link* Link::connect(const char *ip, int port){
 		goto sock_err;
 	}
 
-	log_debug("fd: %d, connect to %s:%d", sock, ip, port);
+	//log_debug("fd: %d, connect to %s:%d", sock, ip, port);
 	link = new Link();
 	link->sock = sock;
 	link->keepalive(true);
@@ -119,7 +119,7 @@ Link* Link::listen(const char *ip, int port){
 	if(::listen(sock, 1024) == -1){
 		goto sock_err;
 	}
-	log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
+	//log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
 
 	link = new Link(true);
 	link->sock = sock;

@@ -216,7 +216,7 @@ static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const
 	if(dbval != val){
 		std::string hkey = encode_hash_key(name, key);
 		ssdb->binlogs->Put(hkey, val.Slice());
-		ssdb->binlogs->log(log_type, BinlogCommand::HSET, hkey);
+		ssdb->binlogs->add(log_type, BinlogCommand::HSET, hkey);
 		ret = 1;
 	}
 	return ret;
@@ -248,7 +248,7 @@ static int hdel_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, char 
 	}
 	std::string hkey = encode_hash_key(name, key);
 	ssdb->binlogs->Delete(hkey);
-	ssdb->binlogs->log(log_type, BinlogCommand::HDEL, hkey);
+	ssdb->binlogs->add(log_type, BinlogCommand::HDEL, hkey);
 	
 	return 1;
 }

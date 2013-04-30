@@ -274,7 +274,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 
 	char type = log.type();
 	if(type == BinlogType::MIRROR && this->is_mirror){
-		if(this->last_seq - this->last_noop_seq >= 100){
+		if(this->last_seq - this->last_noop_seq >= 1000){
 			this->noop();
 		}
 	}else{

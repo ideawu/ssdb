@@ -45,7 +45,7 @@ class BinlogQueue{
 #ifdef NDEBUG
 	static const int LOG_QUEUE_SIZE  = 10 * 1000 * 1000;
 #else
-	static const int LOG_QUEUE_SIZE  = 10000;
+	static const int LOG_QUEUE_SIZE  = 1000000;
 #endif
 		leveldb::DB *db;
 		uint64_t min_seq;
@@ -59,6 +59,8 @@ class BinlogQueue{
 		int del(uint64_t seq);
 		// [start, end] includesive
 		int del_range(uint64_t start, uint64_t end);
+		
+		void merge();
 	public:
 		Mutex mutex;
 
@@ -72,8 +74,11 @@ class BinlogQueue{
 		void Put(const leveldb::Slice& key, const leveldb::Slice& value);
 		// leveldb delete
 		void Delete(const leveldb::Slice& key);
-		void log(char type, char cmd, const leveldb::Slice &key);
-		void log(char type, char cmd, const std::string &key);
+		void add(char type, char cmd, const leveldb::Slice &key);
+		void add(char type, char cmd, const std::string &key);
+		
+		int get(uint64_t seq, Binlog *log) const;
+		int update(uint64_t seq, char type, char cmd, const std::string &key);
 		
 		/** @returns
 		 1 : log.seq greater than or equal to seq

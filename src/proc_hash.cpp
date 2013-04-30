@@ -146,6 +146,11 @@ static int proc_hset(Server *serv, Link *link, const Request &req, Response *res
 			resp->push_back("error");
 		}else{
 			resp->push_back("ok");
+			if(ret == 0){
+				resp->push_back("0");
+			}else{
+				resp->push_back("1");
+			}
 		}
 	}
 	return 0;

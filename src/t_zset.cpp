@@ -247,7 +247,7 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 		k0 = encode_zset_key(name, key);
 		v.assign(score.data(), score.size());
 		ssdb->binlogs->Put(k0, v);
-		ssdb->binlogs->log(log_type, BinlogCommand::ZSET, k0);
+		ssdb->binlogs->add(log_type, BinlogCommand::ZSET, k0);
 		
 		return 1;
 	}
@@ -289,7 +289,7 @@ static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_ty
 	// delete zset
 	k0 = encode_zset_key(name, key);
 	ssdb->binlogs->Delete(k0);
-	ssdb->binlogs->log(log_type, BinlogCommand::ZDEL, k0);
+	ssdb->binlogs->add(log_type, BinlogCommand::ZDEL, k0);
 
 	return 1;
 }

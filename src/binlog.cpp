@@ -1,6 +1,7 @@
 #include "binlog.h"
 #include "util/log.h"
 #include "util/strings.h"
+#include <map>
 
 /* Binlog */
 
@@ -127,17 +128,25 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	if(this->find_next(1, &log) == 1){
 		this->min_seq = log.seq();
 	}
-	log_debug("binlogs.capacity: %d, min_seq: %llu, last_seq: %llu", capacity, min_seq, last_seq);
+	log_debug("capacity: %d, min: %llu, max: %llu,", capacity, min_seq, last_seq);
 
-	/*
-	// TEST:
+	//this->merge();
+		/*
+	int noops = 0;
+	int total = 0;
 	uint64_t seq = this->min_seq;
 	while(this->find_next(seq, &log) == 1){
+		total ++;
 		seq = log.seq() + 1;
-		std::string s = log.dumps();
-		log_trace("%s", s.c_str());
+		if(log.type() != BinlogType::NOOP){
+			std::string s = log.dumps();
+			//log_trace("%s", s.c_str());
+			noops ++;
+		}
 	}
-	*/
+	log_debug("capacity: %d, min: %llu, max: %llu, noops: %d, total: %d",
+		capacity, min_seq, last_seq, noops, total);
+		*/
 
 	// start cleaning thread
 	thread_quit = false;
@@ -179,15 +188,15 @@ leveldb::Status BinlogQueue::commit(){
 	return s;
 }
 
-void BinlogQueue::log(char type, char cmd, const leveldb::Slice &key){
+void BinlogQueue::add(char type, char cmd, const leveldb::Slice &key){
 	tran_seq ++;
 	Binlog log(tran_seq, type, cmd, key);
 	batch.Put(encode_seq_key(tran_seq), log.repr());
 }
 
-void BinlogQueue::log(char type, char cmd, const std::string &key){
+void BinlogQueue::add(char type, char cmd, const std::string &key){
 	leveldb::Slice s(key);
-	this->log(type, cmd, s);
+	this->add(type, cmd, s);
 }
 
 // leveldb put
@@ -201,6 +210,9 @@ void BinlogQueue::Delete(const leveldb::Slice& key){
 }
 	
 int BinlogQueue::find_next(uint64_t next_seq, Binlog *log) const{
+	if(this->get(next_seq, log) == 1){
+		return 1;
+	}
 	uint64_t ret = 0;
 	std::string key_str = encode_seq_key(next_seq);
 	leveldb::ReadOptions iterate_options;
@@ -250,6 +262,26 @@ int BinlogQueue::find_last(Binlog *log) const{
 	return ret;
 }
 
+int BinlogQueue::get(uint64_t seq, Binlog *log) const{
+	std::string val;
+	leveldb::Status s = db->Get(leveldb::ReadOptions(), encode_seq_key(seq), &val);
+	if(s.ok()){
+		if(log->load(val) != -1){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int BinlogQueue::update(uint64_t seq, char type, char cmd, const std::string &key){
+	Binlog log(seq, type, cmd, key);
+	leveldb::Status s = db->Put(leveldb::WriteOptions(), encode_seq_key(seq), log.repr());
+	if(s.ok()){
+		return 0;
+	}
+	return -1;
+}
+
 int BinlogQueue::del(uint64_t seq){
 	leveldb::Status s = db->Delete(leveldb::WriteOptions(), encode_seq_key(seq));
 	if(!s.ok()){
@@ -272,7 +304,6 @@ int BinlogQueue::del_range(uint64_t start, uint64_t end){
 	return 0;
 }
 
-// TODO: merge binlogs
 void* BinlogQueue::log_clean_thread_func(void *arg){
 	BinlogQueue *logs = (BinlogQueue *)arg;
 	
@@ -294,4 +325,32 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 	
 	logs->thread_quit = false;
 	return (void *)NULL;
+}
+
+// TESTING, slow, so not used
+void BinlogQueue::merge(){
+	std::map<std::string, uint64_t> key_map;
+	uint64_t start = min_seq;
+	uint64_t end = last_seq;
+	int reduce_count = 0;
+	int total = end - start + 1;
+	log_trace("merge begin");
+	for(; start <= end; start++){
+		Binlog log;
+		if(this->get(start, &log) == 1){
+			if(log.type() == BinlogType::NOOP){
+				continue;
+			}
+			std::string key = log.key().String();
+			std::map<std::string, uint64_t>::iterator it = key_map.find(key);
+			if(it != key_map.end()){
+				uint64_t seq = it->second;
+				this->update(seq, BinlogType::NOOP, BinlogCommand::NONE, "");
+				//log_trace("merge update %llu to NOOP", seq);
+				reduce_count ++;
+			}
+			key_map[key] = log.seq();
+		}
+	}
+	log_trace("merge reduce %d of %d binlogs", reduce_count, total);
 }

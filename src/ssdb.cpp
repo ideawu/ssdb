@@ -51,11 +51,11 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		block_size = 4;
 	}
 
-	log_info("main_db    : %s", main_db_path.c_str());
-	log_info("meta_db    : %s", meta_db_path.c_str());
-	log_info("cache_size : %d MB", cache_size);
-	log_info("block_size : %d KB", block_size);
-	log_info("write_buffer_size : %d MB", write_buffer_size);
+	log_info("main_db      : %s", main_db_path.c_str());
+	log_info("meta_db      : %s", meta_db_path.c_str());
+	log_info("cache_size   : %d MB", cache_size);
+	log_info("block_size   : %d KB", block_size);
+	log_info("write_buffer : %d MB", write_buffer_size);
 
 	SSDB *ssdb = new SSDB();
 	//
