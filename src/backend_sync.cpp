@@ -73,8 +73,8 @@ void* BackendSync::_run_thread(void *arg){
 		}
 		
 		bool is_empty = true;
-		if(client.status == Client::DUMP){
-			if(client.dump()){
+		if(client.status == Client::COPY){
+			if(client.copy()){
 				is_empty = false;
 			}
 		}
@@ -140,52 +140,39 @@ void BackendSync::Client::init(){
 		last_key = req->at(2).String();
 	}
 	// is_mirror
-	std::string type = "sync";
 	if(req->size() > 3){
 		if(req->at(3).String() == "mirror"){
-			type = "mirror";
 			is_mirror = true;
 		}
 	}
-	if(last_seq == 0){
-		log_info("fd: %d, new slave, make a full dumping", link->fd());
-		this->reset();
+	const char *type = is_mirror? "mirror" : "sync";
+	if(last_key == ""){
+		log_info("[%s]fd: %d, sync, seq: %llu, key: '%s'",
+			type,
+			link->fd(),
+			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+			);
+		this->status = Client::SYNC;
 	}else{
-		if(last_key == ""){
-			// when upgrade from 1.x.x to 2.x.x
-			// the slave should not send 'sync 0', because this will results in a full dump
-			// so the slave will send 'sync 1', but actually it expects to receive
-			// binlogs from seq=1(it hasn't received any binlog yet, its last_seq is 0)
-			if(last_seq == 1){
-				 last_seq = 0;
-			}
-			log_info("[%s]fd: %d, sync recover, seq: %llu, key: '%s'",
-				type.c_str(),
-				link->fd(),
-				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
-				);
-			this->status = Client::SYNC;
-		}else{
-			// a slave must reset its last_key when receiving 'dump_end' command
-			log_info("fd: %d, dump recover, seq: %llu, key: '%s'",
-				link->fd(),
-				last_seq, hexmem(last_key.data(), last_key.size()).c_str()
-				);
-			std::string end = "";
-			this->status = Client::DUMP;
-		}
+		// a slave must reset its last_key when receiving 'copy_end' command
+		log_info("[%s]fd: %d, copy recover, seq: %llu, key: '%s'",
+			type,
+			link->fd(),
+			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+			);
+		this->status = Client::COPY;
 	}
 }
 
 void BackendSync::Client::reset(){
-	log_info("fd: %d, dump begin", link->fd());
-	this->status = Client::DUMP;
+	log_info("fd: %d, copy begin", link->fd());
+	this->status = Client::COPY;
 	this->last_seq = 0;
 	this->last_key = "";
 
-	Binlog log(this->last_seq, BinlogType::DUMP, BinlogCommand::BEGIN, "");
+	Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::BEGIN, "");
 	log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-	link->send(log.repr(), "dump_begin");
+	link->send(log.repr(), "copy_begin");
 }
 
 void BackendSync::Client::noop(){
@@ -195,21 +182,21 @@ void BackendSync::Client::noop(){
 	link->send(noop.repr());
 }
 
-int BackendSync::Client::dump(){
+int BackendSync::Client::copy(){
 	if(this->iter == NULL){
 		log_trace("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
 		this->iter = backend->ssdb->iterator(this->last_key, "", -1);
 	}
 	for(int i=0; i<1000; i++){
 		if(!iter->next()){
-			log_info("fd: %d, dump end", link->fd());
+			log_info("fd: %d, copy end", link->fd());
 			this->status = Client::SYNC;
 			delete this->iter;
 			this->iter = NULL;
 
-			Binlog log(this->last_seq, BinlogType::DUMP, BinlogCommand::END, "");
+			Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::END, "");
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-			link->send(log.repr(), "dump_end");
+			link->send(log.repr(), "copy_end");
 			break;
 		}else{
 			Bytes key = iter->key();
@@ -232,7 +219,7 @@ int BackendSync::Client::dump(){
 				continue;
 			}
 			
-			Binlog log(this->last_seq, BinlogType::DUMP, cmd, key.Slice());
+			Binlog log(this->last_seq, BinlogType::COPY, cmd, key.Slice());
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), val);
 			//if(link->output->size() > 1024 * 1024){
@@ -249,7 +236,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 	while(1){
 		int ret = 0;
 		uint64_t expect_seq = this->last_seq + 1;
-		if(this->status == Client::DUMP && this->last_seq == 0){
+		if(this->status == Client::COPY && this->last_seq == 0){
 			ret = logs->find_last(&log);
 		}else{
 			ret = logs->find_next(expect_seq, &log);
@@ -257,8 +244,8 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 		if(ret == 0){
 			return 0;
 		}
-		// writes that are out of dumped range will be discarded.
-		if(this->status == Client::DUMP && log.key() > this->last_key){
+		// writes that are out of copied range will be discarded.
+		if(this->status == Client::COPY && log.key() > this->last_key){
 			log_trace("fd: %d, last_key: '%s', drop: %s",
 				link->fd(),
 				hexmem(this->last_key.data(), this->last_key.size()).c_str(),

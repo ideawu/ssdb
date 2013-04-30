@@ -53,7 +53,7 @@ public:
 	static const char NOOP		= 0;
 	static const char SYNC		= 1;
 	static const char MIRROR	= 2;
-	static const char DUMP		= 3;
+	static const char COPY		= 3;
 };
 
 class BinlogCommand{

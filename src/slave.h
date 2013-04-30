@@ -31,7 +31,7 @@ class Slave{
 		
 		int proc(const std::vector<Bytes> &req);
 		int proc_noop(const Binlog &log, const std::vector<Bytes> &req);
-		int proc_dump(const Binlog &log, const std::vector<Bytes> &req);
+		int proc_copy(const Binlog &log, const std::vector<Bytes> &req);
 		int proc_sync(const Binlog &log, const std::vector<Bytes> &req);
 
 		int connect_retry;

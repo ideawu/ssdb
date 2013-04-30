@@ -90,11 +90,11 @@ static proc_map_t proc_map;
 
 	DEF_PROC(info);
 	DEF_PROC(dump);
-	DEF_PROC(sync);
+	DEF_PROC(sync140);
 #undef DEF_PROC
 
 
-#define PROC(c, f) {#c, f, 0, proc_##c, 0, 0}
+#define PROC(c, f) {#c, f, 0, proc_##c, 0, 0, 0}
 static Command commands[] = {
 	PROC(get, "r"),
 	PROC(set, "w"),
@@ -146,7 +146,7 @@ static Command commands[] = {
 
 	PROC(info, "r"),
 	PROC(dump, "b"),
-	PROC(sync, "b"),
+	PROC(sync140, "b"),
 
 	{NULL, NULL, 0, NULL}
 };
@@ -261,7 +261,7 @@ static int proc_dump(Server *serv, Link *link, const Request &req, Response *res
 	return PROC_BACKEND;
 }
 
-static int proc_sync(Server *serv, Link *link, const Request &req, Response *resp){
+static int proc_sync140(Server *serv, Link *link, const Request &req, Response *resp){
 	serv->backend_sync->proc(link);
 	return PROC_BACKEND;
 }

@@ -2,29 +2,6 @@
 #include "util/log.h"
 #include "util/strings.h"
 
-/*
-logs = new MemorySyncLogQueue(backlog);
-p_logs = new PersistentSyncLogQueue(meta_db);
-
-// load persistent sync logs into SyncLogQueue
-if(p_logs->seq_min > 0){
-	uint64_t seq = p_logs->seq_min;
-	if(p_logs->seq_min + backlog < p_logs->seq_max){
-		seq = p_logs->seq_max - backlog;
-	}
-	for(; seq<=p_logs->seq_max; seq++){
-		Binlog log;
-		int ret = p_logs->find(seq, &log);
-		if(ret != 1){
-			log_error("error loading sync logs from leveldb, seq: %llu", seq);
-			break;
-		}
-		log_trace("load %llu, key: %s", seq, hexmem(log.key().data(), log.key().size()).c_str());
-		logs->put(log);
-	}
-}
-*/
-
 /* Binlog */
 
 Binlog::Binlog(uint64_t seq, char cmd, char type, const leveldb::Slice &key){
@@ -78,8 +55,8 @@ std::string Binlog::dumps() const{
 		case BinlogType::MIRROR:
 			str.append("mirror ");
 			break;
-		case BinlogType::DUMP:
-			str.append("dump ");
+		case BinlogType::COPY:
+			str.append("copy ");
 			break;
 	}
 	switch(this->cmd()){
@@ -112,7 +89,7 @@ std::string Binlog::dumps() const{
 			break;
 	}
 	Bytes b = this->key();
-	str.append(b.data(), b.size());
+	str.append(hexmem(b.data(), b.size()));
 	return str;
 }
 
@@ -135,7 +112,7 @@ static inline uint64_t decode_seq_key(const leveldb::Slice &key){
 	}
 	return seq;
 }
-	
+
 BinlogQueue::BinlogQueue(leveldb::DB *db){
 	this->db = db;
 	this->min_seq = 0;
@@ -295,6 +272,7 @@ int BinlogQueue::del_range(uint64_t start, uint64_t end){
 	return 0;
 }
 
+// TODO: merge binlogs
 void* BinlogQueue::log_clean_thread_func(void *arg){
 	BinlogQueue *logs = (BinlogQueue *)arg;
 	

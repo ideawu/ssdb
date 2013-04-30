@@ -37,7 +37,7 @@ class BackendSync{
 struct BackendSync::Client{
 	static const int INIT = 0;
 	static const int OUT_OF_SYNC = 1;
-	static const int DUMP = 2;
+	static const int COPY = 2;
 	static const int SYNC = 4;
 
 	int status;
@@ -55,7 +55,7 @@ struct BackendSync::Client{
 	void init();
 	void reset();
 	void noop();
-	int dump();
+	int copy();
 	int sync(BinlogQueue *logs);
 };
 

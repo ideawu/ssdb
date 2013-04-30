@@ -2,8 +2,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
 
 #include "link.h"
 #include "util/log.h"
@@ -18,6 +16,9 @@ int Link::min_send_buf = 8 * 1024;
 Link::Link(bool is_server){
 	sock = -1;
 	noblock_ = false;
+	remote_ip[0] = '\0';
+	remote_port = -1;
+	
 	if(is_server){
 		input = output = NULL;
 	}else{
@@ -122,6 +123,8 @@ Link* Link::listen(const char *ip, int port){
 
 	link = new Link(true);
 	link->sock = sock;
+	snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", ip);
+	link->remote_port = port;
 	return link;
 sock_err:
 	log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
@@ -136,7 +139,6 @@ Link* Link::accept(){
 	int client_sock;
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);
-	char ip_str[INET_ADDRSTRLEN];
 
 	while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
 		if(errno != EINTR){
@@ -144,8 +146,6 @@ Link* Link::accept(){
 			return NULL;
 		}
 	}
-	inet_ntop(AF_INET, &addr.sin_addr, ip_str, sizeof(ip_str));
-	log_debug("accept: %d, from %s:%d", client_sock, ip_str, ntohs(addr.sin_port));
 
 	struct linger opt = {1, 0};
 	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
@@ -156,6 +156,8 @@ Link* Link::accept(){
 	link = new Link();
 	link->sock = client_sock;
 	link->keepalive(true);
+	inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));
+	link->remote_port = ntohs(addr.sin_port);
 	return link;
 }
 

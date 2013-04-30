@@ -128,13 +128,14 @@ void run(int argc, char **argv){
 					continue;
 				}
 				link_count ++;
+				log_info("new link from %s:%d, fd: %d, link_count: %d",
+					link->remote_ip, link->remote_port, link->fd(), link_count);
+				
 				link->nodelay();
 				link->noblock();
 				link->create_time = microtime();
 				link->active_time = link->create_time;
-				
 				select.set(link->fd(), FDEVENT_IN, 1, link);
-				log_info("new link: %d, link_count: %d", link->fd(), link_count);
 			}else if(fde->data.ptr == &serv){
 				/*
 				ProcJob job;

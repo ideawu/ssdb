@@ -13,9 +13,9 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 	this->master_port = port;
 	this->is_mirror = is_mirror;
 	if(this->is_mirror){
-		log_type = BinlogType::MIRROR;
+		this->log_type = BinlogType::MIRROR;
 	}else{
-		log_type = BinlogType::SYNC;
+		this->log_type = BinlogType::SYNC;
 	}
 	
 	this->link = NULL;
@@ -68,54 +68,24 @@ std::string Slave::status_key(){
 
 void Slave::load_status(){
 	std::string key = status_key();
-	std::string status;
-	leveldb::Status s;
-	s = meta_db->Get(leveldb::ReadOptions(), key, &status);
-	if(s.IsNotFound()){
-		this->last_seq = 1;
-		this->last_key = "";
-		return;
-	}
+	std::string val;
+	leveldb::Status s = meta_db->Get(leveldb::ReadOptions(), key, &val);
 	if(s.ok()){
-		if(status.size() < sizeof(uint64_t)){
-			log_error("invlid format of status");
+		if(val.size() < sizeof(uint64_t)){
+			log_error("invalid format of status");
 		}else{
-			last_seq = *((uint64_t *)(status.data()));
-			last_key = std::string(status.data() + sizeof(uint64_t), status.size() - sizeof(uint64_t));
+			last_seq = *((uint64_t *)(val.data()));
+			last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
 		}
 	}
 }
 
 void Slave::save_status(){
 	std::string key = status_key();
-	std::string status;
-	status.append((char *)&this->last_seq, sizeof(uint64_t));
-	status.append(this->last_key);
-	meta_db->Put(leveldb::WriteOptions(), key, status);
-}
-
-template<class T>
-static std::string serialize_req(T &req){
-	std::string ret;
-	char buf[50];
-	for(int i=0; i<(int)req.size(); i++){
-		if(i >= 5 && i < (int)req.size() - 1){
-			sprintf(buf, "[%d more...]", (int)req.size() - i - 1);
-			ret.append(buf);
-			break;
-		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
-			std::string h = hexmem(req[i].data(), req[i].size());
-			ret.append(h);
-		}else{
-			sprintf(buf, "[%d bytes]", (int)req[i].size());
-			ret.append(buf);
-		}
-		if(i < (int)req.size() - 1){
-			ret.append(" ");
-		}
-	}
-	return ret;
+	std::string val;
+	val.append((char *)&this->last_seq, sizeof(uint64_t));
+	val.append(this->last_key);
+	meta_db->Put(leveldb::WriteOptions(), key, val);
 }
 
 int Slave::connect(){
@@ -128,7 +98,7 @@ int Slave::connect(){
 	//log_debug("%d", retry);
 	// TODO: 找一个公式
 	if(connect_retry == 1 || connect_retry == 31 || connect_retry == 61 || connect_retry == 101){
-		log_info("[%d] connecting to master at %s:%d...", connect_retry, ip, port);
+		log_info("[%d] connecting to master at %s:%d...", connect_retry-1, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
 			log_error("failed to connect to master: %s:%d!", ip, port);
@@ -137,15 +107,10 @@ int Slave::connect(){
 			connect_retry = 0;
 			char seq_buf[20];
 			sprintf(seq_buf, "%llu", this->last_seq);
-
-			link->output->append_record("sync");
-			link->output->append_record(seq_buf);
-			link->output->append_record(this->last_key);
-			if(is_mirror){
-				link->output->append_record("mirror");
-			}
-			link->output->append('\n');
-
+			
+			const char *type = is_mirror? "mirror" : "sync";
+			
+			link->send("sync140", seq_buf, this->last_key, type);
 			if(link->flush() == -1){
 				log_error("network error");
 				delete link;
@@ -247,8 +212,8 @@ int Slave::proc(const std::vector<Bytes> &req){
 		case BinlogType::NOOP:
 			this->proc_noop(log, req);
 			break;
-		case BinlogType::DUMP:
-			this->proc_dump(log, req);
+		case BinlogType::COPY:
+			this->proc_copy(log, req);
 			break;
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:
@@ -270,13 +235,13 @@ int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
 	return 0;
 }
 
-int Slave::proc_dump(const Binlog &log, const std::vector<Bytes> &req){
+int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 	switch(log.cmd()){
 		case BinlogCommand::BEGIN:
-			log_info("dump begin");
+			log_info("copy begin");
 			break;
 		case BinlogCommand::END:
-			log_info("dump end, step in sync");
+			log_info("copy end, step in sync");
 			this->last_key = "";
 			this->save_status();
 			break;
@@ -374,6 +339,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 			break;
 	}
 	this->last_seq = log.seq();
+	if(log.type() == BinlogType::COPY){
+		this->last_key = log.key().String();
+	}
 	this->save_status();
 	return 0;
 }
