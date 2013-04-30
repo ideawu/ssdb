@@ -228,7 +228,7 @@ void run(int argc, char **argv){
 
 void welcome(){
 	printf("ssdb %s\n", SSDB_VERSION);
-	printf("Copyright (c) 2012 ideawu.com\n");
+	printf("Copyright (c) 2012-2013 ideawu.com\n");
 	printf("\n");
 }
 
