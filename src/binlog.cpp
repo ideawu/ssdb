@@ -333,7 +333,8 @@ void BinlogQueue::merge(){
 	uint64_t start = min_seq;
 	uint64_t end = last_seq;
 	int reduce_count = 0;
-	int total = end - start + 1;
+	int total = 0;
+	total = end - start + 1;
 	log_trace("merge begin");
 	for(; start <= end; start++){
 		Binlog log;
