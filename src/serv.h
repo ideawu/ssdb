@@ -95,7 +95,7 @@ static std::string serialize_req(T &req){
 			std::string h = hexmem(req[i].data(), req[i].size());
 			ret.append(h);
 		}else{
-			sprintf(buf, "[%d bytes]", (int)req[i].size());
+			sprintf(buf, "[%d]", (int)req[i].size());
 			ret.append(buf);
 		}
 		if(i < req.size() - 1){

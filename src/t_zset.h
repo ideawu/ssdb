@@ -56,7 +56,7 @@ int decode_zset_key(const Bytes &slice, std::string *name, std::string *key){
 
 // type, len, key, score, =, val
 static inline
-std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score){
+std::string encode_zscore_key(const Bytes &key, const Bytes &val, const Bytes &score){
 	std::string buf;
 	buf.append(1, DataType::ZSCORE);
 	buf.append(1, (uint8_t)key.size());

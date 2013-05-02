@@ -147,14 +147,14 @@ ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
 	std::string key_start, key_end;
 
 	if(score_start.empty()){
-		key_start = encode_z_key(name, key, SSDB_SCORE_MIN);
+		key_start = encode_zscore_key(name, key, SSDB_SCORE_MIN);
 	}else{
-		key_start = encode_z_key(name, key, score_start);
+		key_start = encode_zscore_key(name, key, score_start);
 	}
 	if(score_end.empty()){
-		key_end = encode_z_key(name, "", SSDB_SCORE_MAX);
+		key_end = encode_zscore_key(name, "", SSDB_SCORE_MAX);
 	}else{
-		key_end = encode_z_key(name, "", score_end);
+		key_end = encode_zscore_key(name, "", score_end);
 	}
 
 	//dump(key_start.data(), key_start.size(), "zscan.start");
@@ -168,14 +168,14 @@ ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
 	std::string key_start, key_end;
 
 	if(score_start.empty()){
-		key_start = encode_z_key(name, key, SSDB_SCORE_MAX);
+		key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
 	}else{
-		key_start = encode_z_key(name, key, score_start);
+		key_start = encode_zscore_key(name, key, score_start);
 	}
 	if(score_end.empty()){
-		key_end = encode_z_key(name, "", SSDB_SCORE_MIN);
+		key_end = encode_zscore_key(name, "", SSDB_SCORE_MIN);
 	}else{
-		key_end = encode_z_key(name, "", score_end);
+		key_end = encode_zscore_key(name, "", score_end);
 	}
 
 	//dump(key_start.data(), key_start.size(), "zscan.start");
@@ -236,11 +236,11 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 		}
 
 		// delete zscore key
-		k1 = encode_z_key(name, key, old_score);
+		k1 = encode_zscore_key(name, key, old_score);
 		ssdb->binlogs->Delete(k1);
 
 		// add zscore key
-		k2 = encode_z_key(name, key, score);
+		k2 = encode_zscore_key(name, key, score);
 		ssdb->binlogs->Put(k2, "");
 
 		// update zset
@@ -283,7 +283,7 @@ static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_ty
 
 	std::string k0, k1;
 	// delete zscore key
-	k1 = encode_z_key(name, key, old_score);
+	k1 = encode_zscore_key(name, key, old_score);
 	ssdb->binlogs->Delete(k1);
 
 	// delete zset
