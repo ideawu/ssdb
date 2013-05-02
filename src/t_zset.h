@@ -77,12 +77,12 @@ std::string encode_z_key(const Bytes &key, const Bytes &val, const Bytes &score)
 }
 
 static inline
-int decode_zscore_key(const Bytes &slice, std::string *key, std::string *val, std::string *score){
+int decode_zscore_key(const Bytes &slice, std::string *name, std::string *key, std::string *score){
 	Decoder decoder(slice.data(), slice.size());
 	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	if(decoder.read_8_data(key) == -1){
+	if(decoder.read_8_data(name) == -1){
 		return -1;
 	}
 	if(decoder.skip(1) == -1){
