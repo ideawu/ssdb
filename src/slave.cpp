@@ -183,16 +183,18 @@ void* Slave::_run_thread(void *arg){
 				break;
 			}else{
 				if(slave->proc(*req) == -1){
-					goto quit_;
+					goto err;
 				}
 			}
 		}
 	} // end while
-
-quit_:
-	// TODO: must notify the main thread to quit
 	log_info("Slave thread quit");
 	return (void *)NULL;
+
+err:
+	log_fatal("Slave thread exit unexpectedly");
+	exit(0);
+	return (void *)NULL;;
 }
 
 int Slave::proc(const std::vector<Bytes> &req){
@@ -210,14 +212,14 @@ int Slave::proc(const std::vector<Bytes> &req){
 	}
 	switch(log.type()){
 		case BinlogType::NOOP:
-			this->proc_noop(log, req);
+			return this->proc_noop(log, req);
 			break;
 		case BinlogType::COPY:
-			this->proc_copy(log, req);
+			return this->proc_copy(log, req);
 			break;
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:
-			this->proc_sync(log, req);
+			return this->proc_sync(log, req);
 			break;
 		default:
 			break;
@@ -246,7 +248,7 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 			this->save_status();
 			break;
 		default:
-			proc_sync(log, req);
+			return proc_sync(log, req);
 			break;
 	}
 	return 0;
@@ -265,7 +267,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				}
 				Bytes val = req[1];
 				log_trace("set %s", hexmem(key.data(), key.size()).c_str());
-				ssdb->set(key, req[1], log_type);
+				if(ssdb->set(key, req[1], log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		case BinlogCommand::KDEL:
@@ -275,7 +279,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 					break;
 				}
 				log_trace("del %s", hexmem(key.data(), key.size()).c_str());
-				ssdb->del(key, log_type);
+				if(ssdb->del(key, log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		case BinlogCommand::HSET:
@@ -291,7 +297,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				log_trace("hset %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
-				ssdb->hset(name, key, req[1], log_type);
+				if(ssdb->hset(name, key, req[1], log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		case BinlogCommand::HDEL:
@@ -303,7 +311,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				log_trace("hdel %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
-				ssdb->hdel(name, key, log_type);
+				if(ssdb->hdel(name, key, log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		case BinlogCommand::ZSET:
@@ -319,7 +329,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				log_trace("zset %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
-				ssdb->zset(name, key, req[1], log_type);
+				if(ssdb->zset(name, key, req[1], log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		case BinlogCommand::ZDEL:
@@ -331,7 +343,9 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				log_trace("zdel %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
-				ssdb->zdel(name, key, log_type);
+				if(ssdb->zdel(name, key, log_type) == -1){
+					return -1;
+				}
 			}
 			break;
 		default:

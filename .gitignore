@@ -10,4 +10,5 @@ tools/ssdb-dump
 _pack
 build_config.mk
 log.txt
+log_slave.txt
 
