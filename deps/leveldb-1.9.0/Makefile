@@ -69,7 +69,7 @@ SHARED = $(SHARED1)
 else
 # Update db.h if you change these.
 SHARED_MAJOR = 1
-SHARED_MINOR = 8
+SHARED_MINOR = 9
 SHARED1 = libleveldb.$(PLATFORM_SHARED_EXT)
 SHARED2 = $(SHARED1).$(SHARED_MAJOR)
 SHARED3 = $(SHARED1).$(SHARED_MAJOR).$(SHARED_MINOR)
@@ -85,8 +85,7 @@ $(SHARED3):
 
 endif  # PLATFORM_SHARED_EXT
 
-#all: $(SHARED) $(LIBRARY)
-all: $(LIBRARY)
+all: $(SHARED) $(LIBRARY)
 
 check: all $(PROGRAMS) $(TESTS)
 	for t in $(TESTS); do echo "***** Running $$t"; ./$$t || exit 1; done

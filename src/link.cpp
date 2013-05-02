@@ -2,8 +2,6 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
 
 #include "link.h"
 #include "util/log.h"
@@ -18,6 +16,9 @@ int Link::min_send_buf = 8 * 1024;
 Link::Link(bool is_server){
 	sock = -1;
 	noblock_ = false;
+	remote_ip[0] = '\0';
+	remote_port = -1;
+	
 	if(is_server){
 		input = output = NULL;
 	}else{
@@ -82,7 +83,7 @@ Link* Link::connect(const char *ip, int port){
 		goto sock_err;
 	}
 
-	log_debug("fd: %d, connect to %s:%d", sock, ip, port);
+	//log_debug("fd: %d, connect to %s:%d", sock, ip, port);
 	link = new Link();
 	link->sock = sock;
 	link->keepalive(true);
@@ -118,10 +119,12 @@ Link* Link::listen(const char *ip, int port){
 	if(::listen(sock, 1024) == -1){
 		goto sock_err;
 	}
-	log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
+	//log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
 
 	link = new Link(true);
 	link->sock = sock;
+	snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", ip);
+	link->remote_port = port;
 	return link;
 sock_err:
 	log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
@@ -136,7 +139,6 @@ Link* Link::accept(){
 	int client_sock;
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);
-	char ip_str[INET_ADDRSTRLEN];
 
 	while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
 		if(errno != EINTR){
@@ -144,8 +146,6 @@ Link* Link::accept(){
 			return NULL;
 		}
 	}
-	inet_ntop(AF_INET, &addr.sin_addr, ip_str, sizeof(ip_str));
-	log_debug("accept: %d, from %s:%d", client_sock, ip_str, ntohs(addr.sin_port));
 
 	struct linger opt = {1, 0};
 	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
@@ -156,6 +156,8 @@ Link* Link::accept(){
 	link = new Link();
 	link->sock = client_sock;
 	link->keepalive(true);
+	inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));
+	link->remote_port = ntohs(addr.sin_port);
 	return link;
 }
 
@@ -176,7 +178,7 @@ int Link::read(){
 			}else if(errno == EWOULDBLOCK){
 				break;
 			}else{
-				log_debug("fd: %d, read: -1, want: %d, error: %s", sock, want, strerror(errno));
+				//log_debug("fd: %d, read: -1, want: %d, error: %s", sock, want, strerror(errno));
 				return -1;
 			}
 		}else{
@@ -211,7 +213,7 @@ int Link::write(){
 			}else if(errno == EWOULDBLOCK){
 				break;
 			}else{
-				log_debug("fd: %d, write: -1, error: %s", sock, strerror(errno));
+				//log_debug("fd: %d, write: -1, error: %s", sock, strerror(errno));
 				return -1;
 			}
 		}else{
@@ -282,7 +284,7 @@ const std::vector<Bytes>* Link::recv(){
 		}
 
 		char head_str[20];
-		if(head_len > sizeof(head_str) - 1){
+		if(head_len > (int)sizeof(head_str) - 1){
 			return NULL;
 		}
 		memcpy(head_str, head, head_len - 1); // no '\n'
@@ -327,7 +329,7 @@ const std::vector<Bytes>* Link::recv(){
 				log_error("fd: %d, unable to resize input buffer!", this->sock);
 				return NULL;
 			}
-			log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());
+			//log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());
 		}
 	}
 
@@ -341,7 +343,7 @@ int Link::send(const std::vector<std::string> &resp){
 		output->append_record(resp[i]);
 	}
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const std::vector<Bytes> &resp){
@@ -349,20 +351,20 @@ int Link::send(const std::vector<Bytes> &resp){
 		output->append_record(resp[i]);
 	}
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1){
 	output->append_record(s1);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2){
 	output->append_record(s1);
 	output->append_record(s2);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3){
@@ -370,7 +372,7 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3){
 	output->append_record(s2);
 	output->append_record(s3);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4){
@@ -379,7 +381,7 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s
 	output->append_record(s3);
 	output->append_record(s4);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
 
 int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4, const Bytes &s5){
@@ -389,9 +391,8 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s
 	output->append_record(s4);
 	output->append_record(s5);
 	output->append('\n');
-	return this->write();
+	return 0;
 }
-
 
 #if 0
 int main(){

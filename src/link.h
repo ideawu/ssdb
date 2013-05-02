@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 #include "util/bytes.h"
 
@@ -13,11 +15,17 @@ class Link{
 		std::vector<Bytes> recv_data;
 
 	public:
+		char remote_ip[INET_ADDRSTRLEN];
+		int remote_port;
+
 		static int min_recv_buf;
 		static int min_send_buf;
 
 		Buffer *input;
 		Buffer *output;
+		
+		double create_time;
+		double active_time;
 
 		Link(bool is_server=false);
 		~Link();
@@ -40,6 +48,7 @@ class Link{
 		int read();
 		int write();
 		// flush buffered data to network
+		// REQURES: nonblock
 		int flush();
 
 		/**

@@ -146,7 +146,7 @@ function benchmark(cmd, prepared_data, links){
 			reqs.append(['zdel', 'z', k]);
 		}
 		if(cmd == 'zscan'){
-			reqs.append(['zscan', 'z', k, s-1, s*2, 10]);
+			reqs.append(['zscan', 'z', k, s, s+100, 10]);
 		}
 		if(cmd == 'zrscan'){
 			reqs.append(['zscan', 'z', k, s*2, s-1, 10]);

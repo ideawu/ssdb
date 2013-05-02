@@ -41,7 +41,7 @@ class Iterator{
 				}
 			}
 
-			if(limit <= 0 || !it->Valid()){
+			if(limit == 0 || !it->Valid()){
 				return false;
 			}
 			if(direction == FORWARD){
@@ -53,7 +53,9 @@ class Iterator{
 					return false;
 				}
 			}
-			limit --;
+			if(limit > 0){
+				limit --;
+			}
 			return true;
 		}
 

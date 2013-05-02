@@ -7,24 +7,20 @@
 SSDB::SSDB(){
 	db = NULL;
 	meta_db = NULL;
-	slave = NULL;
-	replication = NULL;
+	binlogs = NULL;
 }
 
 SSDB::~SSDB(){
-	if(slave){
-		delete slave;
-	}
 	for(std::vector<Slave *>::iterator it = slaves.begin(); it != slaves.end(); it++){
 		Slave *slave = *it;
 		slave->stop();
 		delete slave;
 	}
+	if(binlogs){
+		delete binlogs;
+	}
 	if(db){
 		delete db;
-	}
-	if(replication){
-		delete replication;
 	}
 	if(options.block_cache){
 		delete options.block_cache;
@@ -35,6 +31,7 @@ SSDB::~SSDB(){
 	if(meta_db){
 		delete meta_db;
 	}
+	log_debug("SSDB finalized");
 }
 
 SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
@@ -54,11 +51,11 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		block_size = 4;
 	}
 
-	log_info("main_db    : %s", main_db_path.c_str());
-	log_info("meta_db    : %s", meta_db_path.c_str());
-	log_info("cache_size : %d MB", cache_size);
-	log_info("block_size : %d KB", block_size);
-	log_info("write_buffer_size : %d MB", write_buffer_size);
+	log_info("main_db      : %s", main_db_path.c_str());
+	log_info("meta_db      : %s", meta_db_path.c_str());
+	log_info("cache_size   : %d MB", cache_size);
+	log_info("block_size   : %d KB", block_size);
+	log_info("write_buffer : %d MB", write_buffer_size);
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -78,31 +75,13 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		}
 	}
 
-	{
-		MyReplication *repl = new MyReplication(ssdb->meta_db);
-		ssdb->replication = repl;
-		ssdb->options.replication = repl;
-	}
-
 	status = leveldb::DB::Open(ssdb->options, main_db_path, &ssdb->db);
 	if(!status.ok()){
 		log_error("open main_db failed");
 		goto err;
 	}
+	ssdb->binlogs = new BinlogQueue(ssdb->db);
 
-	/*
-	{ // slave
-		std::string ip;
-		int port;
-		ip = conf.get_str("replication.slaveof.ip");
-		port = conf.get_num("replication.slaveof.port");
-		if(ip != ""){
-			ssdb->slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port);
-			ssdb->slave->start();
-			log_info("slaveof: %s:%d", ip.c_str(), port);
-		}
-	}
-	*/
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
@@ -163,7 +142,7 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 	if(!it->Valid()){
 		it->SeekToLast();
 	}else{
-		it->Prev();
+		//it->Prev();
 	}
 	if(it->Valid() && it->key() == start){
 		it->Prev();
@@ -174,9 +153,8 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 
 /* raw operates */
 
-int SSDB::raw_set(const Bytes &key, const Bytes &val, bool is_mirror) const{
+int SSDB::raw_set(const Bytes &key, const Bytes &val) const{
 	leveldb::WriteOptions write_opts;
-	write_opts.is_mirror = is_mirror;
 	leveldb::Status s = db->Put(write_opts, key.Slice(), val.Slice());
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
@@ -185,9 +163,8 @@ int SSDB::raw_set(const Bytes &key, const Bytes &val, bool is_mirror) const{
 	return 1;
 }
 
-int SSDB::raw_del(const Bytes &key, bool is_mirror) const{
+int SSDB::raw_del(const Bytes &key) const{
 	leveldb::WriteOptions write_opts;
-	write_opts.is_mirror = is_mirror;
 	leveldb::Status s = db->Delete(write_opts, key.Slice());
 	if(!s.ok()){
 		log_error("del error: %s", s.ToString().c_str());
@@ -219,15 +196,17 @@ std::vector<std::string> SSDB::info() const{
 	//     of the sstables that make up the db contents.
 	std::vector<std::string> info;
 	std::vector<std::string> keys;
+	/*
 	for(int i=0; i<7; i++){
 		char buf[128];
 		snprintf(buf, sizeof(buf), "leveldb.num-files-at-level%d", i);
 		keys.push_back(buf);
 	}
+	*/
 	keys.push_back("leveldb.stats");
-	keys.push_back("leveldb.sstables");
+	//keys.push_back("leveldb.sstables");
 
-	for(int i=0; i<keys.size(); i++){
+	for(size_t i=0; i<keys.size(); i++){
 		std::string key = keys[i];
 		std::string val;
 		if(db->GetProperty(key, &val)){
@@ -237,3 +216,30 @@ std::vector<std::string> SSDB::info() const{
 	}
 	return info;
 }
+
+/*
+int SSDB::key_range(char data_type, std::string *start, std::string *end) const{
+	leveldb::ReadOptions iterate_options;
+	leveldb::Iterator *it = db->NewIterator(iterate_options);
+
+	std::string start_str;
+	start_str.push_back(data_type);
+	
+	it->Seek(key_str);
+	if(!it->Valid()){
+		// Iterator::prev requires Valid, so we seek to last
+		it->SeekToLast();
+	}
+	// UINT64_MAX is not used
+	if(it->Valid()){
+		it->Prev();
+	}
+	std::string ret;
+	if(it->Valid()){
+		leveldb::Slice key = it->key();
+		ret.assign(key.data(), key.size());
+	}
+	delete it;
+	return ret;
+}
+*/

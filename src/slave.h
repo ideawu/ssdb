@@ -13,12 +13,13 @@ class Slave{
 		uint64_t last_seq;
 		std::string last_key;
 
-		const SSDB *ssdb;
+		SSDB *ssdb;
 		Link *link;
 		leveldb::DB* meta_db;
 		std::string master_ip;
 		int master_port;
 		bool is_mirror;
+		char log_type;
 
 		std::string status_key();
 		void load_status();
@@ -27,7 +28,11 @@ class Slave{
 		volatile bool thread_quit;
 		pthread_t run_thread_tid;
 		static void* _run_thread(void *arg);
-		int proc_sync_cmd(const std::vector<Bytes> *req);
+		
+		int proc(const std::vector<Bytes> &req);
+		int proc_noop(const Binlog &log, const std::vector<Bytes> &req);
+		int proc_copy(const Binlog &log, const std::vector<Bytes> &req);
+		int proc_sync(const Binlog &log, const std::vector<Bytes> &req);
 
 		int connect_retry;
 		int connect();
@@ -35,7 +40,7 @@ class Slave{
 			return link != NULL;
 		}
 	public:
-		Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror=false);
+		Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror=false);
 		~Slave();
 		void start();
 		void stop();
