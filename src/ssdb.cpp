@@ -142,7 +142,7 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 	if(!it->Valid()){
 		it->SeekToLast();
 	}else{
-		//it->Prev();
+		it->Prev();
 	}
 	if(it->Valid() && it->key() == start){
 		it->Prev();
