@@ -132,7 +132,7 @@ void run(int argc, char **argv){
 					link->remote_ip, link->remote_port, link->fd(), link_count);
 				
 				link->nodelay();
-				link->noblock();
+				//link->noblock();
 				link->create_time = microtime();
 				link->active_time = link->create_time;
 				select.set(link->fd(), FDEVENT_IN, 1, link);
