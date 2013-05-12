@@ -177,7 +177,16 @@ ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
 	std::string key_start, key_end;
 
 	if(score_start.empty()){
-		key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
+		if(!key.empty()){
+			std::string score;
+			if(this->zget(name, key, &score) == 1){
+				key_start = encode_zscore_key(name, key, score);
+			}else{
+				key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
+			}
+		}else{
+			key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
+		}
 	}else{
 		key_start = encode_zscore_key(name, key, score_start);
 	}
