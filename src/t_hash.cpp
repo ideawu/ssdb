@@ -6,6 +6,7 @@
 
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type);
 static int hdel_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type);
+static int incr_hsize(SSDB *ssdb, const Bytes &name, int64_t incr);
 
 int SSDB::multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset, char log_type){
 	Transaction trans(binlogs);
@@ -22,7 +23,12 @@ int SSDB::multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offse
 		}
 		ret += tmp;
 	}
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_hsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
@@ -46,7 +52,12 @@ int SSDB::multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 		}
 		ret += tmp;
 	}
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_hsize(this, name, -ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
@@ -60,7 +71,12 @@ int SSDB::hset(const Bytes &name, const Bytes &key, const Bytes &val, char log_t
 	Transaction trans(binlogs);
 
 	int ret = hset_one(this, name, key, val, log_type);
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_hsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			return -1;
@@ -73,7 +89,12 @@ int SSDB::hdel(const Bytes &name, const Bytes &key, char log_type){
 	Transaction trans(binlogs);
 
 	int ret = hdel_one(this, name, key, log_type);
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_hsize(this, name, -ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			return -1;
@@ -98,7 +119,12 @@ int SSDB::hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *ne
 
 	*new_val = int64_to_str(val);
 	ret = hset_one(this, name, key, *new_val, log_type);
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_hsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			return -1;
@@ -191,6 +217,7 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, int limit,
 	return 0;
 }
 
+// returns the number of newly added items
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
@@ -203,21 +230,17 @@ static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const
 	int ret = 0;
 	std::string dbval;
 	if(ssdb->hget(name, key, &dbval) == 0){ // not found
-		int64_t size = ssdb->hsize(name);
-		if(size >= 0){
-			size += 1;
-		}else{
-			size = 1;
-		}
-		std::string size_key = encode_hsize_key(name);
-		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
-		ret = 1;
-	}
-	if(dbval != val){
 		std::string hkey = encode_hash_key(name, key);
 		ssdb->binlogs->Put(hkey, val.Slice());
 		ssdb->binlogs->add(log_type, BinlogCommand::HSET, hkey);
 		ret = 1;
+	}else{
+		if(dbval != val){
+			std::string hkey = encode_hash_key(name, key);
+			ssdb->binlogs->Put(hkey, val.Slice());
+			ssdb->binlogs->add(log_type, BinlogCommand::HSET, hkey);
+		}
+		ret = 0;
 	}
 	return ret;
 }
@@ -236,19 +259,21 @@ static int hdel_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, char 
 		return 0;
 	}
 
+	std::string hkey = encode_hash_key(name, key);
+	ssdb->binlogs->Delete(hkey);
+	ssdb->binlogs->add(log_type, BinlogCommand::HDEL, hkey);
+	
+	return 1;
+}
+
+static int incr_hsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 	int64_t size = ssdb->hsize(name);
-	if(size > 0){
-		size -= 1;
-	}
+	size += incr;
 	std::string size_key = encode_hsize_key(name);
 	if(size == 0){
 		ssdb->binlogs->Delete(size_key);
 	}else{
 		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
-	std::string hkey = encode_hash_key(name, key);
-	ssdb->binlogs->Delete(hkey);
-	ssdb->binlogs->add(log_type, BinlogCommand::HDEL, hkey);
-	
-	return 1;
+	return 0;
 }

@@ -31,9 +31,11 @@ int SSDB::zdel(const Bytes &name, const Bytes &key, char log_type){
 	Transaction trans(binlogs);
 
 	int ret = zdel_one(this, name, key, log_type);
-	if(ret > 0){
-		if(incr_zsize(this, name, -1) == -1){
-			return -1;
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_zsize(this, name, -ret) == -1){
+				return -1;
+			}
 		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
@@ -120,9 +122,11 @@ int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 		}
 		ret += tmp;
 	}
-	if(ret > 0){
-		if(incr_zsize(this, name, -ret) == -1){
-			return -1;
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_zsize(this, name, -ret) == -1){
+				return -1;
+			}
 		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
@@ -293,19 +297,6 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 	return 0;
 }
 
-static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr){
-	// update zsize
-	int64_t size = ssdb->zsize(name);
-	size += incr;
-	std::string size_key = encode_zsize_key(name);
-	if(size == 0){
-		ssdb->binlogs->Delete(size_key);
-	}else{
-		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
-	}
-	return 0;
-}
-
 static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
@@ -332,4 +323,16 @@ static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_ty
 	ssdb->binlogs->add(log_type, BinlogCommand::ZDEL, k0);
 
 	return 1;
+}
+
+static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr){
+	int64_t size = ssdb->zsize(name);
+	size += incr;
+	std::string size_key = encode_zsize_key(name);
+	if(size == 0){
+		ssdb->binlogs->Delete(size_key);
+	}else{
+		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
+	return 0;
 }
