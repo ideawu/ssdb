@@ -6,12 +6,18 @@ static const char *SSDB_SCORE_MAX		= "+9223372036854775807";
 
 static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type);
 static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type);
+static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr);
 
 int SSDB::zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	Transaction trans(binlogs);
 
 	int ret = zset_one(this, name, key, score, log_type);
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_zsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zset error: %s", s.ToString().c_str());
@@ -26,6 +32,9 @@ int SSDB::zdel(const Bytes &name, const Bytes &key, char log_type){
 
 	int ret = zdel_one(this, name, key, log_type);
 	if(ret > 0){
+		if(incr_zsize(this, name, -1) == -1){
+			return -1;
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
@@ -50,8 +59,14 @@ int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *ne
 	}
 
 	*new_val = int64_to_str(val);
+
 	ret = zset_one(this, name, key, *new_val, log_type);
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_zsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zset error: %s", s.ToString().c_str());
@@ -76,7 +91,12 @@ int SSDB::multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offse
 		}
 		ret += tmp;
 	}
-	if(ret > 0){
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_zsize(this, name, ret) == -1){
+				return -1;
+			}
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
@@ -101,6 +121,9 @@ int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 		ret += tmp;
 	}
 	if(ret > 0){
+		if(incr_zsize(this, name, -ret) == -1){
+			return -1;
+		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
 			log_error("zdel error: %s", s.ToString().c_str());
@@ -227,6 +250,14 @@ int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, int limit,
 	return 0;
 }
 
+static std::string filter_score(const Bytes &score){
+	int64_t s = score.Int64();
+	char buf[32];
+	snprintf(buf, sizeof(buf), "%lld", s);
+	return std::string(buf);
+}
+
+// returns the number of newly added items
 static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
@@ -236,38 +267,41 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 		log_error("key too long!");
 		return -1;
 	}
+	std::string new_score = filter_score(score);
 	std::string old_score;
 	int found = ssdb->zget(name, key, &old_score);
-	if(found == 0 || old_score != score){
-		std::string k0, k1, k2, v;
+	if(found == 0 || old_score != new_score){
+		std::string k0, k1, k2;
 
-		if(found == 0){
-			// update zsize
-			int64_t size = ssdb->zsize(name);
-			if(size >= 0){
-				size += 1;
-			}else{
-				size = 1;
-			}
-			std::string size_key = encode_zsize_key(name);
-			ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+		if(found){
+			// delete zscore key
+			k1 = encode_zscore_key(name, key, old_score);
+			ssdb->binlogs->Delete(k1);
 		}
 
-		// delete zscore key
-		k1 = encode_zscore_key(name, key, old_score);
-		ssdb->binlogs->Delete(k1);
-
 		// add zscore key
-		k2 = encode_zscore_key(name, key, score);
+		k2 = encode_zscore_key(name, key, new_score);
 		ssdb->binlogs->Put(k2, "");
 
 		// update zset
 		k0 = encode_zset_key(name, key);
-		v.assign(score.data(), score.size());
-		ssdb->binlogs->Put(k0, v);
+		ssdb->binlogs->Put(k0, new_score);
 		ssdb->binlogs->add(log_type, BinlogCommand::ZSET, k0);
-		
-		return 1;
+
+		return found? 0 : 1;
+	}
+	return 0;
+}
+
+static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr){
+	// update zsize
+	int64_t size = ssdb->zsize(name);
+	size += incr;
+	std::string size_key = encode_zsize_key(name);
+	if(size == 0){
+		ssdb->binlogs->Delete(size_key);
+	}else{
+		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
 	return 0;
 }
@@ -285,18 +319,6 @@ static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_ty
 	int found = ssdb->zget(name, key, &old_score);
 	if(found != 1){
 		return 0;
-	}
-	
-	// update zsize
-	int64_t size = ssdb->zsize(name);
-	if(size > 0){
-		size -= 1;
-	}
-	std::string size_key = encode_zsize_key(name);
-	if(size == 0){
-		ssdb->binlogs->Delete(size_key);
-	}else{
-		ssdb->binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
 
 	std::string k0, k1;

@@ -1,2 +1,4 @@
+* unit tests
+
 * process write requests in a seperate thread
 * process scan requests in seperate threads?
