@@ -130,27 +130,7 @@ See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 
 ## Changes made to LevelDB
 
-```patch
---- db/dbformat.h.bk 2013-05-02 10:24:46.000000000 +0800
-+++ db/dbformat.h	2013-05-03 17:13:49.000000000 +0800
-@@ -25,10 +25,10 @@ static const int kNumLevels = 7;
-static const int kL0_CompactionTrigger = 4;
-
-// Soft limit on number of level-0 files.  We slow down writes at this point.
--static const int kL0_SlowdownWritesTrigger = 8;
-+static const int kL0_SlowdownWritesTrigger = 16;
-
-// Maximum number of level-0 files.  We stop writes at this point.
--static const int kL0_StopWritesTrigger = 12;
-+static const int kL0_StopWritesTrigger = 64;
-
---- db/version_set.cc.bk	2013-05-03 17:08:31.000000000 +0800
-+++ db/version_set.cc	2013-05-03 15:04:02.000000000 +0800
-@@ -20,7 +20,7 @@
-
--static const int kTargetFileSize = 2 * 1048576;
-+static const int kTargetFileSize = 32 * 1048576;
-```
+See [Changes-Made-to-LevelDB wiki](https://github.com/ideawu/ssdb/wiki/Changes-Made-to-LevelDB)
 
 
 
