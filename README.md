@@ -122,11 +122,11 @@ See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 ## Links
 
 * [Author's homepage](http://www.ideawu.com/blog/)
-* [SSDB 中文文档](http://www.ideawu.net/blog/category/ssdb)
-* [Cpy Scripting Language](https://code.google.com/p/cpy-scripting-language/)
+* [Cpy Scripting Language](https://github.com/ideawu/cpy)
 * [Google LevelDB](https://code.google.com/p/leveldb/)
 * [Lua ssdb client driver for the ngx_lua](https://github.com/LazyZhu/lua-resty-ssdb)
 * [Yet another ssdb client for Python](https://github.com/ifduyue/pyssdb)
+* [SSDB 中文文档](http://www.ideawu.net/blog/category/ssdb)
 
 ## Changes made to LevelDB
 
