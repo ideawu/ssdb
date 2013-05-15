@@ -24,7 +24,7 @@ static const int kTargetFileSize = 32 * 1048576;
 
 // Maximum bytes of overlaps in grandparent (i.e., level+2) before we
 // stop building a single file in a level->level+1 compaction.
-static const int64_t kMaxGrandParentOverlapBytes = 10 * kTargetFileSize;
+static const int64_t kMaxGrandParentOverlapBytes = 20 * kTargetFileSize;
 
 // Maximum number of bytes in all compacted files.  We avoid expanding
 // the lower level file set of a compaction if it would make the
@@ -34,7 +34,7 @@ static const int64_t kExpandedCompactionByteSizeLimit = 25 * kTargetFileSize;
 static double MaxBytesForLevel(int level) {
   // Note: the result for level zero is not really used since we set
   // the level-0 compaction threshold based on number of files.
-  double result = 10 * 1048576.0;  // Result for both level-0 and level-1
+  double result = 5 * kTargetFileSize;  // Result for both level-0 and level-1
   while (level > 1) {
     result *= 10;
     level--;
@@ -617,7 +617,7 @@ class VersionSet::Builder {
       // conservative and allow approximately one seek for every 16KB
       // of data before triggering a compaction.
       f->allowed_seeks = (f->file_size / 16384);
-      if (f->allowed_seeks < 100) f->allowed_seeks = 100;
+      if (f->allowed_seeks < (int)(kTargetFileSize/16384)) f->allowed_seeks = (int)(kTargetFileSize/16384);
 
       levels_[level].deleted_files.erase(f->number);
       levels_[level].added_files->insert(f);

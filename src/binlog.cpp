@@ -41,7 +41,6 @@ std::string Binlog::dumps() const{
 	if(buf.size() < HEADER_LEN){
 		return str;
 	}
-	str.append("binlog# ");
 	char buf[20];
 	snprintf(buf, sizeof(buf), "%llu ", this->seq());
 	str.append(buf);
