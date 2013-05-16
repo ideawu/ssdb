@@ -30,7 +30,7 @@ static const int SSDB_SCORE_WIDTH		= 9;
 static const int SSDB_KEY_LEN_MAX		= 255;
 
 
-static inline double microtime(){
+static inline double millitime(){
 	struct timeval now;
 	gettimeofday(&now, NULL);
 	double ret = now.tv_sec + now.tv_usec/1000.0/1000.0;

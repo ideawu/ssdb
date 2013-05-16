@@ -187,7 +187,7 @@ Server::~Server(){
 void Server::proc(ProcJob *job){
 	job->serv = this;
 	job->result = PROC_OK;
-	job->stime = microtime();
+	job->stime = millitime();
 	const Request *req = job->link->last_recv();
 	
 	Response resp;
@@ -206,9 +206,9 @@ void Server::proc(ProcJob *job){
 		}
 		*/
 		proc_t p = cmd->proc;
-		job->time_wait = 1000 *(microtime() - job->stime);
+		job->time_wait = 1000 *(millitime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &resp);
-		job->time_proc = 1000 *(microtime() - job->stime);
+		job->time_proc = 1000 *(millitime() - job->stime);
 	}
 	
 	if(job->link->send(resp) == -1){
@@ -236,10 +236,10 @@ int Server::WriteProc::proc(ProcJob *job){
 	const Request *req = job->link->last_recv();
 	Response resp;
 	
-	double stime = microtime();
+	double stime = millitime();
 	proc_t p = job->cmd->proc;
 	job->result = (*p)(job->serv, job->link, *req, &resp);
-	double etime = microtime();
+	double etime = millitime();
 	job->time_wait = 1000 * (stime - job->stime);
 	job->time_proc = 1000 *(etime - stime);
 

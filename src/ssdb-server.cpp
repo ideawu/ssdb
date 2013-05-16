@@ -133,7 +133,7 @@ void run(int argc, char **argv){
 				
 				link->nodelay();
 				//link->noblock();
-				link->create_time = microtime();
+				link->create_time = millitime();
 				link->active_time = link->create_time;
 				select.set(link->fd(), FDEVENT_IN, 1, link);
 			}else if(fde->data.ptr == &serv){
@@ -215,7 +215,7 @@ void run(int argc, char **argv){
 				select.del(link->fd());
 				continue;
 			}
-			link->active_time = microtime();
+			link->active_time = millitime();
 			
 			if(proc_result(job, select, ready_list_2) == PROC_ERROR){
 				link_count --;
