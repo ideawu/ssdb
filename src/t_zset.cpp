@@ -188,9 +188,9 @@ ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
 		key_start = encode_zscore_key(name, key, score_start);
 	}
 	if(score_end.empty()){
-		key_end = encode_zscore_key(name, "", SSDB_SCORE_MAX);
+		key_end = encode_zscore_key(name, "\xff", SSDB_SCORE_MAX);
 	}else{
-		key_end = encode_zscore_key(name, "", score_end);
+		key_end = encode_zscore_key(name, "\xff", score_end);
 	}
 
 	//dump(key_start.data(), key_start.size(), "zscan.start");
