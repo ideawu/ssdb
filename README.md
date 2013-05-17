@@ -6,7 +6,7 @@ SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL per
 
 * LevelDB client-server support, written in C/C++
 * Persistent key-value, key-zset, key-map('hashmap') storage
-* Client API supports including C/C++, [PHP](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API), Python, Cpy, [Java](https://github.com/ideawu/ssdb/wiki/Documentation_Java_API)
+* Client API supports including [C/C++](https://github.com/ideawu/ssdb/wiki/Documentation_C_API), [PHP](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API), Python, Cpy, [Java](https://github.com/ideawu/ssdb/wiki/Documentation_Java_API)
 * Online backup, fast recover
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
 * <i>Future Features</i>
