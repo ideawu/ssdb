@@ -23,6 +23,7 @@ install:
 	cp -r tools/* ${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
 	chmod ugo+rwx ${PREFIX}
+	rm -f ${PREFIX}/Makefile
 
 clean:
 	rm -f *.exe.stackdump
