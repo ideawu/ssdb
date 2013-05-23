@@ -16,6 +16,7 @@ all:
 install:
 	mkdir -p ${PREFIX}
 	mkdir -p ${PREFIX}/deps
+	cp ssdb-server ${PREFIX}
 	cp -r api ${PREFIX}
 	cp -r tools/* ${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
