@@ -138,7 +138,7 @@ static int proc_hsize(Server *serv, Link *link, const Request &req, Response *re
 }
 
 static int proc_hset(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() < 3){
+	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->hset(req[1], req[2], req[3]);
