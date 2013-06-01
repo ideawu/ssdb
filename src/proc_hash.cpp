@@ -50,7 +50,7 @@ static int proc_multi_hsize(Server *serv, Link *link, const Request &req, Respon
 				resp->push_back("-1");
 			}else{
 				char buf[20];
-				sprintf(buf, "%lld", ret);
+				sprintf(buf, "%li", ret);
 				resp->push_back(buf);
 			}
 		}
@@ -129,7 +129,7 @@ static int proc_hsize(Server *serv, Link *link, const Request &req, Response *re
 			resp->push_back("error");
 		}else{
 			char buf[20];
-			sprintf(buf, "%llu", ret);
+			sprintf(buf, "%li", ret);
 			resp->push_back("ok");
 			resp->push_back(buf);
 		}

@@ -42,7 +42,7 @@ std::string Binlog::dumps() const{
 		return str;
 	}
 	char buf[20];
-	snprintf(buf, sizeof(buf), "%llu ", this->seq());
+	snprintf(buf, sizeof(buf), "%lu ", this->seq());
 	str.append(buf);
 
 	switch(this->type()){
@@ -119,7 +119,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	this->last_seq = 0;
 	this->tran_seq = 0;
 	this->capacity = LOG_QUEUE_SIZE;
-	
+
 	Binlog log;
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
@@ -207,7 +207,7 @@ void BinlogQueue::Put(const leveldb::Slice& key, const leveldb::Slice& value){
 void BinlogQueue::Delete(const leveldb::Slice& key){
 	batch.Delete(key);
 }
-	
+
 int BinlogQueue::find_next(uint64_t next_seq, Binlog *log) const{
 	if(this->get(next_seq, log) == 1){
 		return 1;
@@ -305,14 +305,14 @@ int BinlogQueue::del_range(uint64_t start, uint64_t end){
 
 void* BinlogQueue::log_clean_thread_func(void *arg){
 	BinlogQueue *logs = (BinlogQueue *)arg;
-	
+
 	while(!logs->thread_quit){
 		usleep(200 * 1000);
 
 		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.1){
 			continue;
 		}
-		
+
 		uint64_t start = logs->min_seq;
 		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
 		logs->del_range(start, end);
@@ -321,7 +321,7 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 			end-start+1, start, end, logs->last_seq - logs->min_seq + 1, logs->last_seq);
 	}
 	log_debug("clean_thread quit");
-	
+
 	logs->thread_quit = false;
 	return (void *)NULL;
 }
@@ -332,8 +332,7 @@ void BinlogQueue::merge(){
 	uint64_t start = min_seq;
 	uint64_t end = last_seq;
 	int reduce_count = 0;
-	int total = 0;
-	total = end - start + 1;
+
 	log_trace("merge begin");
 	for(; start <= end; start++){
 		Binlog log;
@@ -352,5 +351,6 @@ void BinlogQueue::merge(){
 			key_map[key] = log.seq();
 		}
 	}
-	log_trace("merge reduce %d of %d binlogs", reduce_count, total);
+
+	log_trace("merge reduce %d of %d binlogs", reduce_count, end-start+1);
 }
