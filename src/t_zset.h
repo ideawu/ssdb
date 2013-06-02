@@ -129,7 +129,7 @@ class ZIterator{
 		bool next(){
 			while(it->next()){
 				Bytes ks = it->key();
-				Bytes vs = it->val();
+				//Bytes vs = it->val();
 				//dump(ks.data(), ks.size(), "z.next");
 				//dump(vs.data(), vs.size(), "z.next");
 				if(ks.data()[0] != DataType::ZSCORE){

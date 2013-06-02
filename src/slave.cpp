@@ -17,7 +17,7 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 	}else{
 		this->log_type = BinlogType::SYNC;
 	}
-	
+
 	this->link = NULL;
 	this->last_seq = 0;
 	this->last_key = "";
@@ -91,7 +91,7 @@ void Slave::save_status(){
 int Slave::connect(){
 	const char *ip = this->master_ip.c_str();
 	int port = this->master_port;
-	
+
 	if(++connect_retry > 101){
 		connect_retry = 62;
 	}
@@ -106,10 +106,10 @@ int Slave::connect(){
 		}else{
 			connect_retry = 0;
 			char seq_buf[20];
-			sprintf(seq_buf, "%llu", this->last_seq);
-			
+			sprintf(seq_buf, "%lu", this->last_seq);
+
 			const char *type = is_mirror? "mirror" : "sync";
-			
+
 			link->send("sync140", seq_buf, this->last_key, type);
 			if(link->flush() == -1){
 				log_error("network error");
@@ -133,7 +133,7 @@ void* Slave::_run_thread(void *arg){
 	const Fdevents::events_t *events;
 	int idle = 0;
 	bool reconnect = false;
-	
+
 #define RECV_TIMEOUT	200
 #define MAX_RECV_IDLE	30 * 1000/RECV_TIMEOUT
 
@@ -152,7 +152,7 @@ void* Slave::_run_thread(void *arg){
 			}
 			continue;
 		}
-		
+
 		events = select.wait(RECV_TIMEOUT);
 		if(events == NULL){
 			log_fatal("events.wait error: %s", strerror(errno));
@@ -265,7 +265,6 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				if(decode_kv_key(log.key(), &key) == -1){
 					break;
 				}
-				Bytes val = req[1];
 				log_trace("set %s", hexmem(key.data(), key.size()).c_str());
 				if(ssdb->set(key, req[1], log_type) == -1){
 					return -1;
@@ -293,7 +292,6 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				if(decode_hash_key(log.key(), &name, &key) == -1){
 					break;
 				}
-				Bytes val = req[1];
 				log_trace("hset %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
@@ -325,7 +323,6 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				if(decode_zset_key(log.key(), &name, &key) == -1){
 					break;
 				}
-				Bytes val = req[1];
 				log_trace("zset %s %s",
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());

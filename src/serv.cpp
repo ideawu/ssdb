@@ -173,7 +173,7 @@ Server::Server(SSDB *ssdb){
 		}
 		proc_map[cmd->name] = cmd;
 	}
-	
+
 	//writer.start(MAX_WRITERS);
 }
 
@@ -189,7 +189,7 @@ void Server::proc(ProcJob *job){
 	job->result = PROC_OK;
 	job->stime = millitime();
 	const Request *req = job->link->last_recv();
-	
+
 	Response resp;
 	proc_map_t::iterator it = proc_map.find(req->at(0));
 	if(it == proc_map.end()){
@@ -210,7 +210,7 @@ void Server::proc(ProcJob *job){
 		job->result = (*p)(this, job->link, *req, &resp);
 		job->time_proc = 1000 *(millitime() - job->stime);
 	}
-	
+
 	if(job->link->send(resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
@@ -235,7 +235,7 @@ void Server::WriteProc::destroy(){
 int Server::WriteProc::proc(ProcJob *job){
 	const Request *req = job->link->last_recv();
 	Response resp;
-	
+
 	double stime = millitime();
 	proc_t p = job->cmd->proc;
 	job->result = (*p)(job->serv, job->link, *req, &resp);
@@ -271,12 +271,12 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back("ssdb-server");
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
-	
+
 	for(Command *cmd=commands; cmd->name; cmd++){
 		char buf[128];
 		snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
 		resp->push_back(buf);
-		snprintf(buf, sizeof(buf), "calls: %llu\ttime_wait: %.0f\ttime_proc: %.0f",
+		snprintf(buf, sizeof(buf), "calls: %lu\ttime_wait: %.0f\ttime_proc: %.0f",
 			cmd->calls, cmd->time_wait, cmd->time_proc);
 		resp->push_back(buf);
 	}
