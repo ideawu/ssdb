@@ -5,10 +5,10 @@
 
 /* Binlog */
 
-Binlog::Binlog(uint64_t seq, char cmd, char type, const leveldb::Slice &key){
+Binlog::Binlog(uint64_t seq, char type, char cmd, const leveldb::Slice &key){
 	buf.append((char *)(&seq), sizeof(uint64_t));
-	buf.push_back(cmd);
 	buf.push_back(type);
+	buf.push_back(cmd);
 	buf.append(key.data(), key.size());
 }
 
