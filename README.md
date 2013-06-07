@@ -23,6 +23,10 @@ $resp = $ssdb->get('key');
 echo $resp; // output: 123
 ```
 
+## Architecture
+
+![ssdb](http://www.ideawu.com/ssdb/ssdb.png)
+
 [More...](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API)
 
 ## Performance
