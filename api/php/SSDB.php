@@ -66,7 +66,8 @@ class SSDB
 		}
 		$timeout_sec = intval($timeout_ms/1000);
 		$timeout_ms = $timeout_ms - $timeout_sec * 1000;
-		@socket_set_timeout($this->sock, $timeout_sec, $timeout_ms);
+        @socket_set_option($this->sock, SOL_SOCKET, SO_RCVTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_ms));
+        @socket_set_option($this->sock, SOL_SOCKET, SO_SNDTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_ms));
 		$ret = @socket_connect($this->sock, $host, $port);
 		if(!$ret){
 			throw new Exception(socket_strerror(socket_last_error()));
