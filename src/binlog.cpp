@@ -16,11 +16,11 @@ uint64_t Binlog::seq() const{
 	return *((uint64_t *)(buf.data()));
 }
 
-char Binlog::type() const{
+char Binlog::cmd() const{
 	return buf[sizeof(uint64_t)];
 }
 
-char Binlog::cmd() const{
+char Binlog::type() const{
 	return buf[sizeof(uint64_t) + 1];
 }
 
