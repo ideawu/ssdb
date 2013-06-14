@@ -1,10 +1,13 @@
 /* zset */
 
 static int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() < 2){
+	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		int64_t ret = serv->ssdb->zsize(req[1]);
+		const Bytes &name = req[1];
+		const Bytes &key = req[2];
+		std::string val;
+		int ret = serv->ssdb->zget(name, key, &val);
 		if(ret == -1){
 			resp->push_back("error");
 			resp->push_back("0");
@@ -20,13 +23,15 @@ static int proc_zexists(Server *serv, Link *link, const Request &req, Response *
 }
 
 static int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() < 2){
+	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
 		resp->push_back("ok");
-		for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
+		const Bytes &name = req[1];
+		std::string val;
+		for(Request::const_iterator it=req.begin()+2; it!=req.end(); it++){
 			const Bytes &key = *it;
-			int64_t ret = serv->ssdb->zsize(key);
+			int64_t ret = serv->ssdb->zget(name, key, &val);
 			resp->push_back(key.String());
 			if(ret > 0){
 				resp->push_back("1");

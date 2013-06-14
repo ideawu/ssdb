@@ -193,12 +193,12 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function multi_hexists($keys=array()){
+	function multi_hexists($name, $keys=array()){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function multi_zexists($keys=array()){
+	function multi_zexists($name, $keys=array()){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -316,7 +316,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zexists($name){
+	function zexists($name, $key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -373,7 +373,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hexists($name){
+	function hexists($name, $key){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
