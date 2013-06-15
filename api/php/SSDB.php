@@ -81,7 +81,7 @@ class SSDB
 			}
 
 			usleep(1 * 1000);
-			$timeout_ms -= 1.1;
+			$timeout_ms -= 1.5;
 		}
 		socket_set_block($this->sock);
 		
