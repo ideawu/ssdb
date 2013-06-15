@@ -1,5 +1,6 @@
 #include "ssdb.h"
 #include "slave.h"
+#include "leveldb/env.h"
 #include "leveldb/iterator.h"
 #include "leveldb/cache.h"
 #include "leveldb/filter_policy.h"
@@ -40,6 +41,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int cache_size = conf.get_num("leveldb.cache_size");
 	int write_buffer_size = conf.get_num("leveldb.write_buffer_size");
 	int block_size = conf.get_num("leveldb.block_size");
+	int compaction_speed = conf.get_num("leveldb.compaction_speed");
 
 	if(cache_size <= 0){
 		cache_size = 8;
@@ -51,11 +53,12 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		block_size = 4;
 	}
 
-	log_info("main_db      : %s", main_db_path.c_str());
-	log_info("meta_db      : %s", meta_db_path.c_str());
-	log_info("cache_size   : %d MB", cache_size);
-	log_info("block_size   : %d KB", block_size);
-	log_info("write_buffer : %d MB", write_buffer_size);
+	log_info("main_db          : %s", main_db_path.c_str());
+	log_info("meta_db          : %s", meta_db_path.c_str());
+	log_info("cache_size       : %d MB", cache_size);
+	log_info("block_size       : %d KB", block_size);
+	log_info("write_buffer     : %d MB", write_buffer_size);
+	log_info("compaction_speed : %d MB/s", compaction_speed);
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -64,6 +67,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	ssdb->options.block_cache = leveldb::NewLRUCache(cache_size * 1048576);
 	ssdb->options.block_size = block_size * 1024;
 	ssdb->options.write_buffer_size = write_buffer_size * 1024 * 1024;
+	ssdb->options.compaction_speed = compaction_speed;
 
 	leveldb::Status status;
 	{

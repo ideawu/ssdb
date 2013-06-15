@@ -64,14 +64,38 @@ class SSDB
 		if(!$this->sock){
 			throw new Exception(socket_strerror(socket_last_error()));
 		}
+		
+		socket_set_nonblock($this->sock);
+		while(1){
+			if($timeout_ms < 0){
+				throw new Exception("Connection timeout!");
+			}
+
+			$ret = @socket_connect($this->sock, $host, $port);
+			if($ret){
+				break;
+			}
+			$err = socket_last_error($this->sock);
+			if($err == SOCKET_EISCONN){
+				break;
+			}
+
+			usleep(100 * 1000);
+			$timeout_ms -= 100;
+		}
+		socket_set_block($this->sock);
+		
 		$timeout_sec = intval($timeout_ms/1000);
-		$timeout_ms = $timeout_ms - $timeout_sec * 1000;
-        @socket_set_option($this->sock, SOL_SOCKET, SO_RCVTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_ms));
-        @socket_set_option($this->sock, SOL_SOCKET, SO_SNDTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_ms));
+		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
+		//@socket_set_timeout($this->sock, $timeout_sec, $timeout_ms); 
+		@socket_set_option($this->sock, SOL_SOCKET, SO_RCVTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_usec));
+		@socket_set_option($this->sock, SOL_SOCKET, SO_SNDTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_usec));
+		/*
 		$ret = @socket_connect($this->sock, $host, $port);
 		if(!$ret){
 			throw new Exception(socket_strerror(socket_last_error()));
 		}
+		*/
 		if(is_int(TCP_NODELAY)){
 			socket_set_option($this->sock, SOL_TCP, TCP_NODELAY, 1);
 		}

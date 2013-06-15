@@ -29,13 +29,6 @@ enum CompressionType {
 
 // Options to control the behavior of a database (passed to DB::Open)
 struct Options {
-  // It is known that during compaction, the disk IO capacity is all taken
-  // by the compaction thread, this leads to extremly BAD performance.
-  // Limit compaction IO speed to this, in MB
-  // Default: 0(not limited)
-  // Added by me@ideawu.com
-  int compaction_speed;
-
   // -------------------
   // Parameters that affect behavior
 
