@@ -18,7 +18,10 @@ void usage(int argc, char **argv);
 void signal_handler(int sig);
 void init(int argc, char **argv);
 void run(int argc, char **argv);
-
+void write_pidfile();
+void check_pidfile();
+void check_pidfile();
+void remove_pidfile();
 
 volatile bool quit = false;
 Config *conf = NULL;
@@ -37,6 +40,8 @@ int main(int argc, char **argv){
 	signal(SIGTERM, signal_handler);
 	
 	run(argc, argv);
+	
+	remove_pidfile();
 
 	if(serv_link){
 		log_info("shutdown network");
@@ -304,6 +309,8 @@ void init(int argc, char **argv){
 		}
 		*/
 	}
+	
+	check_pidfile();
 
 	std::string log_output;
 	int log_rotate_size = 0;
@@ -346,7 +353,44 @@ void init(int argc, char **argv){
 		}
 		log_info("server listen on: %s:%d", ip, port);
 	}
+	
+	write_pidfile();
 
 	log_info("ssdb server started.");
 }
 
+void write_pidfile(){
+	const char *pidfile = conf->get_str("pidfile");
+	if(strlen(pidfile)){
+		FILE *fp = fopen(pidfile, "w");
+		if(!fp){
+			log_error("Failed to open pidfile '%s': %s", pidfile, strerror(errno));
+			exit(0);
+		}
+		char buf[128];
+		pid_t pid = getpid();
+		snprintf(buf, sizeof(buf), "%d", pid);
+		log_info("pidfile: %s, pid: %d", pidfile, pid);
+		fwrite(buf, 1, strlen(buf), fp);
+		fclose(fp);
+	}
+}
+
+void check_pidfile(){
+	const char *pidfile = conf->get_str("pidfile");
+	if(strlen(pidfile)){
+		if(access(pidfile, F_OK) == 0){
+			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
+				"You must kill the process and then "
+				"remove this file before starting ssdb-server.\n", pidfile);
+			exit(0);
+		}
+	}
+}
+
+void remove_pidfile(){
+	const char *pidfile = conf->get_str("pidfile");
+	if(strlen(pidfile)){
+		remove(pidfile);
+	}
+}
