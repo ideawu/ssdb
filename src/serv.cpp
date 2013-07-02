@@ -174,13 +174,13 @@ Server::Server(SSDB *ssdb){
 		proc_map[cmd->name] = cmd;
 	}
 	
-	//writer.start(MAX_WRITERS);
+	writer.start(MAX_WRITERS);
 }
 
 Server::~Server(){
 	delete backend_dump;
 	delete backend_sync;
-	//writer.stop();
+	writer.stop();
 	log_debug("CommandProc finalized");
 }
 
@@ -198,13 +198,11 @@ void Server::proc(ProcJob *job){
 	}else{
 		Command *cmd = it->second;
 		job->cmd = cmd;
-		/*
 		if(cmd->flags & Command::FLAG_WRITE){
 			job->result = PROC_BACKEND;
 			writer.push(*job);
 			return; /////
 		}
-		*/
 		proc_t p = cmd->proc;
 		job->time_wait = 1000 *(millitime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &resp);
@@ -223,7 +221,6 @@ void Server::proc(ProcJob *job){
 
 
 
-/*
 void Server::WriteProc::init(){
 	log_debug("%d init", this->id);
 }
@@ -253,7 +250,6 @@ int Server::WriteProc::proc(ProcJob *job){
 	}
 	return 0;
 }
-*/
 
 
 static int proc_dump(Server *serv, Link *link, const Request &req, Response *resp){

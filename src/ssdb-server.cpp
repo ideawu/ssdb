@@ -107,7 +107,7 @@ void run(int argc, char **argv){
 
 	Fdevents select;
 	select.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
-	//select.set(serv.writer.fd(), FDEVENT_IN, 0, &serv);
+	select.set(serv.writer.fd(), FDEVENT_IN, 0, &serv.writer);
 	
 	int link_count = 0;
 	while(!quit){
@@ -141,8 +141,7 @@ void run(int argc, char **argv){
 				link->create_time = millitime();
 				link->active_time = link->create_time;
 				select.set(link->fd(), FDEVENT_IN, 1, link);
-			}else if(fde->data.ptr == &serv){
-				/*
+			}else if(fde->data.ptr == &serv.writer){
 				ProcJob job;
 				if(serv.writer.pop(&job) == 0){
 					log_fatal("reading result from workers error!");
@@ -151,7 +150,6 @@ void run(int argc, char **argv){
 				if(proc_result(job, select, ready_list_2) == PROC_ERROR){
 					link_count --;
 				}
-				*/
 			}else{
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
@@ -216,7 +214,6 @@ void run(int argc, char **argv){
 			job.link = link;
 			serv.proc(&job);
 			if(job.result == PROC_BACKEND){
-				link_count --;
 				select.del(link->fd());
 				continue;
 			}

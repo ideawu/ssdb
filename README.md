@@ -115,6 +115,9 @@ $ ./ssdb-server ssdb_slave.conf
 
 # ssdb command line
 $ ./tools/ssdb-cli
+
+# stop ssdb-server
+$ kill `cat ./var/ssdb.pid`
 ```
 
 See [Compile and Install wiki](https://github.com/ideawu/ssdb/wiki/Compile_and_Install)

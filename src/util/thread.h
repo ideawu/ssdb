@@ -50,6 +50,7 @@ class WorkerPool{
 	public:
 		class Worker{
 			public:
+				virtual ~Worker(){}
 				int id;
 				virtual void init(){}
 				virtual void destroy(){}

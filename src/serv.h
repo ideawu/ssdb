@@ -69,16 +69,14 @@ class Server{
 		void proc(ProcJob *job);
 
 		// WARN: pipe latency is about 20 us, it is really slow!
-		// until I found a really fast selectable queue, this feature won't be enabled.
-		/*
 		class WriteProc : public WorkerPool<WriteProc, ProcJob>::Worker{
 		public:
+			~WriteProc(){}
 			void init();
 			void destroy();
 			int proc(ProcJob *job);
 		};
 		WorkerPool<WriteProc, ProcJob> writer;
-		*/
 };
 
 template<class T>
