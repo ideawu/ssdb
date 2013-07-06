@@ -24,7 +24,7 @@ typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *re
 typedef struct{
 	static const int FLAG_READ		= (1 << 0);
 	static const int FLAG_WRITE		= (1 << 1);
-	static const int FLAG_BACKEND	= (1 << 1);
+	static const int FLAG_BACKEND	= (1 << 2);
 
 	const char *name;
 	const char *sflags;
