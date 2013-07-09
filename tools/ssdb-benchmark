@@ -1,7 +1,9 @@
 #!/bin/sh
 DIR=`dirname $0`
-if [ -f "$DIR/../deps/cpy/cpy" ]; then
-	$DIR/../deps/cpy/cpy $DIR/ssdb-benchmark.cpy $@
+if [ -e $DIR/../deps/cpy/cpy ]; then
+	CPY=$DIR/../deps/cpy/cpy
 else
-	$DIR/deps/cpy/cpy $DIR/ssdb-benchmark.cpy $@
-fi  
+	CPY=$DIR/deps/cpy/cpy
+fi
+
+$CPY $DIR/ssdb-benchmark.cpy $@

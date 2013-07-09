@@ -97,7 +97,8 @@ function prepare_data(num){
 }
 
 function make_connections(num, host, port){
-	sys.path.append('../api/python');
+    sys.path.append('./api/python');
+    sys.path.append('../api/python');
 	import SSDB.SSDB;
 
 	links = {};
