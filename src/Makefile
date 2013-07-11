@@ -15,6 +15,7 @@ EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.e
 all: ssdb.h ${OBJS}
 	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-server.cpp
 	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
+	g++ -o ../tools/leveldb-import ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} leveldb-import.cpp
 
 objs: ssdb.h ${OBJS}
 	

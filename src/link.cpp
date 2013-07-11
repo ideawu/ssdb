@@ -394,6 +394,72 @@ int Link::send(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s
 	return 0;
 }
 
+const std::vector<Bytes>* Link::response(){
+	while(1){
+		const std::vector<Bytes> *resp = this->recv();
+		if(resp == NULL){
+			return NULL;
+		}else if(resp->empty()){
+			if(this->read() <= 0){
+				return NULL;
+			}
+		}else{
+			return resp;
+		}
+	}
+	return NULL;
+}
+
+const std::vector<Bytes>* Link::request(const Bytes &s1){
+	if(this->send(s1) == -1){
+		return NULL;
+	}
+	if(this->flush() == -1){
+		return NULL;
+	}
+	return this->response();
+}
+
+const std::vector<Bytes>* Link::request(const Bytes &s1, const Bytes &s2){
+	if(this->send(s1, s2) == -1){
+		return NULL;
+	}
+	if(this->flush() == -1){
+		return NULL;
+	}
+	return this->response();
+}
+
+const std::vector<Bytes>* Link::request(const Bytes &s1, const Bytes &s2, const Bytes &s3){
+	if(this->send(s1, s2, s3) == -1){
+		return NULL;
+	}
+	if(this->flush() == -1){
+		return NULL;
+	}
+	return this->response();
+}
+
+const std::vector<Bytes>* Link::request(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4){
+	if(this->send(s1, s2, s3, s4) == -1){
+		return NULL;
+	}
+	if(this->flush() == -1){
+		return NULL;
+	}
+	return this->response();
+}
+
+const std::vector<Bytes>* Link::request(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4, const Bytes &s5){
+	if(this->send(s1, s2, s3, s4, s5) == -1){
+		return NULL;
+	}
+	if(this->flush() == -1){
+		return NULL;
+	}
+	return this->response();
+}
+
 #if 0
 int main(){
 	//Link link;

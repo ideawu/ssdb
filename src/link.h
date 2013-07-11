@@ -13,6 +13,8 @@ class Link{
 		int sock;
 		bool noblock_;
 		std::vector<Bytes> recv_data;
+		// wait until a response received.
+		const std::vector<Bytes>* response();
 
 	public:
 		char remote_ip[INET_ADDRSTRLEN];
@@ -71,6 +73,17 @@ class Link{
 		const std::vector<Bytes>* last_recv(){
 			return &recv_data;
 		}
+		
+		/** these methods will send a request to the server, and wait until a response received.
+		 * @return
+		 * NULL: error
+		 * vector<Bytes>: response ready
+		 */
+		const std::vector<Bytes>* request(const Bytes &s1);
+		const std::vector<Bytes>* request(const Bytes &s1, const Bytes &s2);
+		const std::vector<Bytes>* request(const Bytes &s1, const Bytes &s2, const Bytes &s3);
+		const std::vector<Bytes>* request(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4);
+		const std::vector<Bytes>* request(const Bytes &s1, const Bytes &s2, const Bytes &s3, const Bytes &s4, const Bytes &s5);
 };
 
 #endif
