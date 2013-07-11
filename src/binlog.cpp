@@ -42,7 +42,7 @@ std::string Binlog::dumps() const{
 		return str;
 	}
 	char buf[20];
-	snprintf(buf, sizeof(buf), "%llu ", this->seq());
+	snprintf(buf, sizeof(buf), "%"PRIu64" ", this->seq());
 	str.append(buf);
 
 	switch(this->type()){
@@ -127,7 +127,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	if(this->find_next(1, &log) == 1){
 		this->min_seq = log.seq();
 	}
-	log_debug("capacity: %d, min: %llu, max: %llu,", capacity, min_seq, last_seq);
+	log_debug("capacity: %d, min: %"PRIu64", max: %"PRIu64",", capacity, min_seq, last_seq);
 
 	//this->merge();
 		/*
@@ -143,7 +143,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 			noops ++;
 		}
 	}
-	log_debug("capacity: %d, min: %llu, max: %llu, noops: %d, total: %d",
+	log_debug("capacity: %d, min: %"PRIu64", max: %"PRIu64", noops: %d, total: %d",
 		capacity, min_seq, last_seq, noops, total);
 		*/
 
@@ -317,7 +317,7 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
 		logs->del_range(start, end);
 		logs->min_seq = end + 1;
-		log_debug("clean %d logs[%llu ~ %llu], %d left, max: %llu",
+		log_debug("clean %d logs[%"PRIu64" ~ %"PRIu64"], %d left, max: %"PRIu64"",
 			end-start+1, start, end, logs->last_seq - logs->min_seq + 1, logs->last_seq);
 	}
 	log_debug("clean_thread quit");
@@ -346,7 +346,7 @@ void BinlogQueue::merge(){
 			if(it != key_map.end()){
 				uint64_t seq = it->second;
 				this->update(seq, BinlogType::NOOP, BinlogCommand::NONE, "");
-				//log_trace("merge update %llu to NOOP", seq);
+				//log_trace("merge update %"PRIu64" to NOOP", seq);
 				reduce_count ++;
 			}
 			key_map[key] = log.seq();

@@ -257,7 +257,7 @@ int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, int limit,
 static std::string filter_score(const Bytes &score){
 	int64_t s = score.Int64();
 	char buf[32];
-	snprintf(buf, sizeof(buf), "%lld", s);
+	snprintf(buf, sizeof(buf), "%"PRIi64"", s);
 	return std::string(buf);
 }
 

@@ -120,7 +120,7 @@ int64_t str_to_int64(const char *p, int size){
 static inline
 std::string int64_to_str(int64_t v){
 	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%lld", (long long int)v);
+	snprintf(buf, sizeof(buf), "%"PRIi64"", v);
 	return std::string(buf);
 }
 
@@ -132,7 +132,7 @@ int64_t str_to_uint64(const char *p, int size){
 static inline
 std::string uint64_to_str(uint64_t v){
 	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%llu", (long long unsigned int)v);
+	snprintf(buf, sizeof(buf), "%"PRIu64"", v);
 	return std::string(buf);
 }
 

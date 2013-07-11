@@ -147,7 +147,7 @@ void BackendSync::Client::init(){
 	}
 	const char *type = is_mirror? "mirror" : "sync";
 	if(last_key == ""){
-		log_info("[%s]fd: %d, sync, seq: %llu, key: '%s'",
+		log_info("[%s]fd: %d, sync, seq: %"PRIu64", key: '%s'",
 			type,
 			link->fd(),
 			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
@@ -155,7 +155,7 @@ void BackendSync::Client::init(){
 		this->status = Client::SYNC;
 	}else{
 		// a slave must reset its last_key when receiving 'copy_end' command
-		log_info("[%s]fd: %d, copy recover, seq: %llu, key: '%s'",
+		log_info("[%s]fd: %d, copy recover, seq: %"PRIu64", key: '%s'",
 			type,
 			link->fd(),
 			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
@@ -258,7 +258,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			continue;
 		}
 		if(this->last_seq != 0 && log.seq() != expect_seq){
-			log_warn("fd: %d, OUT_OF_SYNC! seq: %llu, last_seq: %llu",
+			log_warn("fd: %d, OUT_OF_SYNC! seq: %"PRIu64", last_seq: %"PRIu64"",
 				link->fd(),
 				log.seq(),
 				expect_seq

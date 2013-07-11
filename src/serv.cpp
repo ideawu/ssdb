@@ -272,7 +272,7 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 		char buf[128];
 		snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
 		resp->push_back(buf);
-		snprintf(buf, sizeof(buf), "calls: %llu\ttime_wait: %.0f\ttime_proc: %.0f",
+		snprintf(buf, sizeof(buf), "calls: %"PRIu64"\ttime_wait: %.0f\ttime_proc: %.0f",
 			cmd->calls, cmd->time_wait, cmd->time_proc);
 		resp->push_back(buf);
 	}

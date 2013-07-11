@@ -1,6 +1,8 @@
 #ifndef SSDB_INCLUDE_H_
 #define SSDB_INCLUDE_H_
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdio.h>

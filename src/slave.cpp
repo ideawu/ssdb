@@ -24,7 +24,7 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 	this->connect_retry = 0;
 
 	load_status();
-	log_debug("last_seq: %llu, last_key: %s",
+	log_debug("last_seq: %"PRIu64", last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
 }
 
@@ -106,7 +106,7 @@ int Slave::connect(){
 		}else{
 			connect_retry = 0;
 			char seq_buf[20];
-			sprintf(seq_buf, "%llu", this->last_seq);
+			sprintf(seq_buf, "%"PRIu64"", this->last_seq);
 			
 			const char *type = is_mirror? "mirror" : "sync";
 			
@@ -230,7 +230,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
 	uint64_t seq = log.seq();
 	if(this->last_seq != seq){
-		log_debug("noop last_seq: %llu, seq: %llu", this->last_seq, seq);
+		log_debug("noop last_seq: %"PRIu64", seq: %"PRIu64"", this->last_seq, seq);
 		this->last_seq = seq;
 		this->save_status();
 	}
