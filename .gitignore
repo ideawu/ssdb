@@ -7,8 +7,11 @@ var_slave/*
 *_cpy_*
 ssdb-server
 tools/ssdb-dump
+tools/leveldb-import
 _pack
 build_config.mk
 log.txt
 log_slave.txt
+api/php/a.php
+api/java/Test.java
 
