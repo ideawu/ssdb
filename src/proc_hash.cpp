@@ -55,7 +55,7 @@ static int proc_multi_hsize(Server *serv, Link *link, const Request &req, Respon
 				resp->push_back("-1");
 			}else{
 				char buf[20];
-				sprintf(buf, "%"PRIi64"", ret);
+				sprintf(buf, "%"PRId64"", ret);
 				resp->push_back(buf);
 			}
 		}

@@ -120,7 +120,7 @@ int64_t str_to_int64(const char *p, int size){
 static inline
 std::string int64_to_str(int64_t v){
 	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%"PRIi64"", v);
+	snprintf(buf, sizeof(buf), "%"PRId64"", v);
 	return std::string(buf);
 }
 

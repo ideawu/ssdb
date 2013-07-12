@@ -56,7 +56,7 @@ static int proc_multi_zsize(Server *serv, Link *link, const Request &req, Respon
 				resp->push_back("-1");
 			}else{
 				char buf[20];
-				sprintf(buf, "%"PRIi64"", ret);
+				sprintf(buf, "%"PRId64"", ret);
 				resp->push_back(buf);
 			}
 		}
@@ -152,7 +152,7 @@ static int proc_zsize(Server *serv, Link *link, const Request &req, Response *re
 			resp->push_back("error");
 		}else{
 			char buf[20];
-			sprintf(buf, "%"PRIi64"", ret);
+			sprintf(buf, "%"PRId64"", ret);
 			resp->push_back("ok");
 			resp->push_back(buf);
 		}
