@@ -60,45 +60,14 @@ class SSDB
 	public $last_resp = null;
 
 	function __construct($host, $port, $timeout_ms=200){
-		$this->sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		$timeout_f = (float)$timeout_ms/1000;
+		$this->sock = @stream_socket_client("$host:$port", $errno, $errstr, $timeout_f);
 		if(!$this->sock){
-			throw new Exception(socket_strerror(socket_last_error()));
+			throw new Exception("$errno: $errstr");
 		}
-		
-		socket_set_nonblock($this->sock);
-		while(1){
-			if($timeout_ms < 0){
-				throw new Exception("Connection timeout!");
-			}
-
-			$ret = @socket_connect($this->sock, $host, $port);
-			if($ret){
-				break;
-			}
-			$err = socket_last_error($this->sock);
-			if($err == SOCKET_EISCONN){
-				break;
-			}
-
-			usleep(1 * 1000);
-			$timeout_ms -= 1.5;
-		}
-		socket_set_block($this->sock);
-		
 		$timeout_sec = intval($timeout_ms/1000);
 		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
-		//@socket_set_timeout($this->sock, $timeout_sec, $timeout_ms); 
-		@socket_set_option($this->sock, SOL_SOCKET, SO_RCVTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_usec));
-		@socket_set_option($this->sock, SOL_SOCKET, SO_SNDTIMEO, array('sec'=>$timeout_sec, 'usec'=>$timeout_usec));
-		/*
-		$ret = @socket_connect($this->sock, $host, $port);
-		if(!$ret){
-			throw new Exception(socket_strerror(socket_last_error()));
-		}
-		*/
-		if(is_int(TCP_NODELAY)){
-			socket_set_option($this->sock, SOL_TCP, TCP_NODELAY, 1);
-		}
+		@stream_set_timeout($this->sock, $timeout_sec, $timeout_usec);
 	}
 	
 	/**
@@ -113,7 +82,7 @@ class SSDB
 
 	function close(){
 		if(!$this->_closed){
-			socket_close($this->sock);
+			fclose($this->sock);
 			$this->_closed = true;
 			$this->sock = null;
 		}
@@ -558,8 +527,8 @@ class SSDB
 		}
 		try{
 			while(true){
-				$ret = @socket_write($this->sock, $s);
-				if($ret == 0){
+				$ret = @fwrite($this->sock, $s);
+				if($ret == false){
 					return false;
 				}
 				$s = substr($s, $ret);
@@ -578,14 +547,14 @@ class SSDB
 			$ret = $this->parse();
 			if($ret === null){
 				try{
-					$data = @socket_read($this->sock, 1024*128);
+					$data = @fread($this->sock, 1024*128);
 					if($this->debug){
 						echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
 					}
 				}catch(Exception $e){
 					$data = '';
 				}
-				if(strlen($data) == 0){
+				if($data == false){
 					$this->close();
 					return array();
 				}
