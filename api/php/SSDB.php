@@ -535,6 +535,7 @@ class SSDB
 				if(strlen($s) == 0){
 					break;
 				}
+				@fflush($this->sock);
 			}
 		}catch(Exception $e){
 			return false;
