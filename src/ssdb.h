@@ -56,7 +56,7 @@ public:
 	int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 	
 	int get(const Bytes &key, std::string *val) const;
-	// return (start, end)
+	// return (start, end]
 	KIterator* scan(const Bytes &start, const Bytes &end, int limit) const;
 	KIterator* rscan(const Bytes &start, const Bytes &end, int limit) const;
 
@@ -87,7 +87,7 @@ public:
 	int zget(const Bytes &name, const Bytes &key, std::string *score) const;
 	/**
 	 * scan by score, but won't return @key if key.score=score_start.
-	 * return (score_start, score_end)
+	 * return (score_start, score_end]
 	 */
 	ZIterator* zscan(const Bytes &name, const Bytes &key,
 			const Bytes &score_start, const Bytes &score_end, int limit) const;
