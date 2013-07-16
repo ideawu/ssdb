@@ -198,7 +198,7 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, int limit,
 	std::string start;
 	std::string end;
 	start = encode_hsize_key(name_s);
-	if(!end.empty()){
+	if(!name_e.empty()){
 		end = encode_hsize_key(name_e);
 	}
 	Iterator *it = this->iterator(start, end, limit);

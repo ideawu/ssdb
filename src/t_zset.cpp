@@ -234,7 +234,7 @@ int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, int limit,
 	std::string start;
 	std::string end;
 	start = encode_zsize_key(name_s);
-	if(!end.empty()){
+	if(!name_e.empty()){
 		end = encode_zsize_key(name_e);
 	}
 	Iterator *it = this->iterator(start, end, limit);
