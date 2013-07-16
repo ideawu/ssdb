@@ -15,6 +15,7 @@ all:
 
 install:
 	mkdir -p ${PREFIX}
+	mkdir -p ${PREFIX}/_cpy_
 	mkdir -p ${PREFIX}/deps
 	mkdir -p ${PREFIX}/var
 	mkdir -p ${PREFIX}/var_slave
