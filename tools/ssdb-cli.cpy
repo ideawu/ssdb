@@ -242,6 +242,7 @@ while(true){
 				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
 				break;
 			case 'keys':
+			case 'list':
 			case 'zkeys':
 			case 'hkeys':
 				printf('  %15s\n', 'key');

@@ -8,7 +8,7 @@
  * unit test.
  */
 
-include('SSDB.php');
+include(dirname(__FILE__) . '/../api/php/SSDB.php');
 
 class SSDBTest extends UnitTest{
 	private $ssdb;
@@ -169,6 +169,13 @@ class SSDBTest extends UnitTest{
 		$this->assert(count($ret) == 0);
 		$ret = $ssdb->hdel($name, 'a');
 		$ret = $ssdb->hdel($name, 'b');
+
+		$ssdb->hset("TEST_a", 'a', 1);
+		$ssdb->hset("TEST_b", 'a', 1);
+		$ssdb->hset("TEST_c", 'a', 1);
+		$ret = $ssdb->hlist("TEST_a", "TEST_b", 100);
+		$this->assert(count($ret) == 1);
+		$this->assert($ret[0] == "TEST_b");
 	}
 
 	function test_zset(){
@@ -229,6 +236,12 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->zdel($name, 'a');
 		$ret = $ssdb->zdel($name, 'b');
 
+		$ssdb->zset("TEST_a", 'a', 1);
+		$ssdb->zset("TEST_b", 'a', 1);
+		$ssdb->zset("TEST_c", 'a', 1);
+		$ret = $ssdb->zlist("TEST_a", "TEST_b", 100);
+		$this->assert(count($ret) == 1);
+		$this->assert($ret[0] == "TEST_b");
 	}
 }
 
@@ -249,6 +262,7 @@ class UnitTest{
 			}
 		}
 		$this->report();
+		$this->clear();
 	}
 
 	function report(){

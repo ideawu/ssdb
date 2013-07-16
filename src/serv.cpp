@@ -173,6 +173,8 @@ Server::Server(SSDB *ssdb){
 		}
 		proc_map[cmd->name] = cmd;
 	}
+	// for k-v data, list === keys
+	proc_map["list"] = proc_map["keys"];
 	
 	writer.start(MAX_WRITERS);
 }
