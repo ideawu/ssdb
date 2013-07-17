@@ -59,7 +59,7 @@ class SSDB
 	private $_easy = false;
 	public $last_resp = null;
 
-	function __construct($host, $port, $timeout_ms=200){
+	function __construct($host, $port, $timeout_ms=2000){
 		$timeout_f = (float)$timeout_ms/1000;
 		$this->sock = @stream_socket_client("$host:$port", $errno, $errstr, $timeout_f);
 		if(!$this->sock){
