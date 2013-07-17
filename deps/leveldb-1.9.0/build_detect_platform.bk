@@ -68,12 +68,6 @@ if [ "$CXX" = "g++" ]; then
 fi
 
 case "$TARGET_OS" in
-    CYGWIN_*)
-		PLATFORM=OS_LINUX
-		COMMON_FLAGS="$MEMCMP_FLAG -lpthread -DOS_LINUX -DCYGWIN"
-		PLATFORM_LDFLAGS="-lpthread"
-		PORT_FILE=port/port_posix.cc
-		;;
     Darwin)
         PLATFORM=OS_MACOSX
         COMMON_FLAGS="$MEMCMP_FLAG -DOS_MACOSX"
@@ -179,10 +173,10 @@ EOF
       #include <snappy.h>
       int main() {}
 EOF
-#    if [ "$?" = 0 ]; then
-#        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
-#        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
-#    fi
+    if [ "$?" = 0 ]; then
+        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
+        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
+    fi
 
     # Test whether tcmalloc is available
     $CXX $CXXFLAGS -x c++ - -o /dev/null -ltcmalloc 2>/dev/null  <<EOF
