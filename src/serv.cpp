@@ -245,7 +245,7 @@ int Server::WriteProc::proc(ProcJob *job){
 	if(job->link->send(resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
-		log_debug("wait: %.3f, proc: %.3f, req: %s, resp: %s",
+		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
 			job->time_wait, job->time_proc,
 			serialize_req(*req).c_str(),
 			serialize_req(resp).c_str());
