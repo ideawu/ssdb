@@ -4,10 +4,10 @@ $(shell sh build.sh 1>&2)
 include build_config.mk
 
 all:
-	chmod u+x deps/${LEVELDB}/build_detect_platform
+	chmod u+x ${LEVELDB_PATH}/build_detect_platform
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
-	cd deps/${LEVELDB}; make
+	cd ${LEVELDB_PATH}; make
 	$(eval export CFLAGS=-DNDEBUG -Wall -O2 -Wno-sign-compare)
 	cd src/util; make
 	cd src; make
@@ -32,7 +32,7 @@ clean:
 	rm -f api/python/SSDB.pyc
 	rm -rf db_test
 	cd deps/cpy; make clean
-	#cd deps/${LEVELDB}; make clean
+	#cd ${LEVELDB_PATH}; make clean
 	cd src/util; make clean
 	cd src; make clean
 	cd tools; make clean

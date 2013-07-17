@@ -1,9 +1,6 @@
 include ../build_config.mk
 
-LEVELDB_PATH = ../deps/${LEVELDB}
-CFLAGS += -I${LEVELDB_PATH}/include -I../deps/jemalloc-3.3.1/include
-CLIBS += -L${LEVELDB_PATH} ${LEVELDB_PATH}/libleveldb.a
-CLIBS += ../deps/jemalloc-3.3.1/lib/libjemalloc.a
+CFLAGS += ${PLATFORM_CFLAGS}
 CLIBS += ${PLATFORM_LDFLAGS}
 
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \

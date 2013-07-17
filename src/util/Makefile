@@ -1,8 +1,6 @@
 include ../../build_config.mk
 
-LEVELDB_PATH = ../../deps/${LEVELDB}
-CFLAGS += -I${LEVELDB_PATH}/include -I../../deps/jemalloc-3.3.1/include
-CLIBS +=  -L${LEVELDB_PATH} -lleveldb
+CFLAGS += ${PLATFORM_CFLAGS}
 OBJS = log.o fde.o config.o bytes.o
 EXES = 
 
