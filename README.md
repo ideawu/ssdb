@@ -25,6 +25,32 @@ echo $resp; // output: 123
 
 [More...](https://github.com/ideawu/ssdb/wiki/Documentation_PHP_API)
 
+## Compile and Install
+
+```sh
+$ wget --no-check-certificate https://github.com/ideawu/ssdb/archive/master.zip
+$ unzip master
+$ cd ssdb-master
+$ make
+
+# start master
+$ ./ssdb-server ssdb.conf
+
+# or start as daemon
+$ ./ssdb-server -d ssdb.conf
+
+# start slave
+$ ./ssdb-server ssdb_slave.conf
+
+# ssdb command line
+$ ./tools/ssdb-cli -p 8888
+
+# stop ssdb-server
+$ kill `cat ./var/ssdb.pid`
+```
+
+See [Compile and Install wiki](https://github.com/ideawu/ssdb/wiki/Compile_and_Install)
+
 ## Architecture
 
 ![ssdb architecture](https://a248.e.akamai.net/camo.github.com/305d969fb81bb1f1c73eb205e4afa096c9b2b8c0/687474703a2f2f7777772e6964656177752e636f6d2f737364622f737364622e706e67)
@@ -98,29 +124,6 @@ qps: 29741, time: 0.034 s
 ```
 
 See Benchmark 
-
-## Compile and Install
-
-```sh
-$ make
-
-# start master
-$ ./ssdb-server ssdb.conf
-
-# or start as daemon
-$ ./ssdb-server -d ssdb.conf
-
-# start slave
-$ ./ssdb-server ssdb_slave.conf
-
-# ssdb command line
-$ ./tools/ssdb-cli
-
-# stop ssdb-server
-$ kill `cat ./var/ssdb.pid`
-```
-
-See [Compile and Install wiki](https://github.com/ideawu/ssdb/wiki/Compile_and_Install)
 
 ## Who's using SSDB?
 
