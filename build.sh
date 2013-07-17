@@ -66,6 +66,7 @@ echo "#define SSDB_VERSION \"`cat version`\"" >> src/version.h
 if [[ $TARGET_OS == CYGWIN* ]]; then
 	:
 else
+	echo "#include <stdlib.h>" >> src/version.h
 	echo "#include <jemalloc/jemalloc.h>" >> src/version.h
 fi
 echo "#endif" >> src/version.h
