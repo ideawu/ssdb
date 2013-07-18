@@ -1,0 +1,598 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>SSDB PHP Client API Documentation</title>
+	<meta name="keywords" content="SSDB, leveldb, zset, key-value, database" />
+
+	<style type="text/css">
+	body{
+		margin: 4px;
+		padding: 0;
+		font-size: 13px;
+		font-family: tahoma, arial;
+		background: #fff;
+	}
+	table{
+		border-collapse: collapse;
+	}
+	th, td{
+		padding: 4px;
+		border: 1px solid #999;
+	}
+	pre{
+	padding: 6px;
+	background: #eee;
+	}
+	code{
+	}
+	h1{font-size: 220%;}
+	h2{font-size: 180%; border-bottom: 1px solid #999;}
+	h3{font-size: 150%; border-bottom: 1px solid #ccc;}
+	h4{font-size: 110%;}
+	#footer{
+		margin-top: 40px;
+		padding: 8px;
+		border-top: 1px solid #ccc;
+	}
+	</style>
+</head>
+<body>
+
+<h1>SSDB PHP Client API Documentation</h1>
+
+<dl>
+	<dd>@author: <a href="http://www.ideawu.com/">ideawu</a></dd>
+	<dd>@date: 2013-07-18</dd>
+</dl>
+
+<p>SSDB is a fast leveldb server with zset data type, the official website is <a href="https://github.com/ideawu/ssdb">https://github.com/ideawu/ssdb</a>. This documentation describes the PHP client API of SSDB.</p>
+
+<h2>Class SimpleSSDB</h2>
+
+<a name="m-quick_start"></a>
+<h3><em>Quick Start</em></h3>
+
+<pre>
+&lt;?php
+include_once('SSDB.php');
+try{
+    $ssdb = new SimpleSSDB('127.0.0.1', 8888);
+}catch(Exception $e){
+    die(__LINE__ . ' ' . $e-&gt;getMessage());
+}
+$ret = $ssdb-&gt;set('key', 'value');
+if($ret === false){
+    // error!
+}
+echo $ssdb-&gt;get('key');
+</pre>
+
+<a name="m-error_handling"></a>
+<h3>Error Handling</h3>
+
+<p>SimpleSSDB throws Exception if it can't connect to SSDB server. Most methods(with some exceptions) return <code>false</code> on error. So one should use Identical Equal(===) to test the return value.</p>
+
+<h2>Methods</h2>
+
+<a name="m-construct"></a>
+<h3>SimpleSSDB::__construct</h3>
+
+<h4><em>Description</em></h4>
+<p>Creates a SSDB client, and connect to SSDB server. Throws exception if it can't connect to the server.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>host</code> - SSDB server's host/ip address.</dd>
+	<dd><code>port</code> - SSDB server's port number.</dd>
+	<dd><code>timeout_ms</code> - optional, timeout for connect, send/receive data, in milliseconds. Default 2000 ms.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p>The SimpleSSDB instance.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb = new SimpleSSDB('127.0.0.1', 8888);
+</pre>
+
+<!-- ##############  key value ############## -->
+
+<a name="m-set"></a>
+<h3>set</h3>
+
+<h4><em>Description</em></h4>
+<p>Set the string value in argument as value of the key.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+	<dd><code>value</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;set('key', 'value');
+</pre>
+
+
+<a name="m-get"></a>
+<h3>get</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the value related to the specified key</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the value related to this key is returned.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;get('key');
+</pre>
+
+
+<a name="m-del"></a>
+<h3>del</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified key.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK. You can not determine whether the key exists or not.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;del('key');
+</pre>
+
+
+<a name="m-keys"></a>
+<h3>keys</h3>
+
+<h4><em>Description</em></h4>
+<p>List keys in range (key_start, key_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing the keys.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;keys('a', 'z', 10);
+</pre>
+
+
+<a name="m-scan"></a>
+<h3>scan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-value pairs with keys in range (key_start, key_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-value pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;scan('a', 'z', 10);
+</pre>
+
+
+<a name="m-rscan"></a>
+<h3>rscan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-value pairs with keys in range (key_start, key_end], in reverse order.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-value pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;rscan('a', 'z', 10);
+</pre>
+
+
+
+
+<!-- ##############  map(hashmap) ############## -->
+
+<a name="m-hset"></a>
+<h3>hset</h3>
+
+<h4><em>Description</em></h4>
+<p>Set the string value in argument as value of the key of a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key</code> - The key of the key-value pair in the hashmap</dd>
+	<dd><code>value</code> - The value of the key-value pair in the hashmap</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hset('h', 'key', 'value');
+</pre>
+
+
+<a name="m-hget"></a>
+<h3>hget</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the value related to the specified key of a hashmap</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key</code> - The key of the key-value pair in the hashmap</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the value related to this key is returned.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hget('h', 'key');
+</pre>
+
+
+<a name="m-hdel"></a>
+<h3>hdel</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified key of a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key</code> - The key of the key-value pair in the hashmap</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK. You can not determine whether the key exists or not.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hdel('h', 'key');
+</pre>
+
+
+<a name="m-hsize"></a>
+<h3>hsize</h3>
+
+<h4><em>Description</em></h4>
+<p>Return the number of pairs of a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an integer of the hashmap, 0 if the hashmap does not exist.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hsize('h');
+</pre>
+
+
+<a name="m-hlist"></a>
+<h3>hlist</h3>
+
+<h4><em>Description</em></h4>
+<p>List hashmap names in range (name_start, name_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name_start</code> - The lower bound(not included) of names to be returned.</dd>
+	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned.</dd>
+	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing the names.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hlist('a', 'z', 10);
+</pre>
+
+
+<a name="m-hkeys"></a>
+<h3>hkeys</h3>
+
+<h4><em>Description</em></h4>
+<p>List keys of a hashmap in range (key_start, key_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing the keys.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hkeys('h', 'a', 'z', 10);
+</pre>
+
+
+<a name="m-hscan"></a>
+<h3>hscan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-value pairs of a hashmap with keys in range (key_start, key_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-value pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hscan('a', 'z', 10);
+</pre>
+
+
+<a name="m-hrscan"></a>
+<h3>hrscan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-value pairs of a hashmap with keys in range (key_start, key_end], in reverse order.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned.</dd>
+	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-value pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hrscan('a', 'z', 10);
+</pre>
+
+
+
+
+<!-- ##############  zset(sorted set) ############## -->
+
+<a name="m-zset"></a>
+<h3>zset</h3>
+
+<h4><em>Description</em></h4>
+<p>Set the score of the key of a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key</code> - The key of the key-score pair in the hashmap</dd>
+	<dd><code>score</code> - The score of the key-score pair in the hashmap</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zset('z', 'key', 100);
+</pre>
+
+
+<a name="m-zget"></a>
+<h3>zget</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the score related to the specified key of a zset</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key</code> - The key of the key-score pair in the zset</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the score related to this key is returned.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zget('z', 'key');
+</pre>
+
+
+<a name="m-zdel"></a>
+<h3>zdel</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified key of a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key</code> - The key of the key-score pair in the zset</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise OK. You can not determine whether the key exists or not.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zdel('hz, 'key');
+</pre>
+
+
+<a name="m-zsize"></a>
+<h3>zsize</h3>
+
+<h4><em>Description</em></h4>
+<p>Return the number of pairs of a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an integer of the zset, 0 if the zset does not exist.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zsize('z');
+</pre>
+
+
+<a name="m-zlist"></a>
+<h3>zlist</h3>
+
+<h4><em>Description</em></h4>
+<p>List zset names in range (name_start, name_end].</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name_start</code> - The lower bound(not included) of names to be returned.</dd>
+	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned.</dd>
+	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing the names.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zlist('a', 'z', 10);
+</pre>
+
+
+<a name="m-zkeys"></a>
+<h3>zkeys</h3>
+
+<h4><em>Description</em></h4>
+<p>List keys of a zset in range (key_start+score_start, score_end]. If key_start is empty, keys with score_start will be returned. If key_start is not empty, keys with score larger than score_start, and keys larger than key_start also with score no less than(greater than or equal to) score_start will be returned.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key_start</code> - The key related to score_start, could be empty string.</dd>
+	<dd><code>score_start</code> - The minimum score related to keys.</dd>
+	<dd><code>score_end</code> - The maximum score(inclusive) related to keys.</dd>
+	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing the keys.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zkeys('h', '', 1, 100, 10);
+</pre>
+
+
+<a name="m-zscan"></a>
+<h3>zscan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-score pairs of a zset. See method <code><a href="#m-zkeys">zkeys()</a></code>.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key_start</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>score_start</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>score_end</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-score pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zscan('a', 'z', 10);
+</pre>
+
+
+<a name="m-zrscan"></a>
+<h3>zrscan</h3>
+
+<h4><em>Description</em></h4>
+<p>List key-score pairs of a zset, in reverse order. See method <code><a href="#m-zkeys">zkeys()</a></code>.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key_start</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>score_start</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>score_end</code> - See method <code><a href="#m-zkeys">zkeys()</a></code>.</dd>
+	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-score pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zrscan('a', 'z', 10);
+</pre>
+
+
+
+<div id="footer">
+	Copyright &copy; 2013 ideawu. All rights reserved.
+</div>
+
+
+
+</body>
+</html>
