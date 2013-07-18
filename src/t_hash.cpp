@@ -67,6 +67,9 @@ int SSDB::multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offs
 	return ret;
 }
 
+/**
+ * @return -1: error, 0: item updated, 1: new item inserted
+ */
 int SSDB::hset(const Bytes &name, const Bytes &key, const Bytes &val, char log_type){
 	Transaction trans(binlogs);
 

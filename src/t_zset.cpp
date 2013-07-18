@@ -8,6 +8,9 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type);
 static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr);
 
+/**
+ * @return -1: error, 0: item updated, 1: new item inserted
+ */
 int SSDB::zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	Transaction trans(binlogs);
 
