@@ -18,15 +18,34 @@ welcome();
 
 function show_command_help(){
 	print '';
-	print '* ssdb-cli commands *';
-	print '    set a 1';
-	print '    get a';
+    print '# KEY-VALUE COMMANDS';
+	print '    set key value';
+	print '    get key';
+	print '    del key';
+	print '    list key_start key_end limit';
 	print '    scan key_start key_end limit';
-	print '        scan a z 10';
-	print '    zset n a 1';
-	print '    zget n a';
-	print '    zscan setname key score_start score_end limit';
-	print '        zscan n a 1 3 10';
+    print '# MAP(HASHMAP) COMMANDS';
+	print '    hset name key value';
+	print '    hget name key';
+	print '    hdel name key';
+	print '    hlist name_start name_end limit';
+	print '    hscan name key_start key_end limit';
+    print '# ZSET(SORTED SET) COMMANDS';
+	print '    zset name key score';
+	print '    zget name key';
+	print '    zdel name key';
+	print '    zlist name_start name_end limit';
+	print '    zscan name key_start score_start score_end limit';
+    print '';
+    print '# EXAMPLES';
+	print '    scan "" "" 10';
+	print '    scan aa "" 10';
+	print '    hlist "" "" 10';
+	print '    hscan h "" "" 10';
+	print '    hscan h aa "" 10';
+	print '    zlist "" "" 10';
+	print '    zscan z "" "" "" 10';
+	print '    zscan z "" 1 100 10';
 	print '';
 }
 
