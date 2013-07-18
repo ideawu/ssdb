@@ -90,8 +90,12 @@ static std::string serialize_req(T &req){
 			break;
 		}
 		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
-			std::string h = hexmem(req[i].data(), req[i].size());
-			ret.append(h);
+			if(req[i].size() == 0){
+				ret.append("\"\"");
+			}else{
+				std::string h = hexmem(req[i].data(), req[i].size());
+				ret.append(h);
+			}
 		}else{
 			sprintf(buf, "[%d]", (int)req[i].size());
 			ret.append(buf);
