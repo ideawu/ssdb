@@ -46,7 +46,7 @@
 	<dd>@日期: 2013-07-18</dd>
 </dl>
 
-<p>SSDB 是一个快速的 leveldb 服务器, 支持 zset 数据结构. 官方网站是 <a href="https://github.com/ideawu/ssdb">https://github.com/ideawu/ssdb</a>. 本文档介绍了 SSDB 的 PHP 客户端 API.</p>
+<p>SSDB 是一个快速的 LevelDB 服务器, 支持 zset 数据结构. 官方网站是 <a href="https://github.com/ideawu/ssdb">https://github.com/ideawu/ssdb</a>. 本文档介绍了 SSDB 的 PHP 客户端 API.</p>
 
 <p>注意: SSDB 所使用的名词 "hashmap" 是指 "map".
 
@@ -224,6 +224,69 @@ $ssdb-&gt;scan('a', 'z', 10);
 <h4><em>示例</em></h4>
 <pre>
 $ssdb-&gt;rscan('a', 'z', 10);
+</pre>
+
+
+<a name="m-multi_set"></a>
+<h3>multi_set</h3>
+
+<h4><em>说明</em></h4>
+<p>批量设置一批 key-value.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>kvs</code> - 包含 key-value 的关联数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_set(array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_get"></a>
+<h3>multi_get</h3>
+
+<h4><em>说明</em></h4>
+<p>批量获取一批 key 对应的值内容.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回包含 key-value 的关联数组, 如果某个 key 不存在, 则它不会出现在返回数组中.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_get(array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_del"></a>
+<h3>multi_del</h3>
+
+<h4><em>说明</em></h4>
+<p>批量删除一批 key 和其对应的值内容.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_del(array('k1', 'k2'));
 </pre>
 
 
@@ -406,6 +469,72 @@ $ssdb-&gt;hrscan('a', 'z', 10);
 </pre>
 
 
+<a name="m-multi_hset"></a>
+<h3>multi_hset</h3>
+
+<h4><em>说明</em></h4>
+<p>批量设置 hashmap 中的 key-value.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - hashmap 的名字.</dd>
+	<dd><code>kvs</code> - 包含 key-value 的关联数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_zset('z', array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_hget"></a>
+<h3>multi_hget</h3>
+
+<h4><em>说明</em></h4>
+<p>批量获取 hashmap 中多个 key 对应的权重值.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - hashmap 的名字.</dd>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回包含 key-value 的关联数组, 如果某个 key 不存在, 则它不会出现在返回数组中.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_hget('h', array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_hdel"></a>
+<h3>multi_hdel</h3>
+
+<h4><em>说明</em></h4>
+<p>指删除 hashmap 中的 key.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - hashmap 的名字.</dd>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_hdel('h', array('k1', 'k2'));
+</pre>
+
+
 
 
 <!-- ##############  zset(sorted set) ############## -->
@@ -585,6 +714,97 @@ $ssdb-&gt;zscan('a', 'z', 10);
 <h4><em>示例</em></h4>
 <pre>
 $ssdb-&gt;zrscan('a', 'z', 10);
+</pre>
+
+
+<a name="m-multi_zset"></a>
+<h3>multi_zset</h3>
+
+<h4><em>说明</em></h4>
+<p>批量设置 zset 中的 key-score.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>kvs</code> - 包含 key-score 的关联数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_zset('z', array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_zget"></a>
+<h3>multi_zget</h3>
+
+<h4><em>说明</em></h4>
+<p>批量获取 zset 中多个 key 对应的权重值.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回包含 key-score 的关联数组, 如果某个 key 不存在, 则它不会出现在返回数组中.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_zget('z', array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_zdel"></a>
+<h3>multi_zdel</h3>
+
+<h4><em>说明</em></h4>
+<p>指删除 zset 中的 key.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>keys</code> - 包含 key 的数组 .</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
+</pre>
+
+
+<!-- ##############  other ############## -->
+
+<a name="m-batch"></a>
+<h3>batch, exec</h3>
+
+<h4><em>说明</em></h4>
+<p>批量执行一批命令. 批量命令可以减少客户端和服务器之间的交互延时, 能提高性能和响应速度.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd></dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果 <code>exec()</code> 出错则返回 <code>false</code>, 否则返回一个数组包含对应每一条命令的结果.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;batch()
+	-&gt;set('a', 1)
+	-&gt;get('a')
+	-&gt;exec();
 </pre>
 
 

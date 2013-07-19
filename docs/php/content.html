@@ -46,7 +46,7 @@
 	<dd>@date: 2013-07-18</dd>
 </dl>
 
-<p>SSDB is a fast leveldb server with zset data type, the official website is <a href="https://github.com/ideawu/ssdb">https://github.com/ideawu/ssdb</a>. This documentation describes the PHP client API of SSDB.</p>
+<p>SSDB is a fast LevelDB server with zset data type, the official website is <a href="https://github.com/ideawu/ssdb">https://github.com/ideawu/ssdb</a>. This documentation describes the PHP client API of SSDB.</p>
 
 <p>Notice: The phrase "hashmap" means "map" in SSDB.</p>
 
@@ -227,6 +227,68 @@ $ssdb-&gt;rscan('a', 'z', 10);
 </pre>
 
 
+<a name="m-multi_set"></a>
+<h3>multi_set</h3>
+
+<h4><em>Description</em></h4>
+<p>Set multiple key-value pairs(kvs) in one method call.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>kvs</code> - A associative array containing the key-value pairs.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_set(array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_get"></a>
+<h3>multi_get</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the values related to the specified multiple keys</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>keys</code> - An array containing keys</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing ONLY found keys and values.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_get(array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_del"></a>
+<h3>multi_del</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified multiple keys.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>keys</code> - An array containing keys</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_del(array('k1', 'k2'));
+</pre>
+
 
 
 <!-- ##############  map(hashmap) ############## -->
@@ -403,6 +465,72 @@ $ssdb-&gt;hscan('a', 'z', 10);
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;hrscan('a', 'z', 10);
+</pre>
+
+
+<a name="m-multi_hset"></a>
+<h3>multi_hset</h3>
+
+<h4><em>Description</em></h4>
+<p>Set multiple key-value pairs(kvs) of a hashmap in one method call.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap.</dd>
+	<dd><code>kvs</code> - A associative array containing the key-value pairs.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_hset('h', array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_hget"></a>
+<h3>multi_hget</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the values related to the specified multiple keys of a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap.</dd>
+	<dd><code>keys</code> - An array containing keys.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing ONLY found keys and values.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_hget('h', array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_hdel"></a>
+<h3>multi_hdel</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified multiple keys of a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap.</dd>
+	<dd><code>keys</code> - An array containing keys.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_hdel('h', array('k1', 'k2'));
 </pre>
 
 
@@ -587,6 +715,120 @@ $ssdb-&gt;zscan('a', 'z', 10);
 $ssdb-&gt;zrscan('a', 'z', 10);
 </pre>
 
+
+<a name="m-multi_zset"></a>
+<h3>multi_zset</h3>
+
+<h4><em>Description</em></h4>
+<p>Set multiple key-score pairs(kvs) of a zset in one method call.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset.</dd>
+	<dd><code>kvs</code> - A associative array containing the key-score pairs.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_zset('z', array(
+	'a' =&gt; 1,
+	'b' =&gt; 2,
+));
+</pre>
+
+
+<a name="m-multi_zget"></a>
+<h3>multi_zget</h3>
+
+<h4><em>Description</em></h4>
+<p>Get the values related to the specified multiple keys of a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset.</dd>
+	<dd><code>keys</code> - An array containing keys.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing ONLY found keys and values.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_zget('z', array('k1', 'k2'));
+</pre>
+
+
+<a name="m-multi_zdel"></a>
+<h3>multi_zdel</h3>
+
+<h4><em>Description</em></h4>
+<p>Delete specified multiple keys of a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset.</dd>
+	<dd><code>keys</code> - An array containing keys.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicates OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
+</pre>
+
+
+
+
+<!-- ##############  other ############## -->
+
+<a name="m-batch"></a>
+<h3>batch, exec</h3>
+
+<h4><em>Description</em></h4>
+<p>Execute a batch of commands. Batch Commands can reduce the round trip time(rtt) between SSDB client and the server.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd></dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>exec()</code> returns <code>false</code> on error, otherwise an of results corresponding to each of the batch commands.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;batch()
+	-&gt;set('a', 1)
+	-&gt;get('a')
+	-&gt;exec();
+</pre>
+
+
+<!--
+<a name="m-"></a>
+<h3></h3>
+
+<h4><em>Description</em></h4>
+<p></p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code></code> - .</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an associative array containing the key-value pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;rscan('a', 'z', 10);
+</pre>
+-->
 
 
 <div id="footer">
