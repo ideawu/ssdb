@@ -18,14 +18,16 @@ int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
 		log_error("multi_set error: %s", s.ToString().c_str());
 		return -1;
 	}
-	return kvs.size() - offset;
+	return (kvs.size() - offset)/2;
 }
 
 int SSDB::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
 	Transaction trans(binlogs);
 
-	for(; offset < (int)keys.size(); offset += 1){
-		const Bytes &key = keys[offset];
+	std::vector<Bytes>::const_iterator it;
+	it = keys.begin() + offset;
+	for(; it != keys.end(); it += 2){
+		const Bytes &key = *it;
 		std::string buf = encode_kv_key(key);
 		binlogs->Delete(buf);
 		binlogs->add(log_type, BinlogCommand::KDEL, buf);
