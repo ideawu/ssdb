@@ -146,7 +146,7 @@ void BackendSync::Client::init(){
 		}
 	}
 	const char *type = is_mirror? "mirror" : "sync";
-	if(last_key == ""){
+	if(last_key == "" && last_seq != 0){
 		log_info("[%s]fd: %d, sync, seq: %"PRIu64", key: '%s'",
 			type,
 			link->fd(),
@@ -184,7 +184,7 @@ void BackendSync::Client::noop(){
 
 int BackendSync::Client::copy(){
 	if(this->iter == NULL){
-		log_trace("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
+		log_debug("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
 		this->iter = backend->ssdb->iterator(this->last_key, "", -1);
 	}
 	for(int i=0; i<1000; i++){
@@ -251,10 +251,10 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 				hexmem(this->last_key.data(), this->last_key.size()).c_str(),
 				log.dumps().c_str());
 			this->last_seq = log.seq();
-			if(this->iter){
-				delete this->iter;
-				this->iter = NULL;
-			}
+			//if(this->iter){
+			//	delete this->iter;
+			//	this->iter = NULL;
+			//}
 			continue;
 		}
 		if(this->last_seq != 0 && log.seq() != expect_seq){
