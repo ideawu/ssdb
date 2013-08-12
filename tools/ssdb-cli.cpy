@@ -18,52 +18,52 @@ welcome();
 
 function show_command_help(){
 	print '';
-    print '# KEY-VALUE COMMANDS';
-	print '    set key value';
-	print '    get key';
-	print '    del key';
-	print '    list key_start key_end limit';
-	print '    scan key_start key_end limit';
-    print '# MAP(HASHMAP) COMMANDS';
-	print '    hset name key value';
-	print '    hget name key';
-	print '    hdel name key';
-	print '    hlist name_start name_end limit';
-	print '    hscan name key_start key_end limit';
-    print '# ZSET(SORTED SET) COMMANDS';
-	print '    zset name key score';
-	print '    zget name key';
-	print '    zdel name key';
-	print '    zlist name_start name_end limit';
-	print '    zscan name key_start score_start score_end limit';
-    print '';
-    print '# EXAMPLES';
-	print '    scan "" "" 10';
-	print '    scan aa "" 10';
-	print '    hlist "" "" 10';
-	print '    hscan h "" "" 10';
-	print '    hscan h aa "" 10';
-	print '    zlist "" "" 10';
-	print '    zscan z "" "" "" 10';
-	print '    zscan z "" 1 100 10';
+	print '# KEY-VALUE COMMANDS';
+	print '	set key value';
+	print '	get key';
+	print '	del key';
+	print '	list key_start key_end limit';
+	print '	scan key_start key_end limit';
+	print '# MAP(HASHMAP) COMMANDS';
+	print '	hset name key value';
+	print '	hget name key';
+	print '	hdel name key';
+	print '	hlist name_start name_end limit';
+	print '	hscan name key_start key_end limit';
+	print '# ZSET(SORTED SET) COMMANDS';
+	print '	zset name key score';
+	print '	zget name key';
+	print '	zdel name key';
+	print '	zlist name_start name_end limit';
+	print '	zscan name key_start score_start score_end limit';
+	print '';
+	print '# EXAMPLES';
+	print '	scan "" "" 10';
+	print '	scan aa "" 10';
+	print '	hlist "" "" 10';
+	print '	hscan h "" "" 10';
+	print '	hscan h aa "" 10';
+	print '	zlist "" "" 10';
+	print '	zscan z "" "" "" 10';
+	print '	zscan z "" 1 100 10';
 	print '';
 }
 
 function usage(){
 	print '';
 	print 'Usage:';
-	print '    ssdb-cli [-h HOST -p PORT]';
+	print '	ssdb-cli [-h HOST -p PORT]';
 	print '';
 	print 'Options:';
-	print '    -h 127.0.0.1';
-	print '        ssdb server hostname/ip address';
-	print '    -p 8888';
-	print '        ssdb server port';
+	print '	-h 127.0.0.1';
+	print '		ssdb server hostname/ip address';
+	print '	-p 8888';
+	print '		ssdb server port';
 	print '';
 	print 'Examples:';
-	print '    ssdb-cli';
-	print '    ssdb-cli -p 8888';
-	print '    ssdb-cli -h 127.0.0.1 -p 8888';
+	print '	ssdb-cli';
+	print '	ssdb-cli -p 8888';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888';
 }
 
 function repr_data(str){
@@ -188,31 +188,31 @@ while(true){
 		printf('(%.3f sec)\n', time_consume);
 	}else{
 		switch(cmd){
-            case 'exists':
-            case 'hexists':
-            case 'zexists':
-                if(resp.data == true){
-                    printf('true\n');
-                }else{
-                    printf('false\n');
-                }
+			case 'exists':
+			case 'hexists':
+			case 'zexists':
+				if(resp.data == true){
+					printf('true\n');
+				}else{
+					printf('false\n');
+				}
 				printf('(%.3f sec)\n', time_consume);
-                break;
-            case 'multi_exists':
-            case 'multi_hexists':
-            case 'multi_zexists':
+				break;
+			case 'multi_exists':
+			case 'multi_hexists':
+			case 'multi_zexists':
 				printf('%-15s %s\n', 'key', 'value');
 				print ('-' * 25);
-                foreach(resp.data as k=>v){
-                    if(v == true){
-                        s = 'true';
-                    }else{
-                        s = 'false';
-                    }
+				foreach(resp.data as k=>v){
+					if(v == true){
+						s = 'true';
+					}else{
+						s = 'false';
+					}
 					printf('  %-15s : %s\n', repr_data(k), s);
-                }
+				}
 				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
-                break;
+				break;
 			case 'get':
 			case 'zget':
 			case 'hget':
@@ -224,9 +224,9 @@ while(true){
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
-            case 'multi_del':
-            case 'multi_hdel':
-            case 'multi_zdel':
+			case 'multi_del':
+			case 'multi_hdel':
+			case 'multi_zdel':
 				print repr_data(resp.data);
 				printf('(%.3f sec)\n', time_consume);
 				break;
@@ -290,18 +290,40 @@ while(true){
 				}
 				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
 				break;
-            case 'info':
-                is_val = false;
-                for(i=1; i<len(resp.data); i++){
-                    s = resp.data[i];
-                    if(is_val){
-                        s = '    ' + s.replace('\n', '\n    ');
-                    }
-                    print s;
-                    is_val = !is_val;
-                }
+			case 'info':
+				is_val = false;
+				for(i=1; i<len(resp.data); i++){
+					s = resp.data[i];
+					if(is_val){
+						s = '	' + s.replace('\n', '\n	');
+					}
+					print s;
+					is_val = !is_val;
+				}
 				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
-               break;
+				break;
+			case 'key_range':
+				if(len(resp.data) != 6){
+					print 'error!';
+				}else{
+					for(i=0; i<len(resp.data); i++){
+						resp.data[i] = repr_data(resp.data[i]);
+						if(resp.data[i] == ''){
+							resp.data[i] = '""';
+						}
+					}
+					klen = 0;
+					vlen = 0;
+					for(i=0; i<len(resp.data); i+=2){
+						klen = max(len(resp.data[i]), klen);
+						vlen = max(len(resp.data[i+1]), vlen);
+					}
+					printf('	kv   :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
+					printf('	hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
+					printf('	zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
+				}
+				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				break;
 			default:
 				print repr_data(resp.code), repr_data(resp.data);
 				printf('(%.3f sec)\n', time_consume);

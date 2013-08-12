@@ -88,9 +88,10 @@ static proc_map_t proc_map;
 	DEF_PROC(multi_zset);
 	DEF_PROC(multi_zdel);
 
-	DEF_PROC(info);
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
+	DEF_PROC(info);
+	DEF_PROC(key_range);
 #undef DEF_PROC
 
 
@@ -144,9 +145,10 @@ static Command commands[] = {
 	PROC(multi_zset, "w"),
 	PROC(multi_zdel, "w"),
 
-	PROC(info, "r"),
 	PROC(dump, "b"),
 	PROC(sync140, "b"),
+	PROC(info, "r"),
+	PROC(key_range, "r"),
 
 	{NULL, NULL, 0, NULL}
 };
@@ -270,23 +272,73 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
 	
-	for(Command *cmd=commands; cmd->name; cmd++){
-		char buf[128];
-		snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
-		resp->push_back(buf);
-		snprintf(buf, sizeof(buf), "calls: %"PRIu64"\ttime_wait: %.0f\ttime_proc: %.0f",
-			cmd->calls, cmd->time_wait, cmd->time_proc);
-		resp->push_back(buf);
+	if(req.size() == 1 || req[1] == "cmd"){
+		for(Command *cmd=commands; cmd->name; cmd++){
+			char buf[128];
+			snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
+			resp->push_back(buf);
+			snprintf(buf, sizeof(buf), "calls: %"PRIu64"\ttime_wait: %.0f\ttime_proc: %.0f",
+				cmd->calls, cmd->time_wait, cmd->time_proc);
+			resp->push_back(buf);
+		}
 	}
 
-	std::vector<std::string> tmp = serv->ssdb->info();
+	if(req.size() == 1 || req[1] == "range"){
+		std::vector<std::string> tmp;
+		int ret = serv->ssdb->key_range(&tmp);
+		if(ret == 0){
+			char buf[512];
+			
+			resp->push_back("key_range.kv");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[0].data(), tmp[0].size()).c_str(),
+				hexmem(tmp[1].data(), tmp[1].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.hash");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[2].data(), tmp[2].size()).c_str(),
+				hexmem(tmp[3].data(), tmp[3].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.zset");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
+				hexmem(tmp[5].data(), tmp[5].size()).c_str()
+				);
+			resp->push_back(buf);
+		}
+	}
+
+	if(req.size() == 1 || req[1] == "leveldb"){
+		std::vector<std::string> tmp = serv->ssdb->info();
+		for(int i=0; i<(int)tmp.size(); i++){
+			std::string block = tmp[i];
+			resp->push_back(block);
+		}
+	}
+	
+	return 0;
+}
+
+static int proc_key_range(Server *serv, Link *link, const Request &req, Response *resp){
+	std::vector<std::string> tmp;
+	int ret = serv->ssdb->key_range(&tmp);
+	if(ret == -1){
+		resp->push_back("error");
+		return -1;
+	}
+	
+	resp->push_back("ok");
 	for(int i=0; i<(int)tmp.size(); i++){
 		std::string block = tmp[i];
 		resp->push_back(block);
 	}
+	
 	return 0;
 }
-
 
 #include "proc_kv.cpp"
 #include "proc_hash.cpp"

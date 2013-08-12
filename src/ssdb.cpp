@@ -5,6 +5,10 @@
 #include "leveldb/cache.h"
 #include "leveldb/filter_policy.h"
 
+#include "t_kv.h"
+#include "t_hash.h"
+#include "t_zset.h"
+
 SSDB::SSDB(){
 	db = NULL;
 	meta_db = NULL;
@@ -148,9 +152,6 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, i
 	}else{
 		it->Prev();
 	}
-	if(it->Valid() && it->key() == start){
-		it->Prev();
-	}
 	return new Iterator(it, end, limit, Iterator::BACKWARD);
 }
 
@@ -218,32 +219,107 @@ std::vector<std::string> SSDB::info() const{
 			info.push_back(val);
 		}
 	}
+
 	return info;
 }
 
-/*
-int SSDB::key_range(char data_type, std::string *start, std::string *end) const{
-	leveldb::ReadOptions iterate_options;
-	leveldb::Iterator *it = db->NewIterator(iterate_options);
-
-	std::string start_str;
-	start_str.push_back(data_type);
+int SSDB::key_range(std::vector<std::string> *keys) const{
+	std::string kstart, kend;
+	std::string hstart, hend;
+	std::string zstart, zend;
 	
-	it->Seek(key_str);
-	if(!it->Valid()){
-		// Iterator::prev requires Valid, so we seek to last
-		it->SeekToLast();
-	}
-	// UINT64_MAX is not used
-	if(it->Valid()){
-		it->Prev();
-	}
-	std::string ret;
-	if(it->Valid()){
-		leveldb::Slice key = it->key();
-		ret.assign(key.data(), key.size());
+	Iterator *it;
+	
+	it = this->iterator(encode_kv_key(""), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::KV){
+			std::string n;
+			if(decode_kv_key(ks, &n) == -1){
+				return -1;
+			}else{
+				kstart = n;
+			}
+		}
 	}
 	delete it;
-	return ret;
+	
+	it = this->rev_iterator(encode_kv_key("\xff"), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::KV){
+			std::string n;
+			if(decode_kv_key(ks, &n) == -1){
+				return -1;
+			}else{
+				kend = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->iterator(encode_hsize_key(""), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::HSIZE){
+			std::string n;
+			if(decode_hsize_key(ks, &n) == -1){
+				return -1;
+			}else{
+				hstart = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->rev_iterator(encode_hsize_key("\xff"), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::HSIZE){
+			std::string n;
+			if(decode_hsize_key(ks, &n) == -1){
+				return -1;
+			}else{
+				hend = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->iterator(encode_zsize_key(""), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::ZSIZE){
+			std::string n;
+			if(decode_hsize_key(ks, &n) == -1){
+				return -1;
+			}else{
+				zstart = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->rev_iterator(encode_zsize_key("\xff"), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::ZSIZE){
+			std::string n;
+			if(decode_hsize_key(ks, &n) == -1){
+				return -1;
+			}else{
+				zend = n;
+			}
+		}
+	}
+	delete it;
+
+	keys->push_back(kstart);
+	keys->push_back(kend);
+	keys->push_back(hstart);
+	keys->push_back(hend);
+	keys->push_back(zstart);
+	keys->push_back(zend);
+	
+	return 0;
 }
-*/

@@ -38,7 +38,9 @@ public:
 	Iterator* iterator(const std::string &start, const std::string &end, int limit) const;
 	Iterator* rev_iterator(const std::string &start, const std::string &end, int limit) const;
 
+	//void flushdb();
 	std::vector<std::string> info() const;
+	int key_range(std::vector<std::string> *keys) const;
 
 	/* raw operates */
 
