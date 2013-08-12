@@ -224,6 +224,7 @@ std::vector<std::string> SSDB::info() const{
 }
 
 int SSDB::key_range(std::vector<std::string> *keys) const{
+	int ret = 0;
 	std::string kstart, kend;
 	std::string hstart, hend;
 	std::string zstart, zend;
@@ -236,7 +237,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::KV){
 			std::string n;
 			if(decode_kv_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				kstart = n;
 			}
@@ -250,7 +251,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::KV){
 			std::string n;
 			if(decode_kv_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				kend = n;
 			}
@@ -264,7 +265,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::HSIZE){
 			std::string n;
 			if(decode_hsize_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				hstart = n;
 			}
@@ -278,7 +279,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::HSIZE){
 			std::string n;
 			if(decode_hsize_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				hend = n;
 			}
@@ -292,7 +293,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::ZSIZE){
 			std::string n;
 			if(decode_hsize_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				zstart = n;
 			}
@@ -306,7 +307,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		if(ks.data()[0] == DataType::ZSIZE){
 			std::string n;
 			if(decode_hsize_key(ks, &n) == -1){
-				return -1;
+				ret = -1;
 			}else{
 				zend = n;
 			}
@@ -321,5 +322,5 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 	keys->push_back(zstart);
 	keys->push_back(zend);
 	
-	return 0;
+	return ret;
 }
