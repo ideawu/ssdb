@@ -235,6 +235,8 @@ function benchmark(cmd, prepared_data, links){
 	print '';
 	printf('======= %s =======\n', cmd);
 	printf('qps: %d, time: %.3f s\n', speed, time_);
+    
+    time.sleep(1);
 }
 
 
