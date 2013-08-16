@@ -113,7 +113,7 @@ $ssdb = new SimpleSSDB('127.0.0.1', 8888);
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -153,7 +153,7 @@ $ssdb-&gt;get('key');
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK. You can not determine whether the key exists or not.</p>
+<p><code>false</code> on error, other values indicate OK. You can not determine whether the key exists or not.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -239,7 +239,7 @@ $ssdb-&gt;rscan('a', 'z', 10);
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -282,7 +282,7 @@ $ssdb-&gt;multi_get(array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -307,7 +307,7 @@ $ssdb-&gt;multi_del(array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -349,7 +349,7 @@ $ssdb-&gt;hget('h', 'key');
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK. You can not determine whether the key exists or not.</p>
+<p><code>false</code> on error, other values indicate OK. You can not determine whether the key exists or not.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -481,7 +481,7 @@ $ssdb-&gt;hrscan('a', 'z', 10);
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -526,7 +526,7 @@ $ssdb-&gt;multi_hget('h', array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -552,7 +552,7 @@ $ssdb-&gt;multi_hdel('h', array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -594,7 +594,7 @@ $ssdb-&gt;zget('z', 'key');
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK. You can not determine whether the key exists or not.</p>
+<p><code>false</code> on error, other values indicate OK. You can not determine whether the key exists or not.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -729,7 +729,7 @@ $ssdb-&gt;zrscan('a', 'z', 10);
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -774,7 +774,7 @@ $ssdb-&gt;multi_zget('z', array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, other values indicates OK.</p>
+<p><code>false</code> on error, other values indicate OK.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -806,6 +806,11 @@ $ssdb-&gt;batch()
 	-&gt;set('a', 1)
 	-&gt;get('a')
 	-&gt;exec();
+// or
+$ssdb-&gt;batch();
+$ssdb-&gt;set('a', 1);
+$ssdb-&gt;get('a');
+$ssdb-&gt;exec();
 </pre>
 
 

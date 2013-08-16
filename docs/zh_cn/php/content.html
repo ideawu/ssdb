@@ -805,6 +805,11 @@ $ssdb-&gt;batch()
 	-&gt;set('a', 1)
 	-&gt;get('a')
 	-&gt;exec();
+// 或者
+$ssdb-&gt;batch();
+$ssdb-&gt;set('a', 1);
+$ssdb-&gt;get('a');
+$ssdb-&gt;exec();
 </pre>
 
 
