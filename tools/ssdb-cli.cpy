@@ -23,19 +23,27 @@ function show_command_help(){
 	print '	get key';
 	print '	del key';
 	print '	list key_start key_end limit';
+	print '	keys key_start key_end limit';
 	print '	scan key_start key_end limit';
 	print '# MAP(HASHMAP) COMMANDS';
 	print '	hset name key value';
 	print '	hget name key';
 	print '	hdel name key';
 	print '	hlist name_start name_end limit';
+	print '	hkeys name key_start key_end limit';
 	print '	hscan name key_start key_end limit';
 	print '# ZSET(SORTED SET) COMMANDS';
 	print '	zset name key score';
 	print '	zget name key';
 	print '	zdel name key';
 	print '	zlist name_start name_end limit';
+	print '	zkeys name key_start score_start score_end limit';
 	print '	zscan name key_start score_start score_end limit';
+	print '# FLUSH DATABASE';
+	print '	flushdb';
+	print '	flushdb kv';
+	print '	flushdb hash';
+	print '	flushdb zset';
 	print '';
 	print '# EXAMPLES';
 	print '	scan "" "" 10';
@@ -46,6 +54,8 @@ function show_command_help(){
 	print '	zlist "" "" 10';
 	print '	zscan z "" "" "" 10';
 	print '	zscan z "" 1 100 10';
+	print '';
+	print 'press \'q\' and Enter to quit.';
 	print '';
 }
 
@@ -81,6 +91,109 @@ function repr_data(str){
 	ret = ret.replace("\\\\", "\\");
 	return ret;
 }
+
+function flushdb(link, data_type){
+	printf('\n');
+	printf('					DANGEROUS!\n');
+	printf('\n');
+	printf('This operation is DANGEROUS and is not recoverable, if you\n');
+	printf('realy want to flush the whole db(delete ALL data in ssdb server),\n');
+	printf('input \'yes\' and press Enter, or just press Enter to cancel\n');
+	printf('\n');
+	printf('flushdb? ');
+	
+	line = sys.stdin.readline().strip();
+	if(line != 'yes'){
+		printf('Operation cancelled.\n\n');
+		return;
+	}
+
+	print 'Begin to flushdb...';
+	
+	batch = 1000;
+	
+	d_kv = 0;
+	if(data_type == '' || data_type == 'kv'){
+		while(true){
+			resp = link.request('keys', ['', '', batch]);
+			if(len(resp.data) == 0){
+				break;
+			}
+			d_kv += len(resp.data);
+			foreach(resp.data as key){
+				link.request('del', [key]);
+			}
+			printf('delete[kv] %d key(s).\n', d_kv);
+		}
+	}
+	
+	d_hash = 0;
+	d_hkeys = 0;
+	if(data_type == '' || data_type == 'hash'){
+		while(true){
+			resp = link.request('hlist', ['', '', batch]);
+			if(len(resp.data) == 0){
+				break;
+			}
+			foreach(resp.data as hname){
+				d_hash += 1;
+				while(true){
+					r2 = link.request('hkeys', [hname, '', '', batch]);
+					if(len(r2.data) == 0){
+						break;
+					}
+					foreach(r2.data as key){
+						d_hkeys += 1;
+						link.request('hdel', [hname, key]);
+					}
+					printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
+				}
+			}
+			printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
+		}
+	}
+	
+	d_zset = 0;
+	d_zkeys = 0;
+	if(data_type == '' || data_type == 'zset'){
+		while(true){
+			resp = link.request('zlist', ['', '', batch]);
+			if(len(resp.data) == 0){
+				break;
+			}
+			foreach(resp.data as zname){
+				d_zset += 1;
+				while(true){
+					r2 = link.request('zkeys', [zname, '', '', '', batch]);
+					if(len(r2.data) == 0){
+						break;
+					}
+					foreach(r2.data as key){
+						d_zkeys += 1;
+						link.request('zdel', [zname, key]);
+					}
+					printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
+				}
+			}
+			printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
+		}
+	}
+
+	printf('\n');
+	printf('===== flushdb stats =====\n');
+	if(data_type == '' || data_type == 'kv'){
+		printf('[kv]   %8d key(s).\n', d_kv);
+	}
+	if(data_type == '' || data_type == 'hash'){
+		printf('[hash] %8d hash(s), %8d key(s).\n', d_hash, d_hkeys);
+	}
+	if(data_type == '' || data_type == 'zset'){
+		printf('[zset] %8d zset(s), %8d key(s).\n', d_zset, d_zkeys);
+	}
+	printf('\n');
+}
+
+
 
 default_opts = {
 	'-h' : '127.0.0.1',
@@ -150,6 +263,15 @@ while(true){
 	}
 	cmd = ps[0];
 	args = ps[1 .. ];
+	
+	if(cmd == 'flushdb'){
+		if(len(args) == 0){
+			flushdb(link, '');
+		}else{
+			flushdb(link, args[0]);
+		}
+		continue;
+	}
 
 	retry = 0;
 	max_retry = 5;
