@@ -94,7 +94,7 @@ function repr_data(str){
 
 function flushdb(link, data_type){
 	printf('\n');
-	printf('					DANGEROUS!\n');
+	printf('                  DANGEROUS!\n');
 	printf('\n');
 	printf('This operation is DANGEROUS and is not recoverable, if you\n');
 	printf('realy want to flush the whole db(delete ALL data in ssdb server),\n');
