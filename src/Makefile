@@ -10,9 +10,10 @@ EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.e
 
 
 all: ssdb.h ${OBJS}
-	g++ -o ../ssdb-server ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-server.cpp
-	g++ -o ../tools/ssdb-dump ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} ssdb-dump.cpp
-	g++ -o ../tools/leveldb-import ${OBJS} ${UTIL_OBJS} ${CFLAGS} ${CLIBS} leveldb-import.cpp
+	g++ -o ../ssdb-server ssdb-server.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ -o ../tools/ssdb-dump ssdb-dump.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ -o ../tools/ssdb-repair ssdb-repair.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ -o ../tools/leveldb-import leveldb-import.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
 
 objs: ssdb.h ${OBJS}
 	

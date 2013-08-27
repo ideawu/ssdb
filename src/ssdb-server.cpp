@@ -337,6 +337,10 @@ void init(int argc, char **argv){
 
 	{ // ssdb
 		ssdb = SSDB::open(*conf, work_dir);
+		if(!ssdb){
+			log_fatal("could not open SSDB!");
+			exit(0);
+		}
 	}
 
 	{ // server
