@@ -648,7 +648,9 @@ $ssdb-&gt;zlist('a', 'z', 10);
 <h3>zkeys</h3>
 
 <h4><em>Description</em></h4>
-<p>List keys of a zset in range (key_start+score_start, score_end]. If key_start is empty, keys with a score greater than or equal to score_start will be returned. If key_start is not empty, keys with score larger than score_start, and keys larger than key_start also with score no less than(greater than or equal to) score_start will be returned.</p>
+<p>List keys of a zset in range (key_start+score_start, score_end]. If key_start is empty, keys with a score greater than or equal to score_start will be returned. If key_start is not empty, keys with score larger than score_start, and keys larger than key_start also with score equal to score_start will be returned.</p>
+	
+<p>That is: return keys in <code>(key.score == score_start &amp;&amp; key &gt; key_start || key.score &gt; score_start)</code>.</p>
 
 <h4><em>Parameters</em></h4>
 <dl>

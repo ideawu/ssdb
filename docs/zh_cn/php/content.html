@@ -649,7 +649,9 @@ $ssdb-&gt;zlist('a', 'z', 10);
 <h3>zkeys</h3>
 
 <h4><em>说明</em></h4>
-<p>列出 zset 中处于区间 (key_start+score_start, score_end] 的 key 列表. 如果 key_start 为空, 那么对应权重值大于或者等于 score_start 的 key 将被返回. 如果 key_start 不为空, 那么对应权重值大于 score_start 的 key, 和对应权重值等于 score_start 的 key 将被返回.</p>
+<p>列出 zset 中处于区间 (key_start+score_start, score_end] 的 key 列表. 如果 key_start 为空, 那么对应权重值大于或者等于 score_start 的 key 将被返回. 如果 key_start 不为空, 那么对应权重值大于 score_start 的 key, 和大于 key_start 且对应权重值等于 score_start 的 key 将被返回.</p>
+
+<p>也就是说, 返回的 key 在 <code>(key.score == score_start &amp;&amp; key &gt; key_start || key.score &gt; score_start)</code> 区间.</p>
 
 <h4><em>参数</em></h4>
 <dl>
