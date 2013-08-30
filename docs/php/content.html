@@ -693,6 +693,25 @@ $ssdb-&gt;zkeys('h', '', 1, 100, 10);
 $ssdb-&gt;zscan('a', 'z', 10);
 </pre>
 
+<p>Iterate over zset:</p>
+<pre>
+$key_start = ''; 
+$score_start = ''; 
+while(1){
+    $items = $ssdb-&gt;zscan($zname, $key_start, $score_start, '', 10);
+    if(!$items){
+        break;
+    }   
+    foreach($items as $key=&gt;$score){
+        // process($key, $score)...
+
+        // remember the currently largest key and its score
+        $key_start = $key;
+        $score_start = $score;
+    }   
+}
+</pre>
+
 
 <a name="m-zrscan"></a>
 <h3>zrscan</h3>
