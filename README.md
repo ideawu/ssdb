@@ -7,6 +7,7 @@ SSDB's goal is to replace or co-work with Redis.
 ## Features
 
 * LevelDB client-server support, written in C/C++
+* Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
 * Client API supports including [C/C++](https://github.com/ideawu/ssdb/wiki/Documentation_C_API), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](https://github.com/ideawu/ssdb/wiki/Documentation_Java_API)
 * Online backup, fast recover
@@ -34,6 +35,8 @@ $ wget --no-check-certificate https://github.com/ideawu/ssdb/archive/master.zip
 $ unzip master
 $ cd ssdb-master
 $ make
+$ #optional, install ssdb in /usr/local/ssdb
+$ sudo make install
 
 # start master
 $ ./ssdb-server ssdb.conf
