@@ -1,4 +1,5 @@
 *.o
+*.class
 .DS_Store
 *.pyc
 var/*
