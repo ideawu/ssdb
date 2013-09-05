@@ -9,7 +9,7 @@ SSDB's goal is to replace or co-work with Redis.
 * LevelDB client-server support, written in C/C++
 * Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
-* Client API supports including [C/C++](https://github.com/ideawu/ssdb/wiki/Documentation_C_API), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/java-doc/)
+* Client API supports including [C/C++](https://github.com/ideawu/ssdb/wiki/Documentation_C_API), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/java-doc/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb)
 * Online backup, fast recover
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
 * <i>Future Features</i>
