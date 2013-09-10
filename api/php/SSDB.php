@@ -470,7 +470,8 @@ class SSDB
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response($resp[0], $resp[1]);
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
 				}
 				break;
 			case 'keys':
