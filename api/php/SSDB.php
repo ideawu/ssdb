@@ -153,7 +153,9 @@ class SSDB
 	private function check_easy_resp($cmd, $resp){
 		$this->last_resp = $resp;
 		if($this->_easy){
-			if(!$resp->ok() && !is_array($resp->data)){
+			if($resp->not_found()){
+				return NULL;
+			}else if(!$resp->ok() && !is_array($resp->data)){
 				return false;
 			}else{
 				return $resp->data;

@@ -100,6 +100,8 @@ class SSDBTest extends UnitTest{
 		$this->assert(count($ret) == 2);
 
 		$ssdb->del('TEST_a');
+		$ret = $ssdb->get('TEST_a');
+		$this->assert($ret === null);
 		$ssdb->del('TEST_b');
 	}
 
@@ -176,6 +178,10 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->hlist("TEST_a", "TEST_b", 100);
 		$this->assert(count($ret) == 1);
 		$this->assert($ret[0] == "TEST_b");
+
+		$ssdb->hdel('TEST_a', 'a');
+		$ret = $ssdb->hget('TEST_a', 'a');
+		$this->assert($ret === null);
 	}
 
 	function test_zset(){
@@ -242,6 +248,10 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->zlist("TEST_a", "TEST_b", 100);
 		$this->assert(count($ret) == 1);
 		$this->assert($ret[0] == "TEST_b");
+
+		$ssdb->zdel('TEST_a', 'a');
+		$ret = $ssdb->zget('TEST_a', 'a');
+		$this->assert($ret === null);
 	}
 }
 

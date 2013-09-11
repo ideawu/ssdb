@@ -133,7 +133,7 @@ $ssdb-&gt;set('key', 'value');
 </dl>
 
 <h4><em>返回值</em></h4>
-<p>如果出错或者 key 不存在, 则返回 <code>false</code>, 否则返回 key 对应的值内容.</p>
+<p>如果 key 不存在则返回 <code>null</code>, 如果出错则返回 <code>false</code>, 否则返回 key 对应的值内容.</p>
 
 <h4><em>示例</em></h4>
 <pre>
@@ -329,7 +329,7 @@ $ssdb-&gt;hset('h', 'key', 'value');
 </dl>
 
 <h4><em>返回值</em></h4>
-<p>如果出错或者 key 不存在, 则返回 <code>false</code>, 否则返回 key 对应的值内容.</p>
+<p>如果 key 不存在则返回 <code>null</code>, 如果出错则返回 <code>false</code>, 否则返回 key 对应的值内容.</p>
 
 <h4><em>示例</em></h4>
 <pre>
@@ -574,7 +574,7 @@ $ssdb-&gt;zset('z', 'key', 100);
 </dl>
 
 <h4><em>返回值</em></h4>
-<p>如果出错或者 key 不存在, 则返回 <code>false</code>, 否则返回 key 对应的权重值.</p>
+<p>如果 key 不存在则返回 <code>null</code>, 如果出错则返回 <code>false</code>, 否则返回 key 对应的权重值.</p>
 
 <h4><em>示例</em></h4>
 <pre>

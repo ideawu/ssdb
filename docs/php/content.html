@@ -133,7 +133,7 @@ $ssdb-&gt;set('key', 'value');
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the value related to this key is returned.</p>
+<p>Returns <code>null</code> if key not found, <code>false</code> on error, therwise, the value related to that key is returned.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -328,7 +328,7 @@ $ssdb-&gt;hset('h', 'key', 'value');
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the value related to this key is returned.</p>
+<p>Returns <code>null</code> if key not found, <code>false</code> on error, therwise, the value related to this key is returned.</p>
 
 <h4><em>Example</em></h4>
 <pre>
@@ -573,7 +573,7 @@ $ssdb-&gt;zset('z', 'key', 100);
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p> If key didn't exist or error occurs, <code>false</code> is returned. Otherwise, the score related to this key is returned.</p>
+<p>Returns <code>null</code> if key not found, <code>false</code> on error, therwise, the score related to this key is returned.</p>
 
 <h4><em>Example</em></h4>
 <pre>
