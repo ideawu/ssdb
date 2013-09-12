@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include <assert.h>
+#include <errno.h>
 #include <string>
 #include "backend_sync.h"
 #include "util/strings.h"
@@ -95,7 +96,7 @@ void* BackendSync::_run_thread(void *arg){
 		}
 
 		if(link->flush() == -1){
-			log_debug("fd: %d, send error", link->fd());
+			log_error("fd: %d, send error: %s", link->fd(), strerror(errno));
 			break;
 		}
 	}
@@ -276,32 +277,35 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 	if(type == BinlogType::MIRROR && this->is_mirror){
 		if(this->last_seq - this->last_noop_seq >= 1000){
 			this->noop();
+			return 1;
+		}else{
+			return 0;
 		}
-	}else{
-		int ret = 0;
-		std::string val;
-		switch(log.cmd()){
-			case BinlogCommand::KSET:
-			case BinlogCommand::HSET:
-			case BinlogCommand::ZSET:
-				ret = backend->ssdb->raw_get(log.key(), &val);
-				if(ret == -1){
-					log_error("fd: %d, raw_get error!", link->fd());
-				}else if(ret == 0){
-					//log_debug("%s", hexmem(log.key().data(), log.key().size()).c_str());
-					log_trace("fd: %d, skip not found: %s", link->fd(), log.dumps().c_str());
-				}else{
-					log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-					link->send(log.repr(), val);
-				}
-				break;
-			case BinlogCommand::KDEL:
-			case BinlogCommand::HDEL:
-			case BinlogCommand::ZDEL:
+	}
+
+	int ret = 0;
+	std::string val;
+	switch(log.cmd()){
+		case BinlogCommand::KSET:
+		case BinlogCommand::HSET:
+		case BinlogCommand::ZSET:
+			ret = backend->ssdb->raw_get(log.key(), &val);
+			if(ret == -1){
+				log_error("fd: %d, raw_get error!", link->fd());
+			}else if(ret == 0){
+				//log_debug("%s", hexmem(log.key().data(), log.key().size()).c_str());
+				log_trace("fd: %d, skip not found: %s", link->fd(), log.dumps().c_str());
+			}else{
 				log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-				link->send(log.repr());
-				break;
-		}
+				link->send(log.repr(), val);
+			}
+			break;
+		case BinlogCommand::KDEL:
+		case BinlogCommand::HDEL:
+		case BinlogCommand::ZDEL:
+			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+			link->send(log.repr());
+			break;
 	}
 	return 1;
 }
