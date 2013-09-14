@@ -317,7 +317,7 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
 		logs->del_range(start, end);
 		logs->min_seq = end + 1;
-		log_debug("clean %d logs[%"PRIu64" ~ %"PRIu64"], %d left, max: %"PRIu64"",
+		log_info("clean %d logs[%"PRIu64" ~ %"PRIu64"], %d left, max: %"PRIu64"",
 			end-start+1, start, end, logs->last_seq - logs->min_seq + 1, logs->last_seq);
 	}
 	log_debug("clean_thread quit");

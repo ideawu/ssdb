@@ -9,7 +9,7 @@ try{
 
 function welcome(){
 	print ('ssdb (cli) - ssdb command line tool.');
-	print ('Copyright (c) 2012 ideawu.com');
+	print ('Copyright (c) 2012-2013 ideawu.com');
 	print ('');
 	print "'h' or 'help' for help, 'q' to quit.";
 	print ('');
@@ -18,6 +18,8 @@ welcome();
 
 function show_command_help(){
 	print '';
+	print '# Display ssdb-server status';
+	print '	info';
 	print '# KEY-VALUE COMMANDS';
 	print '	set key value';
 	print '	get key';

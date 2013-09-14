@@ -32,7 +32,7 @@ BackendSync::~BackendSync(){
 }
 
 void BackendSync::proc(const Link *link){
-	log_info("accept sync client");
+	log_info("fd: %d, accept sync client", link->fd());
 	struct run_arg *arg = new run_arg();
 	arg->link = link;
 	arg->backend = this;
