@@ -12,6 +12,8 @@ class Slave{
 	private:
 		uint64_t last_seq;
 		std::string last_key;
+		uint64_t copy_count;
+		uint64_t sync_count;
 
 		SSDB *ssdb;
 		Link *link;
@@ -34,7 +36,7 @@ class Slave{
 		int proc_copy(const Binlog &log, const std::vector<Bytes> &req);
 		int proc_sync(const Binlog &log, const std::vector<Bytes> &req);
 
-		int connect_retry;
+		unsigned int connect_retry;
 		int connect();
 		bool connected(){
 			return link != NULL;

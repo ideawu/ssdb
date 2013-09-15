@@ -259,7 +259,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			continue;
 		}
 		if(this->last_seq != 0 && log.seq() != expect_seq){
-			log_warn("fd: %d, OUT_OF_SYNC! seq: %"PRIu64", last_seq: %"PRIu64"",
+			log_warn("fd: %d, OUT_OF_SYNC! log.seq: %"PRIu64", expect_seq: %"PRIu64"",
 				link->fd(),
 				log.seq(),
 				expect_seq

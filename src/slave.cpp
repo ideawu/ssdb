@@ -22,6 +22,9 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 	this->last_seq = 0;
 	this->last_key = "";
 	this->connect_retry = 0;
+	
+	this->copy_count = 0;
+	this->sync_count = 0;
 
 	load_status();
 	log_debug("last_seq: %"PRIu64", last_key: %s",
@@ -92,12 +95,7 @@ int Slave::connect(){
 	const char *ip = this->master_ip.c_str();
 	int port = this->master_port;
 	
-	if(++connect_retry > 101){
-		connect_retry = 62;
-	}
-	//log_debug("%d", retry);
-	// TODO: 找一个公式
-	if(connect_retry == 1 || connect_retry == 31 || connect_retry == 61 || connect_retry == 101){
+	if(++connect_retry % 50 == 1){
 		log_info("[%d] connecting to master at %s:%d...", connect_retry-1, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
@@ -117,7 +115,7 @@ int Slave::connect(){
 				link = NULL;
 				goto err;
 			}
-			log_info("ready to receive binlogs...");
+			log_info("ready to receive binlogs");
 			return 1;
 		}
 	}
@@ -169,7 +167,7 @@ void* Slave::_run_thread(void *arg){
 		idle = 0;
 
 		if(slave->link->read() <= 0){
-			log_error("link.read error: %s, reconnecting to master...", strerror(errno));
+			log_error("link.read error: %s, reconnecting to master", strerror(errno));
 			reconnect = true;
 			sleep(3);
 			continue;
@@ -178,7 +176,7 @@ void* Slave::_run_thread(void *arg){
 		while(1){
 			req = slave->link->recv();
 			if(req == NULL){
-				log_error("link.recv error: %s, reconnecting to master...", strerror(errno));
+				log_error("link.recv error: %s, reconnecting to master", strerror(errno));
 				reconnect = true;
 				sleep(3);
 				break;
@@ -206,24 +204,37 @@ int Slave::proc(const std::vector<Bytes> &req){
 		log_error("invalid binlog!");
 		return 0;
 	}
-	if(log.type() != BinlogType::NOOP){
-		if(this->is_mirror){
-			log_debug("[mirror] %s", log.dumps().c_str());
-		}else{
-			log_debug("[sync] %s", log.dumps().c_str());
-		}
-	}
 	switch(log.type()){
 		case BinlogType::NOOP:
 			return this->proc_noop(log, req);
 			break;
-		case BinlogType::COPY:
+		case BinlogType::COPY:{
+			if(++copy_count % 1000 == 1){
+				log_info("copy_count: %"PRIu64", last_seq: %"PRIu64", seq: %"PRIu64"",
+					copy_count, this->last_seq, log.seq());
+			}
+			if(this->is_mirror){
+				log_trace("[mirror] %s", log.dumps().c_str());
+			}else{
+				log_trace("[sync] %s", log.dumps().c_str());
+			}
 			return this->proc_copy(log, req);
 			break;
+		}
 		case BinlogType::SYNC:
-		case BinlogType::MIRROR:
+		case BinlogType::MIRROR:{
+			if(++sync_count % 1000 == 1){
+				log_info("sync_count: %"PRIu64", last_seq: %"PRIu64", seq: %"PRIu64"",
+					sync_count, this->last_seq, log.seq());
+			}
+			if(this->is_mirror){
+				log_debug("[mirror] %s", log.dumps().c_str());
+			}else{
+				log_debug("[sync] %s", log.dumps().c_str());
+			}
 			return this->proc_sync(log, req);
 			break;
+		}
 		default:
 			break;
 	}
