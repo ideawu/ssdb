@@ -178,8 +178,9 @@ void* Slave::_run_thread(void *arg){
 		while(1){
 			req = slave->link->recv();
 			if(req == NULL){
-				log_error("link.recv error, reconnecting to master...");
+				log_error("link.recv error: %s, reconnecting to master...", strerror(errno));
 				reconnect = true;
+				sleep(3);
 				break;
 			}else if(req->empty()){
 				break;
