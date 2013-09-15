@@ -159,17 +159,19 @@ void* Slave::_run_thread(void *arg){
 			break;
 		}else if(events->empty()){
 			if(idle++ >= MAX_RECV_IDLE){
-				log_error("the master haven't responsed for awhile, reconnect...");
+				log_error("the master hasn't responsed for awhile, reconnect...");
 				idle = 0;
 				reconnect = true;
+				sleep(3);
 			}
 			continue;
 		}
 		idle = 0;
 
 		if(slave->link->read() <= 0){
-			log_error("link.read error, reconnecting to master...");
+			log_error("link.read error: %s, reconnecting to master...", strerror(errno));
 			reconnect = true;
+			sleep(3);
 			continue;
 		}
 
