@@ -266,20 +266,21 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			this->status = Client::OUT_OF_SYNC;
 			return 1;
 		}
-		break;
-	}
 	
-	// update last_seq
-	this->last_seq = log.seq();
+		// update last_seq
+		this->last_seq = log.seq();
 
-	char type = log.type();
-	if(type == BinlogType::MIRROR && this->is_mirror){
-		if(this->last_seq - this->last_noop_seq >= 1000){
-			this->noop();
-			return 1;
-		}else{
-			return 0;
+		char type = log.type();
+		if(type == BinlogType::MIRROR && this->is_mirror){
+			if(this->last_seq - this->last_noop_seq >= 1000){
+				this->noop();
+				return 1;
+			}else{
+				continue;
+			}
 		}
+		
+		break;
 	}
 
 	int ret = 0;
