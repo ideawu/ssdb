@@ -133,7 +133,7 @@ void* Slave::_run_thread(void *arg){
 	bool reconnect = false;
 	
 #define RECV_TIMEOUT	200
-#define MAX_RECV_IDLE	30 * 1000/RECV_TIMEOUT
+#define MAX_RECV_IDLE	300 * 1000/RECV_TIMEOUT
 
 	while(!slave->thread_quit){
 		if(reconnect){
@@ -160,7 +160,6 @@ void* Slave::_run_thread(void *arg){
 				log_error("the master hasn't responsed for awhile, reconnect...");
 				idle = 0;
 				reconnect = true;
-				sleep(3);
 			}
 			continue;
 		}
@@ -169,7 +168,7 @@ void* Slave::_run_thread(void *arg){
 		if(slave->link->read() <= 0){
 			log_error("link.read error: %s, reconnecting to master", strerror(errno));
 			reconnect = true;
-			sleep(3);
+			sleep(1);
 			continue;
 		}
 
@@ -178,7 +177,7 @@ void* Slave::_run_thread(void *arg){
 			if(req == NULL){
 				log_error("link.recv error: %s, reconnecting to master", strerror(errno));
 				reconnect = true;
-				sleep(3);
+				sleep(1);
 				break;
 			}else if(req->empty()){
 				break;

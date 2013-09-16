@@ -198,7 +198,7 @@ int BackendSync::Client::copy(){
 			Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::END, "");
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), "copy_end");
-			break;
+			return 1;
 		}else{
 			Bytes key = iter->key();
 			Bytes val = iter->val();
@@ -224,12 +224,11 @@ int BackendSync::Client::copy(){
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), val);
 			//if(link->output->size() > 1024 * 1024){
-			break;
+			return 1;
 			//}
 		}
 	}
-	
-	return 1;
+	return 0;
 }
 
 int BackendSync::Client::sync(BinlogQueue *logs){
