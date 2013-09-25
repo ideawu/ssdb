@@ -2,7 +2,7 @@
 BASE_DIR=`pwd`
 TARGET_OS=`uname -s`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
-LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.9.0"
+LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
 
 case "$TARGET_OS" in
     Darwin)
