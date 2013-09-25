@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/socket.h>
 
 #include "link.h"
 #include "util/log.h"
