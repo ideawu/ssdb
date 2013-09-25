@@ -134,6 +134,11 @@ See Benchmark
 
 See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 
+## Windows executable
+
+Download ssdb-server.exe from here: https://github.com/ideawu/ssdb-bin
+
+
 ## Links
 
 * [Author's homepage](http://www.ideawu.com/blog/)
