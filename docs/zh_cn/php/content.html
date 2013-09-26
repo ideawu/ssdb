@@ -161,6 +161,27 @@ $ssdb-&gt;del('key');
 </pre>
 
 
+<a name="m-incr"></a>
+<h3>incr</h3>
+
+<h4><em>说明</em></h4>
+<p>使 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - 必须是整数.</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回新的值.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;incr('key');
+</pre>
+
+
 <a name="m-keys"></a>
 <h3>keys</h3>
 
@@ -355,6 +376,28 @@ $ssdb-&gt;hget('h', 'key');
 <h4><em>示例</em></h4>
 <pre>
 $ssdb-&gt;hdel('h', 'key');
+</pre>
+
+
+<a name="m-hincr"></a>
+<h3>hincr</h3>
+
+<h4><em>说明</em></h4>
+<p>使 hashmap 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - hashmap 的名字.</dd>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - 必须是整数.</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回新的值.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;hincr('h', 'key');
 </pre>
 
 
@@ -600,6 +643,28 @@ $ssdb-&gt;zget('z', 'key');
 <h4><em>示例</em></h4>
 <pre>
 $ssdb-&gt;zdel('hz, 'key');
+</pre>
+
+
+<a name="m-zincr"></a>
+<h3>zincr</h3>
+
+<h4><em>说明</em></h4>
+<p>使 zset 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - 必须是整数.</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回新的值.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;zincr('z', 'key');
 </pre>
 
 

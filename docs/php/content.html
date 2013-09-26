@@ -161,6 +161,27 @@ $ssdb-&gt;del('key');
 </pre>
 
 
+<a name="m-incr"></a>
+<h3>incr</h3>
+
+<h4><em>Description</em></h4>
+<p>Increment the number stored at <code>key</code> by <code>num</code>. The <code>num</code> argument could be a negative integer. The old number is first converted to an integer before increment, assuming it was stored as literal integer.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - Must be a signed integer.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values the new value.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;incr('key');
+</pre>
+
+
 <a name="m-keys"></a>
 <h3>keys</h3>
 
@@ -354,6 +375,28 @@ $ssdb-&gt;hget('h', 'key');
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;hdel('h', 'key');
+</pre>
+
+
+<a name="m-hincr"></a>
+<h3>hincr</h3>
+
+<h4><em>Description</em></h4>
+<p>Increment the number stored at <code>key</code> in a hashmap by <code>num</code>. The <code>num</code> argument could be a negative integer. The old number is first converted to an integer before increment, assuming it was stored as literal integer.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - Must be a signed integer.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values the new value.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hincr('h', 'key');
 </pre>
 
 
@@ -599,6 +642,28 @@ $ssdb-&gt;zget('z', 'key');
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;zdel('hz, 'key');
+</pre>
+
+
+<a name="m-zincr"></a>
+<h3>zincr</h3>
+
+<h4><em>Description</em></h4>
+<p>Increment the number stored at <code>key</code> in a zset by <code>num</code>. The <code>num</code> argument could be a negative integer. The old number is first converted to an integer before increment, assuming it was stored as literal integer.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key</code> - </dd>
+	<dd><code>num</code> - Must be a signed integer.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values the new value.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zincr('z', 'key');
 </pre>
 
 
