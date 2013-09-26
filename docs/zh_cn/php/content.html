@@ -165,7 +165,7 @@ $ssdb-&gt;del('key');
 <h3>incr</h3>
 
 <h4><em>说明</em></h4>
-<p>使 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+<p>使 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 如果原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
 
 <h4><em>参数</em></h4>
 <dl>
@@ -383,7 +383,7 @@ $ssdb-&gt;hdel('h', 'key');
 <h3>hincr</h3>
 
 <h4><em>说明</em></h4>
-<p>使 hashmap 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+<p>使 hashmap 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 如果原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
 
 <h4><em>参数</em></h4>
 <dl>
@@ -650,7 +650,7 @@ $ssdb-&gt;zdel('hz, 'key');
 <h3>zincr</h3>
 
 <h4><em>说明</em></h4>
-<p>使 zset 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 数据原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
+<p>使 zset 中的 <code>key</code> 对应的值增加 <code>num</code>. 参数 <code>num</code> 可以为负数. 如果原来的值不是整数(字符串形式的整数), 它会被先转换成整数.</p>
 
 <h4><em>参数</em></h4>
 <dl>
