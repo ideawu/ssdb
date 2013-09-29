@@ -8,7 +8,7 @@ all:
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
 	cd "${LEVELDB_PATH}"; make
-	$(eval export CFLAGS=-DNDEBUG -Wall -O2 -Wno-sign-compare)
+	$(eval export CFLAGS=-DNDEBUG -Wall -O2 -Wno-sign-compare -D__STDC_FORMAT_MACROS)
 	cd src/util; make
 	cd src; make
 	cd tools; make
