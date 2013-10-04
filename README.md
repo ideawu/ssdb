@@ -2,7 +2,7 @@
 
 SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL persistent storage server, using Google LevelDB as storage engine. 
 
-SSDB's goal is to replace or co-work with Redis.
+SSDB is stable, production-ready and is widely used by many Internet companies such as QIHU 360.
 
 ## Features
 
