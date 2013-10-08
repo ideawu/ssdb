@@ -31,6 +31,7 @@ function show_command_help(){
 	print '	hset name key value';
 	print '	hget name key';
 	print '	hdel name key';
+	print '	hclear name';
 	print '	hlist name_start name_end limit';
 	print '	hkeys name key_start key_end limit';
 	print '	hscan name key_start key_end limit';
@@ -38,6 +39,7 @@ function show_command_help(){
 	print '	zset name key score';
 	print '	zget name key';
 	print '	zdel name key';
+	print '	zclear name';
 	print '	zlist name_start name_end limit';
 	print '	zkeys name key_start score_start score_end limit';
 	print '	zscan name key_start score_start score_end limit';
