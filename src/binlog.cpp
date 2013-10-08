@@ -289,6 +289,10 @@ int BinlogQueue::del(uint64_t seq){
 	return 0;
 }
 
+void BinlogQueue::flush(){
+	del_range(this->min_seq, this->last_seq);
+}
+
 int BinlogQueue::del_range(uint64_t start, uint64_t end){
 	while(start <= end){
 		leveldb::WriteBatch batch;

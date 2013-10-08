@@ -58,7 +58,7 @@ typedef struct _ProcJob{
 
 class Server{
 	private:
-		static const int MAX_WRITERS = 1;
+		static const int MAX_WRITERS = 2;
 	public:
 		SSDB *ssdb;
 		BackendDump *backend_dump;

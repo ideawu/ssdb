@@ -87,6 +87,7 @@ static proc_map_t proc_map;
 	DEF_PROC(multi_zget);
 	DEF_PROC(multi_zset);
 	DEF_PROC(multi_zdel);
+	DEF_PROC(clear_binlog);
 
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
@@ -146,10 +147,12 @@ static Command commands[] = {
 	PROC(multi_zset, "w"),
 	PROC(multi_zdel, "w"),
 
+	PROC(clear_binlog, "w"),
+
 	PROC(dump, "b"),
 	PROC(sync140, "b"),
 	PROC(info, "r"),
-	PROC(compact, "r"),
+	PROC(compact, "w"),
 	PROC(key_range, "r"),
 
 	{NULL, NULL, 0, NULL}
@@ -257,6 +260,12 @@ int Server::WriteProc::proc(ProcJob *job){
 	return 0;
 }
 
+
+static int proc_clear_binlog(Server *serv, Link *link, const Request &req, Response *resp){
+	serv->ssdb->binlogs->flush();
+	resp->push_back("ok");
+	return 0;
+}
 
 static int proc_dump(Server *serv, Link *link, const Request &req, Response *resp){
 	serv->backend_dump->proc(link);

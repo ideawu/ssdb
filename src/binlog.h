@@ -80,6 +80,8 @@ class BinlogQueue{
 		int get(uint64_t seq, Binlog *log) const;
 		int update(uint64_t seq, char type, char cmd, const std::string &key);
 		
+		void flush();
+		
 		/** @returns
 		 1 : log.seq greater than or equal to seq
 		 0 : not found
