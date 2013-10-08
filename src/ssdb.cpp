@@ -46,6 +46,12 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int write_buffer_size = conf.get_num("leveldb.write_buffer_size");
 	int block_size = conf.get_num("leveldb.block_size");
 	int compaction_speed = conf.get_num("leveldb.compaction_speed");
+	std::string compression = conf.get_str("leveldb.compression");
+
+	strtolower(&compression);
+	if(compression != "yes"){
+		compression = "no";
+	}
 
 	if(cache_size <= 0){
 		cache_size = 8;
@@ -63,6 +69,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("block_size       : %d KB", block_size);
 	log_info("write_buffer     : %d MB", write_buffer_size);
 	log_info("compaction_speed : %d MB/s", compaction_speed);
+	log_info("compression      : %s", compression.c_str());
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -72,6 +79,11 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	ssdb->options.block_size = block_size * 1024;
 	ssdb->options.write_buffer_size = write_buffer_size * 1024 * 1024;
 	ssdb->options.compaction_speed = compaction_speed;
+	if(compression == "yes"){
+		ssdb->options.compression = leveldb::kSnappyCompression;
+	}else{
+		ssdb->options.compression = leveldb::kNoCompression;
+	}
 
 	leveldb::Status status;
 	{
@@ -221,6 +233,10 @@ std::vector<std::string> SSDB::info() const{
 	}
 
 	return info;
+}
+
+void SSDB::compact() const{
+	db->CompactRange(NULL, NULL);
 }
 
 int SSDB::key_range(std::vector<std::string> *keys) const{

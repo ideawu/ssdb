@@ -40,6 +40,7 @@ public:
 
 	//void flushdb();
 	std::vector<std::string> info() const;
+	void compact() const;
 	int key_range(std::vector<std::string> *keys) const;
 
 	/* raw operates */

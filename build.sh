@@ -3,6 +3,7 @@ BASE_DIR=`pwd`
 TARGET_OS=`uname -s`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
+SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
 case "$TARGET_OS" in
     Darwin)
@@ -41,21 +42,33 @@ case "$TARGET_OS" in
 esac
 
 
+DIR=`pwd`
+cd $SNAPPY_PATH
+if [ ! -f Makefile ]; then
+	echo ""
+	echo "##### building snappy... #####"
+	./configure
+	make
+	echo "##### building snappy finished #####"
+	echo ""
+fi
+cd "$DIR"
+
 
 if [[ $TARGET_OS == CYGWIN* ]]; then
 	echo "not using jemalloc on $TARGET_OS"
 else
-	echo ""
-	echo "building jemalloc..."
 	DIR=`pwd`
-	cd deps/jemalloc-3.3.1
+	cd $JEMALLOC_PATH
 	if [ ! -f Makefile ]; then
+		echo ""
+		echo "##### building jemalloc... #####"
 		./configure
 		make
+		echo "##### building jemalloc finished #####"
+		echo ""
 	fi
 	cd "$DIR"
-	echo "building jemalloc finished"
-	echo ""
 fi
 
 
@@ -77,6 +90,7 @@ echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
 echo "PLATFORM_LDFLAGS += $PLATFORM_LDFLAGS" >> build_config.mk
 echo "PLATFORM_LDFLAGS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
+echo "PLATFORM_LDFLAGS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
 echo "PLATFORM_CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
 
 if [[ $TARGET_OS == CYGWIN* ]]; then

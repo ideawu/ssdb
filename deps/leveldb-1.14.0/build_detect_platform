@@ -185,10 +185,11 @@ EOF
       #include <snappy.h>
       int main() {}
 EOF
-    if [ "$?" = 0 ]; then
-        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
-        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
-    fi
+#    if [ "$?" = 0 ]; then
+#        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
+#        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
+#    fi
+    COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY -I../snappy-1.1.0"
 
     # Test whether tcmalloc is available
     $CXX $CXXFLAGS -x c++ - -o $CXXOUTPUT -ltcmalloc 2>/dev/null  <<EOF

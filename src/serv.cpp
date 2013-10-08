@@ -91,6 +91,7 @@ static proc_map_t proc_map;
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
 	DEF_PROC(info);
+	DEF_PROC(compact);
 	DEF_PROC(key_range);
 #undef DEF_PROC
 
@@ -148,6 +149,7 @@ static Command commands[] = {
 	PROC(dump, "b"),
 	PROC(sync140, "b"),
 	PROC(info, "r"),
+	PROC(compact, "r"),
 	PROC(key_range, "r"),
 
 	{NULL, NULL, 0, NULL}
@@ -320,6 +322,12 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 		}
 	}
 	
+	return 0;
+}
+
+static int proc_compact(Server *serv, Link *link, const Request &req, Response *resp){
+	serv->ssdb->compact();
+	resp->push_back("ok");
 	return 0;
 }
 

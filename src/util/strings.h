@@ -3,6 +3,7 @@
 
 #include "../include.h"
 #include <string>
+#include <algorithm>
 
 inline static
 int is_empty_str(const char *str){
@@ -42,6 +43,16 @@ char *trim(char *str){
 	p = ltrim(str);
 	rtrim(p);
 	return p;
+}
+
+inline static
+void strtolower(std::string *str){
+	std::transform(str->begin(), str->end(), str->begin(), ::tolower);
+}
+
+inline static
+void strtoupper(std::string *str){
+	std::transform(str->begin(), str->end(), str->begin(), ::toupper);
 }
 
 inline static
