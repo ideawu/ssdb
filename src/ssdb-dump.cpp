@@ -9,6 +9,7 @@
 #include "leveldb/iterator.h"
 
 #include "link.h"
+#include "include.h"
 #include "util/log.h"
 #include "util/file.h"
 #include "util/strings.h"
@@ -120,7 +121,7 @@ int main(int argc, char **argv){
 			}else if(cmd == "set"){
 				/*
 				std::string s = serialize_req(*req);
-				printf("%s", s.c_str());
+				printf("%s\n", s.c_str());
 				*/
 
 				if(req->size() != 3){
@@ -129,6 +130,10 @@ int main(int argc, char **argv){
 				}
 				Bytes key = req->at(1);
 				Bytes val = req->at(2);
+				if(key.size() == 0 || key.data()[0] == DataType::SYNCLOG){
+					continue;
+				}
+				
 				leveldb::Slice k = key.Slice();
 				leveldb::Slice v = val.Slice();
 				status = db->Put(leveldb::WriteOptions(), k, v);
