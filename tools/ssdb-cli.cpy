@@ -94,6 +94,76 @@ function repr_data(str){
 	return ret;
 }
 
+function hclear(link, hname){
+    ret = 0;
+	batch = 100;
+	while(true){
+		r2 = link.request('hkeys', [hname, '', '', batch]);
+		if(len(r2.data) == 0){
+			break;
+		}
+        ret += len(r2.data);
+        keys = r2.data;
+        keys.insert(0, hname);
+        link.request('multi_hdel', keys);
+	}
+    return ret;
+}
+
+function hclear(link, hname, verbose=true){
+    ret = 0;
+    num = 0;
+	batch = 1000;
+	while(true){
+		r2 = link.request('hkeys', [hname, '', '', batch]);
+        num = len(r2.data);
+		if(num == 0){
+            if(verbose != false && ret == 0){
+        		printf('hclear \'%s\' %d key(s).\n', hname, ret);
+            }
+			break;
+		}
+        ret += num;
+        keys = r2.data;
+        keys.insert(0, hname);
+        link.request('multi_hdel', keys);
+        if(verbose != false){
+    		printf('hclear \'%s\' %d key(s).\n', hname, ret);
+        }
+        if(num != batch){
+            break;
+        }
+	}
+    return ret;
+}
+
+function zclear(link, zname, verbose=true){
+    ret = 0;
+    num = 0;
+	batch = 1000;
+	while(true){
+		r2 = link.request('zkeys', [zname, '', '', '', batch]);
+        num = len(r2.data);
+		if(num == 0){
+            if(verbose != false && ret == 0){
+        		printf('zclear \'%s\' %d key(s).\n', zname, ret);
+            }
+			break;
+		}
+        ret += num;
+        keys = r2.data;
+        keys.insert(0, zname);
+        link.request('multi_zdel', keys);
+        if(verbose != false){
+    		printf('zclear \'%s\' %d key(s).\n', zname, ret);
+        }
+        if(num != batch){
+            break;
+        }
+	}
+   return ret;
+}
+
 function flushdb(link, data_type){
 	printf('\n');
 	printf('                  DANGEROUS!\n');
@@ -102,7 +172,7 @@ function flushdb(link, data_type){
 	printf('realy want to flush the whole db(delete ALL data in ssdb server),\n');
 	printf('input \'yes\' and press Enter, or just press Enter to cancel\n');
 	printf('\n');
-	printf('flushdb? ');
+	printf('> flushdb? ');
 	
 	line = sys.stdin.readline().strip();
 	if(line != 'yes'){
@@ -110,7 +180,7 @@ function flushdb(link, data_type){
 		return;
 	}
 
-	print 'Begin to flushdb...';
+	print 'Begin to flushdb...\n';
 	
 	batch = 1000;
 	
@@ -137,22 +207,21 @@ function flushdb(link, data_type){
 			if(len(resp.data) == 0){
 				break;
 			}
+            last_num = 0;
 			foreach(resp.data as hname){
 				d_hash += 1;
-				while(true){
-					r2 = link.request('hkeys', [hname, '', '', batch]);
-					if(len(r2.data) == 0){
-						break;
-					}
-					foreach(r2.data as key){
-						d_hkeys += 1;
-						link.request('hdel', [hname, key]);
-					}
-					printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
-				}
+                deleted_num = hclear(link, hname, false);
+                d_hkeys += deleted_num;
+                if(d_hkeys - last_num >= batch){
+                    last_num = d_hkeys;
+    				printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
+                }
 			}
-			printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
+            if(d_hkeys - last_num >= batch){
+                printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
+            }
 		}
+        printf('delete[hash] %d hash(s), %d key(s).\n', d_hash, d_hkeys);
 	}
 	
 	d_zset = 0;
@@ -163,22 +232,21 @@ function flushdb(link, data_type){
 			if(len(resp.data) == 0){
 				break;
 			}
+            last_num = 0;
 			foreach(resp.data as zname){
 				d_zset += 1;
-				while(true){
-					r2 = link.request('zkeys', [zname, '', '', '', batch]);
-					if(len(r2.data) == 0){
-						break;
-					}
-					foreach(r2.data as key){
-						d_zkeys += 1;
-						link.request('zdel', [zname, key]);
-					}
+                deleted_num = zclear(link, zname, false);
+                d_zkeys += deleted_num;
+                if(d_zkeys - last_num >= batch){
+                    last_num = d_zkeys;
 					printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
-				}
+                }
 			}
-			printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
+            if(d_zkeys - last_num >= batch){
+				printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
+            }
 		}
+		printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
 	}
 
 	printf('\n');
@@ -192,6 +260,15 @@ function flushdb(link, data_type){
 	if(data_type == '' || data_type == 'zset'){
 		printf('[zset] %8d zset(s), %8d key(s).\n', d_zset, d_zkeys);
 	}
+	printf('\n');
+    
+	printf('clear binlog\n');
+    link.request('clear_binlog');
+	printf('\n');
+
+	printf('compacting...\n');
+    link.request('compact');
+	printf('done.\n');
 	printf('\n');
 }
 
@@ -274,6 +351,22 @@ while(true){
 		}
 		continue;
 	}
+    if(cmd == 'hclear'){
+		if(len(args) == 0){
+            printf('Missing arguement 1!\n');
+        }else{
+            hclear(link, args[0]);
+        }
+        continue;
+    }
+    if(cmd == 'zclear'){
+		if(len(args) == 0){
+            printf('Missing arguement 1!\n');
+        }else{
+            zclear(link, args[0]);
+        }
+        continue;
+    }
 
 	retry = 0;
 	max_retry = 5;
