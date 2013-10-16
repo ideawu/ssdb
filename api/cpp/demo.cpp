@@ -21,6 +21,11 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
+	const std::vector<Bytes> *resp;
+	link->request("zset", "z", "a", "10");
+	resp = link->request("zget", "z", "a");
+	printf("%s\n", resp->at(1).String().c_str());
+	
 	while(1){
 		char buf[8192];
 		printf("Press key to read: ");
@@ -28,24 +33,24 @@ int main(int argc, char **argv){
 		if(!line){
 			break;
 		}
-		const std::vector<Bytes> *req;
-		req = link->request("get", line);
-		if(req == NULL){
+		resp = link->request("get", line);
+		if(resp == NULL){
 			printf("error\n");
 			exit(0);
 		}
-		if(req->at(0) == "not_found"){
+		if(resp->at(0) == "not_found"){
 			printf("%s not found!\n", line);
 			continue;
 		}
-		if(req->at(0) != "ok"){
-			printf("server response error: %s\n", req->at(0).String().c_str());
+		if(resp->at(0) != "ok"){
+			printf("server response error: %s\n", resp->at(0).String().c_str());
 			exit(0);
 		}
-		if(req->size() != 2){
+		if(resp->size() != 2){
 			printf("bad response!\n");
+			continue;
 		}
-		printf("%s = %s\n", line, req->at(1).String().c_str());
+		printf("%s = %s\n", line, resp->at(1).String().c_str());
 	}
 	
 	delete link;
