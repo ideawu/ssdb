@@ -21,7 +21,7 @@ typedef std::vector<std::string> Response;
 class Server;
 typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *resp);
 
-typedef struct{
+struct Command{
 	static const int FLAG_READ		= (1 << 0);
 	static const int FLAG_WRITE		= (1 << 1);
 	static const int FLAG_BACKEND	= (1 << 2);
@@ -33,7 +33,7 @@ typedef struct{
 	uint64_t calls;
 	double time_wait;
 	double time_proc;
-}Command;
+};
 
 typedef struct _ProcJob{
 	int result;
