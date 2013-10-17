@@ -2,6 +2,8 @@
 SSDB C++ API Documentation {#mainpage}
 ============
 
+@author: [ideawu](http://www.ideawu.com/)
+
 ## Build the static library(libssdb.a)
 
 Download the SSDB source code from [github](https://github.com/ideawu/ssdb).

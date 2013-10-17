@@ -43,10 +43,10 @@
 
 <h1>SSDB Documentation</h1>
 
-<dl>
+<dl style="font-family: monospace;">
 	<dd>@author: <a href="http://www.ideawu.com/" target="_blank">ideawu</a></dd>
 	<dd>@date: 2013-10-17</dd>
-	<dd><img src="https://github.com/favicon.ico"> <a href="https://github.com/ideawu/ssdb" target="_blank">https://github.com/ideawu/ssdb</a></dd>
+	<dd>@link: <a href="https://github.com/ideawu/ssdb" target="_blank">https://github.com/ideawu/ssdb</a></dd>
 </dl>
 
 <p>SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL persistent storage server, using Google LevelDB as storage engine.</p>
@@ -55,27 +55,55 @@
 
 
 
+<h2>Installation</h2>
+
+<pre>
+$ wget --no-check-certificate https://github.com/ideawu/ssdb/archive/master.zip
+$ unzip master
+$ cd ssdb-master
+$ make
+$ #optional, install ssdb in /usr/local/ssdb
+$ sudo make install
+
+# start master
+$ ./ssdb-server ssdb.conf
+
+# or start as daemon
+$ ./ssdb-server -d ssdb.conf
+
+# start slave
+$ ./ssdb-server ssdb_slave.conf
+
+# ssdb command line
+$ ./tools/ssdb-cli -p 8888
+
+# stop ssdb-server
+$ kill `cat ./var/ssdb.pid`
+</pre>
+
+
+
 <h2>API Docs</h2>
 
 <h3>PHP</h3>
 
 <ul>
-	<li><a href="./php/">SSDB PHP API Doc(English)</a></li>
-	<li><a href="./zh_cn/php/">SSDB PHP 接口文档(Chinese)</a></li>
+	<li><a href="./php/index.html">SSDB PHP API Doc(English)</a></li>
+	<li><a href="./zh_cn/php/index.html">SSDB PHP 接口文档(Chinese)</a></li>
 </ul>
 
 
 <h3>C++</h3>
 
 <ul>
-	<li><a href="./cpp/">SSDB C++ API Doc(English)</a></li>
+	<li><a href="./cpp/index.html">SSDB C++ API Doc(English)</a></li>
 </ul>
 
 
 <h3>Java</h3>
 
 <ul>
-	<li><a href="./java/">SSDB Java API Doc(English)</a></li>
+	<li><a href="./java/index.html">SSDB Java API Doc(English)</a></li>
 </ul>
 
 
