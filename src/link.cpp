@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 
 #include "link.h"
-#include "util/log.h"
 
 #define MAX_PACKET_SIZE		32 * 1024 * 1024
 #define ZERO_BUFFER_SIZE	8
@@ -90,7 +89,7 @@ Link* Link::connect(const char *ip, int port){
 	link->keepalive(true);
 	return link;
 sock_err:
-	log_debug("connect to %s:%d failed: %s", ip, port, strerror(errno));
+	//log_debug("connect to %s:%d failed: %s", ip, port, strerror(errno));
 	if(sock >= 0){
 		::close(sock);
 	}
@@ -128,7 +127,7 @@ Link* Link::listen(const char *ip, int port){
 	link->remote_port = port;
 	return link;
 sock_err:
-	log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
+	//log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
 	if(sock >= 0){
 		::close(sock);
 	}
@@ -143,7 +142,7 @@ Link* Link::accept(){
 
 	while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
 		if(errno != EINTR){
-			log_error("socket %d accept failed: %s", sock, strerror(errno));
+			//log_error("socket %d accept failed: %s", sock, strerror(errno));
 			return NULL;
 		}
 	}
@@ -151,7 +150,7 @@ Link* Link::accept(){
 	struct linger opt = {1, 0};
 	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
 	if (ret != 0) {
-		log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
+		//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
 	}
 
 	link = new Link();
@@ -280,7 +279,7 @@ const std::vector<Bytes>* Link::recv(){
 			return &this->recv_data;;
 		}
 		if(head[0] < '0' || head[0] > '9'){
-			log_warn("bad format");
+			//log_warn("bad format");
 			return NULL;
 		}
 
@@ -293,7 +292,7 @@ const std::vector<Bytes>* Link::recv(){
 
 		int body_len = atoi(head_str);
 		if(body_len < 0){
-			log_warn("bad format");
+			//log_warn("bad format");
 			return NULL;
 		}
 		//log_debug("size: %d, head_len: %d, body_len: %d", size, head_len, body_len);
@@ -318,7 +317,7 @@ const std::vector<Bytes>* Link::recv(){
 			break;
 		}
 		if(parsed > MAX_PACKET_SIZE){
-			 log_warn("fd: %d, exceed max packet size, parsed: %d", this->sock, parsed);
+			 //log_warn("fd: %d, exceed max packet size, parsed: %d", this->sock, parsed);
 			 return NULL;
 		}
 	}
@@ -327,7 +326,7 @@ const std::vector<Bytes>* Link::recv(){
 		input->nice();
 		if(input->space() == 0){
 			if(input->grow() == -1){
-				log_error("fd: %d, unable to resize input buffer!", this->sock);
+				//log_error("fd: %d, unable to resize input buffer!", this->sock);
 				return NULL;
 			}
 			//log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());

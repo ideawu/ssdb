@@ -1,4 +1,5 @@
 *.o
+*.a
 *.class
 .DS_Store
 *.pyc
@@ -14,6 +15,10 @@ _pack
 build_config.mk
 log.txt
 log_slave.txt
+api/cpp/demo
+api/cpp/hello-ssdb
+api/cpp/test
+api/cpp/html
 api/php/a.php
 api/java/Test.java
 

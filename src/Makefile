@@ -1,8 +1,5 @@
 include ../build_config.mk
 
-CFLAGS += ${PLATFORM_CFLAGS}
-CLIBS += ${PLATFORM_LDFLAGS}
-
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o

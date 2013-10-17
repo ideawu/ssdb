@@ -1,6 +1,5 @@
 include ../../build_config.mk
 
-CFLAGS += ${PLATFORM_CFLAGS}
 OBJS = log.o fde.o config.o bytes.o
 EXES = 
 

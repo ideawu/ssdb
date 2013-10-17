@@ -1,9 +1,16 @@
-all:
-	g++ -o demo\
-		-D__STDC_FORMAT_MACROS\
-		-I../../deps/jemalloc-3.3.1/include\
-		-I../../deps/leveldb-1.14.0/include\
-	   	-I../../src ../../src/util/bytes.o\
-	   	../../src/util/log.o ../../src/link.o\
-	   	demo.cpp
+include ../../build_config.mk
 
+all:
+	make lib
+	g++ -o demo libssdb.a demo.cpp
+	g++ -o hello-ssdb libssdb.a hello-ssdb.cpp
+
+lib: SSDB.h SSDB_impl.h SSDB_impl.cpp
+	g++ -I../../src ${CFLAGS} -c SSDB_impl.cpp
+	ar -cru libssdb.a\
+		SSDB_impl.o\
+		../../src/util/bytes.o\
+		../../src/link.o
+
+clean:
+	rm -f demo hello-ssdb libssdb.a SSDB_impl.o

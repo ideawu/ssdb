@@ -7,34 +7,31 @@ SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
 case "$TARGET_OS" in
     Darwin)
-        PLATFORM_LDFLAGS="-pthread"
+        PLATFORM_CLIBS="-pthread"
         ;;
     Linux)
-        PLATFORM_LDFLAGS="-pthread"
+        PLATFORM_CLIBS="-pthread"
         ;;
     CYGWIN_*)
-        PLATFORM_LDFLAGS="-lpthread"
+        PLATFORM_CLIBS="-lpthread"
         ;;
     SunOS)
-        PLATFORM_LIBS="-lpthread -lrt"
+        PLATFORM_CLIBS="-lpthread -lrt"
         ;;
     FreeBSD)
-        PLATFORM_LIBS="-lpthread"
+        PLATFORM_CLIBS="-lpthread"
         ;;
     NetBSD)
-        PLATFORM_LIBS="-lpthread -lgcc_s"
+        PLATFORM_CLIBS="-lpthread -lgcc_s"
         ;;
     OpenBSD)
-        PLATFORM_LDFLAGS="-pthread"
+        PLATFORM_CLIBS="-pthread"
         ;;
     DragonFly)
-        PLATFORM_LIBS="-lpthread"
-        ;;
-    OS_ANDROID_CROSSCOMPILE)
-        PLATFORM_LDFLAGS=""  # All pthread features are in the Android C library
+        PLATFORM_CLIBS="-lpthread"
         ;;
     HP-UX)
-        PLATFORM_LDFLAGS="-pthread"
+        PLATFORM_CLIBS="-pthread"
         ;;
     *)
         echo "Unknown platform!" >&2
@@ -88,15 +85,22 @@ echo "#endif" >> src/version.h
 rm -f build_config.mk
 echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
-echo "PLATFORM_LDFLAGS += $PLATFORM_LDFLAGS" >> build_config.mk
-echo "PLATFORM_LDFLAGS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
-echo "PLATFORM_LDFLAGS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
-echo "PLATFORM_CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
+
+echo "CFLAGS=" >> build_config.mk
+echo "CFLAGS = -DNDEBUG -D__STDC_FORMAT_MACROS -Wall -O2 -Wno-sign-compare" >> build_config.mk
+echo "CFLAGS += ${PLATFORM_CFLAGS}" >> build_config.mk
+echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
+
+echo "CLIBS=" >> build_config.mk
+echo "CLIBS += ${PLATFORM_CLIBS}" >> build_config.mk
+echo "CLIBS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
+echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
+
 
 if [[ $TARGET_OS == CYGWIN* ]]; then
 	:
 else
-	echo "PLATFORM_LDFLAGS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk
-	echo "PLATFORM_CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
+	echo "CLIBS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk
+	echo "CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
 fi
 

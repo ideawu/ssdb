@@ -13,8 +13,6 @@ class Link{
 		int sock;
 		bool noblock_;
 		std::vector<Bytes> recv_data;
-		// wait until a response received.
-		const std::vector<Bytes>* response();
 
 	public:
 		char remote_ip[INET_ADDRSTRLEN];
@@ -60,6 +58,8 @@ class Link{
 		 * vector<Bytes>: recv ready
 		 */
 		const std::vector<Bytes>* recv();
+		// wait until a response received.
+		const std::vector<Bytes>* response();
 
 		// need to call flush to ensure all data has flush into network
 		int send(const std::vector<std::string> &packet);
