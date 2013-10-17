@@ -188,10 +188,12 @@ $ssdb-&gt;incr('key');
 <h4><em>Description</em></h4>
 <p>List keys in range (key_start, key_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
-	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
 </dl>
 
@@ -210,10 +212,12 @@ $ssdb-&gt;keys('a', 'z', 10);
 <h4><em>Description</em></h4>
 <p>List key-value pairs with keys in range (key_start, key_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
-	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
 </dl>
 
@@ -232,10 +236,12 @@ $ssdb-&gt;scan('a', 'z', 10);
 <h4><em>Description</em></h4>
 <p>List key-value pairs with keys in range (key_start, key_end], in reverse order.</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
-	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned, empty string means +inf(no limit).</dd>
+	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned, empty string means -inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
 </dl>
 
@@ -426,10 +432,12 @@ $ssdb-&gt;hsize('h');
 <h4><em>Description</em></h4>
 <p>List hashmap names in range (name_start, name_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
-	<dd><code>name_start</code> - The lower bound(not included) of names to be returned.</dd>
-	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned.</dd>
+	<dd><code>name_start</code> - The lower bound(not included) of names to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
 </dl>
 
@@ -448,11 +456,13 @@ $ssdb-&gt;hlist('a', 'z', 10);
 <h4><em>Description</em></h4>
 <p>List keys of a hashmap in range (key_start, key_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
 	<dd><code>name</code> - The name of the hashmap</dd>
-	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
 </dl>
 
@@ -471,11 +481,13 @@ $ssdb-&gt;hkeys('h', 'a', 'z', 10);
 <h4><em>Description</em></h4>
 <p>List key-value pairs of a hashmap with keys in range (key_start, key_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
 	<dd><code>name</code> - The name of the hashmap</dd>
-	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The lower bound(not included) of keys to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>key_end</code> - The upper bound(inclusive) of keys to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
 </dl>
 
@@ -494,11 +506,13 @@ $ssdb-&gt;hscan('a', 'z', 10);
 <h4><em>Description</em></h4>
 <p>List key-value pairs of a hashmap with keys in range (key_start, key_end], in reverse order.</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
 	<dd><code>name</code> - The name of the hashmap</dd>
-	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned.</dd>
-	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned.</dd>
+	<dd><code>key_start</code> - The upper bound(not included) of keys to be returned, empty string means +inf(no limit).</dd>
+	<dd><code>key_end</code> - The lower bound(inclusive) of keys to be returned, empty string means -inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many pairs will be returned.</dd>
 </dl>
 
@@ -693,10 +707,12 @@ $ssdb-&gt;zsize('z');
 <h4><em>Description</em></h4>
 <p>List zset names in range (name_start, name_end].</p>
 
+<p>("", ""] means no range limit.</p>
+
 <h4><em>Parameters</em></h4>
 <dl>
-	<dd><code>name_start</code> - The lower bound(not included) of names to be returned.</dd>
-	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned.</dd>
+	<dd><code>name_start</code> - The lower bound(not included) of names to be returned, empty string means -inf(no limit).</dd>
+	<dd><code>name_end</code> - The upper bound(inclusive) of names to be returned, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
 </dl>
 
@@ -714,15 +730,17 @@ $ssdb-&gt;zlist('a', 'z', 10);
 
 <h4><em>Description</em></h4>
 <p>List keys of a zset in range (key_start+score_start, score_end]. If key_start is empty, keys with a score greater than or equal to score_start will be returned. If key_start is not empty, keys with score larger than score_start, and keys larger than key_start also with score equal to score_start will be returned.</p>
-	
+
 <p>That is: return keys in <code>(key.score == score_start &amp;&amp; key &gt; key_start || key.score &gt; score_start)</code>.</p>
+
+<p>("", ""] means no range limit.</p>
 
 <h4><em>Parameters</em></h4>
 <dl>
 	<dd><code>name</code> - The name of the zset</dd>
 	<dd><code>key_start</code> - The key related to score_start, could be empty string.</dd>
-	<dd><code>score_start</code> - The minimum score related to keys(may not be included, depend on key_start).</dd>
-	<dd><code>score_end</code> - The maximum score(inclusive) related to keys.</dd>
+	<dd><code>score_start</code> - The minimum score related to keys(may not be included, depend on key_start), empty string means -inf(no limit).</dd>
+	<dd><code>score_end</code> - The maximum score(inclusive) related to keys, empty string means +inf(no limit).</dd>
 	<dd><code>limit</code> - Up to that many elements will be returned.</dd>
 </dl>
 

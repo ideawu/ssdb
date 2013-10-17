@@ -188,10 +188,12 @@ $ssdb-&gt;incr('key');
 <h4><em>说明</em></h4>
 <p>列出处于区间 (key_start, key_end] 的 key 列表.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
-	<dd><code>key_start</code> - 返回的起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 返回的结束 key(包含).</dd>
+	<dd><code>key_start</code> - 返回的起始 key(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>key_end</code> - 返回的结束 key(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -210,10 +212,12 @@ $ssdb-&gt;keys('a', 'z', 10);
 <h4><em>说明</em></h4>
 <p>列出处于区间 (key_start, key_end] 的 key-value 列表.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
-	<dd><code>key_start</code> - 返回的起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 返回的结束 key(包含).</dd>
+	<dd><code>key_start</code> - 返回的起始 key(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>key_end</code> - 返回的结束 key(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -232,10 +236,12 @@ $ssdb-&gt;scan('a', 'z', 10);
 <h4><em>说明</em></h4>
 <p>列出处于区间 (key_start, key_end] 的 key-value 列表, 反向顺序.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
-	<dd><code>key_start</code> - 返回的起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 返回的结束 key(包含).</dd>
+	<dd><code>key_start</code> - 返回的起始 key(不包含), 空字符串表示 +inf.</dd>
+	<dd><code>key_end</code> - 返回的结束 key(包含), 空字符串表示 -inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -427,10 +433,12 @@ $ssdb-&gt;hsize('h');
 <h4><em>说明</em></h4>
 <p>列出名字处于区间 (name_start, name_end] 的 hashmap.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
-	<dd><code>name_start</code> - 返回的起始名字(不包含).</dd>
-	<dd><code>name_end</code> - 返回的结束名字(包含).</dd>
+	<dd><code>name_start</code> - 返回的起始名字(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>name_end</code> - 返回的结束名字(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -449,11 +457,13 @@ $ssdb-&gt;hlist('a', 'z', 10);
 <h4><em>说明</em></h4>
 <p>列出 hashmap 中处于区间 (key_start, key_end] 的 key 列表.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
 	<dd><code>name</code> - hashmap 的名字.</dd>
-	<dd><code>key_start</code> - 起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 结束 key(包含).</dd>
+	<dd><code>key_start</code> - 起始 key(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>key_end</code> - 结束 key(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -472,11 +482,13 @@ $ssdb-&gt;hkeys('h', 'a', 'z', 10);
 <h4><em>说明</em></h4>
 <p>列出 hashmap 中处于区间 (key_start, key_end] 的 key-value 列表.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
 	<dd><code>name</code> - hashmap 的名字.</dd>
-	<dd><code>key_start</code> - 返回的起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 返回的结束 key(包含).</dd>
+	<dd><code>key_start</code> - 返回的起始 key(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>key_end</code> - 返回的结束 key(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -495,11 +507,13 @@ $ssdb-&gt;hscan('a', 'z', 10);
 <h4><em>说明</em></h4>
 <p>列出 hashmap 中处于区间 (key_start, key_end] 的 key-value 列表, 反向顺序.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
 	<dd><code>name</code> - hashmap 的名字.</dd>
-	<dd><code>key_start</code> - 返回的起始 key(不包含).</dd>
-	<dd><code>key_end</code> - 返回的结束 key(包含).</dd>
+	<dd><code>key_start</code> - 返回的起始 key(不包含), 空字符串表示 +inf.</dd>
+	<dd><code>key_end</code> - 返回的结束 key(包含), 空字符串表示 -inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -693,11 +707,13 @@ $ssdb-&gt;zsize('z');
 
 <h4><em>说明</em></h4>
 <p>列出名字处于区间 (name_start, name_end] 的 zset.</p>
+	
+<p>("", ""] 表示整个区间.</p>
 
 <h4><em>参数</em></h4>
 <dl>
-	<dd><code>name_start</code> - 返回的起始名字(不包含).</dd>
-	<dd><code>name_end</code> - 返回的结束名字(包含).</dd>
+	<dd><code>name_start</code> - 返回的起始名字(不包含), 空字符串表示 -inf.</dd>
+	<dd><code>name_end</code> - 返回的结束名字(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
@@ -718,12 +734,14 @@ $ssdb-&gt;zlist('a', 'z', 10);
 
 <p>也就是说, 返回的 key 在 <code>(key.score == score_start &amp;&amp; key &gt; key_start || key.score &gt; score_start)</code> 区间.</p>
 
+<p>("", ""] 表示整个区间.</p>
+
 <h4><em>参数</em></h4>
 <dl>
 	<dd><code>name</code> - zset 的名字.</dd>
 	<dd><code>key_start</code> - score_start 对应的 key.</dd>
-	<dd><code>score_start</code> - 返回 key 的最小权重值(可能不包含, 依赖 key_start).</dd>
-	<dd><code>score_end</code> - 返回 key 的最大权重值(包含).</dd>
+	<dd><code>score_start</code> - 返回 key 的最小权重值(可能不包含, 依赖 key_start), 空字符串表示 -inf.</dd>
+	<dd><code>score_end</code> - 返回 key 的最大权重值(包含), 空字符串表示 +inf.</dd>
 	<dd><code>limit</code> - 最多返回这么多个元素.</dd>
 </dl>
 
