@@ -64,9 +64,9 @@ int main(int argc, char **argv){
         return 0;
     }
 
-    const std::vector&lt;std::string&gt; *resp;
-    resp = client-&gt;request("set", "k", "hello ssdb!");
-    if(resp &amp;&amp; resp-&gt;size() &gt; 0 &amp;&amp; resp-&gt;at(0) == "ok"){
+    ssdb::Status s;
+    s = client-&gt;set("k", "hello ssdb!");
+    if(s.ok()){
         printf("k = hello ssdb!\n");
     }else{
         printf("error!\n");
@@ -87,7 +87,7 @@ int main(int argc, char **argv){
 <pre class="fragment">g++ -o hello-ssdb -I&lt;path of api/cpp&gt; &lt;path of api/cpp&gt;/libssdb.a hello-ssdb.cpp</pre> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Oct 18 2013 15:58:53 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Oct 18 2013 22:17:25 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.5
 </small></address>

@@ -32,9 +32,9 @@ The shell commands above will compile the C++ API codes, and generate a `libssdb
 			return 0;
 		}
 		
-		const std::vector<std::string> *resp;
-		resp = client->request("set", "k", "hello ssdb!");
-		if(resp && resp->size() > 0 && resp->at(0) == "ok"){
+		ssdb::Status s;
+		s = client->set("k", "hello ssdb!");
+		if(s.ok()){
 			printf("k = hello ssdb!\n");
 		}else{
 			printf("error!\n");
