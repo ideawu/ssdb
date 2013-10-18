@@ -124,6 +124,11 @@ std::string int_to_str(int v){
 }
 
 static inline
+int64_t str_to_int64(const std::string &str){
+	return atoll(str.c_str());
+}
+
+static inline
 int64_t str_to_int64(const char *p, int size){
 	return atoll(std::string(p, size).c_str());
 }

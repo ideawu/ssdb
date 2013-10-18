@@ -42,11 +42,16 @@ public:
 	std::string code(){
 		return code_;
 	}
-	
+
 	Status(){}
+	Status(const std::string &code){
+		code_ = code;
+	}
 	Status(const std::vector<std::string> *resp){
-		if(resp->size() > 0){
+		if(resp && resp->size() > 0){
 			code_ = resp->at(0);
+		}else{
+			code_ = "error";
 		}
 	}
 private:
@@ -74,13 +79,12 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5) = 0;
 	/// @}
 
-	/// @name Semantic methods
-	/// Not implemented!!!
+	/// @name KV methods
 	/// @{
 	virtual Status get(const std::string &key, std::string *val) = 0;
 	virtual Status set(const std::string &key, const std::string &val) = 0;
 	virtual Status del(const std::string &key) = 0;
-	virtual Status incr(const std::string &key, int64_t incrby=1, int64_t *ret=NULL) = 0;
+	virtual Status incr(const std::string &key, int64_t incrby, int64_t *ret) = 0;
 	/**
 	 * @param key_start Empty string means no limit.
 	 * @param key_end Empty string means no limit.
@@ -100,6 +104,69 @@ public:
 	virtual Status rscan(const std::string &key_start, const std::string &key_end,
 		int limit, std::vector<std::string> *ret) = 0;
 	/// @}
+
+
+	/// @name Map(Hash) methods
+	/// @{
+	virtual Status hget(const std::string &name, const std::string &key, std::string *val) = 0;
+	virtual Status hset(const std::string &name, const std::string &key, const std::string &val) = 0;
+	virtual Status hdel(const std::string &name, const std::string &key) = 0;
+	virtual Status hincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret) = 0;
+	virtual Status hsize(const std::string &name, int64_t *ret) = 0;
+	/**
+	 * @param key_start Empty string means no limit.
+	 * @param key_end Empty string means no limit.
+	 */
+	virtual Status hkeys(const std::string &name, 
+		const std::string &key_start, const std::string &key_end,
+		int limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status hscan(const std::string &name, 
+		const std::string &key_start, const std::string &key_end,
+	 	int limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status hrscan(const std::string &name, 
+		const std::string &key_start, const std::string &key_end,
+		int limit, std::vector<std::string> *ret) = 0;
+	/// @}
+
+
+	/// @name Zset methods
+	/// @{
+	virtual Status zget(const std::string &name, const std::string &key, int64_t *ret) = 0;
+	virtual Status zset(const std::string &name, const std::string &key, int64_t score) = 0;
+	virtual Status zdel(const std::string &name, const std::string &key) = 0;
+	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret) = 0;
+	virtual Status zsize(const std::string &name, int64_t *ret) = 0;
+	/**
+	 * @param score_start NULL means no limit.
+	 * @param score_end NULL means no limit.
+	 */
+	virtual Status zkeys(const std::string &name, const std::string &key_start,
+		int64_t *score_start, int64_t *score_end,
+		int limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-score pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-score pair, n=0,2,4,...
+	 */
+	virtual Status zscan(const std::string &name, const std::string &key_start,
+		int64_t *score_start, int64_t *score_end,
+		int limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-score pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-score pair, n=0,2,4,...
+	 */
+	virtual Status zrscan(const std::string &name, const std::string &key_start,
+		int64_t *score_start, int64_t *score_end,
+		int limit, std::vector<std::string> *ret) = 0;
+	/// @}
+
 private:
 	// No copying allowed
 	Client(const Client&);

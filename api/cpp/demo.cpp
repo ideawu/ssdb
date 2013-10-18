@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <string>
 #include <vector>
 #include "SSDB.h"
@@ -26,39 +27,177 @@ int main(int argc, char **argv){
 		printf("fail to connect to server!\n");
 		return 0;
 	}
-
-	const std::vector<std::string> *resp;
-	client->request("zset", "z", "a", "10");
-	resp = client->request("zget", "z", "a");
-	printf("%s\n", resp->at(1).c_str());
 	
-	while(1){
-		char buf[8192];
-		printf("Press key to read: ");
-		char *line = readline(buf, sizeof(buf));
-		if(!line){
-			break;
-		}
-		resp = client->request("get", line);
-		if(resp == NULL){
-			printf("error\n");
-			exit(0);
-		}
-		if(resp->at(0) == "not_found"){
-			printf("%s not found!\n", line);
-			continue;
-		}
-		if(resp->at(0) != "ok"){
-			printf("server response error: %s\n", resp->at(0).c_str());
-			exit(0);
-		}
-		if(resp->size() != 2){
-			printf("bad response!\n");
-			exit(0);
-		}
-		printf("%s = %s\n", line, resp->at(1).c_str());
-	}
+	ssdb::Status s;
+	std::string hash = "h";
+	std::string zset = "z";
+	std::string key = "k";
+	std::string test_val = "test_val";
+	std::string val;
+	
+	printf("\n");
+	{
+		s = client->set(key, "test_val");
+		assert(s.ok());
 
+		s = client->get(key, &val);
+		assert(s.ok() && (val == test_val));
+		printf("%s = %s\n", key.c_str(), val.c_str());
+
+		s = client->del(key);
+		assert(s.ok());
+
+		s = client->get(key, &val);
+		assert(s.not_found());
+		
+		int64_t ret;
+		s = client->incr(key, 3, &ret);
+		assert(s.ok() && (ret == 3));
+		s = client->incr(key, -1, &ret);
+		assert(s.ok() && (ret == 2));
+		
+		std::vector<std::string> list;
+		s = client->keys("", "", 2, &list);
+		assert(s.ok() && list.size() <= 2);
+		
+		list.clear();
+		s = client->scan("", "", 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+		
+		list.clear();
+		s = client->rscan("", "", 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+	}
+	
+	printf("\n");
+	{
+		s = client->hset(hash, key, "test_val");
+		assert(s.ok());
+
+		s = client->hget(hash, key, &val);
+		assert(s.ok() && (val == test_val));
+		printf("%s = %s\n", key.c_str(), val.c_str());
+
+		s = client->hdel(hash, key);
+		assert(s.ok());
+
+		s = client->hget(hash, key, &val);
+		assert(s.not_found());
+		
+		int64_t ret;
+		ret = -1;
+		s = client->hsize(hash, &ret);
+		assert(s.ok() && (ret != -1));
+		s = client->hincr(hash, key, 3, &ret);
+		assert(s.ok() && (ret == 3));
+		s = client->hincr(hash, key, -1, &ret);
+		assert(s.ok() && (ret == 2));
+		
+		std::vector<std::string> list;
+		s = client->hkeys(hash, "", "", 2, &list);
+		assert(s.ok() && list.size() <= 2);
+		
+		list.clear();
+		s = client->hscan(hash, "", "", 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+		
+		list.clear();
+		s = client->hrscan(hash, "", "", 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+	}
+	
+	printf("\n");
+	{
+		int64_t test_score = 100;
+		int64_t score;
+		s = client->zset(zset, key, test_score);
+		assert(s.ok());
+
+		s = client->zget(zset, key, &score);
+		assert(s.ok() && (score == test_score));
+		printf("%s = %d\n", key.c_str(), (int)score);
+
+		s = client->zdel(zset, key);
+		assert(s.ok());
+
+		s = client->zget(zset, key, &score);
+		assert(s.not_found());
+		
+		int64_t ret;
+		ret = -1;
+		s = client->zsize(zset, &ret);
+		assert(s.ok() && (ret != -1));
+		s = client->zincr(zset, key, 3, &ret);
+		assert(s.ok() && (ret == 3));
+		s = client->zincr(zset, key, -1, &ret);
+		assert(s.ok() && (ret == 2));
+		
+		client->zset(zset, "a", -1);
+		client->zset(zset, "b", 3);
+		client->zset(zset, "c", 4);
+		int64_t score_max = 90;
+		
+		std::vector<std::string> list;
+		s = client->zkeys(zset, "", NULL, &score_max, 2, &list);
+		assert(s.ok() && list.size() <= 2);
+		
+		list.clear();
+		s = client->zscan(zset, "", NULL, &score_max, 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+		
+		list.clear();
+		s = client->zrscan(zset, "", &score_max, NULL, 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		printf("\n");
+	}
+	
 	delete client;
 	return 0;
 }
