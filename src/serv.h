@@ -57,9 +57,6 @@ typedef struct _ProcJob{
 
 
 class Server{
-	private:
-		// MUST be 1, or incr operation would not be atomic
-		static const int MAX_WRITERS = 1;
 	public:
 		SSDB *ssdb;
 		BackendDump *backend_dump;
