@@ -102,6 +102,7 @@ public:
 	}
 	
 	~Transaction(){
+		// it is safe to call rollback after commit
 		logs->rollback();
 		logs->mutex.unlock();
 	}

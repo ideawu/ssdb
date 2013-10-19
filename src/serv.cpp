@@ -183,8 +183,7 @@ Server::Server(SSDB *ssdb){
 	// for k-v data, list === keys
 	proc_map["list"] = proc_map["keys"];
 	
-	// MUST be 1, or incr operation would not be atomic
-	writer.start(1);
+	writer.start(MAX_WRITERS);
 }
 
 Server::~Server(){
