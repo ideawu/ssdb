@@ -7,7 +7,7 @@ SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
 case "$TARGET_OS" in
     Darwin)
-        PLATFORM_CLIBS="-pthread"
+        #PLATFORM_CLIBS="-pthread"
         ;;
     Linux)
         PLATFORM_CLIBS="-pthread"

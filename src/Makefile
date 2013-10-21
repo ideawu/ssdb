@@ -3,14 +3,21 @@ include ../build_config.mk
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
-EXES = ../ssdb-server ../ssdb-server.exe ../tools/ssdb-dump ../tools/ssdb-dump.exe
+EXES = ../ssdb-server \
+	../tools/leveldb-import \
+	../tools/ssdb-repair \
+	../tools/ssdb-dump
 
 
 all: ssdb.h ${OBJS}
-	g++ -o ../ssdb-server ssdb-server.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/ssdb-dump ssdb-dump.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/ssdb-repair ssdb-repair.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/leveldb-import leveldb-import.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ ${CFLAGS} -c ssdb-server.cpp
+	g++ -o ../ssdb-server ssdb-server.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ ${CFLAGS} -c ssdb-dump.cpp
+	g++ -o ../tools/ssdb-dump ssdb-dump.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ ${CFLAGS} -c ssdb-repair.cpp
+	g++ -o ../tools/ssdb-repair ssdb-repair.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	g++ ${CFLAGS} -c leveldb-import.cpp
+	g++ -o ../tools/leveldb-import leveldb-import.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
 
 objs: ssdb.h ${OBJS}
 	
@@ -45,5 +52,5 @@ backend_sync.o: ssdb.h backend_sync.h backend_sync.cpp
 	g++ ${CFLAGS} -c backend_sync.cpp
 
 clean:
-	rm -f ${EXES} ${OBJS}
+	rm -f ${EXES} *.o *.exe
 
