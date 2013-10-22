@@ -78,13 +78,13 @@ int main(int argc, char **argv){
 </pre><p>Save the codes above into a file named <code>hello-ssdb.cpp</code>.</p>
 <h2>Compile sample code</h2>
 <p>If you are under the directory <code>api/cpp</code>, compile it like this </p>
-<pre class="fragment">g++ -o hello-ssdb libssdb.a hello-ssdb.cpp
+<pre class="fragment">g++ -o hello-ssdb hello-ssdb.cpp libssdb.a
 ./hello-ssdb
 </pre><p>Before you run <code>hello-ssdb</code>, you have to start ssdb-server with the default configuration. The output would be like </p>
 <pre class="fragment">k = hello ssdb!
 </pre><p>Connect to ssdb-server with <code>ssdb-cli</code>, to verify the key <code>k</code> is stored with the value "hello ssdb!".</p>
 <p>If your <code>hello-ssdb.cpp</code> file is not under the directory <code>api/cpp</code>, you will compile it like this </p>
-<pre class="fragment">g++ -o hello-ssdb -I&lt;path of api/cpp&gt; &lt;path of api/cpp&gt;/libssdb.a hello-ssdb.cpp</pre> </div></div><!-- contents -->
+<pre class="fragment">g++ -o hello-ssdb -I&lt;path of api/cpp&gt; hello-ssdb.cpp &lt;path of api/cpp&gt;/libssdb.a</pre> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated on Tue Oct 22 2013 15:12:25 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
