@@ -458,6 +458,25 @@ Status ClientImpl::zsize(const std::string &name, int64_t *ret){
 	return s;
 }
 
+Status ClientImpl::zrank(const std::string &name, const std::string &key, int64_t *ret){
+	std::vector<std::string> req;
+	const std::vector<std::string> *resp;
+	req.push_back("zrank");
+	req.push_back(name);
+	req.push_back(key);
+	resp = request(req);
+
+	Status s(resp);
+	if(s.ok()){
+		if(resp->size() >= 2){
+			*ret = str_to_int64(resp->at(1));
+		}else{
+			return Status("server_error");
+		}
+	}
+	return s;
+}
+
 Status ClientImpl::zkeys(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
 	int limit, std::vector<std::string> *ret)

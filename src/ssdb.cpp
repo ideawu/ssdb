@@ -141,7 +141,7 @@ err:
 	return NULL;
 }
 
-Iterator* SSDB::iterator(const std::string &start, const std::string &end, int limit) const{
+Iterator* SSDB::iterator(const std::string &start, const std::string &end, uint64_t limit) const{
 	leveldb::Iterator *it;
 	leveldb::ReadOptions iterate_options;
 	iterate_options.fill_cache = false;
@@ -153,7 +153,7 @@ Iterator* SSDB::iterator(const std::string &start, const std::string &end, int l
 	return new Iterator(it, end, limit);
 }
 
-Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, int limit) const{
+Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, uint64_t limit) const{
 	leveldb::Iterator *it;
 	leveldb::ReadOptions iterate_options;
 	iterate_options.fill_cache = false;

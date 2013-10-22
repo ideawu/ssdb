@@ -1,4 +1,3 @@
 * add ping command
 
-* process write requests in a seperate thread
 * process scan requests in seperate threads?

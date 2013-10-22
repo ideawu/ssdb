@@ -167,7 +167,7 @@ int SSDB::hget(const Bytes &name, const Bytes &key, std::string *val) const{
 	return 1;
 }
 
-HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const{
+HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const{
 	std::string key_start, key_end;
 
 	key_start = encode_hash_key(name, start);
@@ -180,7 +180,7 @@ HIterator* SSDB::hscan(const Bytes &name, const Bytes &start, const Bytes &end, 
 	return new HIterator(this->iterator(key_start, key_end, limit), name);
 }
 
-HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end, int limit) const{
+HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const{
 	std::string key_start, key_end;
 
 	key_start = encode_hash_key(name, start);
@@ -196,7 +196,7 @@ HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end,
 	return new HIterator(this->rev_iterator(key_start, key_end, limit), name);
 }
 
-int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, int limit,
+int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		std::vector<std::string> *list) const{
 	std::string start;
 	std::string end;

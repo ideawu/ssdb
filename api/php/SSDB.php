@@ -325,6 +325,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function zrange($name, $offset, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function zscan($name, $key_start, $score_start, $score_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -358,6 +363,31 @@ class SSDB
 	function zlist($name_start, $name_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zrank($name, $key){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zrrank($name, $key){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zRevRank($name, $key){
+		$args = func_get_args();
+		return $this->__call("zrrank", $args);
+	}
+
+	function zrrange($name, $offset, $limit){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function zRevRange($name, $offset, $limit){
+		$args = func_get_args();
+		return $this->__call("zrrange", $args);
 	}
 
 	/* hashmap */
@@ -461,6 +491,8 @@ class SSDB
 			case 'hincr':
 			case 'hdecr':
 			case 'zget':
+			case 'zrank':
+			case 'zrrank':
 				$val = isset($resp[1])? intval($resp[1]) : 0;
 				return new SSDB_Response($resp[0], $val);
 			case 'get':
@@ -492,6 +524,8 @@ class SSDB
 			case 'rscan':
 			case 'zscan':
 			case 'zrscan':
+			case 'zrange':
+			case 'zrrange':
 			case 'hscan':
 			case 'hrscan':
 			case 'multi_hsize':

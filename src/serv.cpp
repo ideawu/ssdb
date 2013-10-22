@@ -71,6 +71,10 @@ static proc_map_t proc_map;
 	DEF_PROC(multi_hset);
 	DEF_PROC(multi_hdel);
 
+	DEF_PROC(zrank);
+	DEF_PROC(zrrank);
+	DEF_PROC(zrange);
+	DEF_PROC(zrrange);
 	DEF_PROC(zsize);
 	DEF_PROC(zget);
 	DEF_PROC(zset);
@@ -130,6 +134,11 @@ static Command commands[] = {
 	PROC(multi_hset, "w"),
 	PROC(multi_hdel, "w"),
 
+	// because zrank may be extremly slow, execute in a seperate thread
+	PROC(zrank, "w"),
+	PROC(zrrank, "w"),
+	PROC(zrange, "w"),
+	PROC(zrrange, "w"),
 	PROC(zsize, "r"),
 	PROC(zget, "r"),
 	PROC(zset, "w"),
@@ -198,7 +207,7 @@ void Server::proc(ProcJob *job){
 	job->result = PROC_OK;
 	job->stime = millitime();
 	const Request *req = job->link->last_recv();
-	
+
 	Response resp;
 	proc_map_t::iterator it = proc_map.find(req->at(0));
 	if(it == proc_map.end()){
@@ -212,6 +221,7 @@ void Server::proc(ProcJob *job){
 			writer.push(*job);
 			return; /////
 		}
+
 		proc_t p = cmd->proc;
 		job->time_wait = 1000 *(millitime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &resp);

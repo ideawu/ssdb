@@ -111,9 +111,8 @@ int SSDB::get(const Bytes &key, std::string *val) const{
 	return 1;
 }
 
-KIterator* SSDB::scan(const Bytes &start, const Bytes &end, int limit) const{
+KIterator* SSDB::scan(const Bytes &start, const Bytes &end, uint64_t limit) const{
 	std::string key_start, key_end;
-
 	key_start = encode_kv_key(start);
 	if(end.empty()){
 		key_end = "";
@@ -126,7 +125,7 @@ KIterator* SSDB::scan(const Bytes &start, const Bytes &end, int limit) const{
 	return new KIterator(this->iterator(key_start, key_end, limit));
 }
 
-KIterator* SSDB::rscan(const Bytes &start, const Bytes &end, int limit) const{
+KIterator* SSDB::rscan(const Bytes &start, const Bytes &end, uint64_t limit) const{
 	std::string key_start, key_end;
 
 	key_start = encode_kv_key(start);

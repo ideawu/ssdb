@@ -198,11 +198,71 @@ static int proc_zdel(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
+static int proc_zrank(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 3){
+		resp->push_back("client_error");
+	}else{
+		int64_t ret = serv->ssdb->zrank(req[1], req[2]);
+		char buf[20];
+		sprintf(buf, "%"PRId64"", ret);
+		resp->push_back("ok");
+		resp->push_back(buf);
+	}
+	return 0;
+}
+
+static int proc_zrrank(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 3){
+		resp->push_back("client_error");
+	}else{
+		int64_t ret = serv->ssdb->zrrank(req[1], req[2]);
+		char buf[20];
+		sprintf(buf, "%"PRId64"", ret);
+		resp->push_back("ok");
+		resp->push_back(buf);
+	}
+	return 0;
+}
+
+static int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 4){
+		resp->push_back("client_error");
+	}else{
+		uint64_t offset = req[2].Uint64();
+		uint64_t limit = req[3].Uint64();
+		ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->score);
+		}
+		delete it;
+	}
+	return 0;
+}
+
+static int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 4){
+		resp->push_back("client_error");
+	}else{
+		uint64_t offset = req[2].Uint64();
+		uint64_t limit = req[3].Uint64();
+		ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->score);
+		}
+		delete it;
+	}
+	return 0;
+}
+
 static int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[5].Int();
+		uint64_t limit = req[5].Uint64();
 		ZIterator *it = serv->ssdb->zscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -218,7 +278,7 @@ static int proc_zrscan(Server *serv, Link *link, const Request &req, Response *r
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[5].Int();
+		uint64_t limit = req[5].Uint64();
 		ZIterator *it = serv->ssdb->zrscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -234,7 +294,7 @@ static int proc_zkeys(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[5].Int();
+		uint64_t limit = req[5].Uint64();
 		ZIterator *it = serv->ssdb->zscan(req[1], req[2], req[3], req[4], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -249,7 +309,7 @@ static int proc_zlist(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[3].Int();
+		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->zlist(req[1], req[2], limit, &list);
 		if(ret == -1){

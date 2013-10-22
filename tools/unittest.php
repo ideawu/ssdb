@@ -218,6 +218,17 @@ class SSDBTest extends UnitTest{
 
 		$ret = $ssdb->zset($name, 'a', $val);
 		$ret = $ssdb->zset($name, 'b', $val);
+
+		$ret = $ssdb->zrank($name, 'a');
+		$this->assert($ret != -1);
+		$ret = $ssdb->zrrank($name, 'a');
+		$this->assert($ret != -1);
+
+		$ret = $ssdb->zrange($name, 0, 10);
+		$this->assert(count($ret) == 2);
+		$ret = $ssdb->zrrange($name, 0, 10);
+		$this->assert(count($ret) == 2);
+
 		$ret = $ssdb->zscan($name, '', '', '', 10);
 		$this->assert(count($ret) == 2);
 		foreach($ret as $k=>$v){

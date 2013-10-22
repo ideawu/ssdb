@@ -125,12 +125,12 @@ std::string int_to_str(int v){
 
 static inline
 int64_t str_to_int64(const std::string &str){
-	return atoll(str.c_str());
+	return (int64_t)atoll(str.c_str());
 }
 
 static inline
 int64_t str_to_int64(const char *p, int size){
-	return atoll(std::string(p, size).c_str());
+	return (int64_t)atoll(std::string(p, size).c_str());
 }
 
 static inline
@@ -141,8 +141,8 @@ std::string int64_to_str(int64_t v){
 }
 
 static inline
-int64_t str_to_uint64(const char *p, int size){
-	return strtol(std::string(p, size).c_str(), (char **)NULL, 10);
+uint64_t str_to_uint64(const char *p, int size){
+	return (uint64_t)strtoull(std::string(p, size).c_str(), (char **)NULL, 10);
 }
 
 static inline

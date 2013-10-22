@@ -152,7 +152,8 @@ static int proc_scan(Server *serv, Link *link, const Request &req, Response *res
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[3].Int();
+		req[4].Uint64();
+		uint64_t limit = req[3].Uint64();
 		KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -168,7 +169,7 @@ static int proc_rscan(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[3].Int();
+		uint64_t limit = req[3].Uint64();
 		KIterator *it = serv->ssdb->rscan(req[1], req[2], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -184,7 +185,7 @@ static int proc_keys(Server *serv, Link *link, const Request &req, Response *res
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[3].Int();
+		uint64_t limit = req[3].Uint64();
 		KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
 		it->return_val(false);
 

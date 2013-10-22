@@ -51,6 +51,7 @@ public:
 	virtual Status zdel(const std::string &name, const std::string &key);
 	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status zsize(const std::string &name, int64_t *ret);
+	virtual Status zrank(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zkeys(const std::string &name, const std::string &key_start,
 		int64_t *score_start, int64_t *score_end,
 		int limit, std::vector<std::string> *ret);

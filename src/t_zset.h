@@ -125,6 +125,15 @@ class ZIterator{
 		~ZIterator(){
 			delete it;
 		}
+		
+		bool skip(uint64_t offset){
+			while(offset-- > 0){
+				if(this->next() == false){
+					return false;
+				}
+			}
+			return true;
+		}
 
 		bool next(){
 			while(it->next()){

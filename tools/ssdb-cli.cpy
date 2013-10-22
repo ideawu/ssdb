@@ -443,6 +443,8 @@ while(true){
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
+			case 'zrank':
+			case 'zrrank':
 			case 'multi_del':
 			case 'multi_hdel':
 			case 'multi_zdel':
@@ -471,6 +473,8 @@ while(true){
 				break;
 			case 'zscan':
 			case 'zrscan':
+			case 'zrange':
+			case 'zrrange':
 				printf('%-15s %s\n', 'key', 'score');
 				print ('-' * 25);
 				foreach(resp.data['index'] as k){

@@ -88,7 +88,6 @@ class SSDB{
 				}
 				break;
 			case 'get':
-			case 'zget':
 			case 'hget':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
@@ -108,6 +107,9 @@ class SSDB{
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
+			case 'zget':
+			case 'zrank':
+			case 'zrrank':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{
@@ -159,6 +161,8 @@ class SSDB{
 				break;
 			case 'zscan':
 			case 'zrscan':
+			case 'zrange':
+			case 'zrrange':
 				if(resp[0] == 'ok'){
 					if(len(resp) % 2 == 1){
 						data = {'index':[], 'items':{}};

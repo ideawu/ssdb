@@ -886,6 +886,30 @@ $ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
 </pre>
 
 
+
+<a name="m-zrank"></a>
+<h3>zrank, zrrank/zRevRank</h3>
+
+<h4><em>说明</em></h4>
+<p><b>注意! 本方法可能会非常慢! 请在离线环境中使用.</b></p>
+<p>返回指定 key 在 zset 中的排序位置(排名), 排名从 0 开始. zrrank 获取是是倒序排名.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+found.</p>
+<p>出错则返回 <code>false</code>, -1 表示 key 不存在于 zset, 否则返回排名.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;zrank('z', 'k1');
+</pre>
+
+
 <!-- ##############  other ############## -->
 
 <a name="m-batch"></a>

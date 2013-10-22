@@ -75,7 +75,7 @@ class Bytes{
 			return str_to_int64(data_, size_);
 		}
 
-		int64_t Uint64() const{
+		uint64_t Uint64() const{
 			return str_to_uint64(data_, size_);
 		}
 

@@ -145,6 +145,10 @@ public:
 	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret) = 0;
 	virtual Status zsize(const std::string &name, int64_t *ret) = 0;
 	/**
+	 * <b>Important! This method may be extremly SLOW!</b>
+	 */
+	virtual Status zrank(const std::string &name, const std::string &key, int64_t *ret) = 0;
+	/**
 	 * @param score_start NULL means no limit.
 	 * @param score_end NULL means no limit.
 	 */

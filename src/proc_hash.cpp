@@ -203,7 +203,7 @@ static int proc_hscan(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[4].Int();
+		uint64_t limit = req[4].Uint64();
 		HIterator *it = serv->ssdb->hscan(req[1], req[2], req[3], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -219,7 +219,7 @@ static int proc_hrscan(Server *serv, Link *link, const Request &req, Response *r
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[4].Int();
+		uint64_t limit = req[4].Uint64();
 		HIterator *it = serv->ssdb->hrscan(req[1], req[2], req[3], limit);
 		resp->push_back("ok");
 		while(it->next()){
@@ -235,7 +235,7 @@ static int proc_hkeys(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[4].Int();
+		uint64_t limit = req[4].Uint64();
 		HIterator *it = serv->ssdb->hscan(req[1], req[2], req[3], limit);
 		it->return_val(false);
 
@@ -252,7 +252,7 @@ static int proc_hlist(Server *serv, Link *link, const Request &req, Response *re
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		int limit = req[3].Int();
+		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->hlist(req[1], req[2], limit, &list);
 		if(ret == -1){

@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "t_zset.h"
 #include "leveldb/write_batch.h"
 
@@ -172,8 +173,106 @@ int SSDB::zget(const Bytes &name, const Bytes &key, std::string *score) const{
 	return 1;
 }
 
+static ZIterator* ziterator(
+	const SSDB *ssdb,
+	const Bytes &name, const Bytes &key_start,
+	const Bytes &score_start, const Bytes &score_end,
+	uint64_t limit, Iterator::Direction direction)
+{
+	if(direction == Iterator::FORWARD){
+		std::string start, end;
+		if(score_start.empty()){
+			start = encode_zscore_key(name, key_start, SSDB_SCORE_MIN);
+		}else{
+			start = encode_zscore_key(name, key_start, score_start);
+		}
+		if(score_end.empty()){
+			end = encode_zscore_key(name, "\xff", SSDB_SCORE_MAX);
+		}else{
+			end = encode_zscore_key(name, "\xff", score_end);
+		}
+		return new ZIterator(ssdb->iterator(start, end, limit), name);
+	}else{
+		std::string start, end;
+		if(score_start.empty()){
+			start = encode_zscore_key(name, key_start, SSDB_SCORE_MAX);
+		}else{
+			start = encode_zscore_key(name, key_start, score_start);
+		}
+		if(score_end.empty()){
+			end = encode_zscore_key(name, "", SSDB_SCORE_MIN);
+		}else{
+			end = encode_zscore_key(name, "", score_end);
+		}
+		return new ZIterator(ssdb->rev_iterator(start, end, limit), name);
+	}
+}
+
+int64_t SSDB::zrank(const Bytes &name, const Bytes &key) const{
+	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::FORWARD);
+	uint64_t ret = 0;
+	while(true){
+		if(it->next() == false){
+			ret = -1;
+			break;
+		}
+		if(key == it->key){
+			break;
+		}
+		ret ++;
+	}
+	delete it;
+	return ret;
+}
+
+int64_t SSDB::zrrank(const Bytes &name, const Bytes &key) const{
+	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::BACKWARD);
+	uint64_t ret = 0;
+	while(true){
+		if(it->next() == false){
+			ret = -1;
+			break;
+		}
+		if(key == it->key){
+			break;
+		}
+		ret ++;
+	}
+	delete it;
+	return ret;
+}
+
+ZIterator* SSDB::zrange(const Bytes &name, uint64_t offset, uint64_t limit){
+	if(offset + limit > limit){
+		limit = offset + limit;
+	}
+	ZIterator *it = ziterator(this, name, "", "", "", limit, Iterator::FORWARD);
+	it->skip(offset);
+	return it;
+}
+
+ZIterator* SSDB::zrrange(const Bytes &name, uint64_t offset, uint64_t limit){
+	if(offset + limit > limit){
+		limit = offset + limit;
+	}
+	ZIterator *it = ziterator(this, name, "", "", "", limit, Iterator::BACKWARD);
+	it->skip(offset);
+	return it;
+}
+
 ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
-		const Bytes &score_start, const Bytes &score_end, int limit) const{
+		const Bytes &score_start, const Bytes &score_end, uint64_t limit) const
+{
+	std::string score;
+	// if only key is specified, load its value
+	if(!key.empty() && score_start.empty()){
+		this->zget(name, key, &score);
+	}else{
+		score = score_start.String();
+	}
+	return ziterator(this, name, key, score, score_end, limit, Iterator::FORWARD);
+
+	/*
 	std::string key_start, key_end;
 
 	if(score_start.empty()){
@@ -200,10 +299,22 @@ ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
 	//dump(key_end.data(), key_end.size(), "zscan.end");
 
 	return new ZIterator(this->iterator(key_start, key_end, limit), name);
+	*/
 }
 
 ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
-		const Bytes &score_start, const Bytes &score_end, int limit) const{
+		const Bytes &score_start, const Bytes &score_end, uint64_t limit) const
+{
+	std::string score;
+	// if only key is specified, load its value
+	if(!key.empty() && score_start.empty()){
+		this->zget(name, key, &score);
+	}else{
+		score = score_start.String();
+	}
+	return ziterator(this, name, key, score, score_end, limit, Iterator::BACKWARD);
+
+	/*
 	std::string key_start, key_end;
 
 	if(score_start.empty()){
@@ -230,9 +341,10 @@ ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
 	//dump(key_end.data(), key_end.size(), "zscan.end");
 
 	return new ZIterator(this->rev_iterator(key_start, key_end, limit), name);
+	*/
 }
 
-int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, int limit,
+int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		std::vector<std::string> *list) const{
 	std::string start;
 	std::string end;

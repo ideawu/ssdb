@@ -1,63 +1,31 @@
 #ifndef SSDB_ITERATOR_H_
 #define SSDB_ITERATOR_H_
 
+#include <inttypes.h>
+#include <string>
+#include "leveldb/iterator.h"
+#include "leveldb/slice.h"
+#include "util/bytes.h"
+
 class Iterator{
 	public:
-		enum{
+		enum Direction{
 			FORWARD, BACKWARD
 		};
-		//const static int FORWARD = 1;
-		//const static int BACKWARD = 2;
 	private:
 		leveldb::Iterator *it;
 		std::string end;
-		int limit;
-		bool begin;
+		uint64_t limit;
+		bool is_first;
 		int direction;
 	public:
 		Iterator(leveldb::Iterator *it,
 				const std::string &end,
-				int limit,
-				int direction=Iterator::FORWARD){
-			this->it = it;
-			this->end = end;
-			this->limit = limit;
-			this->begin = true;
-			this->direction = direction;
-		}
-
-		~Iterator(){
-			delete it;
-		}
-
-		bool next(){
-			if(begin){
-				begin = false;
-			}else{
-				if(direction == FORWARD){
-					it->Next();
-				}else{
-					it->Prev();
-				}
-			}
-
-			if(limit == 0 || !it->Valid()){
-				return false;
-			}
-			if(direction == FORWARD){
-				if(!end.empty() && it->key() > end){
-					return false;
-				}
-			}else{
-				if(!end.empty() && it->key() < end){
-					return false;
-				}
-			}
-			if(limit > 0){
-				limit --;
-			}
-			return true;
-		}
+				uint64_t limit,
+				Direction direction=Iterator::FORWARD);
+		~Iterator();
+		bool skip(uint64_t offset);
+		bool next();
 
 		Bytes key(){
 			return it->key();

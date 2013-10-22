@@ -168,7 +168,7 @@ int main(int argc, char **argv){
 		client->zset(zset, "b", 3);
 		client->zset(zset, "c", 4);
 		int64_t score_max = 90;
-		
+	
 		std::vector<std::string> list;
 		s = client->zkeys(zset, "", NULL, &score_max, 2, &list);
 		assert(s.ok() && list.size() <= 2);
@@ -196,6 +196,10 @@ int main(int argc, char **argv){
 			}
 		}
 		printf("\n");
+
+		int64_t rank = -1;
+		client->zrank(zset, "b", &rank);
+		assert(s.ok() && (rank != 1));
 	}
 	
 	delete client;
