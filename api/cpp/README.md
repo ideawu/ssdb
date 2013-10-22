@@ -1,4 +1,3 @@
-
 SSDB C++ API Documentation {#mainpage}
 ============
 
@@ -50,7 +49,7 @@ Save the codes above into a file named `hello-ssdb.cpp`.
 
 If you are under the directory `api/cpp`, compile it like this
 
-	g++ -o hello-ssdb libssdb.a hello-ssdb.cpp
+	g++ -o hello-ssdb hello-ssdb.cpp libssdb.a
 	./hello-ssdb
 
 Before you run `hello-ssdb`, you have to start ssdb-server with the default configuration. The output would be like
@@ -61,5 +60,5 @@ Connect to ssdb-server with `ssdb-cli`, to verify the key `k` is stored with the
 
 If your `hello-ssdb.cpp` file is not under the directory `api/cpp`, you will compile it like this
 
-	g++ -o hello-ssdb -I<path of api/cpp> <path of api/cpp>/libssdb.a hello-ssdb.cpp
+	g++ -o hello-ssdb -I<path of api/cpp> hello-ssdb.cpp <path of api/cpp>/libssdb.a
 
