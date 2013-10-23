@@ -152,7 +152,6 @@ static int proc_scan(Server *serv, Link *link, const Request &req, Response *res
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
-		req[4].Uint64();
 		uint64_t limit = req[3].Uint64();
 		KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
 		resp->push_back("ok");
