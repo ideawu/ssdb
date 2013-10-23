@@ -887,11 +887,11 @@ $ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
 
 
 <a name="m-zrank"></a>
-<h3>zrank, zrrank/zRevRank</h3>
+<h3>zrank, zrrank</h3>
 
 <h4><em>Description</em></h4>
 <p><b>Important! This method may be extremly SLOW! May not be used in an online service.</b></p>
-<p>Returns the rank(index) of a given key in the specified sorted set, starting at 0 for the item with the smallest score. zRevRank starts at 0 for the item with the largest score.</p>
+<p>Returns the rank(index) of a given key in the specified sorted set, starting at 0 for the item with the smallest score. zrrank starts at 0 for the item with the largest score.</p>
 
 <h4><em>Parameters</em></h4>
 <dl>
@@ -900,13 +900,35 @@ $ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
 </dl>
 
 <h4><em>Return Value</em></h4>
-<p><code>false</code> on error, the rank(index) of a specified key, start at 0. -1 if not found.</p>
+<p><code>false</code> on error, otherwise the rank(index) of a specified key, start at 0. -1 if not found.</p>
 
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;zrank('z', 'k1');
 </pre>
 
+
+<a name="m-zrange"></a>
+<h3>zrange, zrrange</h3>
+
+<h4><em>Description</em></h4>
+<p><b>Important! This method is SLOW if <code>offset</code> is a big number!</b></p>
+<p>Returns a range of key-score pairs by index range [offset, offset + limit). Zrrange iterates in reverse order.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset.</dd>
+	<dd><code>offset</code> - Positive integer, the returned pairs will start at this offset.</dd>
+	<dd><code>limit</code> - Positive integer, up to this number of pairs will be returned.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, otherwise an array containing key-score pairs.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zrange('z', 0, 10);
+</pre>
 
 
 
