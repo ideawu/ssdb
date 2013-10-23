@@ -140,6 +140,7 @@ int main(int argc, char **argv){
 	
 	printf("\n");
 	{
+		std::vector<std::string> list;
 		int64_t test_score = 100;
 		int64_t score;
 		s = client->zset(zset, key, test_score);
@@ -169,10 +170,17 @@ int main(int argc, char **argv){
 		client->zset(zset, "c", 4);
 		int64_t score_max = 90;
 	
-		std::vector<std::string> list;
+		list.clear();
 		s = client->zkeys(zset, "", NULL, &score_max, 2, &list);
 		assert(s.ok() && list.size() <= 2);
-		
+	
+		list.clear();
+		s = client->zrange(zset, 0, 2, &list);
+		assert(s.ok() && list.size() <= 4);
+		list.clear();
+		s = client->zrrange(zset, 0, 2, &list);
+		assert(s.ok() && list.size() <= 4);
+	
 		list.clear();
 		s = client->zscan(zset, "", NULL, &score_max, 2, &list);
 		assert(s.ok() && list.size() <= 4);
@@ -199,7 +207,9 @@ int main(int argc, char **argv){
 
 		int64_t rank = -1;
 		client->zrank(zset, "b", &rank);
-		assert(s.ok() && (rank != 1));
+		assert(s.ok() && (rank != -1));
+		client->zrrank(zset, "b", &rank);
+		assert(s.ok() && (rank != -1));
 	}
 	
 	delete client;

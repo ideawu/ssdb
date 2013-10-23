@@ -89,6 +89,10 @@ virtual const std::vector<br class="typebreak"/>
 virtual const std::vector<br class="typebreak"/>
 &lt; std::string &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>request</b> (const std::string &amp;cmd, const std::string &amp;s2, const std::string &amp;s3, const std::string &amp;s4, const std::string &amp;s5)=0</td></tr>
 <tr class="separator:ac7d9f1b6965ee709eb466fa3bb06202f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f64b6eed5b1442566b62cf7dabb6e44"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8f64b6eed5b1442566b62cf7dabb6e44"></a>
+virtual const std::vector<br class="typebreak"/>
+&lt; std::string &gt; *&#160;</td><td class="memItemRight" valign="bottom"><b>request</b> (const std::string &amp;cmd, const std::string &amp;s2, const std::string &amp;s3, const std::string &amp;s4, const std::string &amp;s5, const std::string &amp;s6)=0</td></tr>
+<tr class="separator:a8f64b6eed5b1442566b62cf7dabb6e44"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">KV methods</div></td></tr>
 <tr class="memitem:aa1852b8c93a3673fc63e38066582b2a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa1852b8c93a3673fc63e38066582b2a7"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>get</b> (const std::string &amp;key, std::string *val)=0</td></tr>
@@ -102,14 +106,14 @@ virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td 
 <tr class="memitem:af6b52813ec2c01b24681ba7396402279"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6b52813ec2c01b24681ba7396402279"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>incr</b> (const std::string &amp;key, int64_t incrby, int64_t *ret)=0</td></tr>
 <tr class="separator:af6b52813ec2c01b24681ba7396402279"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a158958bcd6432865ed09c6fef73914ef"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a158958bcd6432865ed09c6fef73914ef">keys</a> (const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="separator:a158958bcd6432865ed09c6fef73914ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64a2dda377ebbd948a021dd875583753"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a64a2dda377ebbd948a021dd875583753">scan</a> (const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:a64a2dda377ebbd948a021dd875583753"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a64a2dda377ebbd948a021dd875583753">More...</a><br/></td></tr>
-<tr class="separator:a64a2dda377ebbd948a021dd875583753"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fd31024c6904f1221a82f7f9441ff23"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a6fd31024c6904f1221a82f7f9441ff23">rscan</a> (const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:a6fd31024c6904f1221a82f7f9441ff23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a6fd31024c6904f1221a82f7f9441ff23">More...</a><br/></td></tr>
-<tr class="separator:a6fd31024c6904f1221a82f7f9441ff23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa15099e617766878f31f6fa65daf40c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#afa15099e617766878f31f6fa65daf40c">keys</a> (const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="separator:afa15099e617766878f31f6fa65daf40c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a997b3dd708267ec6d8cbcdc69f43e861"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a997b3dd708267ec6d8cbcdc69f43e861">scan</a> (const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a997b3dd708267ec6d8cbcdc69f43e861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a997b3dd708267ec6d8cbcdc69f43e861">More...</a><br/></td></tr>
+<tr class="separator:a997b3dd708267ec6d8cbcdc69f43e861"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cedf178f3e91115843cb64dd8291bd9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a3cedf178f3e91115843cb64dd8291bd9">rscan</a> (const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a3cedf178f3e91115843cb64dd8291bd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a3cedf178f3e91115843cb64dd8291bd9">More...</a><br/></td></tr>
+<tr class="separator:a3cedf178f3e91115843cb64dd8291bd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Map(Hash) methods</div></td></tr>
 <tr class="memitem:a701de708f3bc2db773e8695ff39f1240"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a701de708f3bc2db773e8695ff39f1240"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>hget</b> (const std::string &amp;name, const std::string &amp;key, std::string *val)=0</td></tr>
@@ -126,14 +130,14 @@ virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td 
 <tr class="memitem:a7cd1fbe7ef8713b81c3afe60aaa52c5a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cd1fbe7ef8713b81c3afe60aaa52c5a"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>hsize</b> (const std::string &amp;name, int64_t *ret)=0</td></tr>
 <tr class="separator:a7cd1fbe7ef8713b81c3afe60aaa52c5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb09fa7546e38eff8d8ca2c56ee64ca9"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#afb09fa7546e38eff8d8ca2c56ee64ca9">hkeys</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="separator:afb09fa7546e38eff8d8ca2c56ee64ca9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41a0100adbdc394367776f5b0e325d94"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a41a0100adbdc394367776f5b0e325d94">hscan</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:a41a0100adbdc394367776f5b0e325d94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a41a0100adbdc394367776f5b0e325d94">More...</a><br/></td></tr>
-<tr class="separator:a41a0100adbdc394367776f5b0e325d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3263efa4f4956d155a5825762d2c71c8"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a3263efa4f4956d155a5825762d2c71c8">hrscan</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:a3263efa4f4956d155a5825762d2c71c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#a3263efa4f4956d155a5825762d2c71c8">More...</a><br/></td></tr>
-<tr class="separator:a3263efa4f4956d155a5825762d2c71c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1072302c1dee6f7bb8d952029cd4395d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a1072302c1dee6f7bb8d952029cd4395d">hkeys</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="separator:a1072302c1dee6f7bb8d952029cd4395d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5f06b46ddb911722506ee25c1e2a72b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#aa5f06b46ddb911722506ee25c1e2a72b">hscan</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:aa5f06b46ddb911722506ee25c1e2a72b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#aa5f06b46ddb911722506ee25c1e2a72b">More...</a><br/></td></tr>
+<tr class="separator:aa5f06b46ddb911722506ee25c1e2a72b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0ffed8908a9f75cf2197601b77f27be"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#ac0ffed8908a9f75cf2197601b77f27be">hrscan</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:ac0ffed8908a9f75cf2197601b77f27be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-value pairs.  <a href="#ac0ffed8908a9f75cf2197601b77f27be">More...</a><br/></td></tr>
+<tr class="separator:ac0ffed8908a9f75cf2197601b77f27be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Zset methods</div></td></tr>
 <tr class="memitem:af8d46f5191851db57b4ede05d29224f2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8d46f5191851db57b4ede05d29224f2"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>zget</b> (const std::string &amp;name, const std::string &amp;key, int64_t *ret)=0</td></tr>
@@ -154,14 +158,26 @@ virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td 
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#ad2bc77f4622156952bd6363abca8810a">zrank</a> (const std::string &amp;name, const std::string &amp;key, int64_t *ret)=0</td></tr>
 <tr class="memdesc:ad2bc77f4622156952bd6363abca8810a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>Important! This method may be extremly SLOW!</b> <br/></td></tr>
 <tr class="separator:ad2bc77f4622156952bd6363abca8810a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bcbd9ec9a199d557b8899959c72ebe3"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a6bcbd9ec9a199d557b8899959c72ebe3">zkeys</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="separator:a6bcbd9ec9a199d557b8899959c72ebe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acaf2c972b174e3747fea6e04b328ecc0"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#acaf2c972b174e3747fea6e04b328ecc0">zscan</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:acaf2c972b174e3747fea6e04b328ecc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-score pairs.  <a href="#acaf2c972b174e3747fea6e04b328ecc0">More...</a><br/></td></tr>
-<tr class="separator:acaf2c972b174e3747fea6e04b328ecc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7dc9d7440c1727591aa56dd71c62feb1"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a7dc9d7440c1727591aa56dd71c62feb1">zrscan</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, int limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
-<tr class="memdesc:a7dc9d7440c1727591aa56dd71c62feb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-score pairs.  <a href="#a7dc9d7440c1727591aa56dd71c62feb1">More...</a><br/></td></tr>
-<tr class="separator:a7dc9d7440c1727591aa56dd71c62feb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0de16e13ba9dd9f83a0d749ce4bfb56"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af0de16e13ba9dd9f83a0d749ce4bfb56"></a>
+virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#af0de16e13ba9dd9f83a0d749ce4bfb56">zrrank</a> (const std::string &amp;name, const std::string &amp;key, int64_t *ret)=0</td></tr>
+<tr class="memdesc:af0de16e13ba9dd9f83a0d749ce4bfb56"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>Important! This method may be extremly SLOW!</b> <br/></td></tr>
+<tr class="separator:af0de16e13ba9dd9f83a0d749ce4bfb56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67bb8b34b68eec284751a89100f2c6a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a67bb8b34b68eec284751a89100f2c6a3"></a>
+virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a67bb8b34b68eec284751a89100f2c6a3">zrange</a> (const std::string &amp;name, uint64_t offset, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a67bb8b34b68eec284751a89100f2c6a3"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>Important! This method is SLOW for large offset!</b> <br/></td></tr>
+<tr class="separator:a67bb8b34b68eec284751a89100f2c6a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a434ffeef3258faac3cd6f34b7046fef9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a434ffeef3258faac3cd6f34b7046fef9"></a>
+virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a434ffeef3258faac3cd6f34b7046fef9">zrrange</a> (const std::string &amp;name, uint64_t offset, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a434ffeef3258faac3cd6f34b7046fef9"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>Important! This method is SLOW for large offset!</b> <br/></td></tr>
+<tr class="separator:a434ffeef3258faac3cd6f34b7046fef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf8e1511087fdbe9f951cfc07844e92d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#adf8e1511087fdbe9f951cfc07844e92d">zkeys</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="separator:adf8e1511087fdbe9f951cfc07844e92d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a890e634b4617e4f441aa429ab61ba48b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a890e634b4617e4f441aa429ab61ba48b">zscan</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a890e634b4617e4f441aa429ab61ba48b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-score pairs.  <a href="#a890e634b4617e4f441aa429ab61ba48b">More...</a><br/></td></tr>
+<tr class="separator:a890e634b4617e4f441aa429ab61ba48b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a177e86385c8d8f27adc72a3ea5f0e022"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a177e86385c8d8f27adc72a3ea5f0e022">zrscan</a> (const std::string &amp;name, const std::string &amp;key_start, int64_t *score_start, int64_t *score_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
+<tr class="memdesc:a177e86385c8d8f27adc72a3ea5f0e022"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return key-score pairs.  <a href="#a177e86385c8d8f27adc72a3ea5f0e022">More...</a><br/></td></tr>
+<tr class="separator:a177e86385c8d8f27adc72a3ea5f0e022"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -172,7 +188,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The SSDB client used to connect to SSDB server. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="afb09fa7546e38eff8d8ca2c56ee64ca9"></a>
+<a class="anchor" id="a1072302c1dee6f7bb8d952029cd4395d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -200,7 +216,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -231,7 +247,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a3263efa4f4956d155a5825762d2c71c8"></a>
+<a class="anchor" id="ac0ffed8908a9f75cf2197601b77f27be"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -259,7 +275,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -286,7 +302,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a41a0100adbdc394367776f5b0e325d94"></a>
+<a class="anchor" id="aa5f06b46ddb911722506ee25c1e2a72b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -314,7 +330,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -341,7 +357,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a158958bcd6432865ed09c6fef73914ef"></a>
+<a class="anchor" id="afa15099e617766878f31f6fa65daf40c"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -363,7 +379,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -394,7 +410,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a6fd31024c6904f1221a82f7f9441ff23"></a>
+<a class="anchor" id="a3cedf178f3e91115843cb64dd8291bd9"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -416,7 +432,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -443,7 +459,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a64a2dda377ebbd948a021dd875583753"></a>
+<a class="anchor" id="a997b3dd708267ec6d8cbcdc69f43e861"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -465,7 +481,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -492,7 +508,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a6bcbd9ec9a199d557b8899959c72ebe3"></a>
+<a class="anchor" id="adf8e1511087fdbe9f951cfc07844e92d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -526,7 +542,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -557,7 +573,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="a7dc9d7440c1727591aa56dd71c62feb1"></a>
+<a class="anchor" id="a177e86385c8d8f27adc72a3ea5f0e022"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -591,7 +607,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -618,7 +634,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 
 </div>
 </div>
-<a class="anchor" id="acaf2c972b174e3747fea6e04b328ecc0"></a>
+<a class="anchor" id="a890e634b4617e4f441aa429ab61ba48b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -652,7 +668,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>limit</em>, </td>
         </tr>
         <tr>
@@ -685,7 +701,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Oct 23 2013 10:27:47 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Oct 23 2013 23:24:54 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.5
 </small></address>

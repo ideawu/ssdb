@@ -77,6 +77,7 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5) = 0;
+	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5, const std::string &s6) = 0;
 	/// @}
 
 	/// @name KV methods
@@ -90,19 +91,19 @@ public:
 	 * @param key_end Empty string means no limit.
 	 */
 	virtual Status keys(const std::string &key_start, const std::string &key_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-value pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
 	 */
 	virtual Status scan(const std::string &key_start, const std::string &key_end,
-	 	int limit, std::vector<std::string> *ret) = 0;
+	 	uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-value pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
 	 */
 	virtual Status rscan(const std::string &key_start, const std::string &key_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/// @}
 
 
@@ -119,21 +120,21 @@ public:
 	 */
 	virtual Status hkeys(const std::string &name, 
 		const std::string &key_start, const std::string &key_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-value pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
 	 */
 	virtual Status hscan(const std::string &name, 
 		const std::string &key_start, const std::string &key_end,
-	 	int limit, std::vector<std::string> *ret) = 0;
+	 	uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-value pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
 	 */
 	virtual Status hrscan(const std::string &name, 
 		const std::string &key_start, const std::string &key_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/// @}
 
 
@@ -149,26 +150,42 @@ public:
 	 */
 	virtual Status zrank(const std::string &name, const std::string &key, int64_t *ret) = 0;
 	/**
+	 * <b>Important! This method may be extremly SLOW!</b>
+	 */
+	virtual Status zrrank(const std::string &name, const std::string &key, int64_t *ret) = 0;
+	/**
+	 * <b>Important! This method is SLOW for large offset!</b>
+	 */
+	virtual Status zrange(const std::string &name,
+		uint64_t offset, uint64_t limit,
+		std::vector<std::string> *ret) = 0;
+	/**
+	 * <b>Important! This method is SLOW for large offset!</b>
+	 */
+	virtual Status zrrange(const std::string &name,
+		uint64_t offset, uint64_t limit,
+		std::vector<std::string> *ret) = 0;
+	/**
 	 * @param score_start NULL means no limit.
 	 * @param score_end NULL means no limit.
 	 */
 	virtual Status zkeys(const std::string &name, const std::string &key_start,
 		int64_t *score_start, int64_t *score_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-score pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-score pair, n=0,2,4,...
 	 */
 	virtual Status zscan(const std::string &name, const std::string &key_start,
 		int64_t *score_start, int64_t *score_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
 	 * Return key-score pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-score pair, n=0,2,4,...
 	 */
 	virtual Status zrscan(const std::string &name, const std::string &key_start,
 		int64_t *score_start, int64_t *score_end,
-		int limit, std::vector<std::string> *ret) = 0;
+		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/// @}
 
 private:

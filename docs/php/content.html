@@ -912,7 +912,7 @@ $ssdb-&gt;zrank('z', 'k1');
 <h3>zrange, zrrange</h3>
 
 <h4><em>Description</em></h4>
-<p><b>Important! This method is SLOW if <code>offset</code> is a big number!</b></p>
+<p><b>Important! This method is SLOW for large <code>offset</code>!</b></p>
 <p>Returns a range of key-score pairs by index range [offset, offset + limit). Zrrange iterates in reverse order.</p>
 
 <h4><em>Parameters</em></h4>

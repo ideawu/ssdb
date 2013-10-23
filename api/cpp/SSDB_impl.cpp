@@ -3,6 +3,44 @@
 
 namespace ssdb{
 
+inline static
+Status _read_list(const std::vector<std::string> *resp, std::vector<std::string> *ret){
+	Status s(resp);
+	if(s.ok()){
+		std::vector<std::string>::const_iterator it;
+		for(it = resp->begin() + 1; it != resp->end(); it++){
+			ret->push_back(*it);
+		}
+	}
+	return s;
+}
+
+inline static
+Status _read_int64(const std::vector<std::string> *resp, int64_t *ret){
+	Status s(resp);
+	if(s.ok()){
+		if(resp->size() >= 2){
+			*ret = str_to_int64(resp->at(1));
+		}else{
+			return Status("server_error");
+		}
+	}
+	return s;
+}
+
+inline static
+Status _read_str(const std::vector<std::string> *resp, std::string *ret){
+	Status s(resp);
+	if(s.ok()){
+		if(resp->size() >= 2){
+			*ret = resp->at(1);
+		}else{
+			return Status("server_error");
+		}
+	}
+	return s;
+}
+
 ClientImpl::ClientImpl(){
 	link = NULL;
 }
@@ -81,133 +119,71 @@ const std::vector<std::string>* ClientImpl::request(const std::string &cmd, cons
 	return request(req);
 }
 
+const std::vector<std::string>* ClientImpl::request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5, const std::string &s6){
+	std::vector<std::string> req;
+	req.push_back(cmd);
+	req.push_back(s2);
+	req.push_back(s3);
+	req.push_back(s4);
+	req.push_back(s5);
+	req.push_back(s6);
+	return request(req);
+}
+
 /******************** KV *************************/
 
 Status ClientImpl::get(const std::string &key, std::string *val){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("get");
-	req.push_back(key);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*val = resp->at(1);
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("get", key);
+	return _read_str(resp, val);
 }
 
 Status ClientImpl::set(const std::string &key, const std::string &val){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("set");
-	req.push_back(key);
-	req.push_back(val);
-	resp = request(req);
-
+	resp = this->request("set", key, val);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::del(const std::string &key){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("del");
-	req.push_back(key);
-	resp = request(req);
-
+	resp = this->request("del", key);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::incr(const std::string &key, int64_t incrby, int64_t *ret){
 	std::string s_incrby = int64_to_str(incrby);
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("incr");
-	req.push_back(key);
-	req.push_back(s_incrby);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("incr", key, s_incrby);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::keys(const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("keys");
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("keys", key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::scan(const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("scan");
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("scan", key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::rscan(const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("rscan");
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("rscan", key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 
@@ -215,158 +191,66 @@ Status ClientImpl::rscan(const std::string &key_start, const std::string &key_en
 
 
 Status ClientImpl::hget(const std::string &name, const std::string &key, std::string *val){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("hget");
-	req.push_back(name);
-	req.push_back(key);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*val = resp->at(1);
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("hget", name, key);
+	return _read_str(resp, val);
 }
 
 Status ClientImpl::hset(const std::string &name, const std::string &key, const std::string &val){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("hset");
-	req.push_back(name);
-	req.push_back(key);
-	req.push_back(val);
-	resp = request(req);
-
+	resp = this->request("hset", name, key, val);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::hdel(const std::string &name, const std::string &key){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("hdel");
-	req.push_back(name);
-	req.push_back(key);
-	resp = request(req);
-
+	resp = this->request("hdel", name, key);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::hincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret){
 	std::string s_incrby = int64_to_str(incrby);
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("hincr");
-	req.push_back(name);
-	req.push_back(key);
-	req.push_back(s_incrby);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("hincr", name, key, s_incrby);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::hsize(const std::string &name, int64_t *ret){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("hsize");
-	req.push_back(name);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("hsize", name);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::hkeys(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("hkeys");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("hkeys", name, key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::hscan(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("hscan");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("hscan", name, key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::hrscan(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("hrscan");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(key_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("hrscan", name, key_start, key_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 
@@ -375,187 +259,107 @@ Status ClientImpl::hrscan(const std::string &name,
 
 
 Status ClientImpl::zget(const std::string &name, const std::string &key, int64_t *ret){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zget");
-	req.push_back(name);
-	req.push_back(key);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("zget", name, key);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::zset(const std::string &name, const std::string &key, int64_t score){
 	std::string s_score = int64_to_str(score);
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zset");
-	req.push_back(name);
-	req.push_back(key);
-	req.push_back(s_score);
-	resp = request(req);
-
+	resp = this->request("zset", name, key, s_score);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::zdel(const std::string &name, const std::string &key){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zdel");
-	req.push_back(name);
-	req.push_back(key);
-	resp = request(req);
-
+	resp = this->request("zdel", name, key);
 	Status s(resp);
 	return s;
 }
 
 Status ClientImpl::zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret){
 	std::string s_incrby = int64_to_str(incrby);
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zincr");
-	req.push_back(name);
-	req.push_back(key);
-	req.push_back(s_incrby);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("zincr", name, key, s_incrby);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::zsize(const std::string &name, int64_t *ret){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zsize");
-	req.push_back(name);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+	resp = this->request("zsize", name);
+	return _read_int64(resp, ret);
 }
 
 Status ClientImpl::zrank(const std::string &name, const std::string &key, int64_t *ret){
-	std::vector<std::string> req;
 	const std::vector<std::string> *resp;
-	req.push_back("zrank");
-	req.push_back(name);
-	req.push_back(key);
-	resp = request(req);
+	resp = this->request("zrank", name, key);
+	return _read_int64(resp, ret);
+}
 
-	Status s(resp);
-	if(s.ok()){
-		if(resp->size() >= 2){
-			*ret = str_to_int64(resp->at(1));
-		}else{
-			return Status("server_error");
-		}
-	}
-	return s;
+Status ClientImpl::zrrank(const std::string &name, const std::string &key, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("zrrank", name, key);
+	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::zrange(const std::string &name,
+		uint64_t offset, uint64_t limit,
+		std::vector<std::string> *ret)
+{
+	std::string s_offset = uint64_to_str(offset);
+	std::string s_limit = uint64_to_str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request("zrange", name, s_offset, s_limit);
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::zrrange(const std::string &name,
+		uint64_t offset, uint64_t limit,
+		std::vector<std::string> *ret)
+{
+	std::string s_offset = uint64_to_str(offset);
+	std::string s_limit = uint64_to_str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request("zrrange", name, s_offset, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::zkeys(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
 	std::string s_score_start = score_start? int_to_str(*score_start) : "";
 	std::string s_score_end = score_end? int_to_str(*score_end) : "";
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("zkeys");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(s_score_start);
-	req.push_back(s_score_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("zkeys", name, key_start, s_score_start, s_score_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::zscan(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
 	std::string s_score_start = score_start? int_to_str(*score_start) : "";
 	std::string s_score_end = score_end? int_to_str(*score_end) : "";
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("zscan");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(s_score_start);
-	req.push_back(s_score_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("zscan", name, key_start, s_score_start, s_score_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::zrscan(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
-	int limit, std::vector<std::string> *ret)
+	uint64_t limit, std::vector<std::string> *ret)
 {
 	std::string s_score_start = score_start? int_to_str(*score_start) : "";
 	std::string s_score_end = score_end? int_to_str(*score_end) : "";
-	std::string s_limit = int_to_str(limit);
-	std::vector<std::string> req;
+	std::string s_limit = uint64_to_str(limit);
 	const std::vector<std::string> *resp;
-	req.push_back("zrscan");
-	req.push_back(name);
-	req.push_back(key_start);
-	req.push_back(s_score_start);
-	req.push_back(s_score_end);
-	req.push_back(s_limit);
-	resp = request(req);
-
-	Status s(resp);
-	if(s.ok()){
-		std::vector<std::string>::const_iterator it;
-		for(it = resp->begin() + 1; it != resp->end(); it++){
-			ret->push_back(*it);
-		}
-	}
-	return s;
+	resp = this->request("zrscan", name, key_start, s_score_start, s_score_end, s_limit);
+	return _read_list(resp, ret);
 }
 
 }; // namespace ssdb
