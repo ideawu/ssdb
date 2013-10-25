@@ -241,9 +241,7 @@ int BinlogQueue::find_last(Binlog *log) const{
 	if(!it->Valid()){
 		// Iterator::prev requires Valid, so we seek to last
 		it->SeekToLast();
-	}
-	// UINT64_MAX is not used
-	if(it->Valid()){
+	}else{
 		it->Prev();
 	}
 	if(it->Valid()){
