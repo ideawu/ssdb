@@ -15,7 +15,7 @@ public class Demo {
 		
 		ssdb.set("a", "123");
 		b = ssdb.get("a");
-		System.out.println(MemoryStream.repr(b));
+		System.out.println(new String(b));
 		ssdb.del("a");
 		b = ssdb.get("a");
 		System.out.println(b);
@@ -32,7 +32,7 @@ public class Demo {
 
 		ssdb.hset("n", "a", "123");
 		b = ssdb.hget("n", "a");
-		System.out.println(MemoryStream.repr(b));
+		System.out.println(new String(b));
 		ssdb.hdel("n", "a");
 		b = ssdb.hget("n", "a");
 		System.out.println(b);
