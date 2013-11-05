@@ -111,14 +111,15 @@ void run(int argc, char **argv){
 	
 	int link_count = 0;
 	while(!quit){
+		bool write_pending = false;
 		ready_list.clear();
 		ready_list_2.clear();
 		
-		if(!ready_list.empty()){
+		if(write_pending || !ready_list.empty()){
 			// give links that are not in ready_list a chance
 			events = select.wait(0);
 		}else{
-			events = select.wait(500);
+			events = select.wait(50);
 		}
 		if(events == NULL){
 			log_fatal("events.wait error: %s", strerror(errno));
@@ -137,7 +138,7 @@ void run(int argc, char **argv){
 					link->remote_ip, link->remote_port, link->fd(), link_count);
 				
 				link->nodelay();
-				//link->noblock();
+				link->noblock();
 				link->create_time = millitime();
 				link->active_time = link->create_time;
 				select.set(link->fd(), FDEVENT_IN, 1, link);
@@ -186,6 +187,8 @@ void run(int argc, char **argv){
 							//log_trace("add %d to select.in", link->fd());
 							select.set(link->fd(), FDEVENT_IN, 1, link);
 						}
+					}else{
+						write_pending = true;
 					}
 				}
 			}
