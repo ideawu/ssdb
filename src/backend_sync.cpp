@@ -179,7 +179,7 @@ void BackendSync::Client::reset(){
 void BackendSync::Client::noop(){
 	this->last_noop_seq = this->last_seq;
 	Binlog noop(this->last_seq, BinlogType::NOOP, BinlogCommand::NONE, "");
-	log_debug("fd: %d, %s", link->fd(), log.dumps().c_str());
+	log_debug("fd: %d, %s", link->fd(), noop.dumps().c_str());
 	link->send(noop.repr());
 }
 
