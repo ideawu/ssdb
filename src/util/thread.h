@@ -50,13 +50,19 @@ class WorkerPool{
 	public:
 		class Worker{
 			public:
+				Worker(){};
+				Worker(const std::string &name);
 				virtual ~Worker(){}
 				int id;
 				virtual void init(){}
 				virtual void destroy(){}
 				virtual int proc(JOB *job) = 0;
+			private:
+			protected:
+				std::string name;
 		};
 	private:
+		std::string name;
 		Queue<JOB> jobs;
 		SelectableQueue<JOB> results;
 
@@ -70,7 +76,7 @@ class WorkerPool{
 		};
 		static void* _run_worker(void *arg);
 	public:
-		WorkerPool();
+		WorkerPool(const char *name="");
 		~WorkerPool();
 
 		int fd(){
@@ -227,7 +233,8 @@ int SelectableQueue<T>::pop(T *data){
 
 
 template<class W, class JOB>
-WorkerPool<W, JOB>::WorkerPool(){
+WorkerPool<W, JOB>::WorkerPool(const char *name){
+	this->name = name;
 	this->started = false;
 }
 
@@ -255,7 +262,7 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 	WorkerPool *tp = p->tp;
 	delete p;
 
-	W w;
+	W w(tp->name);
 	Worker *worker = (Worker *)&w;
 	worker->id = id;
 	worker->init();

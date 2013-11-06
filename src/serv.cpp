@@ -104,64 +104,64 @@ static proc_map_t proc_map;
 #define PROC(c, f) {#c, f, 0, proc_##c, 0, 0, 0}
 static Command commands[] = {
 	PROC(get, "r"),
-	PROC(set, "w"),
-	PROC(del, "w"),
-	PROC(incr, "w"),
-	PROC(decr, "w"),
-	PROC(scan, "r"),
-	PROC(rscan, "r"),
-	PROC(keys, "r"),
+	PROC(set, "wt"),
+	PROC(del, "wt"),
+	PROC(incr, "wt"),
+	PROC(decr, "wt"),
+	PROC(scan, "rt"),
+	PROC(rscan, "rt"),
+	PROC(keys, "rt"),
 	PROC(exists, "r"),
 	PROC(multi_exists, "r"),
 	PROC(multi_get, "r"),
-	PROC(multi_set, "w"),
-	PROC(multi_del, "w"),
+	PROC(multi_set, "wt"),
+	PROC(multi_del, "wt"),
 
 	PROC(hsize, "r"),
 	PROC(hget, "r"),
-	PROC(hset, "w"),
-	PROC(hdel, "w"),
-	PROC(hincr, "w"),
-	PROC(hdecr, "w"),
-	PROC(hscan, "r"),
-	PROC(hrscan, "r"),
-	PROC(hkeys, "r"),
-	PROC(hlist, "r"),
+	PROC(hset, "wt"),
+	PROC(hdel, "wt"),
+	PROC(hincr, "wt"),
+	PROC(hdecr, "wt"),
+	PROC(hscan, "rt"),
+	PROC(hrscan, "rt"),
+	PROC(hkeys, "rt"),
+	PROC(hlist, "rt"),
 	PROC(hexists, "r"),
 	PROC(multi_hexists, "r"),
 	PROC(multi_hsize, "r"),
 	PROC(multi_hget, "r"),
-	PROC(multi_hset, "w"),
-	PROC(multi_hdel, "w"),
+	PROC(multi_hset, "wt"),
+	PROC(multi_hdel, "wt"),
 
 	// because zrank may be extremly slow, execute in a seperate thread
-	PROC(zrank, "w"),
-	PROC(zrrank, "w"),
-	PROC(zrange, "w"),
-	PROC(zrrange, "w"),
+	PROC(zrank, "rt"),
+	PROC(zrrank, "rt"),
+	PROC(zrange, "rt"),
+	PROC(zrrange, "rt"),
 	PROC(zsize, "r"),
-	PROC(zget, "r"),
-	PROC(zset, "w"),
-	PROC(zdel, "w"),
-	PROC(zincr, "w"),
-	PROC(zdecr, "w"),
-	PROC(zscan, "r"),
-	PROC(zrscan, "r"),
-	PROC(zkeys, "r"),
-	PROC(zlist, "r"),
+	PROC(zget, "rt"),
+	PROC(zset, "wt"),
+	PROC(zdel, "wt"),
+	PROC(zincr, "wt"),
+	PROC(zdecr, "wt"),
+	PROC(zscan, "rt"),
+	PROC(zrscan, "rt"),
+	PROC(zkeys, "rt"),
+	PROC(zlist, "rt"),
 	PROC(zexists, "r"),
 	PROC(multi_zexists, "r"),
 	PROC(multi_zsize, "r"),
 	PROC(multi_zget, "r"),
-	PROC(multi_zset, "w"),
-	PROC(multi_zdel, "w"),
+	PROC(multi_zset, "wt"),
+	PROC(multi_zdel, "wt"),
 
-	PROC(clear_binlog, "w"),
+	PROC(clear_binlog, "wt"),
 
 	PROC(dump, "b"),
 	PROC(sync140, "b"),
 	PROC(info, "r"),
-	PROC(compact, "w"),
+	PROC(compact, "wt"),
 	PROC(key_range, "r"),
 
 	{NULL, NULL, 0, NULL}
@@ -185,6 +185,9 @@ Server::Server(SSDB *ssdb){
 				case 'b':
 					cmd->flags |= Command::FLAG_BACKEND;
 					break;
+				case 't':
+					cmd->flags |= Command::FLAG_THREAD;
+					break;
 			}
 		}
 		proc_map[cmd->name] = cmd;
@@ -192,14 +195,22 @@ Server::Server(SSDB *ssdb){
 	// for k-v data, list === keys
 	proc_map["list"] = proc_map["keys"];
 	
-	writer.start(MAX_WRITERS);
+	writer = new WorkerPool<ProcWorker, ProcJob>("writer");
+	writer->start(WRITER_THREADS);
+	reader = new WorkerPool<ProcWorker, ProcJob>("reader");
+	reader->start(READER_THREADS);
 }
 
 Server::~Server(){
 	delete backend_dump;
 	delete backend_sync;
-	writer.stop();
-	log_debug("CommandProc finalized");
+	
+	writer->stop();
+	delete writer;
+	reader->stop();
+	delete reader;
+	
+	log_debug("Server finalized");
 }
 
 void Server::proc(ProcJob *job){
@@ -216,16 +227,27 @@ void Server::proc(ProcJob *job){
 	}else{
 		Command *cmd = it->second;
 		job->cmd = cmd;
-		if(cmd->flags & Command::FLAG_WRITE){
-			job->result = PROC_BACKEND;
-			writer.push(*job);
-			return; /////
+		if(cmd->flags & Command::FLAG_THREAD){
+			if(cmd->flags & Command::FLAG_WRITE){
+				job->result = PROC_THREAD;
+				writer->push(*job);
+				return; /////
+			}else if(cmd->flags & Command::FLAG_READ){
+				job->result = PROC_THREAD;
+				reader->push(*job);
+				return; /////
+			}else{
+				log_error("bad command config: %s", cmd->name);
+			}
 		}
 
 		proc_t p = cmd->proc;
 		job->time_wait = 1000 *(millitime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &resp);
 		job->time_proc = 1000 *(millitime() - job->stime);
+	}
+	if(job->result == PROC_BACKEND){
+		return;
 	}
 	
 	if(job->link->send(resp) == -1){
@@ -239,16 +261,15 @@ void Server::proc(ProcJob *job){
 }
 
 
-
-void Server::WriteProc::init(){
-	log_debug("%d init", this->id);
+Server::ProcWorker::ProcWorker(const std::string &name){
+	this->name = name;
 }
 
-void Server::WriteProc::destroy(){
-	log_debug("%d destroy", this->id);
+void Server::ProcWorker::init(){
+	log_debug("%s %d init", this->name.c_str(), this->id);
 }
 
-int Server::WriteProc::proc(ProcJob *job){
+int Server::ProcWorker::proc(ProcJob *job){
 	const Request *req = job->link->last_recv();
 	Response resp;
 	

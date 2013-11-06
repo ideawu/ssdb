@@ -12,6 +12,7 @@
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
+#define PROC_THREAD     1
 #define PROC_BACKEND	100
 
 typedef std::vector<Bytes> Request;
@@ -25,6 +26,7 @@ struct Command{
 	static const int FLAG_READ		= (1 << 0);
 	static const int FLAG_WRITE		= (1 << 1);
 	static const int FLAG_BACKEND	= (1 << 2);
+	static const int FLAG_THREAD	= (1 << 3);
 
 	const char *name;
 	const char *sflags;
@@ -58,7 +60,8 @@ typedef struct _ProcJob{
 
 class Server{
 	private:
-		static const int MAX_WRITERS = 2;
+		static const int READER_THREADS = 10;
+		static const int WRITER_THREADS = 2;
 	public:
 		SSDB *ssdb;
 		BackendDump *backend_dump;
@@ -69,14 +72,15 @@ class Server{
 		void proc(ProcJob *job);
 
 		// WARN: pipe latency is about 20 us, it is really slow!
-		class WriteProc : public WorkerPool<WriteProc, ProcJob>::Worker{
+		class ProcWorker : public WorkerPool<ProcWorker, ProcJob>::Worker{
 		public:
-			~WriteProc(){}
+			ProcWorker(const std::string &name);
+			~ProcWorker(){}
 			void init();
-			void destroy();
 			int proc(ProcJob *job);
 		};
-		WorkerPool<WriteProc, ProcJob> writer;
+		WorkerPool<ProcWorker, ProcJob> *writer;
+		WorkerPool<ProcWorker, ProcJob> *reader;
 };
 
 template<class T>

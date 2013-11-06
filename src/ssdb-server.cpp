@@ -107,7 +107,8 @@ void run(int argc, char **argv){
 
 	Fdevents select;
 	select.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
-	select.set(serv.writer.fd(), FDEVENT_IN, 0, &serv.writer);
+	select.set(serv.reader->fd(), FDEVENT_IN, 0, serv.reader);
+	select.set(serv.writer->fd(), FDEVENT_IN, 0, serv.writer);
 	
 	int link_count = 0;
 	while(!quit){
@@ -142,9 +143,10 @@ void run(int argc, char **argv){
 				link->create_time = millitime();
 				link->active_time = link->create_time;
 				select.set(link->fd(), FDEVENT_IN, 1, link);
-			}else if(fde->data.ptr == &serv.writer){
+			}else if(fde->data.ptr == serv.reader || fde->data.ptr == serv.writer){
+				WorkerPool<Server::ProcWorker, ProcJob> *worker = (WorkerPool<Server::ProcWorker, ProcJob> *)fde->data.ptr;
 				ProcJob job;
-				if(serv.writer.pop(&job) == 0){
+				if(worker->pop(&job) == 0){
 					log_fatal("reading result from workers error!");
 					exit(0);
 				}
@@ -212,15 +214,21 @@ void run(int argc, char **argv){
 				}
 				continue;
 			}
-	
+			
+			link->active_time = millitime();
+
 			ProcJob job;
 			job.link = link;
 			serv.proc(&job);
-			if(job.result == PROC_BACKEND){
+			if(job.result == PROC_THREAD){
 				select.del(link->fd());
 				continue;
 			}
-			link->active_time = millitime();
+			if(job.result == PROC_BACKEND){
+				select.del(link->fd());
+				link_count --;
+				continue;
+			}
 			
 			if(proc_result(job, select, ready_list_2) == PROC_ERROR){
 				link_count --;
