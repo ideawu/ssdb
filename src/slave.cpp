@@ -242,8 +242,8 @@ int Slave::proc(const std::vector<Bytes> &req){
 
 int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
 	uint64_t seq = log.seq();
+	log_debug("noop last_seq: %"PRIu64", seq: %"PRIu64"", this->last_seq, seq);
 	if(this->last_seq != seq){
-		log_debug("noop last_seq: %"PRIu64", seq: %"PRIu64"", this->last_seq, seq);
 		this->last_seq = seq;
 		this->save_status();
 	}
