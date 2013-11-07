@@ -99,6 +99,17 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->keys('TEST_', 'TEST_'.pack('C', 255), 10);
 		$this->assert(count($ret) == 2);
 
+		$kvs = array();
+		for($i=0; $i<5; $i++){
+			$kvs['TEST_' . $i] = $i;
+			$ssdb->multi_set($kvs);
+			$ret = $ssdb->multi_get(array_keys($kvs));
+			$this->assert(count($ret) == count($kvs));
+			$ret = $ssdb->multi_del(array_keys($kvs));
+			$ret = $ssdb->multi_get(array_keys($kvs));
+			$this->assert(count($ret) == 0);
+		}
+
 		$ssdb->del('TEST_a');
 		$ret = $ssdb->get('TEST_a');
 		$this->assert($ret === null);
