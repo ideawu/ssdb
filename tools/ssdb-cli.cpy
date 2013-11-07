@@ -8,11 +8,11 @@ try{
 
 
 function welcome(){
-	print ('ssdb (cli) - ssdb command line tool.');
-	print ('Copyright (c) 2012-2013 ideawu.com');
-	print ('');
-	print "'h' or 'help' for help, 'q' to quit.";
-	print ('');
+	sys.stderr.write('ssdb (cli) - ssdb command line tool.\n');
+	sys.stderr.write('Copyright (c) 2012-2013 ideawu.com\n');
+	sys.stderr.write('\n');
+	sys.stderr.write("'h' or 'help' for help, 'q' to quit.\n");
+	sys.stderr.write('\n');
 }
 welcome();
 
@@ -298,7 +298,15 @@ try{
 while(true){
 	line = '';
 	c = sprintf('ssdb %s:%s> ', host, str(port));
-	line = raw_input(c);
+	b = sys.stdout;
+	sys.stdout = sys.stderr;
+	try{
+		line = raw_input(c);
+	}catch(Exception e){
+		break;
+	}
+	sys.stdout = b;
+	
 	if(line == ''){
 		continue;
 	}
@@ -383,7 +391,7 @@ while(true){
 	time_consume = ts.seconds + ts.microseconds/1000000.;
 	if(!resp.ok()){
 		print 'error: ' + resp.code;
-		printf('(%.3f sec)\n', time_consume);
+		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
 		switch(cmd){
 			case 'exists':
@@ -394,7 +402,7 @@ while(true){
 				}else{
 					printf('false\n');
 				}
-				printf('(%.3f sec)\n', time_consume);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 			case 'multi_exists':
 			case 'multi_hexists':
@@ -409,7 +417,7 @@ while(true){
 					}
 					printf('  %-15s : %s\n', repr_data(k), s);
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'get':
 			case 'zget':
@@ -428,7 +436,7 @@ while(true){
 			case 'multi_hdel':
 			case 'multi_zdel':
 				print repr_data(resp.data);
-				printf('(%.3f sec)\n', time_consume);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 			case 'set':
 			case 'zset':
@@ -437,7 +445,7 @@ while(true){
 			case 'zdel':
 			case 'hdel':
 				print resp.code;
-				printf('(%.3f sec)\n', time_consume);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 			case 'scan':
 			case 'rscan':
@@ -448,7 +456,7 @@ while(true){
 				foreach(resp.data['index'] as k){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;
 			case 'zscan':
 			case 'zrscan':
@@ -460,7 +468,7 @@ while(true){
 					score = resp.data['items'][k];
 					printf('  %-15s: %s\n', repr_data(repr_data(k)), score);
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;
 			case 'keys':
 			case 'list':
@@ -471,7 +479,7 @@ while(true){
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'hlist':
 			case 'zlist':
@@ -480,7 +488,7 @@ while(true){
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'multi_get':
 			case 'multi_hget':
@@ -490,7 +498,7 @@ while(true){
 				foreach(resp.data as k=>v){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'info':
 				is_val = false;
@@ -502,7 +510,7 @@ while(true){
 					print s;
 					is_val = !is_val;
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'key_range':
 				if(len(resp.data) != 6){
@@ -524,11 +532,11 @@ while(true){
 					printf('	hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
 					printf('	zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
 				}
-				printf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume);
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			default:
 				print repr_data(resp.code), repr_data(resp.data);
-				printf('(%.3f sec)\n', time_consume);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 		}
 	}
