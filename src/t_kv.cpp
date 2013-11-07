@@ -26,7 +26,7 @@ int SSDB::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
 
 	std::vector<Bytes>::const_iterator it;
 	it = keys.begin() + offset;
-	for(; it != keys.end(); it += 2){
+	for(; it != keys.end(); it++){
 		const Bytes &key = *it;
 		std::string buf = encode_kv_key(key);
 		binlogs->Delete(buf);
