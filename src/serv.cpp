@@ -60,6 +60,7 @@ static proc_map_t proc_map;
 	DEF_PROC(hdel);
 	DEF_PROC(hincr);
 	DEF_PROC(hdecr);
+	DEF_PROC(hclear);
 	DEF_PROC(hscan);
 	DEF_PROC(hrscan);
 	DEF_PROC(hkeys);
@@ -81,6 +82,7 @@ static proc_map_t proc_map;
 	DEF_PROC(zdel);
 	DEF_PROC(zincr);
 	DEF_PROC(zdecr);
+	DEF_PROC(zclear);
 	DEF_PROC(zscan);
 	DEF_PROC(zrscan);
 	DEF_PROC(zkeys);
@@ -123,6 +125,7 @@ static Command commands[] = {
 	PROC(hdel, "wt"),
 	PROC(hincr, "wt"),
 	PROC(hdecr, "wt"),
+	PROC(hclear, "wt"),
 	PROC(hscan, "rt"),
 	PROC(hrscan, "rt"),
 	PROC(hkeys, "rt"),
@@ -145,6 +148,7 @@ static Command commands[] = {
 	PROC(zdel, "wt"),
 	PROC(zincr, "wt"),
 	PROC(zdecr, "wt"),
+	PROC(zclear, "wt"),
 	PROC(zscan, "rt"),
 	PROC(zrscan, "rt"),
 	PROC(zkeys, "rt"),

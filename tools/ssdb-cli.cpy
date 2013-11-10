@@ -1,5 +1,6 @@
 import thread, re, time, socket;
 import getopt, shlex;
+import datetime;
 
 try{
 	import readline;
@@ -100,6 +101,13 @@ function hclear(link, hname, verbose=true){
 	ret = 0;
 	num = 0;
 	batch = 1000;
+	
+	r = link.request('hclear', [hname]);
+	try{
+		ret += int(r.data[0]);
+	}catch(Exception e){
+	}
+	
 	while(true){
 		r2 = link.request('hkeys', [hname, '', '', batch]);
 		num = len(r2.data);
@@ -112,7 +120,7 @@ function hclear(link, hname, verbose=true){
 		link.request('multi_hdel', keys);
 		if(ret - last_count >= batch || (verbose != false && num < batch)){
 			last_count = ret;
-			printf('hclear \'%s\' %d key(s).\n', zname, ret);
+			printf('hclear \'%s\' %d key(s).\n', hname, ret);
 		}
 		if(num != batch){
 			break;
@@ -126,6 +134,13 @@ function zclear(link, zname, verbose=true){
 	num = 0;
 	batch = 1000;
 	last_count = 0;
+
+	r = link.request('zclear', [zname]);
+	try{
+		ret += int(r.data[0]);
+	}catch(Exception e){
+	}
+	
 	while(true){
 		r2 = link.request('zkeys', [zname, '', '', '', batch]);
 		num = len(r2.data);
@@ -253,6 +268,13 @@ function flushdb(link, data_type){
 	printf('\n');
 }
 
+function timespan(stime){
+	etime = datetime.datetime.now();
+	ts = etime - stime;
+	time_consume = ts.seconds + ts.microseconds/1000000.;
+	return time_consume;
+}
+
 
 
 default_opts = {
@@ -294,7 +316,6 @@ try{
 	sys.exit(0);
 }
 
-
 while(true){
 	line = '';
 	c = sprintf('ssdb %s:%s> ', host, str(port));
@@ -333,18 +354,22 @@ while(true){
 	args = ps[1 .. ];
 	
 	if(cmd == 'flushdb'){
+		stime = datetime.datetime.now();
 		if(len(args) == 0){
 			flushdb(link, '');
 		}else{
 			flushdb(link, args[0]);
 		}
+		sys.stderr.write(sprintf('(%.3f sec)\n', timespan(stime)));
 		continue;
 	}
 	if(cmd == 'hclear'){
 		if(len(args) == 0){
 			printf('Missing arguement 1!\n');
 		}else{
-			hclear(link, args[0]);
+			stime = datetime.datetime.now();
+			num = hclear(link, args[0]);
+			sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
 		}
 		continue;
 	}
@@ -352,19 +377,19 @@ while(true){
 		if(len(args) == 0){
 			printf('Missing arguement 1!\n');
 		}else{
-			zclear(link, args[0]);
+			stime = datetime.datetime.now();
+			num = zclear(link, args[0]);
+			sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
 		}
 		continue;
 	}
 
 	retry = 0;
 	max_retry = 5;
-	import datetime;
 	stime = datetime.datetime.now();
 	while(true){
 		stime = datetime.datetime.now();
 		resp = link.request(cmd, args);
-		etime = datetime.datetime.now();
 		if(resp.code == 'disconnected'){
 			link.close();
 			time.sleep(retry);
@@ -387,8 +412,7 @@ while(true){
 		}
 	}
 
-	ts = etime - stime;
-	time_consume = ts.seconds + ts.microseconds/1000000.;
+	time_consume = timespan(stime);
 	if(!resp.ok()){
 		print 'error: ' + resp.code;
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));

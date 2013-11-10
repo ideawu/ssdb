@@ -40,6 +40,7 @@ public:
 	virtual Status hdel(const std::string &name, const std::string &key);
 	virtual Status hincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status hsize(const std::string &name, int64_t *ret);
+	virtual Status hclear(const std::string &name, int64_t *ret);
 	virtual Status hkeys(const std::string &name, const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret);
 	virtual Status hscan(const std::string &name, const std::string &key_start, const std::string &key_end,
@@ -52,6 +53,7 @@ public:
 	virtual Status zdel(const std::string &name, const std::string &key);
 	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status zsize(const std::string &name, int64_t *ret);
+	virtual Status zclear(const std::string &name, int64_t *ret);
 	virtual Status zrank(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zrrank(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zrange(const std::string &name,

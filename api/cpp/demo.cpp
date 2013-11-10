@@ -136,6 +136,10 @@ int main(int argc, char **argv){
 			}
 		}
 		printf("\n");
+
+		ret = -1;
+		s = client->hclear(hash, &ret);
+		assert(s.ok() && ret != -1);
 	}
 	
 	printf("\n");
@@ -210,6 +214,10 @@ int main(int argc, char **argv){
 		assert(s.ok() && (rank != -1));
 		client->zrrank(zset, "b", &rank);
 		assert(s.ok() && (rank != -1));
+
+		ret = -1;
+		s = client->zclear(zset, &ret);
+		assert(s.ok() && ret != -1);
 	}
 	
 	delete client;

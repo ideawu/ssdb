@@ -223,6 +223,12 @@ Status ClientImpl::hsize(const std::string &name, int64_t *ret){
 	return _read_int64(resp, ret);
 }
 
+Status ClientImpl::hclear(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("hclear", name);
+	return _read_int64(resp, ret);
+}
+
 Status ClientImpl::hkeys(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
 	uint64_t limit, std::vector<std::string> *ret)
@@ -289,6 +295,12 @@ Status ClientImpl::zincr(const std::string &name, const std::string &key, int64_
 Status ClientImpl::zsize(const std::string &name, int64_t *ret){
 	const std::vector<std::string> *resp;
 	resp = this->request("zsize", name);
+	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::zclear(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("zclear", name);
 	return _read_int64(resp, ret);
 }
 

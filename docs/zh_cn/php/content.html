@@ -526,6 +526,26 @@ $ssdb-&gt;hrscan('a', 'z', 10);
 </pre>
 
 
+<a name="m-hclear"></a>
+<h3>hclear</h3>
+
+<h4><em>说明</em></h4>
+<p>删除 hashmap 中的所有 key.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - hashmap 的名字.</dd>
+/dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回删除的 key 的数量.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;hclear('h');
+</pre>
+
+
 <a name="m-multi_hset"></a>
 <h3>multi_hset</h3>
 
@@ -820,6 +840,72 @@ $ssdb-&gt;zrscan('a', 'z', 10);
 </pre>
 
 
+<a name="m-zrank"></a>
+<h3>zrank, zrrank</h3>
+
+<h4><em>说明</em></h4>
+<p><b>注意! 本方法可能会非常慢! 请在离线环境中使用.</b></p>
+<p>返回指定 key 在 zset 中的排序位置(排名), 排名从 0 开始. zrrank 获取是是倒序排名.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+found.</p>
+<p>出错则返回 <code>false</code>, -1 表示 key 不存在于 zset, 否则返回排名.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;zrank('z', 'k1');
+</pre>
+
+
+<a name="m-zrange"></a>
+<h3>zrange, zrrange</h3>
+
+<h4><em>说明</em></h4>
+<p><b>注意! 本方法在 offset 越来越大时, 会越慢!</b></p>
+<p>根据下标索引区间 [offset, offset + limit) 获取 key-score 对, 下标从 0 开始. zrrange 是反向顺序获取.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+	<dd><code>offset</code> - 正整数, 从此下标处开始返回. 从 0 开始.</dd>
+	<dd><code>limit</code> - 正整数, 最多返回这么多个 key-score 对.</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回包含 key-score 的关联数组.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;zrange('z', 0, 10);
+</pre>
+
+
+<a name="m-zclear"></a>
+<h3>zclear</h3>
+
+<h4><em>说明</em></h4>
+<p>删除 zset 中的所有 key.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>name</code> - zset 的名字.</dd>
+/dl>
+
+<h4><em>返回值</em></h4>
+<p>如果出错则返回 <code>false</code>, 否则返回删除的 key 的数量.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;zclear('z');
+</pre>
+
+
 <a name="m-multi_zset"></a>
 <h3>multi_zset</h3>
 
@@ -883,52 +969,6 @@ $ssdb-&gt;multi_zget('z', array('k1', 'k2'));
 <h4><em>示例</em></h4>
 <pre>
 $ssdb-&gt;multi_zdel('z', array('k1', 'k2'));
-</pre>
-
-
-<a name="m-zrank"></a>
-<h3>zrank, zrrank</h3>
-
-<h4><em>说明</em></h4>
-<p><b>注意! 本方法可能会非常慢! 请在离线环境中使用.</b></p>
-<p>返回指定 key 在 zset 中的排序位置(排名), 排名从 0 开始. zrrank 获取是是倒序排名.</p>
-
-<h4><em>参数</em></h4>
-<dl>
-	<dd><code>name</code> - zset 的名字.</dd>
-	<dd><code>key</code> - </dd>
-</dl>
-
-<h4><em>返回值</em></h4>
-found.</p>
-<p>出错则返回 <code>false</code>, -1 表示 key 不存在于 zset, 否则返回排名.</p>
-
-<h4><em>示例</em></h4>
-<pre>
-$ssdb-&gt;zrank('z', 'k1');
-</pre>
-
-
-<a name="m-zrange"></a>
-<h3>zrange, zrrange</h3>
-
-<h4><em>说明</em></h4>
-<p><b>注意! 本方法在 offset 越来越大时, 会越慢!</b></p>
-<p>根据下标索引区间 [offset, offset + limit) 获取 key-score 对, 下标从 0 开始. zrrange 是反向顺序获取.</p>
-
-<h4><em>参数</em></h4>
-<dl>
-	<dd><code>name</code> - zset 的名字.</dd>
-	<dd><code>offset</code> - 正整数, 从此下标处开始返回. 从 0 开始.</dd>
-	<dd><code>limit</code> - 正整数, 最多返回这么多个 key-score 对.</dd>
-</dl>
-
-<h4><em>返回值</em></h4>
-<p>如果出错则返回 <code>false</code>, 否则返回包含 key-score 的关联数组.</p>
-
-<h4><em>示例</em></h4>
-<pre>
-$ssdb-&gt;zrange('z', 0, 10);
 </pre>
 
 

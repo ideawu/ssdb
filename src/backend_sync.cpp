@@ -96,7 +96,7 @@ void* BackendSync::_run_thread(void *arg){
 		}
 
 		if(link->flush() == -1){
-			log_error("fd: %d, send error: %s", link->fd(), strerror(errno));
+			log_info("fd: %d, send error: %s", link->fd(), strerror(errno));
 			break;
 		}
 	}

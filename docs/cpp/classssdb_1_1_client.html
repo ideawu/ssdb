@@ -130,6 +130,10 @@ virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td 
 <tr class="memitem:a7cd1fbe7ef8713b81c3afe60aaa52c5a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cd1fbe7ef8713b81c3afe60aaa52c5a"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>hsize</b> (const std::string &amp;name, int64_t *ret)=0</td></tr>
 <tr class="separator:a7cd1fbe7ef8713b81c3afe60aaa52c5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a774d19fece26c9f5d68c907d5a24c33f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a774d19fece26c9f5d68c907d5a24c33f"></a>
+virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a774d19fece26c9f5d68c907d5a24c33f">hclear</a> (const std::string &amp;name, int64_t *ret)=0</td></tr>
+<tr class="memdesc:a774d19fece26c9f5d68c907d5a24c33f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete all of the keys in a hashmap, return the number of keys deleted. <br/></td></tr>
+<tr class="separator:a774d19fece26c9f5d68c907d5a24c33f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1072302c1dee6f7bb8d952029cd4395d"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a1072302c1dee6f7bb8d952029cd4395d">hkeys</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
 <tr class="separator:a1072302c1dee6f7bb8d952029cd4395d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5f06b46ddb911722506ee25c1e2a72b"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#aa5f06b46ddb911722506ee25c1e2a72b">hscan</a> (const std::string &amp;name, const std::string &amp;key_start, const std::string &amp;key_end, uint64_t limit, std::vector&lt; std::string &gt; *ret)=0</td></tr>
@@ -154,6 +158,10 @@ virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td 
 <tr class="memitem:afb62524e38c01f66d08cc751b6f0086f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb62524e38c01f66d08cc751b6f0086f"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>zsize</b> (const std::string &amp;name, int64_t *ret)=0</td></tr>
 <tr class="separator:afb62524e38c01f66d08cc751b6f0086f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a970acbed76ed6c0dd0198e07d23ffaa5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a970acbed76ed6c0dd0198e07d23ffaa5"></a>
+virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#a970acbed76ed6c0dd0198e07d23ffaa5">zclear</a> (const std::string &amp;name, int64_t *ret)=0</td></tr>
+<tr class="memdesc:a970acbed76ed6c0dd0198e07d23ffaa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Delete all of the keys in a zset, return the number of keys deleted. <br/></td></tr>
+<tr class="separator:a970acbed76ed6c0dd0198e07d23ffaa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2bc77f4622156952bd6363abca8810a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2bc77f4622156952bd6363abca8810a"></a>
 virtual <a class="el" href="classssdb_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classssdb_1_1_client.html#ad2bc77f4622156952bd6363abca8810a">zrank</a> (const std::string &amp;name, const std::string &amp;key, int64_t *ret)=0</td></tr>
 <tr class="memdesc:ad2bc77f4622156952bd6363abca8810a"><td class="mdescLeft">&#160;</td><td class="mdescRight"><b>Important! This method may be extremly SLOW!</b> <br/></td></tr>
@@ -701,7 +709,7 @@ static <a class="el" href="classssdb_1_1_client.html">Client</a> *&#160;</td><td
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Oct 23 2013 23:24:54 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Nov 10 2013 22:29:19 for SSDB C++ API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.5
 </small></address>

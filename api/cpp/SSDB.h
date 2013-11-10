@@ -115,6 +115,10 @@ public:
 	virtual Status hincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret) = 0;
 	virtual Status hsize(const std::string &name, int64_t *ret) = 0;
 	/**
+	 * Delete all of the keys in a hashmap, return the number of keys deleted.
+	 */
+	virtual Status hclear(const std::string &name, int64_t *ret) = 0;
+	/**
 	 * @param key_start Empty string means no limit.
 	 * @param key_end Empty string means no limit.
 	 */
@@ -145,6 +149,10 @@ public:
 	virtual Status zdel(const std::string &name, const std::string &key) = 0;
 	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret) = 0;
 	virtual Status zsize(const std::string &name, int64_t *ret) = 0;
+	/**
+	 * Delete all of the keys in a zset, return the number of keys deleted.
+	 */
+	virtual Status zclear(const std::string &name, int64_t *ret) = 0;
 	/**
 	 * <b>Important! This method may be extremly SLOW!</b>
 	 */

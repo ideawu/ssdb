@@ -39,11 +39,9 @@ class SSDBTest extends UnitTest{
 				break;
 			}
 			foreach($names as $name){
-				$ret = $ssdb->hscan($name, '', '', 1000);
-				foreach($ret as $k=>$v){
-					$ssdb->hdel($name, $k);
-					$deleted += 1;
-				}
+				$deleted += $ssdb->hclear($name);
+				$ret = $ssdb->hsize($name);
+				$this->assert($ret == 0);
 			}
 		}
 		while(1){
@@ -52,11 +50,9 @@ class SSDBTest extends UnitTest{
 				break;
 			}
 			foreach($names as $name){
-				$ret = $ssdb->zscan($name, '', '', '', 1000);
-				foreach($ret as $k=>$v){
-					$ssdb->zdel($name, $k);
-					$deleted += 1;
-				}
+				$deleted += $ssdb->zclear($name);
+				$ret = $ssdb->zsize($name);
+				$this->assert($ret == 0);
 			}
 		}
 		if($deleted > 0){
@@ -126,6 +122,8 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === 0);
 
 		$ret = $ssdb->hset($name, $key, $val);
+		$ret = $ssdb->hexists($name, $key);
+		$this->assert($ret);
 		$ret = $ssdb->hget($name, $key);
 		$this->assert($ret === $val);
 
@@ -205,6 +203,8 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === 0);
 
 		$ret = $ssdb->zset($name, $key, $val);
+		$ret = $ssdb->zexists($name, $key);
+		$this->assert($ret);
 		$ret = $ssdb->zget($name, $key);
 		$this->assert($ret === $val);
 
@@ -299,18 +299,22 @@ class UnitTest{
 
 	function report(){
 		$res = $this->result;
+		printf("passed: %3d, failed: %3d\n", $res['passed'], $res['failed']);
 		foreach($res['tests'] as $test){
 			if($test[0] === false){
-				var_dump($test);
+				printf("    Failed: %s:%d %s() %s\n", $test[2], $test[3], $test[1], $test[4]);
 			}
 		}
-		printf("passed: %3d, failed: %3d\n", $res['passed'], $res['failed']);
+		if($res['failed']){
+			printf("passed: %3d, failed: %3d\n", $res['passed'], $res['failed']);
+		}
 	}
 
 	function assert($val, $desc=''){
 		if($val === true){
 			$this->result['passed'] ++;
 		}else{
+			$val = false;
 			$this->result['failed'] ++;
 		}
 		$bt = debug_backtrace(false);

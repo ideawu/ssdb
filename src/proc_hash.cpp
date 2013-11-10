@@ -199,6 +199,46 @@ static int proc_hdel(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
+static int proc_hclear(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+		return 0;
+	}
+	
+	const Bytes &name = req[1];
+	uint64_t total = 0;
+	while(1){
+		HIterator *it = serv->ssdb->hscan(name, "", "", 1000);
+		// we need std::string to hold the memory, because Bytes never alloc memory
+		std::vector<std::string> s_keys;
+		while(it->next()){
+			s_keys.push_back(it->key);
+		}
+		delete it;
+		
+		if(s_keys.empty()){
+			break;
+		}
+		std::vector<Bytes> keys;
+		for(std::vector<std::string>::iterator it=s_keys.begin(); it!=s_keys.end(); it++){
+			keys.push_back(*it);
+		}
+		int ret = serv->ssdb->multi_hdel(name, keys, 0);
+		if(ret == -1){
+			resp->push_back("error");
+			break;
+		}else{
+			total += ret;
+		}
+	}
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%"PRIu64"", total);
+	resp->push_back("ok");
+	resp->push_back(buf);
+
+	return 0;
+}
+
 static int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");

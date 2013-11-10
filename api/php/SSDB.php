@@ -330,6 +330,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function zclear($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function zscan($name, $key_start, $score_start, $score_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -412,6 +417,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function hclear($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function hscan($name, $key_start, $key_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -475,9 +485,8 @@ class SSDB
 			case 'hdel':
 			case 'hsize':
 			case 'zsize':
-			case 'exists':
-			case 'hexists':
-			case 'zexists':
+			case 'hclear':
+			case 'zclear':
 			case 'multi_set':
 			case 'multi_del':
 			case 'multi_hset':
@@ -520,6 +529,37 @@ class SSDB
 					}
 				}
 				return new SSDB_Response($resp[0], $data);
+			case 'exists':
+			case 'hexists':
+			case 'zexists':
+				if($resp[0] == 'ok'){
+					if(count($resp) == 2){
+						return new SSDB_Response('ok', (bool)$resp[1]);
+					}else{
+						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
+				}
+				break;
+			case 'multi_exists':
+			case 'multi_hexists':
+			case 'multi_zexists':
+				if($resp[0] == 'ok'){
+					if(count($resp) % 2 == 1){
+						$data = array();
+						for($i=1; $i<count($resp); $i+=2){
+							$data[$resp[$i]] = (bool)$resp[$i + 1];
+						}
+						return new SSDB_Response('ok', $data);
+					}else{
+						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					return new SSDB_Response($resp[0]);
+				}
+				break;
 			case 'scan':
 			case 'rscan':
 			case 'zscan':
@@ -533,9 +573,6 @@ class SSDB
 			case 'multi_get':
 			case 'multi_hget':
 			case 'multi_zget':
-			case 'multi_exists':
-			case 'multi_hexists':
-			case 'multi_zexists':
 				if($resp[0] == 'ok'){
 					if(count($resp) % 2 == 1){
 						$data = array();
