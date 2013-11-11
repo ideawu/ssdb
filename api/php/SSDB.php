@@ -8,6 +8,10 @@
  * SSDB PHP client SDK.
  */
 
+class SSDBException extends Exception
+{
+}
+
 /**
  * All methods(except *exists) returns false on error,
  * so one should use Identical(if($ret === false)) to test the return value.
@@ -67,7 +71,7 @@ class SSDB
 		$timeout_f = (float)$timeout_ms/1000;
 		$this->sock = @stream_socket_client("$host:$port", $errno, $errstr, $timeout_f);
 		if(!$this->sock){
-			throw new Exception("$errno: $errstr");
+			throw new SSDBException("$errno: $errstr");
 		}
 		$timeout_sec = intval($timeout_ms/1000);
 		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
@@ -86,7 +90,7 @@ class SSDB
 
 	function close(){
 		if(!$this->_closed){
-			fclose($this->sock);
+			@fclose($this->sock);
 			$this->_closed = true;
 			$this->sock = null;
 		}
@@ -141,10 +145,18 @@ class SSDB
 			return $this;
 		}
 
-		if($this->send_req($cmd, $params) === false){
-			$resp = new SSDB_Response('error', 'send error');
-		}else{
-			$resp = $this->recv_resp($cmd);
+		try{
+			if($this->send_req($cmd, $params) === false){
+				$resp = new SSDB_Response('error', 'send error');
+			}else{
+				$resp = $this->recv_resp($cmd);
+			}
+		}catch(SSDBException $e){
+			if($this->_easy){
+				throw $e;
+			}else{
+				$resp = new SSDB_Response('error', $e->getMessage());
+			}
 		}
 		$resp = $this->check_easy_resp($cmd, $resp);
 		return $resp;
@@ -607,7 +619,8 @@ class SSDB
 			while(true){
 				$ret = @fwrite($this->sock, $s);
 				if($ret == false){
-					return false;
+					$this->close();
+					throw new SSDBException('Connection lost');
 				}
 				$s = substr($s, $ret);
 				if(strlen($s) == 0){
@@ -616,7 +629,8 @@ class SSDB
 				@fflush($this->sock);
 			}
 		}catch(Exception $e){
-			return false;
+			$this->close();
+			throw new SSDBException($e->getMessage());
 		}
 		return $ret;
 	}
@@ -635,7 +649,7 @@ class SSDB
 				}
 				if($data == false){
 					$this->close();
-					return array();
+					throw new SSDBException('Connection lost');
 				}
 				$this->recv_buf .= $data;
 			}else{
