@@ -60,7 +60,7 @@
 include_once('SSDB.php');
 try{
     $ssdb = new SimpleSSDB('127.0.0.1', 8888);
-}catch(Exception $e){
+}catch(SSDBException $e){
     die(__LINE__ . ' ' . $e-&gt;getMessage());
 }
 $ret = $ssdb-&gt;set('key', 'value');
@@ -74,6 +74,8 @@ echo $ssdb-&gt;get('key');
 <h3>错误处理</h3>
 
 <p>如果无法连接到 SSDB 服务器, SimpleSSDB 将抛出异常. 大多数的方法(除了少数几个例外)通过返回 <code>false</code> 来标明出错. 所以要使用强制等于(===)来判断返回值.</p>
+
+<p><b>如果出现网络错误, 所有的方法将会抛出 SSDBException 异常.</b></p>
 
 <h2>方法</h2>
 

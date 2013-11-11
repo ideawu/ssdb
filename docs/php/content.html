@@ -75,6 +75,8 @@ echo $ssdb-&gt;get('key');
 
 <p>SimpleSSDB throws Exception if it can't connect to SSDB server. Most methods(with some exceptions) return <code>false</code> on error. So one should use Identical Equal(===) to test the return value.</p>
 
+<p><b>All methods will throw SSDBException on network error.</b></p>
+
 <h2>Methods</h2>
 
 <a name="m-construct"></a>
