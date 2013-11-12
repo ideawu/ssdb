@@ -52,33 +52,38 @@ fi
 cd "$DIR"
 
 
-if [[ $TARGET_OS == CYGWIN* ]]; then
-	echo "not using jemalloc on $TARGET_OS"
-else
-	DIR=`pwd`
-	cd $JEMALLOC_PATH
-	if [ ! -f Makefile ]; then
-		echo ""
-		echo "##### building jemalloc... #####"
-		./configure
-		make
-		echo "##### building jemalloc finished #####"
-		echo ""
-	fi
-	cd "$DIR"
-fi
+case "$TARGET_OS" in
+	CYGWIN*)
+		echo "not using jemalloc on $TARGET_OS"
+	;;
+	*)
+		DIR=`pwd`
+		cd $JEMALLOC_PATH
+		if [ ! -f Makefile ]; then
+			echo ""
+			echo "##### building jemalloc... #####"
+			./configure
+			make
+			echo "##### building jemalloc finished #####"
+			echo ""
+		fi
+		cd "$DIR"
+	;;
+esac
 
 
 rm -f src/version.h
 echo "#ifndef SSDB_DEPS_H" >> src/version.h
 echo "#ifndef SSDB_VERSION" >> src/version.h
 echo "#define SSDB_VERSION \"`cat version`\"" >> src/version.h
-if [[ $TARGET_OS == CYGWIN* ]]; then
-	:
-else
-	echo "#include <stdlib.h>" >> src/version.h
-	echo "#include <jemalloc/jemalloc.h>" >> src/version.h
-fi
+case "$TARGET_OS" in
+	CYGWIN*)
+	;;
+	*)
+		echo "#include <stdlib.h>" >> src/version.h
+		echo "#include <jemalloc/jemalloc.h>" >> src/version.h
+	;;
+esac
 echo "#endif" >> src/version.h
 echo "#endif" >> src/version.h
 
@@ -97,10 +102,12 @@ echo "CLIBS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
 echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
 
 
-if [[ $TARGET_OS == CYGWIN* ]]; then
-	:
-else
-	echo "CLIBS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk
-	echo "CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
-fi
+case "$TARGET_OS" in
+	CYGWIN*)
+	;;
+	*)
+		echo "CLIBS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk
+		echo "CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
+	;;
+esac
 
