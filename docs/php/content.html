@@ -184,6 +184,26 @@ $ssdb-&gt;incr('key');
 </pre>
 
 
+<a name="m-exists"></a>
+<h3>exists</h3>
+
+<h4><em>Description</em></h4>
+<p>Verify if the specified key exists.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p>If the key exists, return <code>true</code>, otherwise return <code>false</code>.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;exists('key');
+</pre>
+
+
 <a name="m-keys"></a>
 <h3>keys</h3>
 
@@ -405,6 +425,27 @@ $ssdb-&gt;hdel('h', 'key');
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;hincr('h', 'key');
+</pre>
+
+
+<a name="m-hexists"></a>
+<h3>hexists</h3>
+
+<h4><em>Description</em></h4>
+<p>Verify if the specified key exists in a hashmap.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the hashmap</dd>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p>If the key exists, return <code>true</code>, otherwise return <code>false</code>.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;hexists('h', 'key');
 </pre>
 
 
@@ -700,6 +741,27 @@ $ssdb-&gt;zdel('hz, 'key');
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;zincr('z', 'key');
+</pre>
+
+
+<a name="m-zexists"></a>
+<h3>zexists</h3>
+
+<h4><em>Description</em></h4>
+<p>Verify if the specified key exists in a zset.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>name</code> - The name of the zset</dd>
+	<dd><code>key</code> - </dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p>If the key exists, return <code>true</code>, otherwise return <code>false</code>.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;zexists('z', 'key');
 </pre>
 
 
