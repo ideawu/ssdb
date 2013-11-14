@@ -66,7 +66,7 @@ class SSDBTest extends UnitTest{
 
 		$ssdb->set('TEST_a', $val);
 		$ssdb->set('TEST_b', $val);
-
+		
 		$ret = $this->ssdb->get('TEST_a');
 		$this->assert($ret === $val);
 
@@ -106,7 +106,11 @@ class SSDBTest extends UnitTest{
 			$this->assert(count($ret) == 0);
 		}
 
+		$ret = $ssdb->exists('TEST_a');
+		$this->assert($ret === true);
 		$ssdb->del('TEST_a');
+		$ret = $ssdb->exists('TEST_a');
+		$this->assert($ret === false);
 		$ret = $ssdb->get('TEST_a');
 		$this->assert($ret === null);
 		$ssdb->del('TEST_b');
@@ -188,7 +192,11 @@ class SSDBTest extends UnitTest{
 		$this->assert(count($ret) == 1);
 		$this->assert($ret[0] == "TEST_b");
 
+		$ret = $ssdb->hexists('TEST_a', 'a');
+		$this->assert($ret === true);
 		$ssdb->hdel('TEST_a', 'a');
+		$ret = $ssdb->hexists('TEST_a', 'a');
+		$this->assert($ret === false);
 		$ret = $ssdb->hget('TEST_a', 'a');
 		$this->assert($ret === null);
 	}
@@ -271,7 +279,11 @@ class SSDBTest extends UnitTest{
 		$this->assert(count($ret) == 1);
 		$this->assert($ret[0] == "TEST_b");
 
+		$ret = $ssdb->zexists('TEST_a', 'a');
+		$this->assert($ret === true);
 		$ssdb->zdel('TEST_a', 'a');
+		$ret = $ssdb->zexists('TEST_a', 'a');
+		$this->assert($ret === false);
 		$ret = $ssdb->zget('TEST_a', 'a');
 		$this->assert($ret === null);
 	}
