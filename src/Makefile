@@ -4,26 +4,14 @@ OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o \
 	iterator.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
-EXES = ../ssdb-server \
-	../tools/leveldb-import \
-	../tools/ssdb-repair \
-	../tools/ssdb-dump
+EXES = ../ssdb-server
 
 
-all: ssdb.h ${OBJS} ssdb-server.o ssdb-dump.o ssdb-repair.o leveldb-import.o
+all: ssdb.h ${OBJS} ssdb-server.o
 	g++ -o ../ssdb-server ssdb-server.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/ssdb-dump ssdb-dump.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/ssdb-repair ssdb-repair.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
-	g++ -o ../tools/leveldb-import leveldb-import.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
 
 ssdb-server.o: ssdb-server.cpp
 	g++ ${CFLAGS} -c ssdb-server.cpp
-ssdb-dump.o: ssdb-dump.cpp
-	g++ ${CFLAGS} -c ssdb-dump.cpp
-ssdb-repair.o: ssdb-repair.cpp
-	g++ ${CFLAGS} -c ssdb-repair.cpp
-leveldb-import.o: leveldb-import.cpp
-	g++ ${CFLAGS} -c leveldb-import.cpp
 
 objs: ssdb.h ${OBJS}
 

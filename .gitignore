@@ -9,6 +9,7 @@ var_slave/*
 *_cpy_*
 ssdb-server
 tools/ssdb-dump
+tools/ssdb-bench
 tools/ssdb-repair
 tools/leveldb-import
 _pack
