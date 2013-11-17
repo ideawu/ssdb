@@ -9,7 +9,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * LevelDB client-server support, written in C/C++
 * Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
-* Client API supports including [C++](http://www.ideawu.com/ssdb/docs/cpp/), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb)
+* Client API supports including [C++](http://www.ideawu.com/ssdb/docs/cpp/), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://www.ideawu.com/ssdb/docs/go/)
 * Online backup, fast recover
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
 * <i>Future Features</i>
@@ -75,7 +75,7 @@ readrand  :    0.310 ms/op      315.0 MB/s
 
 ### SSDB vs Redis
 
-![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png)
+![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png?github)
 
 [View full SSDB vs Redis benchmark charts...](http://www.ideawu.com/ssdb/)
 
