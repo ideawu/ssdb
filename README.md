@@ -83,23 +83,23 @@ readrand  :    0.310 ms/op      315.0 MB/s
 
 ```
 ========== set ==========
-qps: 36858, time: 0.271 s
+qps: 44251, time: 0.226 s
 ========== get ==========
-qps: 51992, time: 0.192 s
+qps: 55541, time: 0.180 s
 ========== del ==========
-qps: 42761, time: 0.234 s
+qps: 46080, time: 0.217 s
 ========== hset ==========
-qps: 33357, time: 0.300 s
+qps: 42338, time: 0.236 s
 ========== hget ==========
-qps: 51515, time: 0.194 s
+qps: 55601, time: 0.180 s
 ========== hdel ==========
-qps: 34612, time: 0.289 s
+qps: 46529, time: 0.215 s
 ========== zset ==========
-qps: 28274, time: 0.354 s
+qps: 37381, time: 0.268 s
 ========== zget ==========
-qps: 40994, time: 0.244 s
+qps: 41455, time: 0.241 s
 ========== zdel ==========
-qps: 28896, time: 0.346 s
+qps: 38792, time: 0.258 s
 ```
 
 Run on a 2013 MacBook Pro 13 inch with Retina display.

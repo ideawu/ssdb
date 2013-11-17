@@ -61,7 +61,7 @@ typedef struct _ProcJob{
 class Server{
 	private:
 		static const int READER_THREADS = 10;
-		static const int WRITER_THREADS = 5;
+		static const int WRITER_THREADS = 1;
 	public:
 		SSDB *ssdb;
 		BackendDump *backend_dump;
