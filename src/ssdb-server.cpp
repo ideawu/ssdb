@@ -131,7 +131,7 @@ void run(int argc, char **argv){
 			if(fde->data.ptr == serv_link){
 				Link *link = serv_link->accept();
 				if(link == NULL){
-					log_error("accept fail!");
+					log_error("accept failed! %s", strerror(errno));
 					continue;
 				}
 				link_count ++;
