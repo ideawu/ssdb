@@ -171,7 +171,9 @@ int Queue<T>::pop(T *data){
 
 template <class T>
 SelectableQueue<T>::SelectableQueue(){
-	pipe(fds);
+	if(pipe(fds) == -1){
+		exit(0);
+	}
 	pthread_mutex_init(&mutex, NULL);
 }
 
@@ -190,7 +192,9 @@ int SelectableQueue<T>::push(const T item){
 	{
 		items.push(item);
 	}
-	::write(fds[1], "1", 1);
+	if(::write(fds[1], "1", 1) == -1){
+		exit(0);
+	}
 	pthread_mutex_unlock(&mutex);
 	return 1;
 }

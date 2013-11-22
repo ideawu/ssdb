@@ -125,6 +125,11 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->hsize($name);
 		$this->assert($ret === 0);
 
+		$ret = $ssdb->multi_hset($name, array('a' => 1, 'a' => 2));
+		$this->assert($ret == 1);
+		$ret = $ssdb->multi_hdel($name, array('a', 'a'));
+		$this->assert($ret == 1);
+
 		$ret = $ssdb->hset($name, $key, $val);
 		$ret = $ssdb->hexists($name, $key);
 		$this->assert($ret);
@@ -209,6 +214,11 @@ class SSDBTest extends UnitTest{
 
 		$ret = $ssdb->zsize($name);
 		$this->assert($ret === 0);
+
+		$ret = $ssdb->multi_zset($name, array('a' => 1, 'a' => 2));
+		$this->assert($ret == 1);
+		$ret = $ssdb->multi_zdel($name, array('a', 'a'));
+		$this->assert($ret == 1);
 
 		$ret = $ssdb->zset($name, $key, $val);
 		$ret = $ssdb->zexists($name, $key);

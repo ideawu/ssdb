@@ -82,64 +82,65 @@ int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *ne
 	return ret;
 }
 
-int SSDB::multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset, char log_type){
-	Transaction trans(binlogs);
-
-	int ret = 0;
-	std::vector<Bytes>::const_iterator it;
-	it = kvs.begin() + offset;
-	for(; it != kvs.end(); it += 2){
-		const Bytes &key = *it;
-		const Bytes &score = *(it + 1);
-		int tmp = zset_one(this, name, key, score, log_type);
-		if(tmp == -1){
-			return -1;
-		}
-		ret += tmp;
-	}
-	if(ret >= 0){
-		if(ret > 0){
-			if(incr_zsize(this, name, ret) == -1){
-				return -1;
-			}
-		}
-		leveldb::Status s = binlogs->commit();
-		if(!s.ok()){
-			log_error("zdel error: %s", s.ToString().c_str());
-			return -1;
-		}
-	}
-	return ret;
-}
-
-int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset, char log_type){
-	Transaction trans(binlogs);
-
-	int ret = 0;
-	std::vector<Bytes>::const_iterator it;
-	it = keys.begin() + offset;
-	for(; it != keys.end(); it++){
-		const Bytes &key = *it;
-		int tmp = zdel_one(this, name, key, log_type);
-		if(tmp == -1){
-			return -1;
-		}
-		ret += tmp;
-	}
-	if(ret >= 0){
-		if(ret > 0){
-			if(incr_zsize(this, name, -ret) == -1){
-				return -1;
-			}
-		}
-		leveldb::Status s = binlogs->commit();
-		if(!s.ok()){
-			log_error("zdel error: %s", s.ToString().c_str());
-			return -1;
-		}
-	}
-	return ret;
-}
+// multi_zset work incorrect when same key occurs in kvs more than once
+//int SSDB::multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset, char log_type){
+//	Transaction trans(binlogs);
+//
+//	int ret = 0;
+//	std::vector<Bytes>::const_iterator it;
+//	it = kvs.begin() + offset;
+//	for(; it != kvs.end(); it += 2){
+//		const Bytes &key = *it;
+//		const Bytes &score = *(it + 1);
+//		int tmp = zset_one(this, name, key, score, log_type);
+//		if(tmp == -1){
+//			return -1;
+//		}
+//		ret += tmp;
+//	}
+//	if(ret >= 0){
+//		if(ret > 0){
+//			if(incr_zsize(this, name, ret) == -1){
+//				return -1;
+//			}
+//		}
+//		leveldb::Status s = binlogs->commit();
+//		if(!s.ok()){
+//			log_error("zdel error: %s", s.ToString().c_str());
+//			return -1;
+//		}
+//	}
+//	return ret;
+//}
+//
+//int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset, char log_type){
+//	Transaction trans(binlogs);
+//
+//	int ret = 0;
+//	std::vector<Bytes>::const_iterator it;
+//	it = keys.begin() + offset;
+//	for(; it != keys.end(); it++){
+//		const Bytes &key = *it;
+//		int tmp = zdel_one(this, name, key, log_type);
+//		if(tmp == -1){
+//			return -1;
+//		}
+//		ret += tmp;
+//	}
+//	if(ret >= 0){
+//		if(ret > 0){
+//			if(incr_zsize(this, name, -ret) == -1){
+//				return -1;
+//			}
+//		}
+//		leveldb::Status s = binlogs->commit();
+//		if(!s.ok()){
+//			log_error("zdel error: %s", s.ToString().c_str());
+//			return -1;
+//		}
+//	}
+//	return ret;
+//}
 
 int64_t SSDB::zsize(const Bytes &name) const{
 	std::string size_key = encode_zsize_key(name);
@@ -372,12 +373,16 @@ int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 static std::string filter_score(const Bytes &score){
 	int64_t s = score.Int64();
 	char buf[32];
-	snprintf(buf, sizeof(buf), "%"PRId64"", s);
+	snprintf(buf, sizeof(buf), "%" PRId64 "", s);
 	return std::string(buf);
 }
 
 // returns the number of newly added items
 static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
+	if(name.empty() || key.empty()){
+		log_error("empty name or key!");
+		return -1;
+	}
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
 		return -1;

@@ -1,19 +1,10 @@
 #include "version.h"
-
 #include "util/log.h"
 #include "util/strings.h"
 #include "serv.h"
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
-
-#define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
-#if GCC_VERSION >= 403
-	#include <tr1/unordered_map>
-#else
-	#include <ext/hash_map>
-#endif
-
 
 struct BytesEqual{
 	bool operator()(const Bytes &s1, const Bytes &s2) const {
@@ -30,14 +21,23 @@ struct BytesHash{
 	}
 };
 
+
+#define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
 #if GCC_VERSION >= 403
-		typedef std::tr1::unordered_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
+	#include <tr1/unordered_map>
+	typedef std::tr1::unordered_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
 #else
+	#ifdef __APPLE__
+		#include <unordered_map>
+		typedef std::unordered_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
+	#else
+		#include <ext/hash_map>
 		typedef __gnu_cxx::hash_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
+	#endif
 #endif
 
-static proc_map_t proc_map;
 
+static proc_map_t proc_map;
 
 #define DEF_PROC(f) static int proc_##f(Server *serv, Link *link, const Request &req, Response *resp)
 	DEF_PROC(get);
@@ -323,7 +323,7 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 			char buf[128];
 			snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
 			resp->push_back(buf);
-			snprintf(buf, sizeof(buf), "calls: %"PRIu64"\ttime_wait: %.0f\ttime_proc: %.0f",
+			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
 				cmd->calls, cmd->time_wait, cmd->time_proc);
 			resp->push_back(buf);
 		}
