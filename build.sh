@@ -45,6 +45,8 @@ if [ ! -f Makefile ]; then
 	echo ""
 	echo "##### building snappy... #####"
 	./configure
+	# FUCK! snappy compilation doesn't work on some linux!
+	find . | xargs touch
 	make
 	echo "##### building snappy finished #####"
 	echo ""
