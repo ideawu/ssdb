@@ -103,8 +103,8 @@ static proc_map_t proc_map;
 #undef DEF_PROC
 
 
-#define PROC(c, f) {#c, f, 0, proc_##c, 0, 0, 0}
-static Command commands[] = {
+#define PROC(c, f) {#c, f, 0, proc_##c, 0, 0, 0, 0}
+Command commands[] = {
 	PROC(get, "r"),
 	PROC(set, "wt"),
 	PROC(del, "wt"),

@@ -27,9 +27,11 @@ volatile bool quit = false;
 Config *conf = NULL;
 SSDB *ssdb = NULL;
 Link *serv_link = NULL;
+const char *authorized_ips = NULL;
 
 typedef std::vector<Link *> ready_list_t;
 
+extern Command commands[];
 
 int main(int argc, char **argv){
 	welcome();
@@ -214,6 +216,15 @@ void run(int argc, char **argv){
 				}
 				continue;
 			}
+
+			if (!strstr(authorized_ips, link->remote_ip)) {
+				if ((*req)[0] != "get") {
+					link_count--;
+					select.del(link->fd());
+					delete link;
+					continue;
+				}
+			}
 			
 			link->active_time = millitime();
 
@@ -259,6 +270,44 @@ void signal_handler(int sig){
 			quit = true;
 			break;
 	}
+}
+
+void *write_stat(void *stat_dir) {
+	char *sd = (char *)stat_dir;
+	char stat_file_path[PATH_MAX];
+	
+	time_t time;
+	struct timeval tv;
+	struct tm *tm;
+	
+	gettimeofday(&tv, NULL);
+	time = tv.tv_sec;
+	tm = localtime(&time);
+	int old_mday = tm->tm_mday;
+
+	while (!quit) {
+		gettimeofday(&tv, NULL);
+		time = tv.tv_sec;
+		tm = localtime(&time);
+		sprintf(stat_file_path, "%s/%04d-%02d-%02d", sd, tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+		
+		if (tm->tm_mday != old_mday) {
+			commands[0].calls = 0ULL;
+			commands[0].errors = 0ULL;
+			commands[1].calls = 0ULL;
+			commands[1].errors = 0ULL;
+			old_mday = tm->tm_mday;
+		}
+
+		FILE *f = fopen(stat_file_path, "w");
+		if (f) {
+			fprintf(f, "get: %d/%d set: %d/%d\n", commands[0].calls, commands[0].errors, commands[1].calls, commands[1].errors);
+			fclose(f);
+		}
+		sleep(60);
+	}
+
+	free(sd);
 }
 
 void init(int argc, char **argv){
@@ -317,6 +366,37 @@ void init(int argc, char **argv){
 		}
 		*/
 	}
+
+	std::string stat_dir;
+	{
+		stat_dir = conf->get_str("stat_dir");
+		if (stat_dir.empty()) {
+			stat_dir = ".";
+		}
+		if (!is_dir(stat_dir.c_str())) {
+			fprintf(stderr, "'%s' is not a directory or not exists!\n", stat_dir.c_str());
+			exit(0);
+		}
+	}
+
+	char stat_file_path[PATH_MAX];
+
+	time_t time;
+	struct timeval tv;
+	struct tm *tm;
+	gettimeofday(&tv, NULL);
+	time = tv.tv_sec;
+	tm = localtime(&time);
+	sprintf(stat_file_path, "%s/%04d-%02d-%02d", stat_dir.c_str(), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+
+	FILE *f = fopen(stat_file_path, "r");
+	if (f) {
+		fscanf(f, "get: %d/%d set: %d/%d\n", &commands[0].calls, &commands[0].errors, &commands[1].calls, &commands[1].errors);
+		fclose(f);
+	}
+
+	pthread_t stat_thread;
+	pthread_create(&stat_thread, NULL, write_stat, strdup(stat_dir.c_str()));
 	
 	check_pidfile();
 
@@ -357,6 +437,7 @@ void init(int argc, char **argv){
 	{ // server
 		const char *ip = conf->get_str("server.ip");
 		short port = (short)conf->get_num("server.port");
+		::authorized_ips = conf->get_str("server.authorized_ips");
 
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){

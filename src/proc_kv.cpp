@@ -3,6 +3,7 @@
 static int proc_get(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
+		commands[0].errors++;
 	}else{
 		std::string val;
 		int ret = serv->ssdb->get(req[1], &val);
@@ -11,9 +12,11 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 			resp->push_back(val);
 		}else if(ret == 0){
 			resp->push_back("not_found");
+			commands[0].errors++;
 		}else{
 			log_error("fail");
 			resp->push_back("fail");
+			commands[0].errors++;
 		}
 	}
 	return 0;
@@ -22,10 +25,12 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 static int proc_set(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
+		commands[1].errors++;
 	}else{
 		int ret = serv->ssdb->set(req[1], req[2]);
 		if(ret == -1){
 			resp->push_back("error");
+			commands[1].errors++;
 		}else{
 			resp->push_back("ok");
 			resp->push_back("1");

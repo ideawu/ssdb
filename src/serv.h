@@ -33,6 +33,7 @@ struct Command{
 	int flags;
 	proc_t proc;
 	uint64_t calls;
+	uint64_t errors;
 	double time_wait;
 	double time_proc;
 };
