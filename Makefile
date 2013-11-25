@@ -6,7 +6,7 @@ include build_config.mk
 all:
 	chmod u+x "${LEVELDB_PATH}/build_detect_platform"
 	chmod u+x deps/cpy/cpy
-	chmod u+x tools/ssdb-cli tools/ssdb-benchmark
+	chmod u+x tools/ssdb-cli
 	cd "${LEVELDB_PATH}"; make
 	cd src/util; make
 	cd src; make
