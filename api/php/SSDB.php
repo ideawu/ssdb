@@ -76,6 +76,7 @@ class SSDB
 		$timeout_sec = intval($timeout_ms/1000);
 		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
 		@stream_set_timeout($this->sock, $timeout_sec, $timeout_usec);
+		@stream_set_chunk_size($this->sock, 11024 * 1024);
 	}
 	
 	/**
@@ -640,7 +641,7 @@ class SSDB
 			$ret = $this->parse();
 			if($ret === null){
 				try{
-					$data = @fread($this->sock, 1024*128);
+					$data = @fread($this->sock, 1024 * 1024);
 					if($this->debug){
 						echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
 					}
@@ -663,7 +664,8 @@ class SSDB
 		$ret = array();
 		$spos = 0;
 		$epos = 0;
-		$this->recv_buf = ltrim($this->recv_buf);
+		// performance issue for large reponse
+		//$this->recv_buf = ltrim($this->recv_buf);
 		while(true){
 			$spos = $epos;
 			$epos = strpos($this->recv_buf, "\n", $spos);

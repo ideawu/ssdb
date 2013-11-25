@@ -37,7 +37,7 @@ struct Command{
 	double time_proc;
 };
 
-typedef struct _ProcJob{
+struct ProcJob{
 	int result;
 	Server *serv;
 	Link *link;
@@ -46,7 +46,7 @@ typedef struct _ProcJob{
 	double time_wait;
 	double time_proc;
 	
-	_ProcJob(){
+	ProcJob(){
 		result = 0;
 		serv = NULL;
 		link = NULL;
@@ -55,7 +55,7 @@ typedef struct _ProcJob{
 		time_wait = 0;
 		time_proc = 0;
 	}
-}ProcJob; // Request
+};
 
 
 class Server{

@@ -21,6 +21,9 @@ int main(int argc, char **argv){
 	}else{
 		printf("error!\n");
 	}
+	std::string val;
+	s = client->get("k", &val);
+	printf("length: %d\n", (int)val.size());
 
 	delete client;
 	return 0;

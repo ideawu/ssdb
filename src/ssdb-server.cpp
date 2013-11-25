@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <list>
-
 #include "version.h"
 #include "ssdb.h"
 #include "link.h"
@@ -14,6 +13,9 @@
 #include "util/file.h"
 #include "util/ip_filter.h"
 
+#define TICK_INTERVAL       100 // ms
+#define STATUS_REPORT_TICKS (60 * 1000/TICK_INTERVAL) // second
+
 void welcome();
 void usage(int argc, char **argv);
 void signal_handler(int sig);
@@ -24,7 +26,6 @@ void check_pidfile();
 void check_pidfile();
 void remove_pidfile();
 
-volatile bool quit = false;
 Config *conf = NULL;
 SSDB *ssdb = NULL;
 Link *serv_link = NULL;
@@ -32,6 +33,8 @@ IpFilter *ip_filter = NULL;
 
 typedef std::vector<Link *> ready_list_t;
 
+volatile bool quit = false;
+volatile uint32_t g_ticks = 0;
 
 int main(int argc, char **argv){
 	welcome();
@@ -40,6 +43,15 @@ int main(int argc, char **argv){
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
+	signal(SIGALRM, signal_handler);
+	{
+		struct itimerval tv;
+		tv.it_interval.tv_sec = (TICK_INTERVAL / 1000);
+		tv.it_interval.tv_usec = (TICK_INTERVAL % 1000) * 1000;
+		tv.it_value.tv_sec = 1;
+		tv.it_value.tv_usec = 0;
+		setitimer(ITIMER_REAL, &tv, NULL);
+	}
 	
 	run(argc, argv);
 	
@@ -61,12 +73,12 @@ int main(int argc, char **argv){
 	return 0;
 }
 
-int proc_result(ProcJob &job, Fdevents &select, ready_list_t &ready_list){	
+int proc_result(ProcJob &job, Fdevents &fdes, ready_list_t &ready_list){	
 	Link *link = job.link;
 			
 	if(job.result == PROC_ERROR){
-		log_debug("fd: %d, proc error, delete link", link->fd());
-		select.del(link->fd());
+		log_info("fd: %d, proc error, delete link", link->fd());
+		fdes.del(link->fd());
 		delete link;
 		return PROC_ERROR;
 	}
@@ -77,22 +89,22 @@ int proc_result(ProcJob &job, Fdevents &select, ready_list_t &ready_list){
 	}
 
 	if(!link->output->empty()){
-		//log_trace("add %d to select.out", link->fd());
-		select.set(link->fd(), FDEVENT_OUT, 1, link);
-		if(select.isset(link->fd(), FDEVENT_IN)){
-			//log_trace("delete %d from select.in", link->fd());
-			select.clr(link->fd(), FDEVENT_IN);
+		//log_trace("add %d to fdes.out", link->fd());
+		fdes.set(link->fd(), FDEVENT_OUT, 1, link);
+		if(fdes.isset(link->fd(), FDEVENT_IN)){
+			//log_trace("delete %d from fdes.in", link->fd());
+			fdes.clr(link->fd(), FDEVENT_IN);
 		}
 	}else{
 		if(link->input->empty()){
-			if(!select.isset(link->fd(), FDEVENT_IN)){
-				//log_trace("add %d to select.in", link->fd());
-				select.set(link->fd(), FDEVENT_IN, 1, link);
+			if(!fdes.isset(link->fd(), FDEVENT_IN)){
+				//log_trace("add %d to fdes.in", link->fd());
+				fdes.set(link->fd(), FDEVENT_IN, 1, link);
 			}
 		}else{
-			if(select.isset(link->fd(), FDEVENT_IN)){
-				//log_trace("delete %d from select.in", link->fd());
-				select.clr(link->fd(), FDEVENT_IN);
+			if(fdes.isset(link->fd(), FDEVENT_IN)){
+				//log_trace("delete %d from fdes.in", link->fd());
+				fdes.clr(link->fd(), FDEVENT_IN);
 			}
 			ready_list.push_back(link);
 		}
@@ -107,27 +119,35 @@ void run(int argc, char **argv){
 	const Fdevents::events_t *events;
 	Server serv(ssdb);
 
-	Fdevents select;
-	select.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
-	select.set(serv.reader->fd(), FDEVENT_IN, 0, serv.reader);
-	select.set(serv.writer->fd(), FDEVENT_IN, 0, serv.writer);
+	Fdevents fdes;
+	fdes.set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
+	fdes.set(serv.reader->fd(), FDEVENT_IN, 0, serv.reader);
+	fdes.set(serv.writer->fd(), FDEVENT_IN, 0, serv.writer);
 	
 	int link_count = 0;
+	uint32_t last_ticks = g_ticks;
+	
 	while(!quit){
-		bool write_pending = false;
+		// status report
+		if((uint32_t)(g_ticks - last_ticks) >= STATUS_REPORT_TICKS){
+			last_ticks = g_ticks;
+			log_info("ssdb working, links: %d", link_count);
+		}
+		
 		ready_list.clear();
 		ready_list_2.clear();
 		
-		if(write_pending || !ready_list.empty()){
-			// give links that are not in ready_list a chance
-			events = select.wait(0);
+		if(!ready_list.empty()){
+			// ready_list not empty, so we should return immediately
+			events = fdes.wait(0);
 		}else{
-			events = select.wait(50);
+			events = fdes.wait(50);
 		}
 		if(events == NULL){
 			log_fatal("events.wait error: %s", strerror(errno));
 			break;
 		}
+		
 		for(int i=0; i<(int)events->size(); i++){
 			const Fdevent *fde = events->at(i);
 			if(fde->data.ptr == serv_link){
@@ -142,15 +162,15 @@ void run(int argc, char **argv){
 					delete link;
 					continue;
 				}
-
+				link_count ++;				
 				log_debug("new link from %s:%d, fd: %d, link_count: %d",
 					link->remote_ip, link->remote_port, link->fd(), link_count);
-				link_count ++;				
+				
 				link->nodelay();
 				link->noblock();
 				link->create_time = millitime();
 				link->active_time = link->create_time;
-				select.set(link->fd(), FDEVENT_IN, 1, link);
+				fdes.set(link->fd(), FDEVENT_IN, 1, link);
 			}else if(fde->data.ptr == serv.reader || fde->data.ptr == serv.writer){
 				WorkerPool<Server::ProcWorker, ProcJob> *worker = (WorkerPool<Server::ProcWorker, ProcJob> *)fde->data.ptr;
 				ProcJob job;
@@ -158,16 +178,16 @@ void run(int argc, char **argv){
 					log_fatal("reading result from workers error!");
 					exit(0);
 				}
-				if(proc_result(job, select, ready_list_2) == PROC_ERROR){
+				if(proc_result(job, fdes, ready_list_2) == PROC_ERROR){
 					link_count --;
 				}
 			}else{
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
 				if(fde->events & FDEVENT_ERR){
-					log_debug("fd: %d error, delete link", link->fd());
+					log_info("fd: %d error, delete link", link->fd());
 					link_count --;
-					select.del(link->fd());
+					fdes.del(link->fd());
 					delete link;
 				}else if(fde->events & FDEVENT_IN){
 					int len = link->read();
@@ -175,7 +195,7 @@ void run(int argc, char **argv){
 					if(len <= 0){
 						log_debug("fd: %d, read: %d, delete link", link->fd(), len);
 						link_count --;
-						select.del(link->fd());
+						fdes.del(link->fd());
 						delete link;
 					}else{
 						ready_list.push_back(link);
@@ -186,19 +206,19 @@ void run(int argc, char **argv){
 					if(len <= 0){
 						log_debug("fd: %d, write: %d, delete link", link->fd(), len);
 						link_count --;
-						select.del(link->fd());
+						fdes.del(link->fd());
 						delete link;
 					}else if(link->output->empty()){
-						//log_trace("delete %d from select.out", link->fd());
-						select.clr(link->fd(), FDEVENT_OUT);
+						//log_trace("delete %d from fdes.out", link->fd());
+						fdes.clr(link->fd(), FDEVENT_OUT);
 						if(!link->input->empty()){
 							ready_list.push_back(link);
 						}else{
-							//log_trace("add %d to select.in", link->fd());
-							select.set(link->fd(), FDEVENT_IN, 1, link);
+							//log_trace("add %d to fdes.in", link->fd());
+							fdes.set(link->fd(), FDEVENT_IN, 1, link);
 						}
 					}else{
-						write_pending = true;
+						//log_trace("%d", link->output->size());
 					}
 				}
 			}
@@ -211,14 +231,14 @@ void run(int argc, char **argv){
 			if(req == NULL){
 				log_warn("fd: %d, link parse error, delete link", link->fd());
 				link_count --;
-				select.del(link->fd());
+				fdes.del(link->fd());
 				delete link;
 				continue;
 			}
 			if(req->empty()){
-				if(!select.isset(link->fd(), FDEVENT_IN)){
-					//log_trace("add %d to select.in", link->fd());
-					select.set(link->fd(), FDEVENT_IN, 1, link);
+				if(!fdes.isset(link->fd(), FDEVENT_IN)){
+					//log_trace("add %d to fdes.in", link->fd());
+					fdes.set(link->fd(), FDEVENT_IN, 1, link);
 				}
 				continue;
 			}
@@ -229,16 +249,16 @@ void run(int argc, char **argv){
 			job.link = link;
 			serv.proc(&job);
 			if(job.result == PROC_THREAD){
-				select.del(link->fd());
+				fdes.del(link->fd());
 				continue;
 			}
 			if(job.result == PROC_BACKEND){
-				select.del(link->fd());
+				fdes.del(link->fd());
 				link_count --;
 				continue;
 			}
 			
-			if(proc_result(job, select, ready_list_2) == PROC_ERROR){
+			if(proc_result(job, fdes, ready_list_2) == PROC_ERROR){
 				link_count --;
 			}
 		} // end foreach ready link
@@ -263,9 +283,14 @@ void usage(int argc, char **argv){
 void signal_handler(int sig){
 	switch(sig){
 		case SIGTERM:
-		case SIGINT:
+		case SIGINT:{
 			quit = true;
 			break;
+		}
+		case SIGALRM:{
+			g_ticks ++;
+			break;
+		}
 	}
 }
 
