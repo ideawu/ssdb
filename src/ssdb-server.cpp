@@ -12,6 +12,7 @@
 #include "util/daemon.h"
 #include "util/strings.h"
 #include "util/file.h"
+#include "util/ip_filter.h"
 
 void welcome();
 void usage(int argc, char **argv);
@@ -27,6 +28,7 @@ volatile bool quit = false;
 Config *conf = NULL;
 SSDB *ssdb = NULL;
 Link *serv_link = NULL;
+IpFilter *ip_filter = NULL;
 
 typedef std::vector<Link *> ready_list_t;
 
@@ -63,7 +65,7 @@ int proc_result(ProcJob &job, Fdevents &select, ready_list_t &ready_list){
 	Link *link = job.link;
 			
 	if(job.result == PROC_ERROR){
-		log_info("fd: %d, proc error, delete link", link->fd());
+		log_debug("fd: %d, proc error, delete link", link->fd());
 		select.del(link->fd());
 		delete link;
 		return PROC_ERROR;
@@ -134,10 +136,16 @@ void run(int argc, char **argv){
 					log_error("accept failed! %s", strerror(errno));
 					continue;
 				}
-				link_count ++;
-				log_info("new link from %s:%d, fd: %d, link_count: %d",
+				if(!ip_filter->check_pass(link->remote_ip)){
+					log_debug("ip_filter deny link from %s:%d",
+						link->remote_ip, link->remote_port);
+					delete link;
+					continue;
+				}
+
+				log_debug("new link from %s:%d, fd: %d, link_count: %d",
 					link->remote_ip, link->remote_port, link->fd(), link_count);
-				
+				link_count ++;				
 				link->nodelay();
 				link->noblock();
 				link->create_time = millitime();
@@ -157,7 +165,7 @@ void run(int argc, char **argv){
 				Link *link = (Link *)fde->data.ptr;
 				// 不能同时监听读和写事件, 只能监听其中一个
 				if(fde->events & FDEVENT_ERR){
-					log_info("fd: %d error, delete link", link->fd());
+					log_debug("fd: %d error, delete link", link->fd());
 					link_count --;
 					select.del(link->fd());
 					delete link;
@@ -165,7 +173,7 @@ void run(int argc, char **argv){
 					int len = link->read();
 					//log_trace("fd: %d read: %d", link->fd(), len);
 					if(len <= 0){
-						log_info("fd: %d, read: %d, delete link", link->fd(), len);
+						log_debug("fd: %d, read: %d, delete link", link->fd(), len);
 						link_count --;
 						select.del(link->fd());
 						delete link;
@@ -176,7 +184,7 @@ void run(int argc, char **argv){
 					int len = link->write();
 					//log_trace("fd: %d write: %d", link->fd(), len);
 					if(len <= 0){
-						log_info("fd: %d, write: %d, delete link", link->fd(), len);
+						log_debug("fd: %d, write: %d, delete link", link->fd(), len);
 						link_count --;
 						select.del(link->fd());
 						delete link;
@@ -366,8 +374,29 @@ void init(int argc, char **argv){
 		log_info("server listen on: %s:%d", ip, port);
 	}
 	
-	write_pidfile();
+	ip_filter = new IpFilter();
+	// init ip_filter
+	{
+		Config *cc = (Config *)conf->get("server");
+		if(cc != NULL){
+			std::vector<Config *> *children = &cc->children;
+			std::vector<Config *>::iterator it;
+			for(it = children->begin(); it != children->end(); it++){
+				if((*it)->key == "allow"){
+					const char *ip = (*it)->str();
+					log_info("    allow %s", ip);
+					ip_filter->add_allow(ip);
+				}
+				if((*it)->key == "deny"){
+					const char *ip = (*it)->str();
+					log_info("    deny %s", ip);
+					ip_filter->add_deny(ip);
+				}
+			}
+		}
+	}
 
+	write_pidfile();
 	log_info("ssdb server started.");
 }
 
