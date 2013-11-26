@@ -13,21 +13,38 @@ private:
 	std::set<std::string> deny;
 	std::set<std::string> allow;
 	
-	bool check_hit(const std::set<std::string> &m, const char *ip){
+	bool check_hit(const std::set<std::string> &m, const std::string &ip){
 		if(m.empty()){
 			return false;
 		}
 		std::set<std::string>::const_iterator it;
 		it = m.upper_bound(ip);
-		if(it != m.begin()){
-			it --;
+		if(it == m.end()){
+			return false;
 		}
-		if(strstr(ip, (*it).c_str()) == ip){
-			return true;
+		std::string &prefix = *it;
+
+		int len = prefix.size() - 1;
+		if(prefix[len] == '='){
+			return prefix.compare(0, len, ip) == 0;
+		}else if(ip.size() > len){
+			return ip.compare(0, len, prefix, 0, len) == 0;
 		}
 		return false;
 	}
+	
+	bool is_full_ip(const std::string &ip_prefix){
+		int n = 0;
+		for(int i=0; i<(int)ip_prefix.size(); i++){
+			if(ip_prefix[i] == '.'){
+				n ++;
+			}
+		}
+		return n == 3;
+	}
+
 public:
+
 	IpFilter(){
 		deny_all = false;
 		allow_all = false;
@@ -38,25 +55,29 @@ public:
 		return empty_;
 	}
 	
-	void add_allow(const char *ip_prefix){
-		if(strcmp(ip_prefix, "all") == 0 || strcmp(ip_prefix, "*") == 0){
+	void add_allow(const std::string &ip_prefix){
+		if(ip_prefix == "all" || ip_prefix == "*"){
 			allow_all = true;
 		}else{
-			allow.insert(ip_prefix);
+			// '@' and '=' is greater than any char in ip
+			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
+			allow.insert(prefix);
 		}
 		empty_ = false;
 	}
 	
-	void add_deny(const char *ip_prefix){
-		if(strcmp(ip_prefix, "all") == 0 || strcmp(ip_prefix, "*") == 0){
+	void add_deny(const std::string &ip_prefix){
+		if(ip_prefix == "all" || ip_prefix == "*"){
 			deny_all = true;
 		}else{
-			deny.insert(ip_prefix);
+			// '@' and '=' is greater than any char in ip
+			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
+			deny.insert(prefix);
 		}
 		empty_ = false;
 	}
 	
-	bool check_pass(const char *ip){
+	bool check_pass(const std::string &ip){
 		if(empty_){
 			return true;
 		}
