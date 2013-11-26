@@ -262,7 +262,7 @@ static int proc_zrrange(Server *serv, Link *link, const Request &req, Response *
 	}else{
 		uint64_t offset = req[2].Uint64();
 		uint64_t limit = req[3].Uint64();
-		ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+		ZIterator *it = serv->ssdb->zrrange(req[1], offset, limit);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
