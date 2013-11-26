@@ -22,7 +22,7 @@ private:
 		if(it == m.end()){
 			return false;
 		}
-		std::string &prefix = *it;
+		const std::string &prefix = *it;
 
 		int len = prefix.size() - 1;
 		if(prefix[len] == '='){
