@@ -76,7 +76,9 @@ class SSDB
 		$timeout_sec = intval($timeout_ms/1000);
 		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
 		@stream_set_timeout($this->sock, $timeout_sec, $timeout_usec);
-		@stream_set_chunk_size($this->sock, 1024 * 1024);
+		if(function_exists('stream_set_chunk_size')){
+			@stream_set_chunk_size($this->sock, 1024 * 1024);
+		}
 	}
 	
 	/**
