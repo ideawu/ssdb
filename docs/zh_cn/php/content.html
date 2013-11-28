@@ -172,7 +172,7 @@ $ssdb-&gt;del('key');
 <h4><em>参数</em></h4>
 <dl>
 	<dd><code>key</code> - </dd>
-	<dd><code>num</code> - 必须是整数.</dd>
+	<dd><code>num</code> - 必须是有符号整数.</dd>
 </dl>
 
 <h4><em>返回值</em></h4>
@@ -180,7 +180,7 @@ $ssdb-&gt;del('key');
 
 <h4><em>示例</em></h4>
 <pre>
-$ssdb-&gt;incr('key');
+$ssdb-&gt;incr('key', 1);
 </pre>
 
 
@@ -417,7 +417,7 @@ $ssdb-&gt;hdel('h', 'key');
 <dl>
 	<dd><code>name</code> - hashmap 的名字.</dd>
 	<dd><code>key</code> - </dd>
-	<dd><code>num</code> - 必须是整数.</dd>
+	<dd><code>num</code> - 必须是有符号整数.</dd>
 </dl>
 
 <h4><em>返回值</em></h4>
@@ -425,7 +425,7 @@ $ssdb-&gt;hdel('h', 'key');
 
 <h4><em>示例</em></h4>
 <pre>
-$ssdb-&gt;hincr('h', 'key');
+$ssdb-&gt;hincr('h', 'key', 1);
 </pre>
 
 
@@ -733,7 +733,7 @@ $ssdb-&gt;zdel('hz, 'key');
 <dl>
 	<dd><code>name</code> - zset 的名字.</dd>
 	<dd><code>key</code> - </dd>
-	<dd><code>num</code> - 必须是整数.</dd>
+	<dd><code>num</code> - 必须是有符号整数.</dd>
 </dl>
 
 <h4><em>返回值</em></h4>
@@ -741,7 +741,7 @@ $ssdb-&gt;zdel('hz, 'key');
 
 <h4><em>示例</em></h4>
 <pre>
-$ssdb-&gt;zincr('z', 'key');
+$ssdb-&gt;zincr('z', 'key', 1);
 </pre>
 
 

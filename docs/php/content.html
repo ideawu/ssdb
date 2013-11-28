@@ -180,7 +180,7 @@ $ssdb-&gt;del('key');
 
 <h4><em>Example</em></h4>
 <pre>
-$ssdb-&gt;incr('key');
+$ssdb-&gt;incr('key', 1);
 </pre>
 
 
@@ -424,7 +424,7 @@ $ssdb-&gt;hdel('h', 'key');
 
 <h4><em>Example</em></h4>
 <pre>
-$ssdb-&gt;hincr('h', 'key');
+$ssdb-&gt;hincr('h', 'key', 1);
 </pre>
 
 
@@ -740,7 +740,7 @@ $ssdb-&gt;zdel('hz, 'key');
 
 <h4><em>Example</em></h4>
 <pre>
-$ssdb-&gt;zincr('z', 'key');
+$ssdb-&gt;zincr('z', 'key', 1);
 </pre>
 
 

@@ -272,7 +272,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function incr($key, $val){
+	function incr($key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -365,7 +365,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zincr($name, $key, $score){
+	function zincr($name, $key, $score=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -452,7 +452,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hincr($name, $key, $val){
+	function hincr($name, $key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
