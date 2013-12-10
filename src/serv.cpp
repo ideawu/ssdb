@@ -165,7 +165,9 @@ static Command commands[] = {
 	PROC(dump, "b"),
 	PROC(sync140, "b"),
 	PROC(info, "r"),
-	PROC(compact, "wt"),
+	// doing compaction in a reader thread, because we have one
+	// writer thread(for performance reason), we don't want to block writes
+	PROC(compact, "rt"),
 	PROC(key_range, "r"),
 
 	{NULL, NULL, 0, NULL}

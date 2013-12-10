@@ -819,8 +819,9 @@ Status DBImpl::FinishCompactionOutputFile(CompactionState* compact,
     delete iter;
     if (s.ok()) {
       Log(options_.info_log,
-          "Generated table #%llu: %lld keys, %lld bytes",
+          "Generated table #%llu@%d: %lld keys, %lld bytes",
           (unsigned long long) output_number,
+          compact->compaction->level(),
           (unsigned long long) current_entries,
           (unsigned long long) current_bytes);
 
@@ -1297,6 +1298,8 @@ Status DBImpl::MakeRoomForWrite(bool force) {
     } else if (
         allow_delay &&
         versions_->NumLevelFiles(0) >= config::kL0_SlowdownWritesTrigger) {
+      // Added by @ideawu, aggressive compaction
+      MaybeScheduleCompaction();
       // We are getting close to hitting a hard limit on the number of
       // L0 files.  Rather than delaying a single write by several
       // seconds when we hit the hard limit, start delaying each
