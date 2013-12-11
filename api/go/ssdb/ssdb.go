@@ -162,3 +162,8 @@ func (c *Client) parse() []string {
 
 	return []string{}
 }
+
+// Close The Client Connection
+func (c *Client) Close() error {
+	return c.sock.Close()
+}
