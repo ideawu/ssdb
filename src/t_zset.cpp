@@ -381,7 +381,8 @@ static std::string filter_score(const Bytes &score){
 static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	if(name.empty() || key.empty()){
 		log_error("empty name or key!");
-		return -1;
+		return 0;
+		//return -1;
 	}
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");

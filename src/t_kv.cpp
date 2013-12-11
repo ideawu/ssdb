@@ -10,7 +10,8 @@ int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
 		const Bytes &key = *it;
 		if(key.empty()){
 			log_error("empty key!");
-			return -1;
+			return 0;
+			//return -1;
 		}
 		const Bytes &val = *(it + 1);
 		std::string buf = encode_kv_key(key);
@@ -47,7 +48,8 @@ int SSDB::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
 int SSDB::set(const Bytes &key, const Bytes &val, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
-		return -1;
+		//return -1;
+		return 0;
 	}
 	Transaction trans(binlogs);
 

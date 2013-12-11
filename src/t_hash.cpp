@@ -225,7 +225,8 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type){
 	if(name.empty() || key.empty()){
 		log_error("empty name or key!");
-		return -1;
+		//return -1;
+		return 0;
 	}
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");

@@ -14,6 +14,8 @@ class Slave{
 		std::string last_key;
 		uint64_t copy_count;
 		uint64_t sync_count;
+		
+		std::string id_;
 
 		SSDB *ssdb;
 		Link *link;
@@ -46,6 +48,8 @@ class Slave{
 		~Slave();
 		void start();
 		void stop();
+		
+		void set_id(const std::string &id);
 };
 
 #endif

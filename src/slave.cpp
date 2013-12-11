@@ -18,6 +18,12 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 		this->log_type = BinlogType::SYNC;
 	}
 	
+	{
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s|%d", master_ip.c_str(), master_port);
+		this->set_id(buf);
+	}
+	
 	this->link = NULL;
 	this->last_seq = 0;
 	this->last_key = "";
@@ -25,10 +31,6 @@ Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is
 	
 	this->copy_count = 0;
 	this->sync_count = 0;
-
-	load_status();
-	log_debug("last_seq: %" PRIu64 ", last_key: %s",
-		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
 }
 
 Slave::~Slave(){
@@ -43,6 +45,10 @@ Slave::~Slave(){
 }
 
 void Slave::start(){
+	load_status();
+	log_debug("last_seq: %" PRIu64 ", last_key: %s",
+		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+
 	thread_quit = false;
 	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
 	if(err != 0){
@@ -59,12 +65,14 @@ void Slave::stop(){
 	}
 }
 
+void Slave::set_id(const std::string &id){
+	this->id_ = id;
+}
+
 std::string Slave::status_key(){
 	static std::string key;
 	if(key.empty()){
-		char buf[100];
-		snprintf(buf, sizeof(buf), "new.slave.status|%s|%d", master_ip.c_str(), master_port);
-		key.assign(buf);
+		key = "new.slave.status|" + this->id_;
 	}
 	return key;
 }
@@ -96,10 +104,10 @@ int Slave::connect(){
 	int port = this->master_port;
 	
 	if(++connect_retry % 50 == 1){
-		log_info("[%d] connecting to master at %s:%d...", connect_retry-1, ip, port);
+		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), connect_retry-1, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
-			log_error("failed to connect to master: %s:%d!", ip, port);
+			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
 			goto err;
 		}else{
 			connect_retry = 0;
@@ -110,12 +118,12 @@ int Slave::connect(){
 			
 			link->send("sync140", seq_buf, this->last_key, type);
 			if(link->flush() == -1){
-				log_error("network error");
+				log_error("[%s]network error", this->id_.c_str());
 				delete link;
 				link = NULL;
 				goto err;
 			}
-			log_info("ready to receive binlogs");
+			log_info("[%s]ready to receive binlogs", this->id_.c_str());
 			return 1;
 		}
 	}

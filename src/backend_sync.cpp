@@ -177,8 +177,14 @@ void BackendSync::Client::reset(){
 }
 
 void BackendSync::Client::noop(){
-	this->last_noop_seq = this->last_seq;
-	Binlog noop(this->last_seq, BinlogType::NOOP, BinlogCommand::NONE, "");
+	uint64_t seq;
+	if(this->status == Client::COPY && this->last_key.empty()){
+		seq = 0;
+	}else{
+		seq = this->last_seq;
+		this->last_noop_seq = this->last_seq;
+	}
+	Binlog noop(seq, BinlogType::NOOP, BinlogCommand::NONE, "");
 	log_debug("fd: %d, %s", link->fd(), noop.dumps().c_str());
 	link->send(noop.repr());
 }
@@ -186,7 +192,11 @@ void BackendSync::Client::noop(){
 int BackendSync::Client::copy(){
 	if(this->iter == NULL){
 		log_debug("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
-		this->iter = backend->ssdb->iterator(this->last_key, "", -1);
+		std::string key = this->last_key;
+		if(this->last_key.empty()){
+			key.push_back(DataType::KV);
+		}
+		this->iter = backend->ssdb->iterator(key, "", -1);
 	}
 	for(int i=0; i<1000; i++){
 		if(!iter->next()){
@@ -202,8 +212,7 @@ int BackendSync::Client::copy(){
 		}else{
 			Bytes key = iter->key();
 			Bytes val = iter->val();
-			this->last_key = key.String();
-			
+
 			if(key.size() == 0){
 				continue;
 			}
@@ -219,7 +228,8 @@ int BackendSync::Client::copy(){
 			}else{
 				continue;
 			}
-			
+			this->last_key = key.String();
+		
 			Binlog log(this->last_seq, BinlogType::COPY, cmd, key.Slice());
 			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), val);
