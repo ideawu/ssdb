@@ -317,6 +317,7 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 	
 	while(!logs->thread_quit){
 		usleep(100 * 1000);
+		assert(logs->last_seq >= logs->min_seq);
 
 		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.1){
 			continue;
