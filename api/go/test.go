@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"./ssdb"
+	"github.com/ideawu/ssdb/api/go/ssdb"
 )
 
 func main() {

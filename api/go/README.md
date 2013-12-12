@@ -3,6 +3,7 @@ SSDB Go API Documentation {#mainpage}
 
 @author: [ideawu](http://www.ideawu.com/)
 
+
 ## About
 
 All SSDB operations go with ```ssdb.Client.Do()```, it accepts variable arguments. The first argument of Do() is the SSDB command, for example "get", "set", etc. The rest arguments(maybe none) are the arguments of that command.
@@ -11,6 +12,12 @@ The Do() method will return an array of string if no error. The first element in
 
 Refer to the [PHP documentation](http://www.ideawu.com/ssdb/docs/php/) to checkout a complete list of all avilable commands and corresponding responses.
 
+
+## Install
+
+    go get -u github.com/ideawu/ssdb/api/go/ssdb
+
+
 ## Example
 
 	package main
@@ -18,7 +25,8 @@ Refer to the [PHP documentation](http://www.ideawu.com/ssdb/docs/php/) to checko
 	import (
 			"fmt"
 			"os"
-			"./ssdb"
+
+            "github.com/ideawu/ssdb/api/go/ssdb"
 		   )
 		   
 	func main(){
@@ -28,6 +36,8 @@ Refer to the [PHP documentation](http://www.ideawu.com/ssdb/docs/php/) to checko
 		if(err != nil){
 			os.Exit(1);
 		}
+
+        defer db.Close()
 		
 		var val interface{};
 		db.Set("a", "xxx");
