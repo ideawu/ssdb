@@ -43,13 +43,16 @@
 <p>All SSDB operations go with <code>ssdb.Client.Do()</code>, it accepts variable arguments. The first argument of Do() is the SSDB command, for example "get", "set", etc. The rest arguments(maybe none) are the arguments of that command.</p>
 <p>The Do() method will return an array of string if no error. The first element in that array is the response code, <code>"ok"</code> means the following elements in that array(maybe none) are valid results. The response code may be <code>"not_found"</code> if you are calling "get" on an non-exist key.</p>
 <p>Refer to the <a href="http://www.ideawu.com/ssdb/docs/php/">PHP documentation</a> to checkout a complete list of all avilable commands and corresponding responses.</p>
-<h2>Example</h2>
+<h2>Install</h2>
+<pre class="fragment">go get -u github.com/ideawu/ssdb/api/go/ssdb
+</pre><h2>Example</h2>
 <pre class="fragment">package main
 
 import (
         "fmt"
         "os"
-        "./ssdb"
+
+        "github.com/ideawu/ssdb/api/go/ssdb"
        )
 
 func main(){
@@ -59,6 +62,8 @@ func main(){
     if(err != nil){
         os.Exit(1);
     }
+
+    defer db.Close()
 
     var val interface{};
     db.Set("a", "xxx");
@@ -87,7 +92,7 @@ func main(){
 </pre> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 15 2013 17:27:07 for SSDB Go API by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Dec 12 2013 10:22:24 for SSDB Go API by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.5
 </small></address>
