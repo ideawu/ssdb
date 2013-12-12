@@ -124,10 +124,16 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
-	if(this->find_next(1, &log) == 1){
+	if(this->last_seq > LOG_QUEUE_SIZE){
+		this->min_seq = this->last_seq - LOG_QUEUE_SIZE;
+	}else{
+		this->min_seq = 1;
+	}
+	// TODO: use binary search to find out min_seq
+	if(this->find_next(this->min_seq, &log) == 1){
 		this->min_seq = log.seq();
 	}
-	log_debug("capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",", capacity, min_seq, last_seq);
+	log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",", capacity, min_seq, last_seq);
 
 	//this->merge();
 		/*
