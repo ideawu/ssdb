@@ -165,7 +165,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 
 BinlogQueue::~BinlogQueue(){
 	thread_quit = true;
-	while(1){
+	for(int i=0; i<100; i++){
 		if(thread_quit == false){
 			break;
 		}
