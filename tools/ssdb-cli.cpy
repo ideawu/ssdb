@@ -101,6 +101,7 @@ function hclear(link, hname, verbose=true){
 	ret = 0;
 	num = 0;
 	batch = 1000;
+	last_count = 0;
 	
 	r = link.request('hclear', [hname]);
 	try{
@@ -353,34 +354,39 @@ while(true){
 	cmd = ps[0];
 	args = ps[1 .. ];
 	
-	if(cmd == 'flushdb'){
-		stime = datetime.datetime.now();
-		if(len(args) == 0){
-			flushdb(link, '');
-		}else{
-			flushdb(link, args[0]);
-		}
-		sys.stderr.write(sprintf('(%.3f sec)\n', timespan(stime)));
-		continue;
-	}
-	if(cmd == 'hclear'){
-		if(len(args) == 0){
-			printf('Missing arguement 1!\n');
-		}else{
+	try{
+		if(cmd == 'flushdb'){
 			stime = datetime.datetime.now();
-			num = hclear(link, args[0]);
-			sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
+			if(len(args) == 0){
+				flushdb(link, '');
+			}else{
+				flushdb(link, args[0]);
+			}
+			sys.stderr.write(sprintf('(%.3f sec)\n', timespan(stime)));
+			continue;
 		}
-		continue;
-	}
-	if(cmd == 'zclear'){
-		if(len(args) == 0){
-			printf('Missing arguement 1!\n');
-		}else{
-			stime = datetime.datetime.now();
-			num = zclear(link, args[0]);
-			sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
+		if(cmd == 'hclear'){
+			if(len(args) == 0){
+				printf('Missing arguement 1!\n');
+			}else{
+				stime = datetime.datetime.now();
+				num = hclear(link, args[0]);
+				sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
+			}
+			continue;
 		}
+		if(cmd == 'zclear'){
+			if(len(args) == 0){
+				printf('Missing arguement 1!\n');
+			}else{
+				stime = datetime.datetime.now();
+				num = zclear(link, args[0]);
+				sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
+			}
+			continue;
+		}
+	}catch(Exception e){
+		sys.stderr.write("error! - " + str(e) + "\n");
 		continue;
 	}
 
