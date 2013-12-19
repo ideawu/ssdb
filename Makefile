@@ -20,7 +20,12 @@ install:
 	mkdir -p ${PREFIX}/var_slave
 	cp ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
 	cp -r api ${PREFIX}
-	cp -r tools/* ${PREFIX}
+	cp -r \
+		tools/ssdb-bench tools/ssdb-cli \
+		tools/ssdb-cli.cpy tools/ssdb-dump \
+		tools/ssdb-repair \
+		tools/ssdb-startup.sh tools/unittest.php \
+		${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
 	chmod ugo+rwx ${PREFIX}
 	chmod -R ugo+rw ${PREFIX}
