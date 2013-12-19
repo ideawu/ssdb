@@ -297,7 +297,7 @@ void signal_handler(int sig){
 void init(int argc, char **argv){
 	if(argc < 2){
 		usage(argc, argv);
-		exit(0);
+		exit(1);
 	}
 
 	bool is_daemon = false;
@@ -312,24 +312,24 @@ void init(int argc, char **argv){
 
 	if(conf_file == NULL){
 		usage(argc, argv);
-		exit(0);
+		exit(1);
 	}
 
 	if(!is_file(conf_file)){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
-		exit(0);
+		exit(1);
 	}
 
 	conf = Config::load(conf_file);
 	if(!conf){
 		fprintf(stderr, "error loading conf file: '%s'", conf_file);
-		exit(0);
+		exit(1);
 	}
 	{
 		std::string conf_dir = real_dirname(conf_file);
 		if(chdir(conf_dir.c_str()) == -1){
 			fprintf(stderr, "error chdir: %s\n", conf_dir.c_str());
-			exit(0);
+			exit(1);
 		}
 	}
 
@@ -341,12 +341,12 @@ void init(int argc, char **argv){
 		}
 		if(!is_dir(work_dir.c_str())){
 			fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
-			exit(0);
+			exit(1);
 		}
 		/*
 		if(chdir(work_dir.c_str()) == -1){
 			fprintf(stderr, "error chdir: %s\n", work_dir.c_str());
-			exit(0);
+			exit(1);
 		}
 		*/
 	}
@@ -363,8 +363,8 @@ void init(int argc, char **argv){
 			log_output = "stdout";
 		}
 		if(log_open(log_output.c_str(), log_level, true, log_rotate_size) == -1){
-			fprintf(stderr, "error open log file: %s", log_output.c_str());
-			exit(0);
+			fprintf(stderr, "error opening log file: %s", log_output.c_str());
+			exit(1);
 		}
 	}
 
@@ -394,7 +394,7 @@ void init(int argc, char **argv){
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){
 			log_fatal("error opening server socket! %s", strerror(errno));
-			exit(0);
+			exit(1);
 		}
 		log_info("server listen on: %s:%d", ip, port);
 	}
@@ -431,7 +431,7 @@ void write_pidfile(){
 		FILE *fp = fopen(pidfile, "w");
 		if(!fp){
 			log_error("Failed to open pidfile '%s': %s", pidfile, strerror(errno));
-			exit(0);
+			exit(1);
 		}
 		char buf[128];
 		pid_t pid = getpid();
@@ -449,7 +449,7 @@ void check_pidfile(){
 			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
 				"You must kill the process and then "
 				"remove this file before starting ssdb-server.\n", pidfile);
-			exit(0);
+			exit(1);
 		}
 	}
 }
