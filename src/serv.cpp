@@ -42,6 +42,7 @@ static proc_map_t proc_map;
 #define DEF_PROC(f) static int proc_##f(Server *serv, Link *link, const Request &req, Response *resp)
 	DEF_PROC(get);
 	DEF_PROC(set);
+	DEF_PROC(setx);
 	DEF_PROC(del);
 	DEF_PROC(incr);
 	DEF_PROC(decr);
@@ -100,6 +101,7 @@ static proc_map_t proc_map;
 	DEF_PROC(info);
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
+	DEF_PROC(ttl);
 #undef DEF_PROC
 
 
@@ -107,6 +109,7 @@ static proc_map_t proc_map;
 static Command commands[] = {
 	PROC(get, "r"),
 	PROC(set, "wt"),
+	PROC(setx, "wt"),
 	PROC(del, "wt"),
 	PROC(incr, "wt"),
 	PROC(decr, "wt"),
@@ -170,6 +173,8 @@ static Command commands[] = {
 	PROC(compact, "rt"),
 	PROC(key_range, "r"),
 
+	PROC(ttl, "wt"),
+
 	{NULL, NULL, 0, NULL}
 };
 #undef PROC
@@ -200,6 +205,8 @@ Server::Server(SSDB *ssdb){
 	}
 	// for k-v data, list === keys
 	proc_map["list"] = proc_map["keys"];
+
+	expiration = new ExpirationHandler(ssdb);
 	
 	writer = new WorkerPool<ProcWorker, ProcJob>("writer");
 	writer->start(WRITER_THREADS);
@@ -211,11 +218,13 @@ Server::~Server(){
 	delete backend_dump;
 	delete backend_sync;
 	
+	delete expiration;
+	
 	writer->stop();
 	delete writer;
 	reader->stop();
 	delete reader;
-	
+
 	log_debug("Server finalized");
 }
 
@@ -391,6 +400,18 @@ static int proc_key_range(Server *serv, Link *link, const Request &req, Response
 		resp->push_back(block);
 	}
 	
+	return 0;
+}
+
+static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() == 1 || (req.size() - 1) % 2 != 0){
+		resp->push_back("client_error");
+	}else{
+		for(int i=1; i<req.size(); i+=2){
+			serv->expiration->set_ttl(req[i], req[i+1].Int());
+		}
+		resp->push_back("ok");
+	}
 	return 0;
 }
 

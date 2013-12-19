@@ -26,6 +26,7 @@ public:
 
 	virtual Status get(const std::string &key, std::string *val);
 	virtual Status set(const std::string &key, const std::string &val);
+	virtual Status setx(const std::string &key, const std::string &val, int ttl);
 	virtual Status del(const std::string &key);
 	virtual Status incr(const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status keys(const std::string &key_start, const std::string &key_end,

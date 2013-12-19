@@ -106,7 +106,7 @@ $ssdb = new SimpleSSDB('127.0.0.1', 8888);
 <h3>set</h3>
 
 <h4><em>Description</em></h4>
-<p>Set the string value in argument as value of the key.</p>
+<p>Set the value of the key.</p>
 
 <h4><em>Parameters</em></h4>
 <dl>
@@ -120,6 +120,28 @@ $ssdb = new SimpleSSDB('127.0.0.1', 8888);
 <h4><em>Example</em></h4>
 <pre>
 $ssdb-&gt;set('key', 'value');
+</pre>
+
+
+<a name="m-setx"></a>
+<h3>setx</h3>
+
+<h4><em>Description</em></h4>
+<p>Set the value of the key, with a time to live.</p>
+
+<h4><em>Parameters</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+	<dd><code>value</code> - </dd>
+	<dd><code>ttl</code> - number of seconds to live.</dd>
+</dl>
+
+<h4><em>Return Value</em></h4>
+<p><code>false</code> on error, other values indicate OK.</p>
+
+<h4><em>Example</em></h4>
+<pre>
+$ssdb-&gt;setx('key', 'value', 60);
 </pre>
 
 

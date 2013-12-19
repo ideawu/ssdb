@@ -84,6 +84,10 @@ public:
 	/// @{
 	virtual Status get(const std::string &key, std::string *val) = 0;
 	virtual Status set(const std::string &key, const std::string &val) = 0;
+	/**
+	 * Set the value of the key, with a time to live.
+	 */
+	virtual Status setx(const std::string &key, const std::string &val, int ttl) = 0;
 	virtual Status del(const std::string &key) = 0;
 	virtual Status incr(const std::string &key, int64_t incrby, int64_t *ret) = 0;
 	/**

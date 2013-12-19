@@ -9,6 +9,7 @@
 #include "ssdb.h"
 #include "backend_dump.h"
 #include "backend_sync.h"
+#include "ttl.h"
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
@@ -66,6 +67,7 @@ class Server{
 		SSDB *ssdb;
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
+		ExpirationHandler *expiration;
 
 		Server(SSDB *ssdb);
 		~Server();

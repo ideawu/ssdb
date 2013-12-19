@@ -2,7 +2,7 @@ include ../build_config.mk
 
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o \
-	iterator.o
+	iterator.o ttl.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
 EXES = ../ssdb-server
 
@@ -47,6 +47,9 @@ backend_dump.o: ssdb.h backend_dump.h backend_dump.cpp
 
 backend_sync.o: ssdb.h backend_sync.h backend_sync.cpp
 	g++ ${CFLAGS} -c backend_sync.cpp
+
+ttl.o: ssdb.h ttl.h ttl.cpp
+	g++ ${CFLAGS} -c ttl.cpp
 
 clean:
 	rm -f ${EXES} *.o *.exe

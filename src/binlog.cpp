@@ -171,6 +171,7 @@ BinlogQueue::~BinlogQueue(){
 		}
 		usleep(10 * 1000);
 	}
+	db = NULL;
 	log_debug("BinlogQueue finalized");
 }
 
@@ -316,6 +317,9 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 	BinlogQueue *logs = (BinlogQueue *)arg;
 	
 	while(!logs->thread_quit){
+		if(!logs->db){
+			break;
+		}
 		usleep(100 * 1000);
 		assert(logs->last_seq >= logs->min_seq);
 

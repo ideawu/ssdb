@@ -34,6 +34,26 @@ static int proc_set(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
+static int proc_setx(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	int ret;
+	ret = serv->ssdb->set(req[1], req[2]);
+	if(ret == -1){
+		resp->push_back("error");
+		return 0;
+	}
+	ret = serv->expiration->set_ttl(req[1], req[3].Int());
+	if(ret == -1){
+		resp->push_back("error");
+		return 0;
+	}
+	resp->push_back("ok");
+	return 0;
+}
+
 static int proc_exists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");

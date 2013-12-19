@@ -145,6 +145,13 @@ Status ClientImpl::set(const std::string &key, const std::string &val){
 	return s;
 }
 
+Status ClientImpl::setx(const std::string &key, const std::string &val, int ttl){
+	const std::vector<std::string> *resp;
+	resp = this->request("setx", key, val, int_to_str(ttl));
+	Status s(resp);
+	return s;
+}
+
 Status ClientImpl::del(const std::string &key){
 	const std::vector<std::string> *resp;
 	resp = this->request("del", key);

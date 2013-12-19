@@ -272,6 +272,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function setx($key, $val, $ttl){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function incr($key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -493,6 +498,7 @@ class SSDB
 		}
 		switch($cmd){
 			case 'set':
+			case 'setx':
 			case 'zset':
 			case 'hset':
 			case 'del':

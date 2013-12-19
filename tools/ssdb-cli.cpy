@@ -23,6 +23,7 @@ function show_command_help(){
 	print '	info';
 	print '# KEY-VALUE COMMANDS';
 	print '	set key value';
+	print '	setx key value ttl';
 	print '	get key';
 	print '	del key';
 	print '	list key_start key_end limit';

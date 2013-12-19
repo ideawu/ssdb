@@ -123,6 +123,28 @@ $ssdb-&gt;set('key', 'value');
 </pre>
 
 
+<a name="m-setx"></a>
+<h3>setx</h3>
+
+<h4><em>说明</em></h4>
+<p>设置指定 key 的值内容, 同时设置存活时间.</p>
+
+<h4><em>参数</em></h4>
+<dl>
+	<dd><code>key</code> - </dd>
+	<dd><code>value</code> - </dd>
+	<dd><code>ttl</code> - 存活时间(秒)</dd>
+</dl>
+
+<h4><em>返回值</em></h4>
+<p>出错则返回 <code>false</code>, 其它值表示正常.</p>
+
+<h4><em>示例</em></h4>
+<pre>
+$ssdb-&gt;setx('key', 'value', 60);
+</pre>
+
+
 <a name="m-get"></a>
 <h3>get</h3>
 
