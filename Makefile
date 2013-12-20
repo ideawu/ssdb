@@ -24,7 +24,7 @@ install:
 		tools/ssdb-bench tools/ssdb-cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
-		tools/ssdb-startup.sh tools/unittest.php \
+		tools/ssdb-ins.sh tools/unittest.php \
 		${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
 	chmod ugo+rwx ${PREFIX}
