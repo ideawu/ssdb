@@ -43,6 +43,7 @@ int main(int argc, char **argv){
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
+#ifndef __CYGWIN__
 	signal(SIGALRM, signal_handler);
 	{
 		struct itimerval tv;
@@ -52,6 +53,7 @@ int main(int argc, char **argv){
 		tv.it_value.tv_usec = 0;
 		setitimer(ITIMER_REAL, &tv, NULL);
 	}
+#endif
 	
 	run(argc, argv);
 	
