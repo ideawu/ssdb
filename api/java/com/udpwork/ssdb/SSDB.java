@@ -24,6 +24,65 @@ public class SSDB{
 		link.close();
 	}
 	
+	/*Queue*/
+	
+	public void qoffer(String name, byte[] val) throws Exception{
+		Response resp = link.request("qoffer", name.getBytes(),val );
+		if(resp.ok()){
+			return;
+		}
+		resp.exception();
+	}
+	
+	public void qoffer(String name, String val) throws Exception{
+		qoffer(name, val.getBytes());
+	}
+	
+	public byte[] qpoll(String key) throws Exception{
+		Response resp = link.request("qpoll", key);
+		if(resp.not_found()){
+			return null;
+		}
+		if(resp.raw.size() != 2){
+			throw new Exception("Invalid response");
+		}
+		if(resp.ok()){
+			return resp.raw.get(1);
+		}
+		resp.exception();
+		return null;
+	}
+	
+	public byte[] qpeek(String key) throws Exception{
+		Response resp = link.request("qpeek", key);
+		if(resp.not_found()){
+			return null;
+		}
+		if(resp.raw.size() != 2){
+			throw new Exception("Invalid response");
+		}
+		if(resp.ok()){
+			return resp.raw.get(1);
+		}
+		resp.exception();
+		return null;
+	}
+	
+	public Long qsize(String key) throws Exception{
+		Response resp = link.request("qsize", key);
+		if(resp.not_found()){
+			return 0L;
+		}
+		if(resp.raw.size() != 2){
+			throw new Exception("Invalid response");
+		}
+		if(resp.ok()){
+			return Long.parseLong(new String(resp.raw.get(1)));
+		}
+		resp.exception();
+		return 0L;
+	}
+	
 	/* kv */
 
 	public void set(byte[] key, byte[] val) throws Exception{
@@ -40,6 +99,22 @@ public class SSDB{
 	
 	public void set(String key, String val) throws Exception{
 		set(key, val.getBytes());
+	}
+	
+	public void setx(byte[] key, byte[] val, int ttl) throws Exception{
+		Response resp = link.request("setx", key, (new Integer(ttl)).toString().getBytes());
+		if(resp.ok()){
+			return;
+		}
+		resp.exception();
+	}
+	
+	public void setx(String key, byte[] val, int ttl) throws Exception{
+		setx(key.getBytes(), val, ttl);
+	}
+	
+	public void setx(String key, String val, int ttl) throws Exception{
+		setx(key, val.getBytes(), ttl);
 	}
 
 	public void del(byte[] key) throws Exception{
@@ -225,6 +300,21 @@ public class SSDB{
 		return ret;
 	}
 	
+	public Long hsize(String key) throws Exception{
+		Response resp = link.request("hsize", key);
+		if(resp.not_found()){
+			return 0L;
+		}
+		if(resp.raw.size() != 2){
+			throw new Exception("Invalid response");
+		}
+		if(resp.ok()){
+			return Long.parseLong(new String(resp.raw.get(1)));
+		}
+		resp.exception();
+		return 0L;
+	}
+	
 	/* zset */
 
 	public void zset(String name, byte[] key, double score) throws Exception{
@@ -328,6 +418,21 @@ public class SSDB{
 		long ret = 0;
 		ret = Long.parseLong(new String(resp.raw.get(1)));
 		return ret;
+	}
+	
+	public Long zsize(String key) throws Exception{
+		Response resp = link.request("zsize", key);
+		if(resp.not_found()){
+			return 0L;
+		}
+		if(resp.raw.size() != 2){
+			throw new Exception("Invalid response");
+		}
+		if(resp.ok()){
+			return Long.parseLong(new String(resp.raw.get(1)));
+		}
+		resp.exception();
+		return 0L;
 	}
 
 	/****************/

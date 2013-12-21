@@ -70,6 +70,12 @@ public:
 	int hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
 	//int multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	//int multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
+	
+	/* queue */
+	int qoffer(const Bytes &name, const Bytes &val, char log_type=BinlogType::SYNC);
+	int qpoll(const Bytes &name, std::string *val, char log_type=BinlogType::SYNC);
+	int qpeek(const Bytes &name, std::string *val) const;
+	int64_t qsize(const Bytes &name) const;
 
 	int64_t hsize(const Bytes &name) const;
 	int hget(const Bytes &name, const Bytes &key, std::string *val) const;

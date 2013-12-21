@@ -110,6 +110,13 @@ public:
 		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/// @}
 
+	/// @name Queue methods
+	/// @{
+	virtual Status qoffer(const std::string &name, const std::string &val) = 0;
+	virtual Status qpoll(const std::string &name, std::string *val) = 0;
+	virtual Status qpeek(const std::string &name, std::string *val) = 0;
+	virtual Status qsize(const std::string &name, int64_t *ret) = 0;
+	/// @}
 
 	/// @name Map(Hash) methods
 	/// @{

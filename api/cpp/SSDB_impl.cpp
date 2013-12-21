@@ -193,6 +193,29 @@ Status ClientImpl::rscan(const std::string &key_start, const std::string &key_en
 	return _read_list(resp, ret);
 }
 
+/******************** queue *************************/
+
+Status ClientImpl::qoffer(const std::string &name, const std::string &val){
+	const std::vector<std::string> *resp;
+	resp = this->request("qoffer", name, val);
+	Status s(resp);
+	return s;
+}
+Status ClientImpl::qpoll(const std::string &name, std::string *val){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpoll", name);
+	return _read_str(resp, val);
+}
+Status ClientImpl::qpeek(const std::string &name, std::string *val){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpeek", name);
+	return _read_str(resp, val);
+}
+Status ClientImpl::qsize(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qsize", name);
+	return _read_int64(resp, ret);
+}
 
 /******************** hash *************************/
 
