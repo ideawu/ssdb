@@ -16,7 +16,7 @@ namespace ssdb
 		public Link(string host, int port) {
 			sock = new TcpClient(host, port);
 			sock.NoDelay = true;
-			sock.Client.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, true);
+			sock.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
 		}
 
 		~Link() {
