@@ -1,4 +1,4 @@
-# SSDB - A LevelDB server with zset data type
+# SSDB - A fast NoSQL database for storing big list of data
 
 SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL database, using Google LevelDB as storage engine. 
 
