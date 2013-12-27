@@ -421,7 +421,11 @@ while(true){
 
 	time_consume = timespan(stime);
 	if(!resp.ok()){
-		print 'error: ' + resp.code;
+		if(resp.not_found()){
+			print 'not_found';
+		}else{
+			print 'error: ' + resp.code;
+		}
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
 		switch(cmd){
@@ -453,6 +457,9 @@ while(true){
 			case 'get':
 			case 'zget':
 			case 'hget':
+			case 'qfront':
+			case 'qback':
+			case 'qpop':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
@@ -461,6 +468,7 @@ while(true){
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
+			case 'qsize':
 			case 'zrank':
 			case 'zrrank':
 			case 'multi_del':
@@ -472,6 +480,7 @@ while(true){
 			case 'set':
 			case 'zset':
 			case 'hset':
+			case 'qpush':
 			case 'del':
 			case 'zdel':
 			case 'hdel':

@@ -105,6 +105,16 @@ public:
 			const Bytes &score_start, const Bytes &score_end, uint64_t limit) const;
 	int zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) const;
+	
+	int64_t qsize(const Bytes &name);
+	// @return 0: empty queue, 1: item peeked, -1: error
+	int qfront(const Bytes &name, std::string *item);
+	// @return 0: empty queue, 1: item peeked, -1: error
+	int qback(const Bytes &name, std::string *item);
+	// @return -1: error, 1: item added
+	int qpush(const Bytes &name, const Bytes &item);
+	// @return 0: empty queue, 1: item popped, -1: error
+	int qpop(const Bytes &name, std::string *item);
 };
 
 

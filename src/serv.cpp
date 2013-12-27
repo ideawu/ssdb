@@ -94,7 +94,12 @@ static proc_map_t proc_map;
 	DEF_PROC(multi_zget);
 	DEF_PROC(multi_zset);
 	DEF_PROC(multi_zdel);
-	DEF_PROC(clear_binlog);
+	
+	DEF_PROC(qsize);
+	DEF_PROC(qfront);
+	DEF_PROC(qback);
+	DEF_PROC(qpush);
+	DEF_PROC(qpop);
 
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
@@ -102,6 +107,7 @@ static proc_map_t proc_map;
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
 	DEF_PROC(ttl);
+	DEF_PROC(clear_binlog);
 #undef DEF_PROC
 
 
@@ -162,6 +168,12 @@ static Command commands[] = {
 	PROC(multi_zget, "r"),
 	PROC(multi_zset, "wt"),
 	PROC(multi_zdel, "wt"),
+
+	PROC(qsize, "r"),
+	PROC(qfront, "r"),
+	PROC(qback, "r"),
+	PROC(qpush, "wt"),
+	PROC(qpop, "wt"),
 
 	PROC(clear_binlog, "wt"),
 
@@ -418,3 +430,4 @@ static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp
 #include "proc_kv.cpp"
 #include "proc_hash.cpp"
 #include "proc_zset.cpp"
+#include "proc_queue.cpp"

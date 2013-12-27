@@ -8,6 +8,7 @@
 #include "link.h"
 #include "util/fde.h"
 #include "util/log.h"
+#include "version.h"
 
 struct Data
 {
@@ -23,7 +24,7 @@ std::vector<Link *> *busy_links;
 
 
 void welcome(){
-	printf("ssdb-bench - SSDB benchmark tool\n");
+	printf("ssdb-bench - SSDB benchmark tool, %s\n", SSDB_VERSION);
 	printf("Copyright (c) 2013 ideawu.com\n");
 	printf("\n");
 }
@@ -108,6 +109,10 @@ void bench(std::string cmd){
 				link->send(cmd, "z", d->key);
 			}else if(cmd == "zdel"){
 				link->send(cmd, "z", d->key);
+			}else if(cmd == "qpush"){
+				link->send(cmd, "h", d->key, d->val);
+			}else if(cmd == "qpop"){
+				link->send(cmd, "h", d->key);
 			}else{
 				printf("bad command!\n");
 				exit(0);
@@ -204,6 +209,9 @@ int main(int argc, char **argv){
 	bench("zget");
 	bench("zdel");
 
+	bench("qpush");
+	bench("qpop");
+	
 	printf("\n");
 
 	return 0;

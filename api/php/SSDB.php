@@ -476,7 +476,27 @@ class SSDB
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
-	
+
+	function hfront($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function hback($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function hpop($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
+	function hpush($name, $item){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	private function send_req($cmd, $params){
 		$req = array($cmd);
 		foreach($params as $p){
@@ -501,11 +521,13 @@ class SSDB
 			case 'setx':
 			case 'zset':
 			case 'hset':
+			case 'qpush':
 			case 'del':
 			case 'zdel':
 			case 'hdel':
 			case 'hsize':
 			case 'zsize':
+			case 'qsize':
 			case 'hclear':
 			case 'zclear':
 			case 'multi_set':
@@ -527,6 +549,9 @@ class SSDB
 				return new SSDB_Response($resp[0], $val);
 			case 'get':
 			case 'hget':
+			case 'qfront':
+			case 'qback':
+			case 'qpop':
 				if($resp[0] == 'ok'){
 					if(count($resp) == 2){
 						return new SSDB_Response('ok', $resp[1]);
