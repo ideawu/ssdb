@@ -35,6 +35,11 @@ public:
 		uint64_t limit, std::vector<std::string> *ret);
 	virtual Status rscan(const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret);
+
+	virtual Status qoffer(const std::string &name, const std::string &val);
+	virtual Status qpoll(const std::string &name, std::string *val);
+	virtual Status qpeek(const std::string &name, std::string *val);
+	virtual Status qsize(const std::string &name, int64_t *ret);
 	
 	virtual Status hget(const std::string &name, const std::string &key, std::string *val);
 	virtual Status hset(const std::string &name, const std::string &key, const std::string &val);

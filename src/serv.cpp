@@ -102,6 +102,11 @@ static proc_map_t proc_map;
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
 	DEF_PROC(ttl);
+	
+	DEF_PROC(qoffer);
+	DEF_PROC(qpoll);
+	DEF_PROC(qpeek);
+	DEF_PROC(qsize);
 #undef DEF_PROC
 
 
@@ -174,6 +179,11 @@ static Command commands[] = {
 	PROC(key_range, "r"),
 
 	PROC(ttl, "wt"),
+	
+	PROC(qsize, "r"),
+	PROC(qoffer, "wt"),
+	PROC(qpoll, "wt"),
+	PROC(qpeek, "rt"),
 
 	{NULL, NULL, 0, NULL}
 };
@@ -418,3 +428,4 @@ static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp
 #include "proc_kv.cpp"
 #include "proc_hash.cpp"
 #include "proc_zset.cpp"
+#include "proc_queue.cpp"
