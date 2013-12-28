@@ -301,20 +301,20 @@ namespace ssdb
 		}
 
 		public bool zexists(byte[] name, byte[] key )
-        {
+                {
             
-            List<byte[]> resp = request("zexists", name, key);
-            resp_code = _string(resp[0]);
-            if (resp_code == "not_found")
-            {
-                return false;
-            }
-            this.assert_ok();
-            if (resp.Count != 2)
-            {
-                throw new Exception("Bad response!");
-            }          
-            return (_string(resp[1]) == "1" ? true : false);
+                        List<byte[]> resp = request("zexists", name, key);
+                        resp_code = _string(resp[0]);
+                        if (resp_code == "not_found")
+                        {
+                             return false;
+                        }
+                        this.assert_ok();
+                        if (resp.Count != 2)
+                        {
+                             throw new Exception("Bad response!");
+                        }          
+                        return (_string(resp[1]) == "1" ? true : false);
  
         }
         
@@ -323,6 +323,23 @@ namespace ssdb
             return this.zexists(_bytes(name), _bytes(key));
         }
           
+        public Int64 zincr(byte[] name, byte[] key, Int64 increment)
+        {
+            List<byte[]> resp = request("zincr", name, key, _bytes(increment.ToString()));
+            resp_code = _string(resp[0]);
+            this.assert_ok();
+            if (resp.Count != 2)
+            {
+                throw new Exception("Bad response!");
+            }
+            return Int64.Parse(_string(resp[1]));
+        }
+        
+        public Int64 zincr(string name, string key, Int64 increment)
+        {
+            return this.zincr(_bytes(name), _bytes(key), increment);
+        }
+       
         public KeyValuePair<string, Int64>[] zrange(string name, Int32 offset, Int32 limit)
         {
  
