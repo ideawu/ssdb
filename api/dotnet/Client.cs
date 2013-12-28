@@ -192,7 +192,28 @@ namespace ssdb
 			this.hdel(_bytes(name), _bytes(key));
 		}
 
-		public Int64 hsize(byte[] name) {
+		public bool hexists(byte[] name, byte[] key)
+                {
+                        List<byte[]> resp = request("hexists", name, key);
+                        resp_code = _string(resp[0]);
+                        if (resp_code == "not_found")
+                        {
+                            return false;
+                        }
+                        this.assert_ok();
+                        if (resp.Count != 2)
+                        {
+                              throw new Exception("Bad response!");
+                        }
+                        return (_string(resp[1]) == "1" ? true : false);
+
+                }
+                public bool hexists(string name, string key)
+                {
+                        return this.hexists(_bytes(name), _bytes(key));
+                }
+
+                public Int64 hsize(byte[] name) {
 			List<byte[]> resp = request("hsize", name);
 			resp_code = _string(resp[0]);
 			this.assert_ok();
@@ -215,7 +236,8 @@ namespace ssdb
 			List<byte[]> resp = request("hrscan", name, key_start, key_end, limit.ToString());
 			return parse_scan_resp(resp);
 		}
-
+                
+                 
 		/***** zset *****/
 
 		public void zset(byte[] name, byte[] key, Int64 score) {
@@ -278,7 +300,61 @@ namespace ssdb
 			return this.zsize(_bytes(name));
 		}
 
-		public KeyValuePair<string, Int64>[] zscan(string name, string key_start, Int64 score_start, Int64 score_end, Int64 limit) {
+		public bool zexists(byte[] name, byte[] key )
+        {
+            
+            List<byte[]> resp = request("zexists", name, key);
+            resp_code = _string(resp[0]);
+            if (resp_code == "not_found")
+            {
+                return false;
+            }
+            this.assert_ok();
+            if (resp.Count != 2)
+            {
+                throw new Exception("Bad response!");
+            }          
+            return (_string(resp[1]) == "1" ? true : false);
+ 
+        }
+        
+        public bool zexists(string name, string key )
+        {
+            return this.zexists(_bytes(name), _bytes(key));
+        }
+          
+        public KeyValuePair<string, Int64>[] zrange(string name, Int32 offset, Int32 limit)
+        {
+ 
+            List<byte[]> resp = request("zrange", name, offset.ToString(), limit.ToString());
+            KeyValuePair<string, byte[]>[] kvs = parse_scan_resp(resp);
+            KeyValuePair<string, Int64>[] ret = new KeyValuePair<string, Int64>[kvs.Length];
+            for (int i = 0; i < kvs.Length; i++)
+            {
+                string key = kvs[i].Key;
+                Int64 score = Int64.Parse(_string(kvs[i].Value));
+                ret[i] = new KeyValuePair<string, Int64>(key, score);
+            }
+            return ret;
+        }
+        
+        public KeyValuePair<string, Int64>[] zrrange(string name, Int32 offset, Int32 limit)
+        {
+
+             
+            List<byte[]> resp = request("zrrange", name, offset.ToString(), limit.ToString());
+            KeyValuePair<string, byte[]>[] kvs = parse_scan_resp(resp);
+            KeyValuePair<string, Int64>[] ret = new KeyValuePair<string, Int64>[kvs.Length];
+            for (int i = 0; i < kvs.Length; i++)
+            {
+                string key = kvs[i].Key;
+                Int64 score = Int64.Parse(_string(kvs[i].Value));
+                ret[i] = new KeyValuePair<string, Int64>(key, score);
+            }
+            return ret;
+        }
+
+        public KeyValuePair<string, Int64>[] zscan(string name, string key_start, Int64 score_start, Int64 score_end, Int64 limit) {
 			string score_s = "";
 			string score_e = "";
 			if(score_start != Int64.MinValue) {
