@@ -47,6 +47,7 @@ public:
 	static const char ZSET		= 's'; // key => score
 	static const char ZSCORE	= 'z'; // key|score => ""
 	static const char ZSIZE		= 'Z';
+	static const char QUEUE		= 'q';
 };
 
 class BinlogType{

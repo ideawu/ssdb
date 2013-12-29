@@ -17,6 +17,11 @@ class Bytes{
 			size_ = 0;
 		}
 
+		Bytes(void *data, int size){
+			data_ = (char *)data;
+			size_ = size;
+		}
+
 		Bytes(const char *data, int size){
 			data_ = data;
 			size_ = size;

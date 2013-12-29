@@ -30,7 +30,7 @@ echo $resp; // output: 123
 
 ## Documentation
 
-[SSDB Documentation](http://www.ideawu.com/ssdb/docs/)
+[SSDB Documentation](http://www.ideawu.com/ssdb/docs.php)
 
 ## Compile and Install
 

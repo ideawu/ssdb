@@ -122,6 +122,35 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === null);
 		$ssdb->del('TEST_b');
 	}
+	
+	function test_queue(){
+		$ssdb = $this->ssdb;
+		$name = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
+		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
+		$val = str_repeat(mt_rand(), mt_rand(1, 30));
+				
+		for($i=0; $i<10; $i++){
+			$ssdb->qpush($name, $i);
+		}
+		$ret = $ssdb->qsize($name);
+		$this->assert($ret === 10);
+		$ret = $ssdb->qfront($name);
+		$this->assert($ret == 0);
+		$ret = $ssdb->qback($name);
+		$this->assert($ret == 9);
+		for($i=0; $i<10; $i++){
+			$ret = $ssdb->qpop($name);
+			if($ret != $i){
+				$this->assert(false);
+				break;
+			}
+		}
+
+		$ret = $ssdb->qfront($name);
+		$this->assert($ret === null);
+		$ret = $ssdb->qback($name);
+		$this->assert($ret === null);
+	}
 
 	function test_hash(){
 		$ssdb = $this->ssdb;

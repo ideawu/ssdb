@@ -1,6 +1,6 @@
 include ../build_config.mk
 
-OBJS = ssdb.o t_kv.o t_hash.o t_zset.o link.o \
+OBJS = ssdb.o t_kv.o t_hash.o t_zset.o t_queue.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o \
 	iterator.o ttl.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
@@ -29,6 +29,9 @@ t_hash.o: ssdb.h t_hash.h t_hash.cpp
 
 t_zset.o: ssdb.h t_zset.h t_zset.cpp
 	g++ ${CFLAGS} -c t_zset.cpp
+
+t_queue.o: ssdb.h t_queue.h t_queue.cpp
+	g++ ${CFLAGS} -c t_queue.cpp
 
 link.o: ssdb.h link.h link.cpp
 	g++ ${CFLAGS} -c link.cpp
