@@ -8,12 +8,15 @@
 
 #include "util/bytes.h"
 
+#include "link_redis.h"
+
 class Link{
 	private:
 		int sock;
 		bool noblock_;
 		std::vector<Bytes> recv_data;
 
+		RedisLink *redis;
 	public:
 		char remote_ip[INET_ADDRSTRLEN];
 		int remote_port;

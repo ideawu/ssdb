@@ -6,6 +6,8 @@
 
 #include "link.h"
 
+#include "link_redis.cpp"
+
 #define MAX_PACKET_SIZE		32 * 1024 * 1024
 #define ZERO_BUFFER_SIZE	8
 
@@ -14,6 +16,8 @@ int Link::min_send_buf = 8 * 1024;
 
 
 Link::Link(bool is_server){
+	redis = NULL;
+
 	sock = -1;
 	noblock_ = false;
 	remote_ip[0] = '\0';
@@ -31,6 +35,9 @@ Link::Link(bool is_server){
 }
 
 Link::~Link(){
+	if(redis){
+		delete redis;
+	}
 	if(input){
 		delete input;
 	}
@@ -256,6 +263,20 @@ const std::vector<Bytes>* Link::recv(){
 	int parsed = 0;
 	int size = input->size();
 	char *head = input->data();
+	
+	// Redis protocol supports
+	if(head[0] == '*'){
+		if(redis == NULL){
+			redis = new RedisLink();
+		}
+		const std::vector<Bytes> *ret = redis->recv_req(input);
+		if(ret){
+			this->recv_data = *ret;
+			return &this->recv_data;
+		}else{
+			return NULL;
+		}
+	}
 
 	// ignore leading empty lines
 	while(size > 0 && (head[0] == '\n' || head[0] == '\r')){
@@ -339,6 +360,11 @@ const std::vector<Bytes>* Link::recv(){
 }
 
 int Link::send(const std::vector<std::string> &resp){
+	// Redis protocol supports
+	if(this->redis){
+		return this->redis->send_resp(this->output, resp);
+	}
+	
 	for(int i=0; i<resp.size(); i++){
 		output->append_record(resp[i]);
 	}

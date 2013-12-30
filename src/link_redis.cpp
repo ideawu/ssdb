@@ -1,0 +1,427 @@
+#include "link_redis.h"
+#include "util/log.h"
+#include <map>
+
+enum REPLY{
+	REPLY_BULK = 0,
+	REPLY_MULTI_BULK,
+	REPLY_INT,
+	REPLY_STATUS
+};
+
+enum STRATEGY{
+	STRATEGY_AUTO,
+	STRATEGY_HGETALL,
+	STRATEGY_HKEYS,
+	STRATEGY_SETEX,
+	STRATEGY_ZRANGE,
+	STRATEGY_ZREVRANGE,
+	STRATEGY_ZRANGEBYSCORE,
+	STRATEGY_ZREVRANGEBYSCORE,
+	STRATEGY_ZADD,
+	STRATEGY_ZINCRBY,
+	STRATEGY_NULL
+};
+
+static bool inited = false;
+static std::map<std::string, RedisRequestDesc> cmd_table;
+
+struct RedisCommand_raw
+{
+	int strategy;
+	const char *redis_cmd;
+	const char *ssdb_cmd;
+	int reply_type;
+};
+
+static RedisCommand_raw cmds_raw[] = {
+	{STRATEGY_AUTO, "get",		"get",			REPLY_BULK},
+	{STRATEGY_AUTO, "set",		"set",			REPLY_STATUS},
+	{STRATEGY_AUTO, "exists",	"exists",		REPLY_INT},
+	{STRATEGY_AUTO, "incr",		"incr",			REPLY_INT},
+	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
+
+	{STRATEGY_AUTO, "hset",		"hset",			REPLY_STATUS},
+	{STRATEGY_AUTO, "hget",		"hget",			REPLY_BULK},
+	{STRATEGY_AUTO, "hexists",	"hexists",		REPLY_INT},
+
+	{STRATEGY_AUTO, "del",		"multi_del",	REPLY_INT},
+	//{STRATEGY_AUTO, "mget",		"redis_multi_get",	REPLY_MULTI_BULK},
+	{STRATEGY_AUTO, "mset",		"multi_set",	REPLY_STATUS},
+	{STRATEGY_AUTO, "incrby",	"incr",			REPLY_INT},
+	{STRATEGY_AUTO, "decrby",	"decr",			REPLY_INT},
+
+	//{STRATEGY_AUTO, "hmget",	"redis_multi_hget",	REPLY_MULTI_BULK},
+	{STRATEGY_AUTO, "hmset",	"multi_hset",	REPLY_STATUS},
+	{STRATEGY_AUTO, "hdel",		"multi_hdel",	REPLY_INT},
+	{STRATEGY_AUTO, "hmdel",	"multi_hdel",	REPLY_INT},
+	{STRATEGY_AUTO, "hlen",		"hsize",		REPLY_INT},
+	{STRATEGY_AUTO, "hincrby",	"hincr",		REPLY_INT},
+
+	{STRATEGY_AUTO, "zcard",	"zsize",		REPLY_INT},
+	{STRATEGY_AUTO, "zscore",	"zget",			REPLY_BULK},
+	{STRATEGY_AUTO, "zrem",		"multi_zdel",	REPLY_INT},
+	{STRATEGY_AUTO, "zrank",	"zrank",		REPLY_INT},
+	{STRATEGY_AUTO, "zrevrank",	"zrrank",		REPLY_INT},
+	
+	/////////////////////////////////////
+	
+	{STRATEGY_HGETALL,	"hgetall",		"hscan",		REPLY_MULTI_BULK},
+	{STRATEGY_HKEYS,	"hkeys", 		"hkeys", 		REPLY_MULTI_BULK},
+	{STRATEGY_SETEX,	"setex",		"setx", 		REPLY_STATUS},
+	{STRATEGY_ZRANGE,	"zrange",		"zrange",		REPLY_MULTI_BULK},
+	{STRATEGY_ZREVRANGE,"zrevrange",	"zrrange",		REPLY_MULTI_BULK},
+	{STRATEGY_ZADD,		"zadd",			"multi_zset", 	REPLY_INT},
+	{STRATEGY_ZINCRBY,	"zincrby",		"zincr", 		REPLY_BULK},
+	{STRATEGY_ZRANGEBYSCORE,	"zrangebyscore",	"zscan",	REPLY_MULTI_BULK},
+	{STRATEGY_ZREVRANGEBYSCORE,	"zrevrangebyscore",	"zrscan",	REPLY_MULTI_BULK},
+	
+	{STRATEGY_AUTO, NULL,		NULL,			0}
+};
+
+int RedisLink::convert_req(){
+	if(!inited){
+		inited = true;
+		
+		RedisCommand_raw *def = &cmds_raw[0];
+		while(def->redis_cmd != NULL){
+			RedisRequestDesc desc;
+			desc.strategy = def->strategy;
+			desc.redis_cmd = def->redis_cmd;
+			desc.ssdb_cmd = def->ssdb_cmd;
+			desc.reply_type = def->reply_type;
+			cmd_table[desc.redis_cmd] = desc;
+			def += 1;
+		}
+	}
+	
+	this->req_desc = NULL;
+	
+	std::map<std::string, RedisRequestDesc>::iterator it;
+	it = cmd_table.find(cmd);
+	if(it == cmd_table.end()){
+		recv_string.push_back(cmd);
+		return 0;
+	}
+	this->req_desc = &(it->second);
+	
+	if(this->req_desc->strategy == STRATEGY_AUTO){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		for(int i=1; i<recv_bytes.size(); i++){
+			recv_string.push_back(recv_bytes[i].String());
+		}
+		return 0;
+	}
+
+	if(this->req_desc->strategy == STRATEGY_HGETALL || this->req_desc->strategy == STRATEGY_HKEYS){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() == 2){
+			recv_string.push_back(recv_bytes[1].String());
+			recv_string.push_back("");
+			recv_string.push_back("");
+			recv_string.push_back("99999999999999");
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_SETEX){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() == 4){
+			recv_string.push_back(recv_bytes[1].String());
+			recv_string.push_back(recv_bytes[3].String());
+			recv_string.push_back(recv_bytes[2].String());
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZADD){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() >= 2){
+			recv_string.push_back(recv_bytes[1].String());
+			for(int i=2; i<=recv_bytes.size()-2; i+=2){
+				recv_string.push_back(recv_bytes[i+1].String());
+				recv_string.push_back(recv_bytes[i].String());
+			}
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZINCRBY){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() == 4){
+			recv_string.push_back(recv_bytes[1].String());
+			recv_string.push_back(recv_bytes[3].String());
+			recv_string.push_back(recv_bytes[2].String());
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZRANGE || this->req_desc->strategy == STRATEGY_ZREVRANGE){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() >= 4){
+			int64_t start = recv_bytes[2].Int64();
+			int64_t end = recv_bytes[3].Int64();
+			
+			if(start >= 0 && end >= 0){
+				int64_t size = end - start + 1;
+				recv_string.push_back(recv_bytes[1].String());
+				recv_string.push_back(recv_bytes[2].String());
+				recv_string.push_back(int64_to_str(size));
+			}
+		}
+		if(recv_bytes.size() > 4){
+			std::string s = recv_bytes[4].String();
+			strtolower(&s);
+			recv_string.push_back(s);
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZRANGEBYSCORE || this->req_desc->strategy == STRATEGY_ZREVRANGEBYSCORE){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		std::string name, smin, smax, withscores, offset, count;
+		if(recv_bytes.size() >= 4){
+			name = recv_bytes[1].String();
+			smin = recv_bytes[2].String();
+			smax = recv_bytes[3].String();
+			
+			bool after_limit = false;
+			for(int i=4; i<recv_bytes.size(); i++){
+				std::string s = recv_bytes[i].String();
+				if(after_limit){
+					if(offset.empty()){
+						offset = s;
+					}else{
+						count = s;
+						after_limit = false;
+					}
+				}
+				strtolower(&s);
+				if(s == "withscores"){
+					withscores = s;
+				}else if(s == "limit"){
+					after_limit = true;
+				}
+			}
+		}
+		if(smin.empty() || smax.empty()){
+			return 0;
+		}
+		if(!offset.empty() && offset != "0"){
+			offset = "0";
+			//return 0;
+		}
+		
+		recv_string.push_back(name);
+		recv_string.push_back("");
+		
+		if(smin == "-inf" || smin == "+inf"){
+			recv_string.push_back("");
+		}else{
+			if(smin[0] == '('){
+				std::string tmp(smin.data() + 1, smin.size() - 1);
+				char buf[32];
+				if(this->req_desc->strategy == STRATEGY_ZRANGEBYSCORE){
+					snprintf(buf, sizeof(buf), "%d", str_to_int(tmp) + 1);
+				}else{
+					snprintf(buf, sizeof(buf), "%d", str_to_int(tmp) - 1);
+				}
+				smin = buf;
+			}
+			recv_string.push_back(smin);
+		}
+		if(smax == "-inf" || smax == "+inf"){
+			recv_string.push_back("");
+		}else{
+			if(smax[0] == '('){
+				std::string tmp(smax.data() + 1, smax.size() - 1);
+				char buf[32];
+				if(this->req_desc->strategy == STRATEGY_ZRANGEBYSCORE){
+					snprintf(buf, sizeof(buf), "%d", str_to_int(tmp) - 1);
+				}else{
+					snprintf(buf, sizeof(buf), "%d", str_to_int(tmp) + 1);
+				}
+				smax = buf;
+			}
+			recv_string.push_back(smax);
+		}
+		if(count.empty()){
+			recv_string.push_back("999999999999");
+		}else{
+			recv_string.push_back(count);
+		}
+
+		recv_string.push_back(withscores);
+		return 0;
+	}
+	
+	recv_string.push_back(cmd);
+	return 0;
+}
+
+const std::vector<Bytes>* RedisLink::recv_req(Buffer *input){
+	int ret = this->parse_req(input);
+	if(ret == -1){
+		return NULL;
+	}
+	if(recv_bytes.empty()){
+		return &recv_bytes;
+	}
+
+	cmd = recv_bytes[0].String();
+	strtolower(&cmd);
+	
+	recv_string.clear();
+	
+	this->convert_req();
+
+	// Bytes don't hold memory, so we firstly copy Bytes into string and store
+	// in a vector of string, then create Bytes-es prointing to strings
+	recv_bytes.clear();
+	for(int i=0; i<recv_string.size(); i++){
+		std::string *str = &recv_string[i];
+		recv_bytes.push_back(Bytes(str->data(), str->size()));
+	}
+	
+	return &recv_bytes;
+}
+
+int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
+	if(resp[0] == "error" || resp[0] == "fail"){
+		output->append("-ERR \r\n");
+		return 0;
+	}
+	if(resp[0] == "client_error"){
+		output->append("-ERR ");
+		if(resp.size() >= 2){
+			output->append(resp[1]);
+		}
+		output->append("\r\n");
+		return 0;
+	}
+	if(resp[0] == "not_found"){
+		output->append("$-1\r\n");
+		return 0;
+	}
+	if(resp[0] != "ok"){
+		output->append("-ERR server error\r\n");
+		return 0;
+	}
+	
+	if(req_desc == NULL || req_desc->reply_type == REPLY_STATUS){
+		output->append("+OK\r\n");
+	}else{
+		if(req_desc->reply_type == REPLY_BULK){
+			if(resp.size() >= 2){
+				const std::string &val = resp[1];
+				char buf[32];
+				snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
+				output->append(buf);
+				output->append(val.data(), val.size());
+				output->append("\r\n");
+			}else{
+				output->append("$0\r\n");
+			}
+		}else if(req_desc->reply_type == REPLY_MULTI_BULK){
+			bool withscores = true;
+			if(req_desc->strategy == STRATEGY_ZRANGE || req_desc->strategy == STRATEGY_ZREVRANGE){
+				if(recv_string.size() < 5 || recv_string[4] != "withscores"){
+					withscores = false;
+				}
+			}
+			if(req_desc->strategy == STRATEGY_ZRANGEBYSCORE || req_desc->strategy == STRATEGY_ZREVRANGEBYSCORE){
+				if(recv_string[recv_string.size() - 1] != "withscores"){
+					withscores = false;
+				}
+			}
+			{
+				char buf[32];
+				if(withscores){
+					snprintf(buf, sizeof(buf), "*%d\r\n", (int)resp.size() - 1);
+				}else{
+					snprintf(buf, sizeof(buf), "*%d\r\n", ((int)resp.size() - 1)/2);
+				}
+				output->append(buf);
+			}
+			for(int i=1; i<resp.size(); i++){
+				const std::string &val = resp[i];
+				char buf[32];
+				snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
+				output->append(buf);
+				output->append(val.data(), val.size());
+				output->append("\r\n");
+				if(!withscores){
+					i += 1;
+				}
+			}
+		}else if(req_desc->reply_type == REPLY_INT){
+			if(resp.size() >= 2){
+				const std::string &val = resp[1];
+				output->append(":");
+				output->append(val.data(), val.size());
+				output->append("\r\n");
+			}else{
+				output->append("$0\r\n");
+			}
+		}else{
+			output->append("-ERR server error\r\n");
+		}
+	}
+	
+	return 0;
+}
+
+int RedisLink::parse_req(Buffer *input){
+	recv_bytes.clear();
+
+	int parsed = 0;
+	int size = input->size();
+	char *ptr = input->data();
+	
+	//dump(ptr, size);
+	
+	if(ptr[0] != '*'){
+		return -1;
+	}
+
+	int num_args = 0;	
+	while(size > 0){
+		char *lf = (char *)memchr(ptr, '\n', size);
+		if(lf == NULL){
+			break;
+		}
+		lf += 1;
+		size -= (lf - ptr);
+		parsed += (lf - ptr);
+		
+		int len = (int)strtol(ptr + 1, NULL, 10); // ptr + 1: skip '$' or '*'
+		if(errno == EINVAL){
+			return -1;
+		}
+		ptr = lf;
+		if(len < 0){
+			return -1;
+		}
+		if(num_args == 0){
+			if(len <= 0){
+				return -1;
+			}
+			num_args = len;
+			continue;
+		}
+		
+		if(len > size - 2){
+			break;
+		}
+		
+		recv_bytes.push_back(Bytes(ptr, len));
+		
+		ptr += len + 2;
+		size -= len + 2;
+		parsed += len + 2;
+
+		num_args --;
+		if(num_args == 0){
+			input->decr(parsed);
+			return 1;
+		}
+	}
+	
+	recv_bytes.clear();
+	return 0;
+}

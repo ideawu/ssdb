@@ -240,7 +240,7 @@ static int proc_zrrank(Server *serv, Link *link, const Request &req, Response *r
 }
 
 static int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() != 4){
+	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		uint64_t offset = req[2].Uint64();
@@ -257,7 +257,7 @@ static int proc_zrange(Server *serv, Link *link, const Request &req, Response *r
 }
 
 static int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() != 4){
+	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
 		uint64_t offset = req[2].Uint64();
