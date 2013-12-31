@@ -9,7 +9,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * LevelDB client-server support, written in C/C++
 * Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
-* Redis clients supported
+* Redis clients are supported
 * Client API supports including [C++](http://www.ideawu.com/ssdb/docs/cpp/), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://www.ideawu.com/ssdb/docs/go/)
 * Persistent queue service
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
@@ -31,7 +31,8 @@ echo $resp; // output: 123
 
 ## Documentation
 
-[SSDB Documentation](http://www.ideawu.com/ssdb/docs.php)
+* [View online](http://www.ideawu.com/ssdb/)
+* [Contribute to SSDB documentation project](https://github.com/ideawu/ssdb-docs)
 
 ## Compile and Install
 
