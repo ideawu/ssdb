@@ -33,7 +33,7 @@ t_zset.o: ssdb.h t_zset.h t_zset.cpp
 t_queue.o: ssdb.h t_queue.h t_queue.cpp
 	g++ ${CFLAGS} -c t_queue.cpp
 
-link.o: ssdb.h link.h link.cpp
+link.o: ssdb.h link.h link.cpp link_redis.h link_redis.cpp
 	g++ ${CFLAGS} -c link.cpp
 
 binlog.o: ssdb.h binlog.h binlog.cpp

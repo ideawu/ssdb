@@ -117,6 +117,11 @@ int str_to_int(const char *p, int size){
 }
 
 static inline
+int str_to_int(const std::string &str){
+	return atoi(str.c_str());
+}
+
+static inline
 std::string int_to_str(int v){
 	char buf[21] = {0};
 	snprintf(buf, sizeof(buf), "%d", v);
