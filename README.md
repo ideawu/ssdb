@@ -132,5 +132,7 @@ Download ssdb-server.exe from here: https://github.com/ideawu/ssdb-bin
 
 See [Changes-Made-to-LevelDB wiki](https://github.com/ideawu/ssdb/wiki/Changes-Made-to-LevelDB)
 
+## LICENSE
 
+SSDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Clause), a very flexible license to use.
 
