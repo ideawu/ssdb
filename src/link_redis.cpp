@@ -260,6 +260,16 @@ const std::vector<Bytes>* RedisLink::recv_req(Buffer *input){
 		return NULL;
 	}
 	if(recv_bytes.empty()){
+		if(input->space() == 0){
+			input->nice();
+			if(input->space() == 0){
+				if(input->grow() == -1){
+					//log_error("fd: %d, unable to resize input buffer!", this->sock);
+					return NULL;
+				}
+				//log_debug("fd: %d, resize input buffer, %s", this->sock, input->stats().c_str());
+			}
+		}
 		return &recv_bytes;
 	}
 
