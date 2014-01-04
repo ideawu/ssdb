@@ -51,6 +51,7 @@ static int proc_setx(Server *serv, Link *link, const Request &req, Response *res
 		return 0;
 	}
 	resp->push_back("ok");
+	resp->push_back("1");
 	return 0;
 }
 
