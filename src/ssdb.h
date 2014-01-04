@@ -115,6 +115,9 @@ public:
 	int qpush(const Bytes &name, const Bytes &item);
 	// @return 0: empty queue, 1: item popped, -1: error
 	int qpop(const Bytes &name, std::string *item);
+	int qfix(const Bytes &name);
+	int qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list);
 };
 
 
