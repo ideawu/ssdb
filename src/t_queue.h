@@ -6,7 +6,7 @@
 static uint64_t QSIZE_SEQ  = 1;
 static uint64_t QFRONT_SEQ = 2;
 static uint64_t QBACK_SEQ  = 3;
-static uint64_t QITEM_FIRST_SEQ = ((4294967295/2) * 4294967295);
+static uint64_t QITEM_FIRST_SEQ = 10000;
 
 inline static std::string qitem_key(const Bytes &name, uint64_t seq){
 	assert(seq >= QFIRST_SEQ);
