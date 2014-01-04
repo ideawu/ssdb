@@ -100,6 +100,9 @@ static proc_map_t proc_map;
 	DEF_PROC(qback);
 	DEF_PROC(qpush);
 	DEF_PROC(qpop);
+	DEF_PROC(qfix);
+	DEF_PROC(qclear);
+	DEF_PROC(qlist);
 
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
@@ -174,6 +177,9 @@ static Command commands[] = {
 	PROC(qback, "r"),
 	PROC(qpush, "wt"),
 	PROC(qpop, "wt"),
+	PROC(qfix, "wt"),
+	PROC(qclear, "wt"),
+	PROC(qlist, "rt"),
 
 	PROC(clear_binlog, "wt"),
 

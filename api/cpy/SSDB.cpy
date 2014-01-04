@@ -115,6 +115,9 @@ class SSDB{
 			case 'zget':
 			case 'zrank':
 			case 'zrrank':
+			case 'hclear':
+			case 'zclear':
+			case 'qclear':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{

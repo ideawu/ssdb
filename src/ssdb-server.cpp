@@ -14,7 +14,7 @@
 #include "util/ip_filter.h"
 
 #define TICK_INTERVAL       100 // ms
-#define STATUS_REPORT_TICKS (60 * 1000/TICK_INTERVAL) // second
+#define STATUS_REPORT_TICKS (300 * 1000/TICK_INTERVAL) // second
 
 void welcome();
 void usage(int argc, char **argv);

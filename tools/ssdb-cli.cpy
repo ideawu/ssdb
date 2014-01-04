@@ -106,27 +106,8 @@ function hclear(link, hname, verbose=true){
 	
 	r = link.request('hclear', [hname]);
 	try{
-		ret += int(r.data[0]);
+		ret = r.data;
 	}catch(Exception e){
-	}
-	
-	while(true){
-		r2 = link.request('hkeys', [hname, '', '', batch]);
-		num = len(r2.data);
-		if(num == 0){
-			break;
-		}
-		ret += num;
-		keys = r2.data;
-		keys.insert(0, hname);
-		link.request('multi_hdel', keys);
-		if(ret - last_count >= batch || (verbose != false && num < batch)){
-			last_count = ret;
-			printf('hclear \'%s\' %d key(s).\n', hname, ret);
-		}
-		if(num != batch){
-			break;
-		}
 	}
 	return ret;
 }
@@ -139,27 +120,8 @@ function zclear(link, zname, verbose=true){
 
 	r = link.request('zclear', [zname]);
 	try{
-		ret += int(r.data[0]);
+		ret = r.data;
 	}catch(Exception e){
-	}
-	
-	while(true){
-		r2 = link.request('zkeys', [zname, '', '', '', batch]);
-		num = len(r2.data);
-		if(num == 0){
-			break;
-		}
-		ret += num;
-		keys = r2.data;
-		keys.insert(0, zname);
-		link.request('multi_zdel', keys);
-		if(ret - last_count >= batch || (verbose != false && num < batch)){
-			last_count = ret;
-			printf('zclear \'%s\' %d key(s).\n', zname, ret);
-		}
-		if(num != batch){
-			break;
-		}
 	}
 	return ret;
 }
@@ -366,26 +328,6 @@ while(true){
 			sys.stderr.write(sprintf('(%.3f sec)\n', timespan(stime)));
 			continue;
 		}
-		if(cmd == 'hclear'){
-			if(len(args) == 0){
-				printf('Missing arguement 1!\n');
-			}else{
-				stime = datetime.datetime.now();
-				num = hclear(link, args[0]);
-				sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
-			}
-			continue;
-		}
-		if(cmd == 'zclear'){
-			if(len(args) == 0){
-				printf('Missing arguement 1!\n');
-			}else{
-				stime = datetime.datetime.now();
-				num = zclear(link, args[0]);
-				sys.stderr.write(sprintf('%d\n(%.3f sec)\n', num, timespan(stime)));
-			}
-			continue;
-		}
 	}catch(Exception e){
 		sys.stderr.write("error! - " + str(e) + "\n");
 		continue;
@@ -474,6 +416,9 @@ while(true){
 			case 'multi_del':
 			case 'multi_hdel':
 			case 'multi_zdel':
+			case 'hclear':
+			case 'zclear':
+			case 'qclear':
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
@@ -523,6 +468,7 @@ while(true){
 				break;
 			case 'hlist':
 			case 'zlist':
+			case 'qlist':
 				printf('  %15s\n', 'name');
 				print ('-' * 17);
 				foreach(resp.data as k){

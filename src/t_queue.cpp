@@ -5,13 +5,14 @@
 #include "util/thread.h"
 
 static int qget(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *val){
-	std::string key = qitem_key(name, seq);
+	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
 	s = db->Get(leveldb::ReadOptions(), key, val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
+		log_error("Get() error!");
 		return -1;
 	}else{
 		return 1;
@@ -32,7 +33,7 @@ static int qget_uint64(leveldb::DB* db, const Bytes &name, uint64_t seq, uint64_
 }
 
 static int qdel_one(SSDB *ssdb, const Bytes &name, uint64_t seq){
-	std::string key = qitem_key(name, seq);
+	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
 	ssdb->binlogs->Delete(key);
@@ -40,7 +41,7 @@ static int qdel_one(SSDB *ssdb, const Bytes &name, uint64_t seq){
 }
 
 static int qset_one(SSDB *ssdb, const Bytes &name, uint64_t seq, const Bytes &item){
-	std::string key = qitem_key(name, seq);
+	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
 	ssdb->binlogs->Put(key, item.Slice());
@@ -53,13 +54,15 @@ static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 		return -1;
 	}
 	size += incr;
+	if(size > QITEM_MAX_SEQ){
+		return -1;
+	}
 	if(size <= 0){
-		qdel_one(ssdb, name, QSIZE_SEQ);
-		// clear meta data
+		ssdb->binlogs->Delete(encode_qsize_key(name));
 		qdel_one(ssdb, name, QFRONT_SEQ);
 		qdel_one(ssdb, name, QBACK_SEQ);
 	}else{
-		qset_one(ssdb, name, QSIZE_SEQ, Bytes(&size, sizeof(size)));
+		ssdb->binlogs->Put(encode_qsize_key(name), leveldb::Slice((char *)&size, sizeof(size)));
 	}
 	return size;
 }
@@ -67,16 +70,22 @@ static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 /****************/
 
 int64_t SSDB::qsize(const Bytes &name){
-	int ret = 0;
-	uint64_t seq;
-	ret = qget_uint64(this->db, name, QSIZE_SEQ, &seq);
-	if(ret == -1){
-		return -1;
-	}
-	if(ret == 0){
+	std::string key = encode_qsize_key(name);
+	std::string val;
+
+	leveldb::Status s;
+	s = db->Get(leveldb::ReadOptions(), key, &val);
+	if(s.IsNotFound()){
 		return 0;
+	}else if(!s.ok()){
+		log_error("Get() error!");
+		return -1;
+	}else{
+		if(val.size() != sizeof(uint64_t)){
+			return -1;
+		}
+		return *(int64_t *)val.data();
 	}
-	return (int64_t)seq;
 }
 
 // @return 0: empty queue, 1: item peeked, -1: error
@@ -120,7 +129,7 @@ int SSDB::qpush(const Bytes &name, const Bytes &item){
 		return -1;
 	}
 	if(ret == 0){
-		seq = QITEM_FIRST_SEQ;
+		seq = QITEM_MIN_SEQ;
 	}else{
 		seq += 1;
 	}
@@ -145,6 +154,7 @@ int SSDB::qpush(const Bytes &name, const Bytes &item){
 
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
+		log_error("Write error!");
 		return -1;
 	}
 	return 1;
@@ -161,7 +171,7 @@ int SSDB::qpop(const Bytes &name, std::string *item){
 		return -1;
 	}
 	if(ret == 0){
-		seq = QITEM_FIRST_SEQ;
+		seq = QITEM_MIN_SEQ;
 	}
 	
 	ret = qget(this->db, name, seq, item);
@@ -196,7 +206,81 @@ int SSDB::qpop(const Bytes &name, std::string *item){
 		
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
+		log_error("Write error!");
 		return -1;
 	}
 	return 1;
+}
+
+int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
+	std::string start;
+	std::string end;
+	start = encode_qsize_key(name_s);
+	if(!name_e.empty()){
+		end = encode_qsize_key(name_e);
+	}
+	Iterator *it = this->iterator(start, end, limit);
+	while(it->next()){
+		Bytes ks = it->key();
+		//dump(ks.data(), ks.size());
+		if(ks.data()[0] != DataType::QSIZE){
+			break;
+		}
+		std::string n;
+		if(decode_qsize_key(ks, &n) == -1){
+			continue;
+		}
+		list->push_back(n);
+	}
+	delete it;
+	return 0;
+}
+
+int SSDB::qfix(const Bytes &name){
+	Transaction trans(binlogs);
+	std::string key_s = encode_qitem_key(name, QITEM_MIN_SEQ - 1);
+	std::string key_e = encode_qitem_key(name, QITEM_MAX_SEQ);
+
+	bool error = false;
+	uint64_t seq_min = 0;
+	uint64_t seq_max = 0;
+	uint64_t count = 0;
+	Iterator *it = this->iterator(key_s, key_e, QITEM_MAX_SEQ);
+	while(it->next()){
+		//dump(it->key().data(), it->key().size());
+		if(seq_min == 0){
+			if(decode_qitem_key(it->key(), NULL, &seq_min) == -1){
+				// or just delete it?
+				error = true;
+				break;
+			}
+		}
+		if(decode_qitem_key(it->key(), NULL, &seq_max) == -1){
+			error = true;
+			break;
+		}
+		count ++;
+	}
+	delete it;
+	if(error){
+		return -1;
+	}
+	
+	if(count == 0){
+		this->binlogs->Delete(encode_qsize_key(name));
+		qdel_one(this, name, QFRONT_SEQ);
+		qdel_one(this, name, QBACK_SEQ);
+	}else{
+		this->binlogs->Put(encode_qsize_key(name), leveldb::Slice((char *)&count, sizeof(count)));
+		qset_one(this, name, QFRONT_SEQ, Bytes(&seq_min, sizeof(seq_min)));
+		qset_one(this, name, QBACK_SEQ, Bytes(&seq_max, sizeof(seq_max)));
+	}
+		
+	leveldb::Status s = binlogs->commit();
+	if(!s.ok()){
+		log_error("Write error!");
+		return -1;
+	}
+	return 0;
 }
