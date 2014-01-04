@@ -47,7 +47,7 @@ static int qset_one(SSDB *ssdb, const Bytes &name, uint64_t seq, const Bytes &it
 	return 0;
 }
 
-static int incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
+static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 	int64_t size = ssdb->qsize(name);
 	if(size == -1){
 		return -1;
@@ -61,7 +61,7 @@ static int incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 	}else{
 		qset_one(ssdb, name, QSIZE_SEQ, Bytes(&size, sizeof(size)));
 	}
-	return 0;
+	return size;
 }
 
 /****************/
@@ -125,20 +125,20 @@ int SSDB::qpush(const Bytes &name, const Bytes &item){
 		seq += 1;
 	}
 	
-	// update size
-	ret = incr_qsize(this, name, +1);
+	// append item
+	ret = qset_one(this, name, seq, item);
 	if(ret == -1){
+		return -1;
+	}
+	
+	// update size
+	int64_t size = incr_qsize(this, name, +1);
+	if(size == -1){
 		return -1;
 	}
 	
 	// update back
 	ret = qset_one(this, name, QBACK_SEQ, Bytes(&seq, sizeof(seq)));
-	if(ret == -1){
-		return -1;
-	}
-	
-	// append item
-	ret = qset_one(this, name, seq, item);
 	if(ret == -1){
 		return -1;
 	}
@@ -179,17 +179,19 @@ int SSDB::qpop(const Bytes &name, std::string *item){
 	}
 
 	// update size
-	ret = incr_qsize(this, name, -1);
-	if(ret == -1){
+	int64_t size = incr_qsize(this, name, -1);
+	if(size == -1){
 		return -1;
 	}
 		
 	// update front
-	seq += 1;
-	log_debug("seq: %" PRIu64 ", ret: %d", seq, ret);
-	ret = qset_one(this, name, QFRONT_SEQ, Bytes(&seq, sizeof(seq)));
-	if(ret == -1){
-		return -1;
+	if(size > 0){
+		seq += 1;
+		//log_debug("seq: %" PRIu64 ", ret: %d", seq, ret);
+		ret = qset_one(this, name, QFRONT_SEQ, Bytes(&seq, sizeof(seq)));
+		if(ret == -1){
+			return -1;
+		}
 	}
 		
 	leveldb::Status s = binlogs->commit();
