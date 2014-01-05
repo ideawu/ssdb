@@ -27,7 +27,7 @@ struct BytesHash{
 	#include <tr1/unordered_map>
 	typedef std::tr1::unordered_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
 #else
-	#ifdef __APPLE__
+	#ifdef NEW_MAC
 		#include <unordered_map>
 		typedef std::unordered_map<Bytes, Command *, BytesHash, BytesEqual> proc_map_t;
 	#else

@@ -113,3 +113,16 @@ case "$TARGET_OS" in
 	;;
 esac
 
+
+if test -z "$TMPDIR"; then
+    TMPDIR=/tmp
+fi
+
+g++ -x c++ - -o $TMPDIR/ssdb_build_test.$$ 2>/dev/null <<EOF
+	#include <unordered_map>
+	int main() {}
+EOF
+if [ "$?" = 0 ]; then
+	echo "CFLAGS += -DNEW_MAC" >> build_config.mk
+fi
+
