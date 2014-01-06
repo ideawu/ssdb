@@ -65,6 +65,25 @@ namespace ssdb {
 		 
 		/***** kv *****/
 
+		public bool exists(byte[] key) {
+			List<byte[]> resp = request("exists", key);
+			resp_code = _string(resp[0]);
+			if (resp_code == "not_found")
+			{
+				return false;
+			}
+			this.assert_ok();
+			if (resp.Count != 2)
+			{
+				throw new Exception("Bad response!");
+			}
+			return (_string(resp[1]) == "1" ? true : false);
+		}
+
+		public bool exists(string key) {
+			return this.exists(_bytes(key));
+		}
+
 		public void set(byte[] key, byte[] val) {
 			List<byte[]> resp = request("set", key, val);
 			resp_code = _string(resp[0]);
@@ -242,6 +261,78 @@ namespace ssdb {
 			return parse_scan_resp(resp);
 		}
 
+		public void multi_hset(byte[] name, KeyValuePair<byte[], byte[]>[] kvs)
+		{
+			byte[][] req = new byte[(kvs.Length * 2) + 1][];
+			req[0] = name;
+			for (int i = 0; i < kvs.Length; i++)
+			{
+				req[(2 * i) + 1] = kvs[i].Key;
+				req[(2 * i) + 2] = kvs[i].Value;
+
+			}
+			List<byte[]> resp = request("multi_hset", req);
+			resp_code = _string(resp[0]);
+			this.assert_ok();
+		}
+
+		public void multi_hset(string name, KeyValuePair<string, string>[] kvs)
+		{
+			KeyValuePair<byte[], byte[]>[] req = new KeyValuePair<byte[], byte[]>[kvs.Length];
+			for (int i = 0; i < kvs.Length; i++)
+			{
+				req[i] = new KeyValuePair<byte[], byte[]>(_bytes(kvs[i].Key), _bytes(kvs[i].Value));
+			}
+			this.multi_hset(_bytes(name), req);
+		}
+
+		public void multi_hdel(byte[] name, byte[][] keys)
+		{
+			byte[][] req = new byte[keys.Length + 1][];
+			req[0] = name;
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i + 1] = keys[i];
+			}
+			List<byte[]> resp = request("multi_hdel", req);
+			resp_code = _string(resp[0]);
+			this.assert_ok();
+		}
+
+		public void multi_hdel(string name, string[] keys)
+		{
+			byte[][] req = new byte[keys.Length][];
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i] = _bytes(keys[i]);
+			}
+			this.multi_hdel(_bytes(name), req);
+		}
+
+		public KeyValuePair<string, byte[]>[] multi_hget(byte[] name, byte[][] keys)
+		{
+			byte[][] req = new byte[keys.Length + 1][];
+			req[0] = name;
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i + 1] = keys[i];
+			}
+			List<byte[]> resp = request("multi_hget", req);
+			KeyValuePair<string, byte[]>[] ret = parse_scan_resp(resp);
+
+			return ret;
+		}
+
+		public KeyValuePair<string, byte[]>[] multi_hget(string name, string[] keys)
+		{
+			byte[][] req = new byte[keys.Length][];
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i] = _bytes(keys[i]);
+			}
+			return this.multi_hget(_bytes(name), req);
+		}
+
 		/***** zset *****/
 
 		public void zset(byte[] name, byte[] key, Int64 score) {
@@ -413,8 +504,84 @@ namespace ssdb {
 			return ret;
 		}
 
+		public void multi_zset(byte[] name, KeyValuePair<byte[], Int64>[] kvs)
+		{
+			byte[][] req = new byte[(kvs.Length * 2) + 1][];
+			req[0] = name;
+			for (int i = 0; i < kvs.Length; i++)
+			{
+				req[(2 * i) + 1] = kvs[i].Key;
+				req[(2 * i) + 2] = _bytes(kvs[i].Value.ToString());
 
+			}
+			List<byte[]> resp = request("multi_zset", req);
+			resp_code = _string(resp[0]);
+			this.assert_ok();
+		}
 
+		public void multi_zset(string name, KeyValuePair<string, Int64>[] kvs)
+		{
+			KeyValuePair<byte[], Int64>[] req = new KeyValuePair<byte[], Int64>[kvs.Length];
+			for (int i = 0; i < kvs.Length; i++)
+			{
+				req[i] = new KeyValuePair<byte[], Int64>(_bytes(kvs[i].Key), kvs[i].Value);
+			}
+			this.multi_zset(_bytes(name), req);
+		}
+
+		public void multi_zdel(byte[] name, byte[][] keys)
+		{
+			byte[][] req = new byte[keys.Length + 1][];
+			req[0] = name;
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i + 1] = keys[i];
+			}
+			List<byte[]> resp = request("multi_zdel", req);
+			resp_code = _string(resp[0]);
+			this.assert_ok();
+		}
+
+		public void multi_zdel(string name, string[] keys)
+		{
+			byte[][] req = new byte[keys.Length][];
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i] = _bytes(keys[i]);
+			}
+			this.multi_zdel(_bytes(name), req);
+		}
+
+		public KeyValuePair<string, Int64>[] multi_zget(byte[] name, byte[][] keys)
+		{
+			byte[][] req = new byte[keys.Length + 1][];
+			req[0] = name;
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i + 1] = keys[i];
+			}
+			List<byte[]> resp = request("multi_zget", req);
+			KeyValuePair<string, byte[]>[] kvs = parse_scan_resp(resp);
+			KeyValuePair<string, Int64>[] ret = new KeyValuePair<string, Int64>[kvs.Length];
+			for (int i = 0; i < kvs.Length; i++)
+			{
+				string key = kvs[i].Key;
+				Int64 score = Int64.Parse(_string(kvs[i].Value));
+				ret[i] = new KeyValuePair<string, Int64>(key, score);
+			}
+			return ret;
+		}
+
+		public KeyValuePair<string, Int64>[] multi_zget(string name, string[] keys)
+		{
+			byte[][] req = new byte[keys.Length][];
+			for (int i = 0; i < keys.Length; i++)
+			{
+				req[i] = _bytes(keys[i]);
+			}
+			return this.multi_zget(_bytes(name), req);
+		}
+		
 	}
 }
 
