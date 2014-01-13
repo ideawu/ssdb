@@ -476,23 +476,25 @@ class SSDB
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
+	
+	/*****/
 
-	function hfront($name){
+	function qfront($name){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hback($name){
+	function qback($name){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hpop($name){
+	function qpop($name){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hpush($name, $item){
+	function qpush($name, $item){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
