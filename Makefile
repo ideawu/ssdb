@@ -7,10 +7,10 @@ all:
 	chmod u+x "${LEVELDB_PATH}/build_detect_platform"
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli
-	cd "${LEVELDB_PATH}"; make
-	cd src/util; make
-	cd src; make
-	cd tools; make
+	cd "${LEVELDB_PATH}"; ${MAKE}
+	cd src/util; ${MAKE}
+	cd src; ${MAKE}
+	cd tools; ${MAKE}
 
 install:
 	mkdir -p ${PREFIX}
@@ -36,10 +36,9 @@ clean:
 	rm -rf api/cpy/_cpy_
 	rm -f api/python/SSDB.pyc
 	rm -rf db_test
-	cd deps/cpy; make clean
-	#cd ${LEVELDB_PATH}; make clean
-	cd src/util; make clean
-	cd src; make clean
-	cd tools; make clean
+	cd deps/cpy; ${MAKE} clean
+	cd src/util; ${MAKE} clean
+	cd src; ${MAKE} clean
+	cd tools; ${MAKE} clean
 
 

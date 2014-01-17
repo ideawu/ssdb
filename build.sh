@@ -4,6 +4,7 @@ TARGET_OS=`uname -s`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
+MAKE=make
 
 case "$TARGET_OS" in
     Darwin)
@@ -20,6 +21,7 @@ case "$TARGET_OS" in
         ;;
     FreeBSD)
         PLATFORM_CLIBS="-lpthread"
+		MAKE=gmake
         ;;
     NetBSD)
         PLATFORM_CLIBS="-lpthread -lgcc_s"
@@ -55,7 +57,7 @@ cd "$DIR"
 
 
 case "$TARGET_OS" in
-	CYGWIN*)
+	CYGWIN*|FreeBSD)
 		echo "not using jemalloc on $TARGET_OS"
 	;;
 	*)
@@ -79,7 +81,7 @@ echo "#ifndef SSDB_DEPS_H" >> src/version.h
 echo "#ifndef SSDB_VERSION" >> src/version.h
 echo "#define SSDB_VERSION \"`cat version`\"" >> src/version.h
 case "$TARGET_OS" in
-	CYGWIN*)
+	CYGWIN*|FreeBSD)
 	;;
 	*)
 		echo "#include <stdlib.h>" >> src/version.h
@@ -90,6 +92,7 @@ echo "#endif" >> src/version.h
 echo "#endif" >> src/version.h
 
 rm -f build_config.mk
+echo "MAKE=$MAKE" >> build_config.mk
 echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
 
@@ -105,7 +108,7 @@ echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
 
 
 case "$TARGET_OS" in
-	CYGWIN*)
+	CYGWIN*|FreeBSD)
 	;;
 	*)
 		echo "CLIBS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk

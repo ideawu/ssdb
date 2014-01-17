@@ -4,6 +4,7 @@
 #include <vector>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 
 #include "util/bytes.h"

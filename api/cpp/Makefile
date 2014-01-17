@@ -1,7 +1,6 @@
 include ../../build_config.mk
 
-all:
-	make lib
+all: lib
 	g++ -o demo demo.cpp libssdb.a
 	g++ -o hello-ssdb hello-ssdb.cpp libssdb.a
 
