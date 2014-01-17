@@ -11,6 +11,7 @@ enum REPLY{
 
 enum STRATEGY{
 	STRATEGY_AUTO,
+	STRATEGY_PING,
 	STRATEGY_HGETALL,
 	STRATEGY_HKEYS,
 	STRATEGY_SETEX,
@@ -35,6 +36,8 @@ struct RedisCommand_raw
 };
 
 static RedisCommand_raw cmds_raw[] = {
+	{STRATEGY_PING, "ping",		"ping",			REPLY_STATUS},
+
 	{STRATEGY_AUTO, "get",		"get",			REPLY_BULK},
 	{STRATEGY_AUTO, "set",		"set",			REPLY_STATUS},
 	{STRATEGY_AUTO, "exists",	"exists",		REPLY_INT},
@@ -314,7 +317,11 @@ int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
 	}
 	
 	if(req_desc == NULL || req_desc->reply_type == REPLY_STATUS){
-		output->append("+OK\r\n");
+		if(req_desc->strategy == STRATEGY_PING){
+			output->append("+PONG\r\n");
+		}else{
+			output->append("+OK\r\n");
+		}
 	}else{
 		if(req_desc->reply_type == REPLY_BULK){
 			if(resp.size() >= 2){
