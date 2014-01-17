@@ -25,7 +25,7 @@ std::vector<Link *> *busy_links;
 
 void welcome(){
 	printf("ssdb-bench - SSDB benchmark tool, %s\n", SSDB_VERSION);
-	printf("Copyright (c) 2013 ideawu.com\n");
+	printf("Copyright (c) 2013-2014 ideawu.com\n");
 	printf("\n");
 }
 

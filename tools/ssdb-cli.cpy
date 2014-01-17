@@ -10,7 +10,7 @@ try{
 
 function welcome(){
 	sys.stderr.write('ssdb (cli) - ssdb command line tool.\n');
-	sys.stderr.write('Copyright (c) 2012-2013 ideawu.com\n');
+	sys.stderr.write('Copyright (c) 2012-2014 ideawu.com\n');
 	sys.stderr.write('\n');
 	sys.stderr.write("'h' or 'help' for help, 'q' to quit.\n");
 	sys.stderr.write('\n');
@@ -423,6 +423,7 @@ while(true){
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 			case 'set':
+			case 'setx':
 			case 'zset':
 			case 'hset':
 			case 'qpush':
