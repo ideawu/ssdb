@@ -298,6 +298,22 @@ static int proc_hkeys(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
+static int proc_hvals(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 5){
+		resp->push_back("client_error");
+	}else{
+		uint64_t limit = req[4].Uint64();
+		HIterator *it = serv->ssdb->hscan(req[1], req[2], req[3], limit);
+
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->val);
+		}
+		delete it;
+	}
+	return 0;
+}
+
 static int proc_hlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");

@@ -65,6 +65,7 @@ static proc_map_t proc_map;
 	DEF_PROC(hscan);
 	DEF_PROC(hrscan);
 	DEF_PROC(hkeys);
+	DEF_PROC(hvals);
 	DEF_PROC(hlist);
 	DEF_PROC(hexists);
 	DEF_PROC(multi_hexists);
@@ -142,6 +143,7 @@ static Command commands[] = {
 	PROC(hscan, "rt"),
 	PROC(hrscan, "rt"),
 	PROC(hkeys, "rt"),
+	PROC(hvals, "rt"),
 	PROC(hlist, "rt"),
 	PROC(hexists, "r"),
 	PROC(multi_hexists, "r"),

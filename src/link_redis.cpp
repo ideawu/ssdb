@@ -12,8 +12,11 @@ enum REPLY{
 enum STRATEGY{
 	STRATEGY_AUTO,
 	STRATEGY_PING,
+	STRATEGY_MGET,
+	STRATEGY_HMGET,
 	STRATEGY_HGETALL,
 	STRATEGY_HKEYS,
+	STRATEGY_HVALS,
 	STRATEGY_SETEX,
 	STRATEGY_ZRANGE,
 	STRATEGY_ZREVRANGE,
@@ -49,12 +52,10 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "hexists",	"hexists",		REPLY_INT},
 
 	{STRATEGY_AUTO, "del",		"multi_del",	REPLY_INT},
-	//{STRATEGY_AUTO, "mget",		"redis_multi_get",	REPLY_MULTI_BULK},
 	{STRATEGY_AUTO, "mset",		"multi_set",	REPLY_STATUS},
 	{STRATEGY_AUTO, "incrby",	"incr",			REPLY_INT},
 	{STRATEGY_AUTO, "decrby",	"decr",			REPLY_INT},
 
-	//{STRATEGY_AUTO, "hmget",	"redis_multi_hget",	REPLY_MULTI_BULK},
 	{STRATEGY_AUTO, "hmset",	"multi_hset",	REPLY_STATUS},
 	{STRATEGY_AUTO, "hdel",		"multi_hdel",	REPLY_INT},
 	{STRATEGY_AUTO, "hmdel",	"multi_hdel",	REPLY_INT},
@@ -68,9 +69,12 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "zrevrank",	"zrrank",		REPLY_INT},
 	
 	/////////////////////////////////////
+	{STRATEGY_MGET, "mget",		"multi_get",	REPLY_MULTI_BULK},
+	{STRATEGY_HMGET, "hmget",	"multi_hget",	REPLY_MULTI_BULK},
 	
 	{STRATEGY_HGETALL,	"hgetall",		"hscan",		REPLY_MULTI_BULK},
 	{STRATEGY_HKEYS,	"hkeys", 		"hkeys", 		REPLY_MULTI_BULK},
+	{STRATEGY_HVALS,	"hvals", 		"hvals", 		REPLY_MULTI_BULK},
 	{STRATEGY_SETEX,	"setex",		"setx", 		REPLY_STATUS},
 	{STRATEGY_ZRANGE,	"zrange",		"zrange",		REPLY_MULTI_BULK},
 	{STRATEGY_ZREVRANGE,"zrevrange",	"zrrange",		REPLY_MULTI_BULK},
@@ -107,16 +111,10 @@ int RedisLink::convert_req(){
 		return 0;
 	}
 	this->req_desc = &(it->second);
-	
-	if(this->req_desc->strategy == STRATEGY_AUTO){
-		recv_string.push_back(req_desc->ssdb_cmd);
-		for(int i=1; i<recv_bytes.size(); i++){
-			recv_string.push_back(recv_bytes[i].String());
-		}
-		return 0;
-	}
 
-	if(this->req_desc->strategy == STRATEGY_HGETALL || this->req_desc->strategy == STRATEGY_HKEYS){
+	if(this->req_desc->strategy == STRATEGY_HGETALL || this->req_desc->strategy == STRATEGY_HKEYS
+			||  this->req_desc->strategy == STRATEGY_HVALS
+	){
 		recv_string.push_back(req_desc->ssdb_cmd);
 		if(recv_bytes.size() == 2){
 			recv_string.push_back(recv_bytes[1].String());
@@ -252,8 +250,12 @@ int RedisLink::convert_req(){
 		recv_string.push_back(withscores);
 		return 0;
 	}
+
+	recv_string.push_back(req_desc->ssdb_cmd);
+	for(int i=1; i<recv_bytes.size(); i++){
+		recv_string.push_back(recv_bytes[i].String());
+	}
 	
-	recv_string.push_back(cmd);
 	return 0;
 }
 
@@ -316,68 +318,125 @@ int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
 		return 0;
 	}
 	
-	if(req_desc == NULL || req_desc->reply_type == REPLY_STATUS){
-		if(req_desc->strategy == STRATEGY_PING){
-			output->append("+PONG\r\n");
+	if(req_desc == NULL){
+		output->append("+OK\r\n");
+		return 0;
+	}
+	if(req_desc->strategy == STRATEGY_PING){
+		output->append("+PONG\r\n");
+		return 0;
+	}
+	
+	if(req_desc->reply_type == REPLY_STATUS){
+		output->append("+OK\r\n");
+		return 0;
+	}
+	if(req_desc->strategy == STRATEGY_MGET || req_desc->strategy == STRATEGY_HMGET){
+		if(resp.size() % 2 != 1){
+			output->append("*0");
+			log_error("bad response for multi_(h)get");
+			return 0;
+		}
+		char buf[32];
+		std::vector<std::string>::const_iterator req_it, resp_it;
+		if(req_desc->strategy == STRATEGY_MGET){
+			req_it = recv_string.begin() + 1;
+			snprintf(buf, sizeof(buf), "*%d\r\n", (int)recv_string.size() - 1);
 		}else{
-			output->append("+OK\r\n");
+			req_it = recv_string.begin() + 2;
+			snprintf(buf, sizeof(buf), "*%d\r\n", (int)recv_string.size() - 2);
+		}
+		output->append(buf);
+		
+		resp_it = resp.begin() + 1;
+
+		while(req_it != recv_string.end()){
+			const std::string &req_key = *req_it;
+			req_it ++;
+			if(resp_it == resp.end()){
+				output->append("$-1\r\n");
+				continue;
+			}
+			const std::string &resp_key = *resp_it;
+			//log_debug("%s %s", req_key.c_str(), resp_key.c_str());
+			if(req_key != resp_key){
+				output->append("$-1\r\n");
+				// loop until we find value to the requested key
+				continue;
+			}
+				
+			const std::string &val = *(resp_it + 1);
+			char buf[32];
+			snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
+			output->append(buf);
+			output->append(val.data(), val.size());
+			output->append("\r\n");
+				
+			resp_it += 2;
+		}
+
+		return 0;
+	}
+	if(req_desc->reply_type == REPLY_BULK){
+		if(resp.size() >= 2){
+			const std::string &val = resp[1];
+			char buf[32];
+			snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
+			output->append(buf);
+			output->append(val.data(), val.size());
+			output->append("\r\n");
+		}else{
+			output->append("$0\r\n");
+		}
+		return 0;
+	}
+	
+	if(req_desc->reply_type == REPLY_INT){
+		if(resp.size() >= 2){
+			const std::string &val = resp[1];
+			output->append(":");
+			output->append(val.data(), val.size());
+			output->append("\r\n");
+		}else{
+			output->append("$0\r\n");
+		}
+		return 0;
+	}
+	
+	if(req_desc->reply_type == REPLY_MULTI_BULK){
+		bool withscores = true;
+		if(req_desc->strategy == STRATEGY_ZRANGE || req_desc->strategy == STRATEGY_ZREVRANGE){
+			if(recv_string.size() < 5 || recv_string[4] != "withscores"){
+				withscores = false;
+			}
+		}
+		if(req_desc->strategy == STRATEGY_ZRANGEBYSCORE || req_desc->strategy == STRATEGY_ZREVRANGEBYSCORE){
+			if(recv_string[recv_string.size() - 1] != "withscores"){
+				withscores = false;
+			}
+		}
+		{
+			char buf[32];
+			if(withscores){
+				snprintf(buf, sizeof(buf), "*%d\r\n", (int)resp.size() - 1);
+			}else{
+				snprintf(buf, sizeof(buf), "*%d\r\n", ((int)resp.size() - 1)/2);
+			}
+			output->append(buf);
+		}
+		for(int i=1; i<resp.size(); i++){
+			const std::string &val = resp[i];
+			char buf[32];
+			snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
+			output->append(buf);
+			output->append(val.data(), val.size());
+			output->append("\r\n");
+			if(!withscores){
+				i += 1;
+			}
 		}
 	}else{
-		if(req_desc->reply_type == REPLY_BULK){
-			if(resp.size() >= 2){
-				const std::string &val = resp[1];
-				char buf[32];
-				snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
-				output->append(buf);
-				output->append(val.data(), val.size());
-				output->append("\r\n");
-			}else{
-				output->append("$0\r\n");
-			}
-		}else if(req_desc->reply_type == REPLY_MULTI_BULK){
-			bool withscores = true;
-			if(req_desc->strategy == STRATEGY_ZRANGE || req_desc->strategy == STRATEGY_ZREVRANGE){
-				if(recv_string.size() < 5 || recv_string[4] != "withscores"){
-					withscores = false;
-				}
-			}
-			if(req_desc->strategy == STRATEGY_ZRANGEBYSCORE || req_desc->strategy == STRATEGY_ZREVRANGEBYSCORE){
-				if(recv_string[recv_string.size() - 1] != "withscores"){
-					withscores = false;
-				}
-			}
-			{
-				char buf[32];
-				if(withscores){
-					snprintf(buf, sizeof(buf), "*%d\r\n", (int)resp.size() - 1);
-				}else{
-					snprintf(buf, sizeof(buf), "*%d\r\n", ((int)resp.size() - 1)/2);
-				}
-				output->append(buf);
-			}
-			for(int i=1; i<resp.size(); i++){
-				const std::string &val = resp[i];
-				char buf[32];
-				snprintf(buf, sizeof(buf), "$%d\r\n", (int)val.size());
-				output->append(buf);
-				output->append(val.data(), val.size());
-				output->append("\r\n");
-				if(!withscores){
-					i += 1;
-				}
-			}
-		}else if(req_desc->reply_type == REPLY_INT){
-			if(resp.size() >= 2){
-				const std::string &val = resp[1];
-				output->append(":");
-				output->append(val.data(), val.size());
-				output->append("\r\n");
-			}else{
-				output->append("$0\r\n");
-			}
-		}else{
-			output->append("-ERR server error\r\n");
-		}
+		output->append("-ERR server error\r\n");
 	}
 	
 	return 0;

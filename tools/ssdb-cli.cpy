@@ -467,6 +467,14 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
+			case 'hvals':
+				printf('  %15s\n', 'value');
+				print ('-' * 17);
+				foreach(resp.data as k){
+					printf('  %15s\n', repr_data(k));
+				}
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
+				break;
 			case 'hlist':
 			case 'zlist':
 			case 'qlist':
