@@ -270,9 +270,9 @@ void run(int argc, char **argv){
 
 
 void welcome(){
-	printf("ssdb %s\n", SSDB_VERSION);
-	printf("Copyright (c) 2012-2014 ideawu.com\n");
-	printf("\n");
+	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
+	fprintf(stderr, "Copyright (c) 2012-2014 ideawu.com\n");
+	fprintf(stderr, "\n");
 }
 
 void usage(int argc, char **argv){
@@ -377,14 +377,11 @@ void init(int argc, char **argv){
 	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 
-	if(is_daemon){
-		daemonize();
-	}
-
 	{ // ssdb
 		ssdb = SSDB::open(*conf, work_dir);
 		if(!ssdb){
-			log_fatal("could not open SSDB!");
+			log_fatal("could not open work_dir: %s", work_dir.c_str());
+			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
 			exit(0);
 		}
 	}
@@ -396,6 +393,7 @@ void init(int argc, char **argv){
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){
 			log_fatal("error opening server socket! %s", strerror(errno));
+			fprintf(stderr, "error opening server socket! %s", strerror(errno));
 			exit(1);
 		}
 		log_info("server listen on: %s:%d", ip, port);
@@ -425,6 +423,11 @@ void init(int argc, char **argv){
 
 	write_pidfile();
 	log_info("ssdb server started.");
+	fprintf(stderr, "ssdb server started\n");
+
+	if(is_daemon){
+		daemonize();
+	}
 }
 
 void write_pidfile(){

@@ -15,7 +15,6 @@ function welcome(){
 	sys.stderr.write("'h' or 'help' for help, 'q' to quit.\n");
 	sys.stderr.write('\n');
 }
-welcome();
 
 function show_command_help(){
 	print '';
@@ -68,7 +67,7 @@ function show_command_help(){
 function usage(){
 	print '';
 	print 'Usage:';
-	print '	ssdb-cli [-h HOST -p PORT]';
+	print '	ssdb-cli [-h] [HOST] [-p] [PORT]';
 	print '';
 	print 'Options:';
 	print '	-h 127.0.0.1';
@@ -78,7 +77,8 @@ function usage(){
 	print '';
 	print 'Examples:';
 	print '	ssdb-cli';
-	print '	ssdb-cli -p 8888';
+	print '	ssdb-cli 8888';
+	print '	ssdb-cli 127.0.0.1 8888';
 	print '	ssdb-cli -h 127.0.0.1 -p 8888';
 }
 
@@ -240,34 +240,56 @@ function timespan(stime){
 }
 
 
-
-default_opts = {
-	'-h' : '127.0.0.1',
-	'-p' : '8888',
-};
-
-opt_err = false;
-try{
-	opts, args = getopt.getopt(sys.argv[1 .. ], 'h:p:');
-	opts = dict(opts);
-}catch(getopt.GetoptError e){
-	opts = {};
-	opt_err = true;
-}
-foreach(default_opts as k=>v){
-	if(!opts.has_key(k)){
-		opts[k] = v;
+host = '';
+port = '';
+opt = '';
+args = [];
+foreach(sys.argv[1 ..] as arg){
+	if(opt == '' && arg.startswith('-')){
+		opt = arg;
+	}else{
+		switch(opt){
+			case '-h':
+				host = arg;
+				opt = '';
+				break;
+			case '-p':
+				port = arg;
+				opt = '';
+				break;
+			default:
+				args.append(arg);
+				break;
+		}
 	}
 }
 
-if(opt_err){
+if(host == ''){
+	host = '127.0.0.1';
+	foreach(args as arg){
+		if(!re.match('^[0-9]+$', args[0])){
+			host = arg;
+			break;
+		}
+	}
+}
+if(port == ''){
+	port = '8888';
+	foreach(args as arg){
+		if(re.match('^[0-9]+$', args[0])){
+			port = arg;
+			break;
+		}
+	}
+}
+
+try{
+	port = int(port);
+}catch(Exception e){
+	print 'Invalid argument port: ', port;
 	usage();
 	sys.exit(0);
 }
-
-
-host = opts['-h'];
-port = int(opts['-p']);
 
 sys.path.append('./api/python');
 sys.path.append('../api/python');
@@ -276,9 +298,11 @@ import SSDB.SSDB;
 try{
 	link = new SSDB(host, port);
 }catch(socket.error e){
+	printf('Failed to connect to: %s:%d\n', host, port);
 	print 'Connection error: ', str(e);
 	sys.exit(0);
 }
+welcome();
 
 while(true){
 	line = '';
