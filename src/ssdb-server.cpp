@@ -421,13 +421,14 @@ void init(int argc, char **argv){
 		}
 	}
 
-	write_pidfile();
 	log_info("ssdb server started.");
 	fprintf(stderr, "ssdb server started\n");
 
 	if(is_daemon){
 		daemonize();
 	}
+
+	write_pidfile();
 }
 
 void write_pidfile(){
