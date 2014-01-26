@@ -80,7 +80,7 @@ exports.connect = function(host, port, timeout, listener){
 			if(!(p instanceof Buffer)){
 				p = p.toString();
 			}
-			bs.push(p.length);
+			bs.push(Buffer.byteLength(p));
 			bs.push('\n');
 			bs.push(p);
 			bs.push('\n');
