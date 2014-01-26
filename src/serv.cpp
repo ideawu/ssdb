@@ -351,7 +351,7 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
 	
-	if(req.size() == 1 || req[1] == "cmd"){
+	if(req.size() > 1 && req[1] == "cmd"){
 		for(Command *cmd=commands; cmd->name; cmd++){
 			char buf[128];
 			snprintf(buf, sizeof(buf), "cmd.%s", cmd->name);
