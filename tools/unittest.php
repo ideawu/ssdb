@@ -150,6 +150,13 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === null);
 		$ret = $ssdb->qback($name);
 		$this->assert($ret === null);
+		
+		$ssdb->qpush_back($name, 0);
+		$ssdb->qpush_front($name, 9);
+		$ret = $ssdb->qfront($name);
+		$this->assert($ret == 9);
+		$ret = $ssdb->qback($name);
+		$this->assert($ret == 0);
 	}
 
 	function test_hash(){

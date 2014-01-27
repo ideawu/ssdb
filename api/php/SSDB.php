@@ -524,6 +524,8 @@ class SSDB
 			case 'zset':
 			case 'hset':
 			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 			case 'del':
 			case 'zdel':
 			case 'hdel':
@@ -554,6 +556,8 @@ class SSDB
 			case 'qfront':
 			case 'qback':
 			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 				if($resp[0] == 'ok'){
 					if(count($resp) == 2){
 						return new SSDB_Response('ok', $resp[1]);

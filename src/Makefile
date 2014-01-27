@@ -42,7 +42,7 @@ binlog.o: ssdb.h binlog.h binlog.cpp
 slave.o: ssdb.h slave.h slave.cpp
 	g++ ${CFLAGS} -c slave.cpp
 
-serv.o: ssdb.h serv.h serv.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp
+serv.o: ssdb.h serv.h serv.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp proc_queue.cpp
 	g++ ${CFLAGS} -c serv.cpp
 
 backend_dump.o: ssdb.h backend_dump.h backend_dump.cpp

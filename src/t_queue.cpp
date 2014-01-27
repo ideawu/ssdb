@@ -4,6 +4,13 @@
 #include "util/lock.h"
 #include "util/thread.h"
 
+//static uint64_t QSIZE_SEQ  = 1;
+static uint64_t QFRONT_SEQ = 2;
+static uint64_t QBACK_SEQ  = 3;
+static uint64_t QITEM_MIN_SEQ = 10000;
+static uint64_t QITEM_MAX_SEQ = 9223372036854775807ULL;
+static uint64_t QITEM_SEQ_INIT = QITEM_MAX_SEQ/2;
+
 static int qget(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *val){
 	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
@@ -54,9 +61,6 @@ static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 		return -1;
 	}
 	size += incr;
-	if(size > QITEM_MAX_SEQ){
-		return -1;
-	}
 	if(size <= 0){
 		ssdb->binlogs->Delete(encode_qsize_key(name));
 		qdel_one(ssdb, name, QFRONT_SEQ);
@@ -118,23 +122,37 @@ int SSDB::qback(const Bytes &name, std::string *item){
 	return ret;
 }
 
-int SSDB::qpush(const Bytes &name, const Bytes &item){
+int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq){
 	Transaction trans(binlogs);
 
 	int ret;
 	// generate seq
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+	ret = qget_uint64(this->db, name, front_or_back_seq, &seq);
 	if(ret == -1){
 		return -1;
 	}
+	// update front and/or back
 	if(ret == 0){
-		seq = QITEM_MIN_SEQ;
+		seq = QITEM_SEQ_INIT;
+		ret = qset_one(this, name, QFRONT_SEQ, Bytes(&seq, sizeof(seq)));
+		if(ret == -1){
+			return -1;
+		}
+		ret = qset_one(this, name, QBACK_SEQ, Bytes(&seq, sizeof(seq)));
 	}else{
-		seq += 1;
+		seq += (front_or_back_seq == QFRONT_SEQ)? -1 : +1;
+		ret = qset_one(this, name, front_or_back_seq, Bytes(&seq, sizeof(seq)));
+	}
+	if(ret == -1){
+		return -1;
+	}
+	if(seq <= QITEM_MIN_SEQ || seq >= QITEM_MAX_SEQ){
+		log_info("queue is full, seq: %" PRIu64 " out of range", seq);
+		return -1;
 	}
 	
-	// append item
+	// prepend/append item
 	ret = qset_one(this, name, seq, item);
 	if(ret == -1){
 		return -1;
@@ -143,12 +161,6 @@ int SSDB::qpush(const Bytes &name, const Bytes &item){
 	// update size
 	int64_t size = incr_qsize(this, name, +1);
 	if(size == -1){
-		return -1;
-	}
-	
-	// update back
-	ret = qset_one(this, name, QBACK_SEQ, Bytes(&seq, sizeof(seq)));
-	if(ret == -1){
 		return -1;
 	}
 
@@ -160,18 +172,25 @@ int SSDB::qpush(const Bytes &name, const Bytes &item){
 	return 1;
 }
 
-// @return 0: empty queue, 1: item popped, -1: error
-int SSDB::qpop(const Bytes &name, std::string *item){
+int SSDB::qpush_front(const Bytes &name, const Bytes &item){
+	return _qpush(name, item, QFRONT_SEQ);
+}
+
+int SSDB::qpush_back(const Bytes &name, const Bytes &item){
+	return _qpush(name, item, QBACK_SEQ);
+}
+
+int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq){
 	Transaction trans(binlogs);
 	
 	int ret;
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+	ret = qget_uint64(this->db, name, front_or_back_seq, &seq);
 	if(ret == -1){
 		return -1;
 	}
 	if(ret == 0){
-		seq = QITEM_MIN_SEQ;
+		return 0;
 	}
 	
 	ret = qget(this->db, name, seq, item);
@@ -196,9 +215,9 @@ int SSDB::qpop(const Bytes &name, std::string *item){
 		
 	// update front
 	if(size > 0){
-		seq += 1;
+		seq += (front_or_back_seq == QFRONT_SEQ)? +1 : -1;
 		//log_debug("seq: %" PRIu64 ", ret: %d", seq, ret);
-		ret = qset_one(this, name, QFRONT_SEQ, Bytes(&seq, sizeof(seq)));
+		ret = qset_one(this, name, front_or_back_seq, Bytes(&seq, sizeof(seq)));
 		if(ret == -1){
 			return -1;
 		}
@@ -210,6 +229,15 @@ int SSDB::qpop(const Bytes &name, std::string *item){
 		return -1;
 	}
 	return 1;
+}
+
+// @return 0: empty queue, 1: item popped, -1: error
+int SSDB::qpop_front(const Bytes &name, std::string *item){
+	return _qpop(name, item, QFRONT_SEQ);
+}
+
+int SSDB::qpop_back(const Bytes &name, std::string *item){
+	return _qpop(name, item, QBACK_SEQ);
 }
 
 int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,

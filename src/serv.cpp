@@ -100,7 +100,11 @@ static proc_map_t proc_map;
 	DEF_PROC(qfront);
 	DEF_PROC(qback);
 	DEF_PROC(qpush);
+	DEF_PROC(qpush_front);
+	DEF_PROC(qpush_back);
 	DEF_PROC(qpop);
+	DEF_PROC(qpop_front);
+	DEF_PROC(qpop_back);
 	DEF_PROC(qfix);
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
@@ -179,7 +183,11 @@ static Command commands[] = {
 	PROC(qfront, "r"),
 	PROC(qback, "r"),
 	PROC(qpush, "wt"),
+	PROC(qpush_front, "wt"),
+	PROC(qpush_back, "wt"),
 	PROC(qpop, "wt"),
+	PROC(qpop_front, "wt"),
+	PROC(qpop_back, "wt"),
 	PROC(qfix, "wt"),
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),

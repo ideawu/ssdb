@@ -426,6 +426,8 @@ while(true){
 			case 'qfront':
 			case 'qback':
 			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
@@ -450,10 +452,12 @@ while(true){
 			case 'setx':
 			case 'zset':
 			case 'hset':
-			case 'qpush':
 			case 'del':
 			case 'zdel':
 			case 'hdel':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 				print resp.code;
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
@@ -524,7 +528,7 @@ while(true){
 				for(i=1; i<len(resp.data); i++){
 					s = resp.data[i];
 					if(is_val){
-						s = '	' + s.replace('\n', '\n	');
+						s = '    ' + s.replace('\n', '\n    ');
 					}
 					print s;
 					is_val = !is_val;

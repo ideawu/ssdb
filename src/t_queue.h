@@ -3,12 +3,6 @@
 
 #include "ssdb.h"
 
-//static uint64_t QSIZE_SEQ  = 1;
-static uint64_t QFRONT_SEQ = 2;
-static uint64_t QBACK_SEQ  = 3;
-static uint64_t QITEM_MIN_SEQ = 10000;
-static uint64_t QITEM_MAX_SEQ = 9223372036854775807ULL;
-
 inline static
 std::string encode_qsize_key(const Bytes &name){
 	std::string buf;

@@ -53,11 +53,20 @@ static int proc_qback(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_qpush(Server *serv, Link *link, const Request &req, Response *resp){
+static int QFRONT = 2;
+static int QBACK  = 3;
+
+static inline
+int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		int ret = serv->ssdb->qpush(req[1], req[2]);
+		int ret;
+		if(front_or_back == QFRONT){
+			ret = serv->ssdb->qpush_front(req[1], req[2]);
+		}else{
+			ret = serv->ssdb->qpush_back(req[1], req[2]);
+		}
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
@@ -67,12 +76,31 @@ static int proc_qpush(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
+static int proc_qpush_front(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(serv, link, req, resp, QFRONT);
+}
+
+static int proc_qpush_back(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(serv, link, req, resp, QBACK);
+}
+
+static int proc_qpush(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(serv, link, req, resp, QBACK);
+}
+
+
+static inline
+int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
 		std::string item;
-		int ret = serv->ssdb->qpop(req[1], &item);
+		int ret;
+		if(front_or_back == QFRONT){
+			ret = serv->ssdb->qpop_front(req[1], &item);
+		}else{
+			ret = serv->ssdb->qpop_back(req[1], &item);
+		}
 		if(ret == -1){
 			resp->push_back("error");
 		}else if(ret == 0){
@@ -83,6 +111,18 @@ static int proc_qpop(Server *serv, Link *link, const Request &req, Response *res
 		}
 	}
 	return 0;
+}
+
+static int proc_qpop_front(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(serv, link, req, resp, QFRONT);
+}
+
+static int proc_qpop_back(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(serv, link, req, resp, QBACK);
+}
+
+static int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(serv, link, req, resp, QFRONT);
 }
 
 static int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){
@@ -126,7 +166,7 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 		
 		while(1){
 			std::string item;
-			int ret = serv->ssdb->qpop(req[1], &item);
+			int ret = serv->ssdb->qpop_front(req[1], &item);
 			if(ret == 0){
 				break;
 			}
@@ -140,7 +180,6 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 		snprintf(buf, sizeof(buf), "%" PRIu64 "", total);
 		resp->push_back("ok");
 		resp->push_back(buf);
-
 	}
 	return 0;
 }

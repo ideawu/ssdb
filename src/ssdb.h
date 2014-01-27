@@ -112,12 +112,18 @@ public:
 	// @return 0: empty queue, 1: item peeked, -1: error
 	int qback(const Bytes &name, std::string *item);
 	// @return -1: error, 1: item added
-	int qpush(const Bytes &name, const Bytes &item);
+	int qpush_front(const Bytes &name, const Bytes &item);
+	int qpush_back(const Bytes &name, const Bytes &item);
 	// @return 0: empty queue, 1: item popped, -1: error
-	int qpop(const Bytes &name, std::string *item);
+	int qpop_front(const Bytes &name, std::string *item);
+	int qpop_back(const Bytes &name, std::string *item);
 	int qfix(const Bytes &name);
 	int qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list);
+
+private:
+	int _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq);
+	int _qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq);
 };
 
 
