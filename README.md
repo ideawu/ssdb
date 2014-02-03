@@ -57,7 +57,7 @@ $ ./tools/ssdb-cli -p 8888
 $ kill `cat ./var/ssdb.pid`
 ```
 
-See [Compile and Install wiki](https://github.com/ideawu/ssdb/wiki/Compile_and_Install)
+See [Compile and Install wiki](http://www.ideawu.com/ssdb/docs/install.html)
 
 ## Performance
 
@@ -105,7 +105,7 @@ Run on a 2013 MacBook Pro 13 inch with Retina display.
 
 ## Architecture
 
-![ssdb architecture](https://a248.e.akamai.net/camo.github.com/305d969fb81bb1f1c73eb205e4afa096c9b2b8c0/687474703a2f2f7777772e6964656177752e636f6d2f737364622f737364622e706e67)
+![ssdb architecture](http://www.ideawu.com/ssdb/ssdb.png)
 
 ## Who's using SSDB?
 
