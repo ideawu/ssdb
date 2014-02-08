@@ -385,19 +385,6 @@ void init(int argc, char **argv){
 			exit(0);
 		}
 	}
-
-	{ // server
-		const char *ip = conf->get_str("server.ip");
-		short port = (short)conf->get_num("server.port");
-
-		serv_link = Link::listen(ip, port);
-		if(serv_link == NULL){
-			log_fatal("error opening server socket! %s", strerror(errno));
-			fprintf(stderr, "error opening server socket! %s", strerror(errno));
-			exit(1);
-		}
-		log_info("server listen on: %s:%d", ip, port);
-	}
 	
 	ip_filter = new IpFilter();
 	// init ip_filter
@@ -421,8 +408,20 @@ void init(int argc, char **argv){
 		}
 	}
 
-	log_info("ssdb server started.");
-	fprintf(stderr, "ssdb server started\n");
+	{ // server
+		const char *ip = conf->get_str("server.ip");
+		int port = conf->get_num("server.port");
+		
+		serv_link = Link::listen(ip, port);
+		if(serv_link == NULL){
+			log_fatal("error opening server socket! %s", strerror(errno));
+			fprintf(stderr, "error opening server socket! %s", strerror(errno));
+			exit(1);
+		}
+		log_info("server listen on: %s:%d", ip, port);
+		log_info("ssdb server started.");
+		fprintf(stderr, "ssdb server started, listen on %s:%d\n", ip, port);
+	}
 
 	if(is_daemon){
 		daemonize();
