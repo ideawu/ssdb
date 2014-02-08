@@ -82,9 +82,9 @@ void* ExpirationHandler::thread_func(void *arg){
 		
 		if(last_expired){
 			log_trace("%d key(s) expired", last_expired);
-			usleep(20 * 1000);
+			usleep(500 * 1000);
 		}else{
-			usleep(100 * 1000);
+			usleep(1000 * 1000);
 		}
 	}
 	
