@@ -19,6 +19,9 @@ ExpirationHandler::~ExpirationHandler(){
 }
 
 void ExpirationHandler::start(){
+	log_debug("loading expire_list");
+	// TODO:
+	
 	thread_quit = false;
 	pthread_t tid;
 	int err = pthread_create(&tid, NULL, &ExpirationHandler::thread_func, this);
