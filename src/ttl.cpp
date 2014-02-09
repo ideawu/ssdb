@@ -24,6 +24,10 @@ void ExpirationHandler::start(){
 	it = ssdb->zscan(this->list_name, "", "", "", 999999999);
 	while(it->next()){
 		int64_t score = str_to_int64(it->score);
+		if(score < 2000000000){
+			// older version compatible
+			score *= 1000;
+		}
 		expiration_keys.add(it->key, score);
 		count ++;
 	}
@@ -85,7 +89,7 @@ void* ExpirationHandler::thread_func(void *arg){
 			if(handler->expiration_keys.front(&key, &score)){
 				int64_t now = time_ms();
 				if(score <= now){
-					log_debug("%s expired", key->c_str());
+					log_debug("expired %s", key->c_str());
 					ssdb->del(*key);
 					ssdb->zdel(handler->list_name, *key);
 					handler->expiration_keys.pop_front();
