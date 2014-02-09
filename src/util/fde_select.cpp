@@ -23,6 +23,9 @@ bool Fdevents::isset(int fd, int flag){
 }
 
 int Fdevents::set(int fd, int flags, int data_num, void *data_ptr){
+	if(fd > FD_SETSIZE - 1){
+		return -1;
+	}
 	if(flags & FDEVENT_IN)  FD_SET(fd, &readset);
 	if(flags & FDEVENT_OUT) FD_SET(fd, &writeset);
 

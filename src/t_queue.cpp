@@ -1,8 +1,6 @@
 #include "t_queue.h"
 #include "ssdb.h"
 #include "leveldb/write_batch.h"
-#include "util/lock.h"
-#include "util/thread.h"
 
 //static uint64_t QSIZE_SEQ  = 1;
 static uint64_t QFRONT_SEQ = 2;

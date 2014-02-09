@@ -9,7 +9,6 @@
 #include "ssdb.h"
 #include "link.h"
 #include "binlog.h"
-#include "util/lock.h"
 #include "util/thread.h"
 
 class BackendSync{

@@ -13,7 +13,7 @@ BackendSync::BackendSync(const SSDB *ssdb){
 BackendSync::~BackendSync(){
 	thread_quit = true;
 	int retry = 0;
-	int MAX_RETRY = 50;
+	int MAX_RETRY = 100;
 	while(retry++ < MAX_RETRY){
 		// there is something wrong that sleep makes other threads
 		// unable to acquire the mutex
@@ -23,7 +23,7 @@ BackendSync::~BackendSync(){
 				break;
 			}
 		}
-		usleep(100 * 1000);
+		usleep(50 * 1000);
 	}
 	if(retry >= MAX_RETRY){
 		log_info("Backend worker not exit expectedly");
@@ -63,6 +63,10 @@ void* BackendSync::_run_thread(void *arg){
 	client.link = link;
 	client.init();
 
+// sleep longer to reduce logs.find
+#define TICK_INTERVAL		300
+#define NOOP_IDLES			3000/TICK_INTERVAL
+
 	int idle = 0;
 	while(!backend->thread_quit){
 		// TODO: test
@@ -83,13 +87,12 @@ void* BackendSync::_run_thread(void *arg){
 			is_empty = false;
 		}
 		if(is_empty){
-			if(idle == 10){
+			if(idle >= NOOP_IDLES){
 				idle = 0;
 				client.noop();
 			}else{
 				idle ++;
-				// sleep longer to reduce logs.find
-				usleep(300 * 1000);
+				usleep(TICK_INTERVAL);
 			}
 		}else{
 			idle = 0;

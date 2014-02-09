@@ -9,7 +9,7 @@ MAKE=make
 case "$TARGET_OS" in
     Darwin)
         #PLATFORM_CLIBS="-pthread"
-		PLATFORM_CFLAGS="-D_DARWIN_UNLIMITED_SELECT"
+		#PLATFORM_CFLAGS=""
         ;;
     Linux)
         PLATFORM_CLIBS="-pthread"

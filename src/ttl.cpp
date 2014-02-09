@@ -19,8 +19,16 @@ ExpirationHandler::~ExpirationHandler(){
 }
 
 void ExpirationHandler::start(){
-	log_debug("loading expire_list");
-	// TODO:
+	int count = 0;
+	ZIterator *it;
+	it = ssdb->zscan(this->list_name, "", "", "", 999999999);
+	while(it->next()){
+		int64_t score = str_to_int64(it->score);
+		expiration_keys.add(it->key, score);
+		count ++;
+	}
+	delete it;
+	log_debug("loaded %d expiration key(s)", count);
 	
 	thread_quit = false;
 	pthread_t tid;
@@ -42,53 +50,50 @@ void ExpirationHandler::stop(){
 }
 
 int ExpirationHandler::set_ttl(const Bytes &key, int ttl){
-	time_t now = time(NULL) + ttl;
+	int64_t expired = time_ms() + ttl * 1000;
 	char data[30];
-	int size = snprintf(data, sizeof(data), "%ld", now);
+	int size = snprintf(data, sizeof(data), "%" PRId64, expired);
 	if(size <= 0){
 		log_error("snprintf return error!");
 		return -1;
 	}
-	return ssdb->zset(this->list_name, key, Bytes(data, size));
+	
+	Locking l(&mutex);
+	int ret = ssdb->zset(this->list_name, key, Bytes(data, size));
+	if(ret == -1){
+		return -1;
+	}
+	expiration_keys.add(key.String(), expired);
+	
+	return 0;
 }
 
 void* ExpirationHandler::thread_func(void *arg){
 	log_debug("ExpirationHandler started");
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
 	
-	int last_expired = 0;
-	int batch = 1000;
 	while(!handler->thread_quit){
-		last_expired = 0;
-		
-		time_t now = time(NULL);
-		char data[30];
-		int size = snprintf(data, sizeof(data), "%ld", now);
-		if(size <= 0){
-			log_error("snprintf return error!");
-			continue;
-		}
-		
 		SSDB *ssdb = handler->ssdb;
 		if(!ssdb){
 			break;
 		}
-		ZIterator *it;
-		it = ssdb->zscan(handler->list_name, "", "", Bytes(data, size), batch);
-		while(it->next()){
-			log_trace("%s expired", it->key.c_str());
-			last_expired ++;
-			ssdb->del(it->key);
-			ssdb->zdel(handler->list_name, it->key);
-		}
-		delete it;
 		
-		if(last_expired){
-			log_trace("%d key(s) expired", last_expired);
-			usleep(500 * 1000);
-		}else{
-			usleep(1000 * 1000);
+		const std::string *key;
+		int64_t score;
+		{
+			Locking l(&handler->mutex);
+			if(handler->expiration_keys.front(&key, &score)){
+				int64_t now = time_ms();
+				if(score <= now){
+					log_debug("%s expired", key->c_str());
+					ssdb->del(*key);
+					ssdb->zdel(handler->list_name, *key);
+					handler->expiration_keys.pop_front();
+					continue;
+				}
+			}
 		}
+		usleep(50 * 1000);
 	}
 	
 	log_debug("ExpirationHandler thread_func quit");

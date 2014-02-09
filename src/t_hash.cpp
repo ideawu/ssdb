@@ -1,8 +1,6 @@
 #include "t_hash.h"
 #include "ssdb.h"
 #include "leveldb/write_batch.h"
-#include "util/lock.h"
-#include "util/thread.h"
 
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type);
 static int hdel_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type);

@@ -3,6 +3,8 @@
 
 #include "include.h"
 #include "ssdb.h"
+#include "util/sorted_set.h"
+#include "util/thread.h"
 #include <string>
 
 class ExpirationHandler
@@ -16,6 +18,8 @@ private:
 	SSDB *ssdb;
 	volatile bool thread_quit;
 	std::string list_name;
+	SortedSet expiration_keys;
+	Mutex mutex;
 
 	void start();
 	void stop();

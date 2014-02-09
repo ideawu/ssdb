@@ -63,6 +63,16 @@ int SortedSet::front(const std::string **key, int64_t *score) const{
 	return 1;
 }
 
+int SortedSet::front(std::string *key, int64_t *score) const{
+	const std::string *ptr;
+	if(front(&ptr, score)){
+		// string copy
+		*key = *ptr;
+		return 1;
+	}
+	return 0;
+}
+
 int SortedSet::pop_front(){
 	std::set<Item>::iterator it2 = sorted_set.begin();
 	if(it2 == sorted_set.end()){

@@ -8,7 +8,7 @@
 #include "leveldb/slice.h"
 #include "leveldb/status.h"
 #include "leveldb/write_batch.h"
-#include "util/lock.h"
+#include "util/thread.h"
 #include "util/bytes.h"
 
 
