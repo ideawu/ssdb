@@ -211,6 +211,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 		log_error("invalid binlog!");
 		return 0;
 	}
+	const char *sync_type = this->is_mirror? "mirror" : "sync";
 	switch(log.type()){
 		case BinlogType::NOOP:
 			return this->proc_noop(log, req);
@@ -220,10 +221,10 @@ int Slave::proc(const std::vector<Bytes> &req){
 				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					copy_count, this->last_seq, log.seq());
 			}
-			if(this->is_mirror){
-				log_trace("[mirror] %s", log.dumps().c_str());
+			if(req.size() >= 2){
+				log_debug("[%s] %s [%d]", sync_type, log.dumps().c_str(), req[1].size());
 			}else{
-				log_trace("[sync] %s", log.dumps().c_str());
+				log_debug("[%s] %s", sync_type, log.dumps().c_str());
 			}
 			return this->proc_copy(log, req);
 			break;
@@ -234,10 +235,10 @@ int Slave::proc(const std::vector<Bytes> &req){
 				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					sync_count, this->last_seq, log.seq());
 			}
-			if(this->is_mirror){
-				log_debug("[mirror] %s", log.dumps().c_str());
+			if(req.size() >= 2){
+				log_debug("[%s] %s [%d]", sync_type, log.dumps().c_str(), req[1].size());
 			}else{
-				log_debug("[sync] %s", log.dumps().c_str());
+				log_debug("[%s] %s", sync_type, log.dumps().c_str());
 			}
 			return this->proc_sync(log, req);
 			break;
@@ -250,8 +251,8 @@ int Slave::proc(const std::vector<Bytes> &req){
 
 int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
 	uint64_t seq = log.seq();
-	log_debug("noop last_seq: %" PRIu64 ", seq: %" PRIu64 "", this->last_seq, seq);
 	if(this->last_seq != seq){
+		log_debug("noop last_seq: %" PRIu64 ", seq: %" PRIu64 "", this->last_seq, seq);
 		this->last_seq = seq;
 		this->save_status();
 	}
