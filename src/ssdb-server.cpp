@@ -376,15 +376,6 @@ void init(int argc, char **argv){
 	log_info("log_level       : %s", conf->get_str("logger.level"));
 	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
-
-	{ // ssdb
-		ssdb = SSDB::open(*conf, work_dir);
-		if(!ssdb){
-			log_fatal("could not open work_dir: %s", work_dir.c_str());
-			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
-			exit(0);
-		}
-	}
 	
 	ip_filter = new IpFilter();
 	// init ip_filter
@@ -425,6 +416,15 @@ void init(int argc, char **argv){
 
 	if(is_daemon){
 		daemonize();
+	}
+
+	{ // ssdb
+		ssdb = SSDB::open(*conf, work_dir);
+		if(!ssdb){
+			log_fatal("could not open work_dir: %s", work_dir.c_str());
+			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
+			exit(0);
+		}
 	}
 
 	write_pidfile();
