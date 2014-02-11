@@ -64,8 +64,8 @@ void* BackendSync::_run_thread(void *arg){
 	client.init();
 
 // sleep longer to reduce logs.find
-#define TICK_INTERVAL		300
-#define NOOP_IDLES			3000/TICK_INTERVAL
+#define TICK_INTERVAL_MS	300
+#define NOOP_IDLES			(3000/TICK_INTERVAL_MS)
 
 	int idle = 0;
 	while(!backend->thread_quit){
@@ -92,7 +92,7 @@ void* BackendSync::_run_thread(void *arg){
 				client.noop();
 			}else{
 				idle ++;
-				usleep(TICK_INTERVAL);
+				usleep(TICK_INTERVAL_MS * 1000);
 			}
 		}else{
 			idle = 0;
