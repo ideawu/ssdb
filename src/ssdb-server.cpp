@@ -410,10 +410,10 @@ void init(int argc, char **argv){
 			exit(1);
 		}
 		log_info("server listen on: %s:%d", ip, port);
-		log_info("ssdb server started.");
-		fprintf(stderr, "ssdb server started, listen on %s:%d\n", ip, port);
 	}
 
+	// WARN!!!
+	// deamonize() MUST be called before any thread has been created!
 	if(is_daemon){
 		daemonize();
 	}
@@ -428,6 +428,8 @@ void init(int argc, char **argv){
 	}
 
 	write_pidfile();
+	
+	log_info("ssdb server started.");
 }
 
 void write_pidfile(){
