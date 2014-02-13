@@ -109,6 +109,9 @@ int main(int argc, char **argv){
 	leveldb::Options options;
 	leveldb::Status status;
 	options.create_if_missing = true;
+	options.write_buffer_size = 32 * 1024 * 1024;
+	options.compression = leveldb::kSnappyCompression;
+
 	status = leveldb::DB::Open(options, data_dir.c_str(), &db);
 	if(!status.ok()){
 		printf("open leveldb: %s error!\n", output_folder);
