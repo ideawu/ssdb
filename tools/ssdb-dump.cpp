@@ -1,4 +1,6 @@
 #include "include.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <string>
 #include <vector>
@@ -79,11 +81,24 @@ int main(int argc, char **argv){
 	std::string data_dir = "";
 	data_dir.append(output_folder);
 	data_dir.append("/data");
+	
+	{
+		std::string meta_dir = "";
+		meta_dir.append(output_folder);
+		meta_dir.append("/meta");
+
+		int ret;
+		ret = mkdir(meta_dir.c_str(), 0755);
+		if(ret == -1){
+			fprintf(stderr, "error creating meta dir\n");
+			exit(0);
+		}
+	}
 
 	// connect to server
 	Link *link = Link::connect(ip, port);
 	if(link == NULL){
-		printf("error connecting to server!\n");
+		fprintf(stderr, "error connecting to server!\n");
 		return 0;
 	}
 
@@ -154,26 +169,43 @@ int main(int argc, char **argv){
 	}
 	printf("total dumped %d entry(s)\n", dump_count);
 
+	/*
 	printf("checking data...\n");
 	leveldb::Iterator *it;
 	it = db->NewIterator(leveldb::ReadOptions());
 	int save_count = 0;
 	for(it->SeekToFirst(); it->Valid(); it->Next()){
 		save_count ++;
-		/*
-		std::string k = hexmem(it->key().data(), it->key().size());
-		std::string v = hexmem(it->value().data(), it->value().size());
-		printf("%d %s : %s", save_count, k.c_str(), v.c_str());
-		*/
+		//std::string k = hexmem(it->key().data(), it->key().size());
+		//std::string v = hexmem(it->value().data(), it->value().size());
+		//printf("%d %s : %s", save_count, k.c_str(), v.c_str());
 	}
 	if(dump_count != save_count){
 		printf("checking failed! dumped: %d, saved: %d\n", dump_count, save_count);
 	}else{
 		printf("checking OK.\n");
 		printf("\n");
-		printf("backup has been made to folder: %s\n", output_folder);
+	}
+	*/
+
+	{
+		std::string val;
+		if(db->GetProperty("leveldb.stats", &val)){
+			fprintf(stderr, "%s\n", val.c_str());
+		}
 	}
 
+	fprintf(stderr, "compacting data...\n");
+	db->CompactRange(NULL, NULL);
+	
+	{
+		std::string val;
+		if(db->GetProperty("leveldb.stats", &val)){
+			fprintf(stderr, "%s\n", val.c_str());
+		}
+	}
+
+	printf("backup has been made to folder: %s\n", output_folder);
 
 	delete link;
 	delete db;
