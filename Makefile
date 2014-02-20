@@ -41,4 +41,8 @@ clean:
 	cd src; ${MAKE} clean
 	cd tools; ${MAKE} clean
 
-
+clean_all: clean
+	cd "${LEVELDB_PATH}"; ${MAKE} clean
+	rm -f ${JEMALLOC_PATH}/Makefile
+	rm -f ${SNAPPY_PATH}/Makefile
+	
