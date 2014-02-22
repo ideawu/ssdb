@@ -161,8 +161,9 @@ void* Slave::_run_thread(void *arg){
 		
 		events = select.wait(RECV_TIMEOUT);
 		if(events == NULL){
-			log_fatal("events.wait error: %s", strerror(errno));
-			break;
+			log_error("events.wait error: %s", strerror(errno));
+			sleep(1);
+			continue;
 		}else if(events->empty()){
 			if(idle++ >= MAX_RECV_IDLE){
 				log_error("the master hasn't responsed for awhile, reconnect...");
@@ -265,7 +266,8 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 			log_info("copy begin");
 			break;
 		case BinlogCommand::END:
-			log_info("copy end, step in sync");
+			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
+				copy_count, this->last_seq, log.seq());
 			this->last_key = "";
 			this->save_status();
 			break;
