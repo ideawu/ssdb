@@ -264,10 +264,13 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 				hexmem(this->last_key.data(), this->last_key.size()).c_str(),
 				log.dumps().c_str());
 			this->last_seq = log.seq();
-			//if(this->iter){
-			//	delete this->iter;
-			//	this->iter = NULL;
-			//}
+			// When there are write that are behind last_key, we MUST create
+			// a new iterator, because iterator will be know this key.
+			// Because iterator ONLY iterate throught data written before it is created.
+			if(this->iter){
+				delete this->iter;
+				this->iter = NULL;
+			}
 			continue;
 		}
 		if(this->last_seq != 0 && log.seq() != expect_seq){
