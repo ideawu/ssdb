@@ -257,16 +257,16 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 		if(ret == 0){
 			return 0;
 		}
-		// writes that are out of copied range will be discarded.
 		if(this->status == Client::COPY && log.key() > this->last_key){
 			log_trace("fd: %d, last_key: '%s', drop: %s",
 				link->fd(),
 				hexmem(this->last_key.data(), this->last_key.size()).c_str(),
 				log.dumps().c_str());
 			this->last_seq = log.seq();
-			// When there are write that are behind last_key, we MUST create
-			// a new iterator, because iterator will be know this key.
-			// Because iterator ONLY iterate throught data written before it is created.
+			// WARN: When there are writes behind last_key, we MUST create
+			// a new iterator, because iterator will not know this key.
+			// Because iterator ONLY iterates throught keys written before
+			// iterator is created.
 			if(this->iter){
 				delete this->iter;
 				this->iter = NULL;
