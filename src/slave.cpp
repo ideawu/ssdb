@@ -227,7 +227,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 			}else{
 				log_debug("[%s] %s", sync_type, log.dumps().c_str());
 			}
-			return this->proc_copy(log, req);
+			this->proc_copy(log, req);
 			break;
 		}
 		case BinlogType::SYNC:
@@ -241,7 +241,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 			}else{
 				log_debug("[%s] %s", sync_type, log.dumps().c_str());
 			}
-			return this->proc_sync(log, req);
+			this->proc_sync(log, req);
 			break;
 		}
 		default:

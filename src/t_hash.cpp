@@ -223,15 +223,14 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type){
 	if(name.empty() || key.empty()){
 		log_error("empty name or key!");
-		//return -1;
-		return 0;
+		return -1;
 	}
 	if(name.size() > SSDB_KEY_LEN_MAX ){
-		log_error("name too long!");
+		log_error("name too long! %s", hexmem(name.data(), name.size()).c_str());
 		return -1;
 	}
 	if(key.size() > SSDB_KEY_LEN_MAX){
-		log_error("key too long!");
+		log_error("key too long! %s", hexmem(key.data(), key.size()).c_str());
 		return -1;
 	}
 	int ret = 0;
@@ -254,16 +253,16 @@ static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const
 
 static int hdel_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
-		log_error("name too long!");
+		log_error("name too long! %s", hexmem(name.data(), name.size()).c_str());
 		return -1;
 	}
 	if(key.size() > SSDB_KEY_LEN_MAX){
-		log_error("key too long!");
+		log_error("key too long! %s", hexmem(key.data(), key.size()).c_str());
 		return -1;
 	}
 	std::string dbval;
 	if(ssdb->hget(name, key, &dbval) == 0){
-		return 0;
+		return -1;
 	}
 
 	std::string hkey = encode_hash_key(name, key);

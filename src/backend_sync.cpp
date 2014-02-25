@@ -258,7 +258,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			return 0;
 		}
 		if(this->status == Client::COPY && log.key() > this->last_key){
-			log_trace("fd: %d, last_key: '%s', drop: %s",
+			log_debug("fd: %d, last_key: '%s', drop: %s",
 				link->fd(),
 				hexmem(this->last_key.data(), this->last_key.size()).c_str(),
 				log.dumps().c_str());
