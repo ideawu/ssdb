@@ -197,7 +197,7 @@ int BackendSync::Client::copy(){
 		log_debug("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
 		std::string key = this->last_key;
 		if(this->last_key.empty()){
-			key.push_back(DataType::KV);
+			key.push_back(DataType::HASH);
 		}
 		this->iter = backend->ssdb->iterator(key, "", -1);
 	}
@@ -219,6 +219,7 @@ int BackendSync::Client::copy(){
 			if(key.size() == 0){
 				continue;
 			}
+			this->last_key = key.String();
 			
 			char cmd = 0;
 			char data_type = key.data()[0];
@@ -231,10 +232,9 @@ int BackendSync::Client::copy(){
 			}else{
 				continue;
 			}
-			this->last_key = key.String();
 		
 			Binlog log(this->last_seq, BinlogType::COPY, cmd, key.Slice());
-			log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+			log_debug("fd: %d, %s", link->fd(), log.dumps().c_str());
 			link->send(log.repr(), val);
 			//if(link->output->size() > 1024 * 1024){
 			return 1;
