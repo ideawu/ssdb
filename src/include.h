@@ -54,6 +54,8 @@ public:
 	static const char ZSIZE		= 'Z';
 	static const char QUEUE		= 'q';
 	static const char QSIZE		= 'Q';
+	static const char MIN_PREFIX = HASH;
+	static const char MAX_PREFIX = ZSET;
 };
 
 class BinlogType{
