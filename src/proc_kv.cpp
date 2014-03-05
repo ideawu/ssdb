@@ -12,8 +12,25 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 		}else if(ret == 0){
 			resp->push_back("not_found");
 		}else{
-			log_error("fail");
-			resp->push_back("fail");
+			resp->push_back("error");
+		}
+	}
+	return 0;
+}
+
+static int proc_getset(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		std::string val;
+		int ret = serv->ssdb->getset(req[1], &val, req[2]);
+		if(ret == 1){
+			resp->push_back("ok");
+			resp->push_back(val);
+		}else if(ret == 0){
+			resp->push_back("not_found");
+		}else{
+			resp->push_back("error");
 		}
 	}
 	return 0;
@@ -26,6 +43,24 @@ static int proc_set(Server *serv, Link *link, const Request &req, Response *resp
 		int ret = serv->ssdb->set(req[1], req[2]);
 		if(ret == -1){
 			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			resp->push_back("1");
+		}
+	}
+	return 0;
+}
+
+static int proc_setnx(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		int ret = serv->ssdb->setnx(req[1], req[2]);
+		if(ret == -1){
+			resp->push_back("error");
+		}else if(ret == 0){
+			resp->push_back("ok");
+			resp->push_back("0");
 		}else{
 			resp->push_back("ok");
 			resp->push_back("1");
@@ -147,7 +182,7 @@ static int proc_multi_get(Server *serv, Link *link, const Request &req, Response
 				//
 			}else{
 				// error
-				log_error("fail");
+				log_error("error");
 			}
 		}
 	}

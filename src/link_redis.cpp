@@ -42,7 +42,9 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_PING, "ping",		"ping",			REPLY_STATUS},
 
 	{STRATEGY_AUTO, "get",		"get",			REPLY_BULK},
+	{STRATEGY_AUTO, "getset",	"getset",		REPLY_BULK},
 	{STRATEGY_AUTO, "set",		"set",			REPLY_STATUS},
+	{STRATEGY_AUTO, "setnx",	"setnx",		REPLY_INT},
 	{STRATEGY_AUTO, "exists",	"exists",		REPLY_INT},
 	{STRATEGY_AUTO, "incr",		"incr",			REPLY_INT},
 	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
@@ -89,6 +91,8 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO,		"rpop",			"qpop_back", 		REPLY_BULK},
 	{STRATEGY_AUTO, 	"llen",			"qsize",			REPLY_INT},
 	{STRATEGY_AUTO, 	"lsize",		"qsize",			REPLY_INT},
+	{STRATEGY_AUTO,		"lindex",		"qget", 			REPLY_BULK},
+	{STRATEGY_AUTO,		"lrange",		"qslice",			REPLY_MULTI_BULK},
 
 	{STRATEGY_AUTO, 	NULL,			NULL,			0}
 };

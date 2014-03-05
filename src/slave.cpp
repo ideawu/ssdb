@@ -3,6 +3,7 @@
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
+#include "t_queue.h"
 #include "include.h"
 
 Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
@@ -365,6 +366,51 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
 				if(ssdb->zdel(name, key, log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::QPUSH_BACK:
+		case BinlogCommand::QPUSH_FRONT:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name;
+				uint64_t seq;
+				if(decode_qitem_key(log.key(), &name, &seq) == -1){
+					break;
+				}
+				if(seq < QITEM_MIN_SEQ || seq > QITEM_MAX_SEQ){
+					break;
+				}
+				int ret;
+				if(log.cmd() == BinlogCommand::QPUSH_BACK){
+					log_trace("qpush_back %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpush_back(name, req[1], log_type);
+				}else{
+					log_trace("qpush_front %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpush_front(name, req[1], log_type);
+				}
+				if(ret == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::QPOP_BACK:
+		case BinlogCommand::QPOP_FRONT:
+			{
+				int ret;
+				const Bytes name = log.key();
+				std::string tmp;
+				if(log.cmd() == BinlogCommand::QPOP_BACK){
+					log_trace("qpop_back %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpop_back(name, &tmp, log_type);
+				}else{
+					log_trace("qpop_front %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpop_front(name, &tmp, log_type);
+				}
+				if(ret == -1){
 					return -1;
 				}
 			}

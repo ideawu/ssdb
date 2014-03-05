@@ -183,3 +183,42 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 	}
 	return 0;
 }
+
+static int proc_qslice(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		int64_t begin = req[2].Int64();
+		int64_t end = req[3].Int64();
+		std::vector<std::string> list;
+		int ret = serv->ssdb->qslice(req[1], begin, end, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
+	}
+	return 0;
+}
+
+static int proc_qget(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		int64_t index = req[2].Int64();
+		std::string item;
+		int ret = serv->ssdb->qget(req[1], index, &item);
+		if(ret == -1){
+			resp->push_back("error");
+		}else if(ret == 0){
+			resp->push_back("not_found");
+		}else{
+			resp->push_back("ok");
+			resp->push_back(item);
+		}
+	}
+	return 0;
+}

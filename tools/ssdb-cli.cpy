@@ -420,11 +420,14 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
+			case 'getset':
+			case 'setnx':
 			case 'get':
 			case 'zget':
 			case 'hget':
 			case 'qfront':
 			case 'qback':
+			case 'qget':
 			case 'qpop':
 			case 'qpop_front':
 			case 'qpop_back':
@@ -506,6 +509,7 @@ while(true){
 			case 'hlist':
 			case 'zlist':
 			case 'qlist':
+			case 'qslice':
 				printf('  %15s\n', 'name');
 				print ('-' * 17);
 				foreach(resp.data as k){

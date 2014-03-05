@@ -73,6 +73,8 @@ class SSDB{
 			case 'zset':
 			case 'hset':
 			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 			case 'del':
 			case 'zdel':
 			case 'hdel':
@@ -89,10 +91,14 @@ class SSDB{
 				}
 				break;
 			case 'get':
+			case 'getset':
 			case 'hget':
 			case 'qfront':
 			case 'qback':
+			case 'qget':
 			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						return new SSDB_Response('ok', resp[1]);
@@ -103,6 +109,7 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+			case 'setnx':
 			case 'incr':
 			case 'decr':
 			case 'zincr':

@@ -74,8 +74,8 @@ class BinlogQueue{
 		void Put(const leveldb::Slice& key, const leveldb::Slice& value);
 		// leveldb delete
 		void Delete(const leveldb::Slice& key);
-		void add(char type, char cmd, const leveldb::Slice &key);
-		void add(char type, char cmd, const std::string &key);
+		void add_log(char type, char cmd, const leveldb::Slice &key);
+		void add_log(char type, char cmd, const std::string &key);
 		
 		int get(uint64_t seq, Binlog *log) const;
 		int update(uint64_t seq, char type, char cmd, const std::string &key);

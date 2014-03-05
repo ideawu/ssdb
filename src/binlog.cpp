@@ -87,6 +87,18 @@ std::string Binlog::dumps() const{
 		case BinlogCommand::END:
 			str.append("end ");
 			break;
+		case BinlogCommand::QPUSH_BACK:
+			str.append("qpush_back ");
+			break;
+		case BinlogCommand::QPUSH_FRONT:
+			str.append("qpush_front ");
+			break;
+		case BinlogCommand::QPOP_BACK:
+			str.append("qpop_back ");
+			break;
+		case BinlogCommand::QPOP_FRONT:
+			str.append("qpop_front ");
+			break;
 	}
 	Bytes b = this->key();
 	str.append(hexmem(b.data(), b.size()));
@@ -194,15 +206,15 @@ leveldb::Status BinlogQueue::commit(){
 	return s;
 }
 
-void BinlogQueue::add(char type, char cmd, const leveldb::Slice &key){
+void BinlogQueue::add_log(char type, char cmd, const leveldb::Slice &key){
 	tran_seq ++;
 	Binlog log(tran_seq, type, cmd, key);
 	batch.Put(encode_seq_key(tran_seq), log.repr());
 }
 
-void BinlogQueue::add(char type, char cmd, const std::string &key){
+void BinlogQueue::add_log(char type, char cmd, const std::string &key){
 	leveldb::Slice s(key);
-	this->add(type, cmd, s);
+	this->add_log(type, cmd, s);
 }
 
 // leveldb put

@@ -55,6 +55,17 @@ class SSDBTest extends UnitTest{
 				$this->assert($ret == 0);
 			}
 		}
+		while(1){
+			$names = $ssdb->qlist('TEST_', 'TEST_'.pack('C', 255), 1000);
+			if(!$names){
+				break;
+			}
+			foreach($names as $name){
+				$deleted += $ssdb->qclear($name);
+				$ret = $ssdb->qsize($name);
+				$this->assert($ret == 0);
+			}
+		}
 		if($deleted > 0){
 			echo "clear $deleted\n";
 		}
@@ -121,6 +132,22 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->get('TEST_a');
 		$this->assert($ret === null);
 		$ssdb->del('TEST_b');
+		
+		$ssdb->del('TEST_a');
+		$ret = $ssdb->setnx('TEST_a', 'a');
+		$this->assert($ret === 1);
+		$ret = $ssdb->setnx('TEST_a', 't');
+		$this->assert($ret === 0);
+		$ret = $ssdb->get('TEST_a');
+		$this->assert($ret === 'a');
+		
+		$ssdb->del('TEST_a');
+		$ret = $ssdb->getset('TEST_a', 'a');
+		$this->assert($ret === null);
+		$ret = $ssdb->getset('TEST_a', 'b');
+		$this->assert($ret === 'a');
+		$ret = $ssdb->get('TEST_a');
+		$this->assert($ret === 'b');
 	}
 	
 	function test_queue(){
@@ -131,6 +158,12 @@ class SSDBTest extends UnitTest{
 				
 		for($i=0; $i<10; $i++){
 			$ssdb->qpush($name, $i);
+		}
+		$ret = $ssdb->qget($name, 3);
+		$this->assert($ret == 3);
+		$ret = $ssdb->qslice($name, 0, -1);
+		for($i=0; $i<10; $i++){
+			$this->assert($ret[$i] == $i);
 		}
 		$ret = $ssdb->qsize($name);
 		$this->assert($ret === 10);

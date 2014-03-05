@@ -43,6 +43,8 @@ static proc_map_t proc_map;
 	DEF_PROC(get);
 	DEF_PROC(set);
 	DEF_PROC(setx);
+	DEF_PROC(setnx);
+	DEF_PROC(getset);
 	DEF_PROC(del);
 	DEF_PROC(incr);
 	DEF_PROC(decr);
@@ -108,6 +110,8 @@ static proc_map_t proc_map;
 	DEF_PROC(qfix);
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
+	DEF_PROC(qslice);
+	DEF_PROC(qget);
 
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
@@ -125,6 +129,8 @@ static Command commands[] = {
 	PROC(get, "r"),
 	PROC(set, "wt"),
 	PROC(setx, "wt"),
+	PROC(setnx, "wt"),
+	PROC(getset, "wt"),
 	PROC(del, "wt"),
 	PROC(incr, "wt"),
 	PROC(decr, "wt"),
@@ -191,6 +197,8 @@ static Command commands[] = {
 	PROC(qfix, "wt"),
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),
+	PROC(qslice, "rt"),
+	PROC(qget, "r"),
 
 	PROC(clear_binlog, "wt"),
 
