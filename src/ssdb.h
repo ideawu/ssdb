@@ -53,12 +53,14 @@ public:
 	/* key value */
 
 	int set(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
+	int setnx(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int del(const Bytes &key, char log_type=BinlogType::SYNC);
 	int incr(const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
 	int multi_set(const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 	
 	int get(const Bytes &key, std::string *val) const;
+	int getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type=BinlogType::SYNC);
 	// return (start, end]
 	KIterator* scan(const Bytes &start, const Bytes &end, uint64_t limit) const;
 	KIterator* rscan(const Bytes &start, const Bytes &end, uint64_t limit) const;
@@ -112,18 +114,21 @@ public:
 	// @return 0: empty queue, 1: item peeked, -1: error
 	int qback(const Bytes &name, std::string *item);
 	// @return -1: error, 1: item added
-	int qpush_front(const Bytes &name, const Bytes &item);
-	int qpush_back(const Bytes &name, const Bytes &item);
+	int qpush_front(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
+	int qpush_back(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
 	// @return 0: empty queue, 1: item popped, -1: error
-	int qpop_front(const Bytes &name, std::string *item);
-	int qpop_back(const Bytes &name, std::string *item);
+	int qpop_front(const Bytes &name, std::string *item, char log_type=BinlogType::SYNC);
+	int qpop_back(const Bytes &name, std::string *item, char log_type=BinlogType::SYNC);
 	int qfix(const Bytes &name);
 	int qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list);
+	int qslice(const Bytes &name, int64_t offset, int64_t limit,
+			std::vector<std::string> *list);
+	int qget(const Bytes &name, int64_t index, std::string *item);
 
 private:
-	int _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq);
-	int _qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq);
+	int _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
+	int _qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
 };
 
 

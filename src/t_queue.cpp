@@ -2,14 +2,7 @@
 #include "ssdb.h"
 #include "leveldb/write_batch.h"
 
-//static uint64_t QSIZE_SEQ  = 1;
-static uint64_t QFRONT_SEQ = 2;
-static uint64_t QBACK_SEQ  = 3;
-static uint64_t QITEM_MIN_SEQ = 10000;
-static uint64_t QITEM_MAX_SEQ = 9223372036854775807ULL;
-static uint64_t QITEM_SEQ_INIT = QITEM_MAX_SEQ/2;
-
-static int qget(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *val){
+static int qget_by_seq(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *val){
 	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
@@ -27,7 +20,7 @@ static int qget(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *v
 static int qget_uint64(leveldb::DB* db, const Bytes &name, uint64_t seq, uint64_t *ret){
 	std::string val;
 	*ret = 0;
-	int s = qget(db, name, seq, &val);
+	int s = qget_by_seq(db, name, seq, &val);
 	if(s == 1){
 		if(val.size() != sizeof(uint64_t)){
 			return -1;
@@ -101,7 +94,7 @@ int SSDB::qfront(const Bytes &name, std::string *item){
 	if(ret == 0){
 		return 0;
 	}
-	ret = qget(this->db, name, seq, item);
+	ret = qget_by_seq(this->db, name, seq, item);
 	return ret;
 }
 
@@ -116,11 +109,11 @@ int SSDB::qback(const Bytes &name, std::string *item){
 	if(ret == 0){
 		return 0;
 	}
-	ret = qget(this->db, name, seq, item);
+	ret = qget_by_seq(this->db, name, seq, item);
 	return ret;
 }
 
-int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq){
+int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 
 	int ret;
@@ -155,6 +148,13 @@ int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_se
 	if(ret == -1){
 		return -1;
 	}
+
+	std::string buf = encode_qitem_key(name, seq);
+	if(front_or_back_seq == QFRONT_SEQ){
+		binlogs->add_log(log_type, BinlogCommand::QPUSH_FRONT, buf);
+	}else{
+		binlogs->add_log(log_type, BinlogCommand::QPUSH_BACK, buf);
+	}
 	
 	// update size
 	int64_t size = incr_qsize(this, name, +1);
@@ -170,15 +170,15 @@ int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_se
 	return 1;
 }
 
-int SSDB::qpush_front(const Bytes &name, const Bytes &item){
-	return _qpush(name, item, QFRONT_SEQ);
+int SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
+	return _qpush(name, item, QFRONT_SEQ, log_type);
 }
 
-int SSDB::qpush_back(const Bytes &name, const Bytes &item){
-	return _qpush(name, item, QBACK_SEQ);
+int SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
+	return _qpush(name, item, QBACK_SEQ, log_type);
 }
 
-int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq){
+int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 	
 	int ret;
@@ -191,7 +191,7 @@ int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq
 		return 0;
 	}
 	
-	ret = qget(this->db, name, seq, item);
+	ret = qget_by_seq(this->db, name, seq, item);
 	if(ret == -1){
 		return -1;
 	}
@@ -203,6 +203,12 @@ int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq
 	ret = qdel_one(this, name, seq);
 	if(ret == -1){
 		return -1;
+	}
+
+	if(front_or_back_seq == QFRONT_SEQ){
+		binlogs->add_log(log_type, BinlogCommand::QPOP_FRONT, name.String());
+	}else{
+		binlogs->add_log(log_type, BinlogCommand::QPOP_BACK, name.String());
 	}
 
 	// update size
@@ -230,12 +236,12 @@ int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq
 }
 
 // @return 0: empty queue, 1: item popped, -1: error
-int SSDB::qpop_front(const Bytes &name, std::string *item){
-	return _qpop(name, item, QFRONT_SEQ);
+int SSDB::qpop_front(const Bytes &name, std::string *item, char log_type){
+	return _qpop(name, item, QFRONT_SEQ, log_type);
 }
 
-int SSDB::qpop_back(const Bytes &name, std::string *item){
-	return _qpop(name, item, QBACK_SEQ);
+int SSDB::qpop_back(const Bytes &name, std::string *item, char log_type){
+	return _qpop(name, item, QBACK_SEQ, log_type);
 }
 
 int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
@@ -309,4 +315,82 @@ int SSDB::qfix(const Bytes &name){
 		return -1;
 	}
 	return 0;
+}
+
+int SSDB::qslice(const Bytes &name, int64_t begin, int64_t end,
+		std::vector<std::string> *list)
+{
+	int ret;
+	uint64_t seq_begin, seq_end;
+	if(begin >= 0 && end >= 0){
+		uint64_t tmp_seq;
+		ret = qget_uint64(this->db, name, QFRONT_SEQ, &tmp_seq);
+		if(ret != 1){
+			return ret;
+		}
+		seq_begin = tmp_seq + begin;
+		seq_end = tmp_seq + end;
+	}else if(begin < 0 && end < 0){
+		uint64_t tmp_seq;
+		ret = qget_uint64(this->db, name, QBACK_SEQ, &tmp_seq);
+		if(ret != 1){
+			return ret;
+		}
+		seq_begin = tmp_seq + begin + 1;
+		seq_end = tmp_seq + end + 1;
+	}else{
+		uint64_t f_seq, b_seq;
+		ret = qget_uint64(this->db, name, QFRONT_SEQ, &f_seq);
+		if(ret != 1){
+			return ret;
+		}
+		ret = qget_uint64(this->db, name, QBACK_SEQ, &b_seq);
+		if(ret != 1){
+			return ret;
+		}
+		if(begin >= 0){
+			seq_begin = f_seq + begin;
+		}else{
+			seq_begin = b_seq + begin + 1;
+		}
+		if(end >= 0){
+			seq_end = f_seq + end;
+		}else{
+			seq_end = b_seq + end + 1;
+		}
+	}
+	
+	for(; seq_begin <= seq_end; seq_begin++){
+		std::string item;
+		ret = qget_by_seq(this->db, name, seq_begin, &item);
+		if(ret == -1){
+			return -1;
+		}
+		if(ret == 0){
+			return 0;
+		}
+		list->push_back(item);
+	}
+	return 0;
+}
+
+int SSDB::qget(const Bytes &name, int64_t index, std::string *item){
+	int ret;
+	uint64_t seq;
+	if(index >= 0){
+		ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+		seq += index;
+	}else{
+		ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+		seq += index + 1;
+	}
+	if(ret == -1){
+		return -1;
+	}
+	if(ret == 0){
+		return 0;
+	}
+	
+	ret = qget_by_seq(this->db, name, seq, item);
+	return ret;
 }

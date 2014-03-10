@@ -521,6 +521,7 @@ class SSDB
 		switch($cmd){
 			case 'set':
 			case 'setx':
+			case 'setnx':
 			case 'zset':
 			case 'hset':
 			case 'qpush':
@@ -534,6 +535,7 @@ class SSDB
 			case 'qsize':
 			case 'hclear':
 			case 'zclear':
+			case 'qclear':
 			case 'multi_set':
 			case 'multi_del':
 			case 'multi_hset':
@@ -552,7 +554,9 @@ class SSDB
 				$val = isset($resp[1])? intval($resp[1]) : 0;
 				return new SSDB_Response($resp[0], $val);
 			case 'get':
+			case 'getset':
 			case 'hget':
+			case 'qget':
 			case 'qfront':
 			case 'qback':
 			case 'qpop':
@@ -574,6 +578,7 @@ class SSDB
 			case 'hkeys':
 			case 'hlist':
 			case 'zlist':
+			case 'qslice':
 				$data = array();
 				if($resp[0] == 'ok'){
 					for($i=1; $i<count($resp); $i++){

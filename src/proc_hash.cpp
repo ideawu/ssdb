@@ -132,7 +132,6 @@ static int proc_multi_hget(Server *serv, Link *link, const Request &req, Respons
 			}else if(ret == 0){
 				//
 			}else{
-				log_error("fail");
 				resp->push_back("0");
 			}
 		}
@@ -188,8 +187,7 @@ static int proc_hget(Server *serv, Link *link, const Request &req, Response *res
 		}else if(ret == 0){
 			resp->push_back("not_found");
 		}else{
-			log_error("fail");
-			resp->push_back("fail");
+			resp->push_back("error");
 		}
 	}
 	return 0;

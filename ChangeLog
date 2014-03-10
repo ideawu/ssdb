@@ -1,0 +1,7 @@
+* 1.6.8.5 (2014-03-05)
+	* New features:
+		- Add qslice(lrange), qget(lindex, lget) commands.
+		- Add getset, setnx commands.
+	* Incompatible changes:
+		- Queue/List data will be replicated(sync) to slaves.
+	* Bug fixes:
