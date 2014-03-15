@@ -22,7 +22,7 @@ if(count($argv) != 6){
 	die();
 }
 
-echo "This script will only copy entries with types in (STRING, HASH, ZSET)\n";
+echo "This script will only copy entries with types in (STRING, HASH, ZSET, LIST)\n";
 echo "Do you want to continue? [y/n] ";
 $line = fgets(STDIN);
 $line = trim($line);
@@ -60,14 +60,12 @@ foreach($keys as $key){
 			$val = $redis->get($key);
 			$ssdb->set($key, $val);
 			break;
-		/*
 		case Redis::REDIS_LIST:
 			$list = $redis->lRange($key, 0, -1);
 			foreach($list as $val){
-				$$ssdb->rPush($key, $val);
+				$ssdb->rPush($key, $val);
 			}
 			break;
-		*/
 		case Redis::REDIS_HASH:
 			$hash = $redis->hGetAll($key);
 			$ssdb->hMSet($key, $hash);
