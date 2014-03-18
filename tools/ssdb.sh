@@ -5,7 +5,8 @@
 
 ssdb_root=/usr/local/ssdb
 # each config file for one instance
-configs=/data/ssdb_data/test/ssdb.conf
+# configs="/data/ssdb_data/test/ssdb.conf /data/ssdb_data/test2/ssdb.conf"
+configs="/data/ssdb_data/test/ssdb.conf"
 
 case "$1" in
 	'start')
