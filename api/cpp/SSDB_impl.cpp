@@ -55,6 +55,7 @@ Client* Client::connect(const char *ip, int port){
 	ClientImpl *client = new ClientImpl();
 	client->link = Link::connect(ip, port);
 	if(client->link == NULL){
+		delete client;
 		return NULL;
 	}
 	return client;
