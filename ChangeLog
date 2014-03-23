@@ -5,3 +5,5 @@
 	* Incompatible changes:
 		- Queue/List data will be replicated(sync) to slaves.
 	* Bug fixes:
+		- Fix ssdb::Client::connect() possible memory leak
+
