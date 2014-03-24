@@ -53,7 +53,7 @@ void ExpirationHandler::stop(){
 	}
 }
 
-int ExpirationHandler::set_ttl(const Bytes &key, int ttl){
+int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 	int64_t expired = time_ms() + ttl * 1000;
 	char data[30];
 	int size = snprintf(data, sizeof(data), "%" PRId64, expired);

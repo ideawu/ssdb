@@ -12,7 +12,7 @@ class ExpirationHandler
 public:
 	ExpirationHandler(SSDB *ssdb);
 	~ExpirationHandler();
-	int set_ttl(const Bytes &key, int ttl);
+	int set_ttl(const Bytes &key, int64_t ttl);
 
 private:
 	SSDB *ssdb;
