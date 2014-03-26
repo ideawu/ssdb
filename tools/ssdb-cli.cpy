@@ -304,6 +304,12 @@ try{
 }
 welcome();
 
+try{
+	resp = link.request('info', []);
+	print 'ssdb-server version: ' + resp.data[2] + '\n';
+}catch(Exception e){
+}
+
 while(true){
 	line = '';
 	c = sprintf('ssdb %s:%s> ', host, str(port));
