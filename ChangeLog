@@ -7,4 +7,5 @@
 	* Bug fixes:
 		- Fix ssdb::Client::connect() possible memory leak
 		- Fix ttl overflow bug
+		- Fix nodejs api bug on binary data(2014-03-27)
 
