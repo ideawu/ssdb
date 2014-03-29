@@ -136,7 +136,6 @@ void run(int argc, char **argv){
 			log_info("ssdb working, links: %d", link_count);
 		}
 		
-		ready_list.clear();
 		ready_list_2.clear();
 		
 		if(!ready_list.empty()){
