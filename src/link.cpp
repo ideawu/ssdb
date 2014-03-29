@@ -20,6 +20,7 @@ Link::Link(bool is_server){
 
 	sock = -1;
 	noblock_ = false;
+	error_ = false;
 	remote_ip[0] = '\0';
 	remote_port = -1;
 	

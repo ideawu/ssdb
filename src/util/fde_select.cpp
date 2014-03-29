@@ -26,14 +26,20 @@ int Fdevents::set(int fd, int flags, int data_num, void *data_ptr){
 	if(fd > FD_SETSIZE - 1){
 		return -1;
 	}
+
+	struct Fdevent *fde = get_fde(fd);
+	if(fde->s_flags & flags){
+		return 0;
+	}
+
 	if(flags & FDEVENT_IN)  FD_SET(fd, &readset);
 	if(flags & FDEVENT_OUT) FD_SET(fd, &writeset);
 
-	struct Fdevent *fde = get_fde(fd);
 	fde->data.num = data_num;
 	fde->data.ptr = data_ptr;
 	fde->s_flags |= flags;
 	maxfd = fd > maxfd? fd: maxfd;
+
 	return 0;
 }
 
@@ -50,10 +56,13 @@ int Fdevents::del(int fd){
 }
 
 int Fdevents::clr(int fd, int flags){
+	struct Fdevent *fde = get_fde(fd);
+	if(!(fde->s_flags & flags)){
+		return 0;
+	}
 	if(flags & FDEVENT_IN)  FD_CLR(fd, &readset);
 	if(flags & FDEVENT_OUT) FD_CLR(fd, &writeset);
 
-	struct Fdevent *fde = get_fde(fd);
 	fde->s_flags &= ~flags;
 	while(this->events[maxfd]->s_flags == 0){
 		maxfd --;

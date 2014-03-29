@@ -15,6 +15,7 @@ class Link{
 	private:
 		int sock;
 		bool noblock_;
+		bool error_;
 		std::vector<Bytes> recv_data;
 
 		RedisLink *redis;
@@ -42,6 +43,12 @@ class Link{
 
 		int fd() const{
 			return sock;
+		}
+		bool error() const{
+			return error_;
+		}
+		void mark_error(){
+			error_ = true;
 		}
 
 		static Link* connect(const char *ip, int port);
