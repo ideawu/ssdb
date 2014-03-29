@@ -1,3 +1,9 @@
+* 1.6.8.6 (2014-03-29)
+	* New features:
+	* Incompatible changes:
+	* Bug fixes:
+		- Redesign network flow, support very large batch commands
+
 * 1.6.8.5 (2014-03-05)
 	* New features:
 		- Add qslice(lrange), qget(lindex, lget) commands.
