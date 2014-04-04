@@ -144,6 +144,7 @@ class SSDB{
 			case 'zkeys':
 			case 'hkeys':
 			case 'hlist':
+                        case 'hrlist':
 			case 'zlist':
 				data = [];
 				if(resp[0] == 'ok'){
