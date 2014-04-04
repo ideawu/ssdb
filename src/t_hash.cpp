@@ -219,6 +219,30 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 	return 0;
 }
 
+int SSDB::hrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list) const{
+	std::string start;
+	std::string end;
+	start = encode_hsize_key(name_s);
+	if(!name_e.empty()){
+		end = encode_hsize_key(name_e);
+	}
+	Iterator *it = this->rev_iterator(start, end, limit);
+	while(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] != DataType::HSIZE){
+			break;
+		}
+		std::string n;
+		if(decode_hsize_key(ks, &n) == -1){
+			continue;
+		}
+		list->push_back(n);
+	}
+	delete it;
+	return 0;
+}
+
 // returns the number of newly added items
 static int hset_one(const SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &val, char log_type){
 	if(name.empty() || key.empty()){

@@ -77,6 +77,8 @@ public:
 	int hget(const Bytes &name, const Bytes &key, std::string *val) const;
 	int hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) const;
+	int hrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list) const;
 	HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const;
 	HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const;
 
