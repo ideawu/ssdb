@@ -1,5 +1,6 @@
 * 1.6.8.6 (2014-03-29)
 	* New features:
+		- Reduce round trip time for single request(2014-04-04)
 	* Incompatible changes:
 	* Bug fixes:
 		- Redesign network flow, support very large batch commands

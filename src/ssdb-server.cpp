@@ -104,17 +104,23 @@ Link* accept_link(){
 
 int proc_result(ProcJob &job, ready_list_t &ready_list){	
 	Link *link = job.link;
+	int len;
 			
-	if(job.result == PROC_ERROR){
-		log_info("fd: %d, proc error, delete link", link->fd());
-		fdes->del(link->fd());
-		delete link;
-		return PROC_ERROR;
-	}
 	if(job.cmd){
 		job.cmd->calls += 1;
 		job.cmd->time_wait += job.time_wait;
 		job.cmd->time_proc += job.time_proc;
+	}
+	if(job.result == PROC_ERROR){
+		log_info("fd: %d, proc error, delete link", link->fd());
+		goto proc_err;
+	}
+	
+	len = link->write();
+	//log_debug("write: %d", len);
+	if(len < 0){
+		log_debug("fd: %d, write: %d, delete link", link->fd(), len);
+		goto proc_err;
 	}
 
 	if(!link->output->empty()){
@@ -127,6 +133,11 @@ int proc_result(ProcJob &job, ready_list_t &ready_list){
 		ready_list.push_back(link);
 	}
 	return PROC_OK;
+
+proc_err:
+	fdes->del(link->fd());
+	delete link;
+	return PROC_ERROR;
 }
 
 /*
@@ -146,6 +157,11 @@ is safe to close it in read process, also safe to put it into
 ready_list.
 
 3. Ignore FDEVENT_ERR
+
+A link is in either one of these places:
+	1. ready list
+	2. async worker queue
+So it safe to delete link when processing ready list and async worker result.
 */
 int proc_client_event(const Fdevent *fde, ready_list_t &ready_list){	
 	Link *link = (Link *)fde->data.ptr;
