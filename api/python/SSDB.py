@@ -127,7 +127,7 @@ class SSDB(object):
 					pass
 					return SSDB_Response(resp[0])
 				break
-			if False or ((cmd) == 'keys') or ((cmd) == 'zkeys') or ((cmd) == 'hkeys') or ((cmd) == 'hlist') or ((cmd) == 'zlist'):
+                        if False or ((cmd) == 'keys') or ((cmd) == 'zkeys') or ((cmd) == 'hkeys') or ((cmd) == 'hlist')  or ((cmd) == 'hrlist') or ((cmd) == 'zlist'):
 				pass
 				data = []
 
