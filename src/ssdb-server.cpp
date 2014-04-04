@@ -53,7 +53,7 @@ int main(int argc, char **argv){
 		tv.it_interval.tv_usec = (TICK_INTERVAL % 1000) * 1000;
 		tv.it_value.tv_sec = 1;
 		tv.it_value.tv_usec = 0;
-		//setitimer(ITIMER_REAL, &tv, NULL);
+		setitimer(ITIMER_REAL, &tv, NULL);
 	}
 #endif
 	
@@ -117,7 +117,7 @@ int proc_result(ProcJob &job, ready_list_t &ready_list){
 	}
 	
 	len = link->write();
-	log_debug("write: %d", len);
+	//log_debug("write: %d", len);
 	if(len < 0){
 		log_debug("fd: %d, write: %d, delete link", link->fd(), len);
 		goto proc_err;
