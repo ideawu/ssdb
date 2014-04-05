@@ -4,6 +4,7 @@
 	* Incompatible changes:
 	* Bug fixes:
 		- Redesign network flow, support very large batch commands
+		- Fix bug on ssdb-dump that lose data, print out error message(2014-04-05)
 
 * 1.6.8.5 (2014-03-05)
 	* New features:

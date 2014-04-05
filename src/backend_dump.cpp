@@ -10,7 +10,7 @@ BackendDump::~BackendDump(){
 }
 
 void BackendDump::proc(const Link *link){
-	log_info("accept dump client");
+	log_info("accept dump client: %d", link->fd());
 	struct run_arg *arg = new run_arg();
 	arg->link = link;
 	arg->backend = this;
@@ -39,23 +39,29 @@ void* BackendDump::_run_thread(void *arg){
 		Bytes b = req->at(1);
 		start.assign(b.data(), b.size());
 	}
+	if(start.empty()){
+		start = "A";
+	}
 	std::string end = "";
 	if(req->size() > 2){
 		Bytes b = req->at(2);
 		end.assign(b.data(), b.size());
 	}
-	int limit = 10;
+	uint64_t limit = 10;
 	if(req->size() > 3){
 		Bytes b = req->at(3);
-		limit = b.Int();
+		limit = b.Uint64();
 	}
+
+	log_info("fd: %d, begin to dump data: '%s', '%s', %" PRIu64 "",
+		link->fd(), start.c_str(), end.c_str(), limit);
 
 	Buffer *output = link->output;
 
 	int count = 0;
 	bool quit = false;
 	Iterator *it = backend->ssdb->iterator(start, end, limit);
-
+	
 	link->send("begin");
 	while(!quit){
 		if(!it->next()){
@@ -73,16 +79,19 @@ void* BackendDump::_run_thread(void *arg){
 			output->append_record(val);
 			output->append('\n');
 
-			if(output->size() < output->total()/2){
+			if(output->size() < 32 * 1024){
 				continue;
 			}
 		}
 
 		if(link->flush() == -1){
-			log_info("fd: %d, send error", link->fd());
+			log_error("fd: %d, send error: %s", link->fd(), strerror(errno));
 			break;
 		}
 	}
+	// wait for client to close connection,
+	// or client may get a "Connection reset by peer" error.
+	link->read();
 
 	log_info("fd: %d, delete link", link->fd());
 	delete link;
