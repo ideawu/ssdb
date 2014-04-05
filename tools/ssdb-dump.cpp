@@ -42,7 +42,7 @@ static std::string serialize_req(T &req){
 
 void welcome(){
 	printf("ssdb-dump - SSDB backup command\n");
-	printf("Copyright (c) 2012 ideawu.com\n");
+	printf("Copyright (c) 2012-2014 ideawu.com\n");
 	printf("\n");
 }
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	if(mkdir(output_folder, 0777) == -1){
-		perror("error create backup directory!");
+		perror("error create backup directory!\n");
 		return 0;
 	}
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	link->send("dump", "", "", "2147483647");
+	link->send("dump", "A", "", "2147483647");
 	link->flush();
 
 	leveldb::DB* db;
@@ -122,18 +122,22 @@ int main(int argc, char **argv){
 	while(1){
 		const std::vector<Bytes> *req = link->recv();
 		if(req == NULL){
-			printf("error\n");
-			break;
+			printf("recv error\n");
+			printf("ERROR: failed to dump data!\n");
+			exit(0);
 		}else if(req->empty()){
-			if(link->read() <= 0){
-				printf("read end\n");
-				break;
+			int len = link->read();
+			if(len <= 0){
+				printf("read error: %s\n", strerror(errno));
+				printf("ERROR: failed to dump data!\n");
+				exit(0);
 			}
 		}else{
 			Bytes cmd = req->at(0);
 			if(cmd == "begin"){
 				printf("recv begin...\n");
 			}else if(cmd == "end"){
+				printf("received %d entry(s)\n", dump_count);
 				printf("recv end\n\n");
 				break;
 			}else if(cmd == "set"){
@@ -144,7 +148,8 @@ int main(int argc, char **argv){
 
 				if(req->size() != 3){
 					printf("invalid set params!\n");
-					break;
+					printf("ERROR: failed to dump data!\n");
+					exit(0);
 				}
 				Bytes key = req->at(1);
 				Bytes val = req->at(2);
@@ -157,7 +162,8 @@ int main(int argc, char **argv){
 				status = db->Put(leveldb::WriteOptions(), k, v);
 				if(!status.ok()){
 					printf("put leveldb error!\n");
-					break;
+					printf("ERROR: failed to dump data!\n");
+					exit(0);
 				}
 
 				dump_count ++;
@@ -166,7 +172,8 @@ int main(int argc, char **argv){
 				}
 			}else{
 				printf("error: unknown command %s\n", std::string(cmd.data(), cmd.size()).c_str());
-				break;
+				printf("ERROR: failed to dump data!\n");
+				exit(0);
 			}
 		}
 	}
@@ -209,7 +216,7 @@ int main(int argc, char **argv){
 	}
 
 	printf("backup has been made to folder: %s\n", output_folder);
-
+	
 	delete link;
 	delete db;
 	return 0;
