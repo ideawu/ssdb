@@ -83,6 +83,9 @@ void* BackendDump::_run_thread(void *arg){
 			break;
 		}
 	}
+	// wait for client to close connection,
+	// or client may get a "Connection reset by peer" error.
+	link->read();
 
 	log_info("fd: %d, delete link", link->fd());
 	delete link;
