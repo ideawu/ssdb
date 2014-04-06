@@ -351,7 +351,7 @@ void init(int argc, char **argv){
 
 	conf = Config::load(conf_file);
 	if(!conf){
-		fprintf(stderr, "error loading conf file: '%s'", conf_file);
+		fprintf(stderr, "error loading conf file: '%s'\n", conf_file);
 		exit(1);
 	}
 	{
@@ -392,7 +392,7 @@ void init(int argc, char **argv){
 			log_output = "stdout";
 		}
 		if(log_open(log_output.c_str(), log_level, true, log_rotate_size) == -1){
-			fprintf(stderr, "error opening log file: %s", log_output.c_str());
+			fprintf(stderr, "error opening log file: %s\n", log_output.c_str());
 			exit(1);
 		}
 	}
@@ -433,7 +433,7 @@ void init(int argc, char **argv){
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){
 			log_fatal("error opening server socket! %s", strerror(errno));
-			fprintf(stderr, "error opening server socket! %s", strerror(errno));
+			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
 			exit(1);
 		}
 		log_info("server listen on: %s:%d", ip, port);

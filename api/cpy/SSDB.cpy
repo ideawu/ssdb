@@ -122,13 +122,22 @@ class SSDB{
 			case 'zget':
 			case 'zrank':
 			case 'zrrank':
+			case 'zsum':
+			case 'zcount':
+			case 'zavg':
+			case 'zremrangebyrank':
+			case 'zremrangebyscore':
 			case 'hclear':
 			case 'zclear':
 			case 'qclear':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{
-							val = int(resp[1]);
+							if(cmd == 'zavg'){
+								val = float(resp[1]);
+							}else{
+								val = int(resp[1]);
+							}
 							return new SSDB_Response('ok', val);
 						}catch(Exception e){
 							return new SSDB_Response('server_error', 'Invalid response');
