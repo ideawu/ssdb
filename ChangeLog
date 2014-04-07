@@ -2,6 +2,7 @@
 	* New features:
 		- Reduce round trip time for single request(2014-04-04)
 		- Add zcount, zsum, zavg, zRemRangeByScore, zRemRangeByRank commands(2014-04-06)
+		- Update redis-import.php to use Redis SCAN command if available(2014-04-07)
 	* Incompatible changes:
 	* Bug fixes:
 		- Redesign network flow, support very large batch commands
