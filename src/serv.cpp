@@ -91,7 +91,12 @@ static proc_map_t proc_map;
 	DEF_PROC(zrscan);
 	DEF_PROC(zkeys);
 	DEF_PROC(zlist);
+	DEF_PROC(zcount);
+	DEF_PROC(zsum);
+	DEF_PROC(zavg);
 	DEF_PROC(zexists);
+	DEF_PROC(zremrangebyrank);
+	DEF_PROC(zremrangebyscore);
 	DEF_PROC(multi_zexists);
 	DEF_PROC(multi_zsize);
 	DEF_PROC(multi_zget);
@@ -178,6 +183,11 @@ static Command commands[] = {
 	PROC(zrscan, "rt"),
 	PROC(zkeys, "rt"),
 	PROC(zlist, "rt"),
+	PROC(zcount, "rt"),
+	PROC(zsum, "rt"),
+	PROC(zavg, "rt"),
+	PROC(zremrangebyrank, "wt"),
+	PROC(zremrangebyscore, "wt"),
 	PROC(zexists, "r"),
 	PROC(multi_zexists, "r"),
 	PROC(multi_zsize, "r"),

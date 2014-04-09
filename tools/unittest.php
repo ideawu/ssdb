@@ -372,6 +372,19 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === false);
 		$ret = $ssdb->zget('TEST_a', 'a');
 		$this->assert($ret === null);
+		
+		$ssdb->zclear($name);
+		$ssdb->request('multi_zset', 'z', 'a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5');
+		$ret = $ssdb->zcount('z', 2, 4);
+		$this->assert($ret === 3);
+		$ret = $ssdb->zsum('z', 2, 4);
+		$this->assert($ret === 9);
+		$ret = $ssdb->zavg('z', 2, 3);
+		$this->assert($ret === 2.5);
+		$ret = $ssdb->zRemRangeByScore('z', 4, 5);
+		$this->assert($ret === 2);
+		$ret = $ssdb->zRemRangeByRank('z', 1, 2);
+		$this->assert($ret === 2);
 	}
 }
 

@@ -311,7 +311,15 @@ static int proc_zscan(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		uint64_t limit = req[5].Uint64();
+		uint64_t offset = 0;
+		if(req.size() > 6){
+			offset = limit;
+			limit = offset + req[6].Uint64();
+		}
 		ZIterator *it = serv->ssdb->zscan(req[1], req[2], req[3], req[4], limit);
+		if(offset > 0){
+			it->skip(offset);
+		}
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -327,7 +335,15 @@ static int proc_zrscan(Server *serv, Link *link, const Request &req, Response *r
 		resp->push_back("client_error");
 	}else{
 		uint64_t limit = req[5].Uint64();
+		uint64_t offset = 0;
+		if(req.size() > 6){
+			offset = limit;
+			limit = offset + req[6].Uint64();
+		}
 		ZIterator *it = serv->ssdb->zrscan(req[1], req[2], req[3], req[4], limit);
+		if(offset > 0){
+			it->skip(offset);
+		}
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
@@ -401,5 +417,115 @@ static int proc_zdecr(Server *serv, Link *link, const Request &req, Response *re
 	return _zincr(serv->ssdb, req, resp, -1);
 }
 
+static int proc_zcount(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	uint64_t count = 0;
+	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
+	while(it->next()){
+		count ++;
+	}
+	delete it;
+	
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
+	resp->push_back("ok");
+	resp->push_back(buf);
+	return 0;
+}
 
+static int proc_zsum(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	int64_t sum = 0;
+	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
+	while(it->next()){
+		sum += str_to_int64(it->score);
+	}
+	delete it;
+	
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%" PRId64 "", sum);
+	resp->push_back("ok");
+	resp->push_back(buf);
+	return 0;
+}
+
+static int proc_zavg(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	int64_t sum = 0;
+	uint64_t count = 0;
+	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
+	while(it->next()){
+		sum += str_to_int64(it->score);
+		count ++;
+	}
+	delete it;
+	
+	double avg = (double)sum/count;
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%f", avg);
+	resp->push_back("ok");
+	resp->push_back(buf);
+	return 0;
+}
+
+static int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
+	uint64_t count = 0;
+	while(it->next()){
+		count ++;
+		int ret = serv->ssdb->zdel(req[1], it->key);
+		if(ret == -1){
+			resp->push_back("error");
+			delete it;
+			return 0;
+		}
+	}
+	delete it;
+	
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
+	resp->push_back("ok");
+	resp->push_back(buf);
+	return 0;
+}
+
+static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+	uint64_t offset = req[2].Uint64();
+	uint64_t limit = req[3].Uint64();
+	ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+	uint64_t count = 0;
+	while(it->next()){
+		count ++;
+		int ret = serv->ssdb->zdel(req[1], it->key);
+		if(ret == -1){
+			resp->push_back("error");
+			delete it;
+			return 0;
+		}
+	}
+	delete it;
+	
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
+	resp->push_back("ok");
+	resp->push_back(buf);
+	return 0;
+}
 

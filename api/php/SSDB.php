@@ -132,6 +132,12 @@ class SSDB
 		$this->batch_cmds = array();
 		return $ret;
 	}
+	
+	function request(){
+		$args = func_get_args();
+		$cmd = array_shift($args);
+		return $this->__call($cmd, $args);
+	}
 
 	function __call($cmd, $params=array()){
 		$cmd = strtolower($cmd);
@@ -551,7 +557,14 @@ class SSDB
 			case 'zget':
 			case 'zrank':
 			case 'zrrank':
+			case 'zcount':
+			case 'zsum':
+			case 'zremrangebyrank':
+			case 'zremrangebyscore':
 				$val = isset($resp[1])? intval($resp[1]) : 0;
+				return new SSDB_Response($resp[0], $val);
+			case 'zavg':
+				$val = isset($resp[1])? floatval($resp[1]) : (float)0;
 				return new SSDB_Response($resp[0], $val);
 			case 'get':
 			case 'getset':

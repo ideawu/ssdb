@@ -24,6 +24,8 @@ enum STRATEGY{
 	STRATEGY_ZREVRANGEBYSCORE,
 	STRATEGY_ZADD,
 	STRATEGY_ZINCRBY,
+	STRATEGY_REMRANGEBYRANK,
+	STRATEGY_REMRANGEBYSCORE,
 	STRATEGY_NULL
 };
 
@@ -69,6 +71,9 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "zrem",		"multi_zdel",	REPLY_INT},
 	{STRATEGY_AUTO, "zrank",	"zrank",		REPLY_INT},
 	{STRATEGY_AUTO, "zrevrank",	"zrrank",		REPLY_INT},
+	{STRATEGY_AUTO, "zcount",	"zcount",		REPLY_INT},
+	{STRATEGY_REMRANGEBYRANK, "zremrangebyrank",	"zremrangebyrank",		REPLY_INT},
+	{STRATEGY_REMRANGEBYSCORE, "zremrangebyscore",	"zremrangebyscore",		REPLY_INT},
 	
 	/////////////////////////////////////
 	{STRATEGY_MGET, "mget",		"multi_get",	REPLY_MULTI_BULK},
@@ -164,14 +169,27 @@ int RedisLink::convert_req(){
 		}
 		return 0;
 	}
-	if(this->req_desc->strategy == STRATEGY_ZRANGE || this->req_desc->strategy == STRATEGY_ZREVRANGE){
+	if(this->req_desc->strategy == STRATEGY_REMRANGEBYRANK
+		|| this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE
+		|| this->req_desc->strategy == STRATEGY_ZRANGE
+		|| this->req_desc->strategy == STRATEGY_ZREVRANGE)
+	{
 		recv_string.push_back(req_desc->ssdb_cmd);
 		if(recv_bytes.size() >= 4){
 			int64_t start = recv_bytes[2].Int64();
 			int64_t end = recv_bytes[3].Int64();
 			
-			if(start >= 0 && end >= 0){
-				int64_t size = end - start + 1;
+			if((start >= 0 && end >= 0) || end == -1){
+				int64_t size;
+				if(end == -1){
+					size = -1;
+				}else{
+					if(this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE){
+						size = end;
+					}else{
+						size = end - start + 1;
+					}
+				}
 				recv_string.push_back(recv_bytes[1].String());
 				recv_string.push_back(recv_bytes[2].String());
 				recv_string.push_back(int64_to_str(size));
@@ -214,10 +232,6 @@ int RedisLink::convert_req(){
 		if(smin.empty() || smax.empty()){
 			return 0;
 		}
-		if(!offset.empty() && offset != "0"){
-			offset = "0";
-			//return 0;
-		}
 		
 		recv_string.push_back(name);
 		recv_string.push_back("");
@@ -251,6 +265,9 @@ int RedisLink::convert_req(){
 				smax = buf;
 			}
 			recv_string.push_back(smax);
+		}
+		if(!offset.empty()){
+			recv_string.push_back(offset);
 		}
 		if(count.empty()){
 			recv_string.push_back("999999999999");

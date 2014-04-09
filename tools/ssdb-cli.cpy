@@ -344,7 +344,7 @@ while(true){
 	if(len(ps) == 0){
 		continue;
 	}
-	cmd = ps[0];
+	cmd = ps[0].lower();
 	args = ps[1 .. ];
 	
 	try{
@@ -448,6 +448,12 @@ while(true){
 			case 'qsize':
 			case 'zrank':
 			case 'zrrank':
+			case 'zsum':
+			case 'zcount':
+			case 'zavg':
+			case 'zremrangebyrank':
+			case 'zremrangebyscore':
+			case 'zavg':
 			case 'multi_del':
 			case 'multi_hdel':
 			case 'multi_zdel':

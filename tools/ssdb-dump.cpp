@@ -102,7 +102,7 @@ int main(int argc, char **argv){
 		return 0;
 	}
 
-	link->send("dump", "A", "", "2147483647");
+	link->send("dump", "A", "", "-1");
 	link->flush();
 
 	leveldb::DB* db;
