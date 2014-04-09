@@ -334,6 +334,21 @@ exports.connect = function(host, port, timeout, listener){
 			}
 		});
 	}
+	
+	// callback(err,sum)
+	self.zsum = function(name, score_start, score_end, callback){
+		self.request('zsum', [name,score_start,score_end], function(resp){
+			if(callback){
+				var err = resp[0] == 'ok'? 0 : resp[0];
+				if(resp.length == 2){
+					var size = parseInt(resp[1]);
+					callback(err, size);
+				}else{
+					callback('error');
+				}
+			}
+		});
+	}
 
 	//////////////////////////////////////////////
 
