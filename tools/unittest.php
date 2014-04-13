@@ -156,9 +156,13 @@ class SSDBTest extends UnitTest{
 		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
 		$val = str_repeat(mt_rand(), mt_rand(1, 30));
 				
-		for($i=0; $i<10; $i++){
-			$ssdb->qpush($name, $i);
+		for($i=0; $i<7; $i++){
+			$size = $ssdb->qpush($name, $i);
+			$this->assert($size === $i + 1);
 		}
+		$size = $ssdb->qpush($name, array(7,8,9));
+		$this->assert($size == 10);
+		
 		$ret = $ssdb->qget($name, 3);
 		$this->assert($ret == 3);
 		$ret = $ssdb->qslice($name, 0, -1);

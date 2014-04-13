@@ -81,6 +81,8 @@ rm -f src/version.h
 echo "#ifndef SSDB_DEPS_H" >> src/version.h
 echo "#ifndef SSDB_VERSION" >> src/version.h
 echo "#define SSDB_VERSION \"`cat version`\"" >> src/version.h
+echo "#endif" >> src/version.h
+echo "#endif" >> src/version.h
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD)
 	;;
@@ -89,8 +91,6 @@ case "$TARGET_OS" in
 		echo "#include <jemalloc/jemalloc.h>" >> src/version.h
 	;;
 esac
-echo "#endif" >> src/version.h
-echo "#endif" >> src/version.h
 
 rm -f build_config.mk
 echo "MAKE=$MAKE" >> build_config.mk

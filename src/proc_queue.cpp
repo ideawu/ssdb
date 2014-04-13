@@ -61,17 +61,26 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		int ret;
-		if(front_or_back == QFRONT){
-			ret = serv->ssdb->qpush_front(req[1], req[2]);
-		}else{
-			ret = serv->ssdb->qpush_back(req[1], req[2]);
+		int64_t size = 0;
+		std::vector<Bytes>::const_iterator it;
+		it = req.begin() + 2;
+		for(; it != req.end(); it += 1){
+			const Bytes &item = *it;
+			if(front_or_back == QFRONT){
+				size = serv->ssdb->qpush_front(req[1], item);
+			}else{
+				size = serv->ssdb->qpush_back(req[1], item);
+			}
+			if(size == -1){
+				resp->push_back("error");
+				return 0;
+			}
 		}
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-		}
+		
+		char buf[20];
+		sprintf(buf, "%" PRId64 "", size);
+		resp->push_back("ok");
+		resp->push_back(buf);
 	}
 	return 0;
 }
@@ -190,6 +199,32 @@ static int proc_qslice(Server *serv, Link *link, const Request &req, Response *r
 	}else{
 		int64_t begin = req[2].Int64();
 		int64_t end = req[3].Int64();
+		std::vector<std::string> list;
+		int ret = serv->ssdb->qslice(req[1], begin, end, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
+	}
+	return 0;
+}
+
+static int proc_qrange(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		int64_t begin = req[2].Int64();
+		int64_t limit = req[3].Uint64();
+		int64_t end;
+		if(limit >= 0){
+			end = begin + limit - 1;
+		}else{
+			end = -1;
+		}
 		std::vector<std::string> list;
 		int ret = serv->ssdb->qslice(req[1], begin, end, &list);
 		if(ret == -1){

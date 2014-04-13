@@ -90,8 +90,8 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_ZRANGEBYSCORE,	"zrangebyscore",	"zscan",	REPLY_MULTI_BULK},
 	{STRATEGY_ZREVRANGEBYSCORE,	"zrevrangebyscore",	"zrscan",	REPLY_MULTI_BULK},
 
-	{STRATEGY_AUTO,		"lpush",		"qpush_front", 		REPLY_STATUS},
-	{STRATEGY_AUTO,		"rpush",		"qpush_back", 		REPLY_STATUS},
+	{STRATEGY_AUTO,		"lpush",		"qpush_front", 		REPLY_INT},
+	{STRATEGY_AUTO,		"rpush",		"qpush_back", 		REPLY_INT},
 	{STRATEGY_AUTO,		"lpop",			"qpop_front", 		REPLY_BULK},
 	{STRATEGY_AUTO,		"rpop",			"qpop_back", 		REPLY_BULK},
 	{STRATEGY_AUTO, 	"llen",			"qsize",			REPLY_INT},
