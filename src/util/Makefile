@@ -1,6 +1,6 @@
 include ../../build_config.mk
 
-OBJS = log.o fde.o config.o bytes.o sorted_set.o
+OBJS = log.o fde.o config.o bytes.o sorted_set.o ds_network.o
 EXES = 
 
 all: ${OBJS}
@@ -19,6 +19,9 @@ bytes.o: bytes.h bytes.cpp
 
 sorted_set.o: sorted_set.h sorted_set.cpp
 	g++ ${CFLAGS} -c sorted_set.cpp
+	
+ds_network.o: ds_network.h ds_network.cpp
+	g++ ${CFLAGS} -c ds_network.cpp
 
 
 test: sorted_set.o log.o

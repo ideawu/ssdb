@@ -8,8 +8,10 @@
 #include <netinet/tcp.h>
 
 #include "util/bytes.h"
+#include "util/ds_network.h"
 
 #include "link_redis.h"
+
 
 class Link{
 	private:
@@ -50,10 +52,12 @@ class Link{
 		void mark_error(){
 			error_ = true;
 		}
+		static Link* connect(const char *path);
+		static Link* listen(mode_t perm,const char *path);
 
 		static Link* connect(const char *ip, int port);
 		static Link* listen(const char *ip, int port);
-		Link* accept();
+		Link* accept(bool is_sock);
 
 		// read network data info buffer
 		int read();

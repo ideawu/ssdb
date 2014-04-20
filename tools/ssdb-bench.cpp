@@ -59,6 +59,22 @@ void init_data(int num){
 	}
 }
 
+void init_links(int num, const char *path){
+	fdes = new Fdevents();
+	free_links = new std::vector<Link *>();
+	busy_links = new std::vector<Link *>();
+
+	for(int i=0; i<num; i++){
+		Link *link = Link::connect(path);
+		if(!link){
+			printf("connect error! %s\n", strerror(errno));
+			exit(0);
+		}
+		fdes->set(link->fd(), FDEVENT_IN, 0, link);
+		free_links->push_back(link);
+	}
+}
+
 void init_links(int num, const char *ip, int port){
 	fdes = new Fdevents();
 	free_links = new std::vector<Link *>();
@@ -195,7 +211,11 @@ int main(int argc, char **argv){
 	//printf("preparing data...\n");
 	init_data(requests);
 	//printf("preparing links...\n");
-	init_links(clients, ip, port);
+	if(port == 0){
+		init_links(clients, ip);
+	}else{
+		init_links(clients, ip, port);
+	}
 
 	bench("set");
 	bench("get");

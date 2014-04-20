@@ -81,7 +81,12 @@ int main(int argc, char **argv){
 }
 
 Link* accept_link(){
-	Link *link = serv_link->accept();
+	Link *link ;
+	if(strlen(conf->get_str("unixsocket"))){//add domain socket support
+		link = serv_link->accept(true);
+	}else{
+		link = serv_link->accept(false);
+	}
 	if(link == NULL){
 		log_error("accept failed! %s", strerror(errno));
 		return NULL;
@@ -429,14 +434,30 @@ void init(int argc, char **argv){
 	{ // server
 		const char *ip = conf->get_str("server.ip");
 		int port = conf->get_num("server.port");
-		
-		serv_link = Link::listen(ip, port);
+
+		const char *path = conf->get_str("server.unixsocket");
+		int perm = conf->get_num("server.unixsocketperm");
+
+		if(strlen(path)){
+			//fprintf(stderr,"using unix domain socket,path:%s perm:%d\n",path,perm);
+			unlink(path);
+			serv_link = Link::listen(perm,path);
+		}else{
+			//fprintf(stderr,"using tcp protocol,ip:%s port:%d\n",ip,port);
+			serv_link = Link::listen(ip, port);
+		}
+
 		if(serv_link == NULL){
 			log_fatal("error opening server socket! %s", strerror(errno));
 			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
 			exit(1);
 		}
-		log_info("server listen on: %s:%d", ip, port);
+		if(strlen(path)){
+			log_info("server listen on sock path %s with perm %d", path,perm);
+		}else{
+			log_info("server listen on: %s:%d", ip, port);
+		}
+
 	}
 
 	// WARN!!!

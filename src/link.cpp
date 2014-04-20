@@ -73,6 +73,20 @@ void Link::noblock(bool enable){
 	}
 }
 
+//client & domain socket
+Link* Link::connect(const char *path){
+	Link *link;
+	int sock;
+	char err[255];
+	sock = anetUnixConnect(err,path);
+	if(sock == ANET_ERR){
+		return NULL;
+	}
+	link = new Link();
+	link->sock = sock;
+	link->keepalive(true);
+	return link;
+}
 
 Link* Link::connect(const char *ip, int port){
 	Link *link;
@@ -102,6 +116,27 @@ sock_err:
 		::close(sock);
 	}
 	return NULL;
+}
+
+Link* Link::listen(mode_t perm,const char *path){
+	char err[255];
+	int sock = -1;
+	Link* link;
+
+	sock = anetUnixServer(err,path,perm);
+	if(sock == ANET_ERR){
+		fprintf(stderr, "error create unix domain! %s", err);
+		return NULL;
+	}
+
+	//log_debug("server socket fd: %d, listen on: %s:%d", sock, path, perm);
+
+	link = new Link(true);//new出来的是指针.
+	link->sock = sock;
+
+
+	return link;
+
 }
 
 Link* Link::listen(const char *ip, int port){
@@ -142,31 +177,44 @@ sock_err:
 	return NULL;
 }
 
-Link* Link::accept(){
+Link* Link::accept(bool is_unixsocket = false){
 	Link *link;
 	int client_sock;
-	struct sockaddr_in addr;
-	socklen_t addrlen = sizeof(addr);
-
-	while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
-		if(errno != EINTR){
-			//log_error("socket %d accept failed: %s", sock, strerror(errno));
+	if(is_unixsocket){
+		char err[255];
+		client_sock = anetUnixAccept(err,sock);
+		if(client_sock == ANET_ERR){
 			return NULL;
 		}
+		link = new Link();
+		link->sock = client_sock;
+		link->keepalive(true);
+		return link;
+	}else{
+		struct sockaddr_in addr;
+		socklen_t addrlen = sizeof(addr);
+
+		while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
+			if(errno != EINTR){
+				//log_error("socket %d accept failed: %s", sock, strerror(errno));
+				return NULL;
+			}
+		}
+
+		struct linger opt = {1, 0};
+		int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
+		if (ret != 0) {
+			//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
+		}
+
+		link = new Link();
+		link->sock = client_sock;
+		link->keepalive(true);
+		inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));
+		link->remote_port = ntohs(addr.sin_port);
+		return link;
 	}
 
-	struct linger opt = {1, 0};
-	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
-	if (ret != 0) {
-		//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
-	}
-
-	link = new Link();
-	link->sock = client_sock;
-	link->keepalive(true);
-	inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));
-	link->remote_port = ntohs(addr.sin_port);
-	return link;
 }
 
 int Link::read(){
