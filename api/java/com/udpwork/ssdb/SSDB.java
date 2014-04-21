@@ -7,6 +7,7 @@ package com.udpwork.ssdb;
  * SSDB ssdb = new SSDB("127.0.0.1", 8888);
  * ssdb.set("a", "123");
  * byte[] val = ssdb.get("a");
+ * ssdb.close();
  * </pre>
  */
 public class SSDB{
