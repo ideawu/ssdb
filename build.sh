@@ -4,7 +4,16 @@ TARGET_OS=`uname -s`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
-MAKE=make
+
+if test -z "$MAKE"; then
+	MAKE=make
+fi
+if test -z "$CC"; then
+	CC=gcc
+fi
+if test -z "$CXX"; then
+	CXX=g++
+fi
 
 case "$TARGET_OS" in
     Darwin)
@@ -93,6 +102,8 @@ echo "#endif" >> src/version.h
 echo "#endif" >> src/version.h
 
 rm -f build_config.mk
+echo CC=$CC >> build_config.mk
+echo CXX=$CXX >> build_config.mk
 echo "MAKE=$MAKE" >> build_config.mk
 echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
