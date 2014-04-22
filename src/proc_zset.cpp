@@ -507,9 +507,9 @@ static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Re
 		resp->push_back("client_error");
 		return 0;
 	}
-	uint64_t offset = req[2].Uint64();
-	uint64_t limit = req[3].Uint64();
-	ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+	uint64_t start = req[2].Uint64();
+	uint64_t end = req[3].Uint64();
+	ZIterator *it = serv->ssdb->zrange(req[1], start, end - start + 1);
 	uint64_t count = 0;
 	while(it->next()){
 		count ++;
