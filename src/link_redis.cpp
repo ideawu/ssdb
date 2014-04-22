@@ -170,8 +170,17 @@ int RedisLink::convert_req(){
 		return 0;
 	}
 	if(this->req_desc->strategy == STRATEGY_REMRANGEBYRANK
-		|| this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE
-		|| this->req_desc->strategy == STRATEGY_ZRANGE
+		|| this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE)
+	{
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() >= 4){
+			recv_string.push_back(recv_bytes[1].String());
+			recv_string.push_back(recv_bytes[2].String());
+			recv_string.push_back(recv_bytes[3].String());
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZRANGE
 		|| this->req_desc->strategy == STRATEGY_ZREVRANGE)
 	{
 		recv_string.push_back(req_desc->ssdb_cmd);
