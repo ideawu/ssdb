@@ -70,7 +70,7 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
-			resp->push_back("ok");
+			proc_qsize(serv, link, req, resp); // resp as "qsize"
 		}
 	}
 	return 0;
