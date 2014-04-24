@@ -647,7 +647,11 @@ class SSDB
 					if(count($resp) % 2 == 1){
 						$data = array();
 						for($i=1; $i<count($resp); $i+=2){
-							$data[$resp[$i]] = $resp[$i + 1];
+							if($cmd[0] == 'z'){
+								$data[$resp[$i]] = intval($resp[$i + 1]);
+							}else{
+								$data[$resp[$i]] = $resp[$i + 1];
+							}
 						}
 						return new SSDB_Response('ok', $data);
 					}else{

@@ -198,7 +198,11 @@ static ZIterator* ziterator(
 		if(score_start.empty()){
 			start = encode_zscore_key(name, key_start, SSDB_SCORE_MAX);
 		}else{
-			start = encode_zscore_key(name, key_start, score_start);
+			if(key_start.empty()){
+				start = encode_zscore_key(name, "\xff", score_start);
+			}else{
+				start = encode_zscore_key(name, key_start, score_start);
+			}
 		}
 		if(score_end.empty()){
 			end = encode_zscore_key(name, "", SSDB_SCORE_MIN);
