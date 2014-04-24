@@ -156,9 +156,13 @@ class SSDBTest extends UnitTest{
 		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
 		$val = str_repeat(mt_rand(), mt_rand(1, 30));
 				
-		for($i=0; $i<10; $i++){
-			$ssdb->qpush($name, $i);
+		for($i=0; $i<7; $i++){
+			$size = $ssdb->qpush($name, $i);
+			$this->assert($size === $i + 1);
 		}
+		$size = $ssdb->qpush($name, array(7,8,9));
+		$this->assert($size == 10);
+		
 		$ret = $ssdb->qget($name, 3);
 		$this->assert($ret == 3);
 		$ret = $ssdb->qslice($name, 0, -1);
@@ -374,17 +378,35 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === null);
 		
 		$ssdb->zclear($name);
-		$ssdb->request('multi_zset', 'z', 'a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5');
-		$ret = $ssdb->zcount('z', 2, 4);
+		$ssdb->request('multi_zset', $name, 'a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5');
+		$ret = $ssdb->zcount($name, 2, 4);
 		$this->assert($ret === 3);
-		$ret = $ssdb->zsum('z', 2, 4);
+		$ret = $ssdb->zsum($name, 2, 4);
 		$this->assert($ret === 9);
-		$ret = $ssdb->zavg('z', 2, 3);
+		$ret = $ssdb->zavg($name, 2, 3);
 		$this->assert($ret === 2.5);
-		$ret = $ssdb->zRemRangeByScore('z', 4, 5);
+		$ret = $ssdb->zRemRangeByScore($name, 4, 5);
 		$this->assert($ret === 2);
-		$ret = $ssdb->zRemRangeByRank('z', 1, 2);
+		$ret = $ssdb->zRemRangeByRank($name, 1, 2);
 		$this->assert($ret === 2);
+
+		$ssdb->zclear($name);
+		for($i=0; $i<10; $i++){
+			$ssdb->zset($name, $i, $i);
+		}
+		$ret = $ssdb->zscan($name, '', 3, 10, 1);
+		$vals = array_values($ret);
+		$this->assert($vals[0] === 3);
+		$ret = $ssdb->zscan($name, '3', 3, 10, 1);
+		$vals = array_values($ret);
+		$this->assert($vals[0] === 4);
+
+		$ret = $ssdb->zrscan($name, '', 3, 1, 1);
+		$vals = array_values($ret);
+		$this->assert($vals[0] === 3);
+		$ret = $ssdb->zrscan($name, '3', 3, 1, 1);
+		$vals = array_values($ret);
+		$this->assert($vals[0] === 2);
 	}
 }
 

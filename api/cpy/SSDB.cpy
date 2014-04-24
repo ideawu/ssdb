@@ -130,6 +130,9 @@ class SSDB{
 			case 'hclear':
 			case 'zclear':
 			case 'qclear':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{

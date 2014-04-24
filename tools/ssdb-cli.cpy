@@ -460,6 +460,9 @@ while(true){
 			case 'hclear':
 			case 'zclear':
 			case 'qclear':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
@@ -470,9 +473,6 @@ while(true){
 			case 'del':
 			case 'zdel':
 			case 'hdel':
-			case 'qpush':
-			case 'qpush_front':
-			case 'qpush_back':
 				print resp.code;
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
@@ -522,6 +522,7 @@ while(true){
 			case 'zlist':
 			case 'qlist':
 			case 'qslice':
+			case 'qrange':
 				printf('  %15s\n', 'name');
 				print ('-' * 17);
 				foreach(resp.data as k){

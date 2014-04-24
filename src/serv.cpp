@@ -116,6 +116,7 @@ static proc_map_t proc_map;
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
 	DEF_PROC(qslice);
+	DEF_PROC(qrange);
 	DEF_PROC(qget);
 
 	DEF_PROC(dump);
@@ -208,6 +209,7 @@ static Command commands[] = {
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),
 	PROC(qslice, "rt"),
+	PROC(qrange, "rt"),
 	PROC(qget, "r"),
 
 	PROC(clear_binlog, "wt"),

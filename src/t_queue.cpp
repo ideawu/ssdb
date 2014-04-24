@@ -113,7 +113,7 @@ int SSDB::qback(const Bytes &name, std::string *item){
 	return ret;
 }
 
-int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
+int64_t SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 
 	int ret;
@@ -167,14 +167,14 @@ int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_se
 		log_error("Write error!");
 		return -1;
 	}
-	return 1;
+	return size;
 }
 
-int SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QFRONT_SEQ, log_type);
 }
 
-int SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QBACK_SEQ, log_type);
 }
 

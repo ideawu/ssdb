@@ -3,7 +3,10 @@
 		- Reduce round trip time for single request(2014-04-04)
 		- Add zcount, zsum, zavg, zRemRangeByScore, zRemRangeByRank commands(2014-04-06)
 		- Update redis-import.php to use Redis SCAN command if available(2014-04-07)
+		- qpush/qpush_* accept multiple values(2014-04-13)
 	* Incompatible changes:
+		- qpush returns the length of the queue/list after the push operations(2014-04-10)
+		- zrscan returns keys with score equal to score_start if key_start is ommit, previously it only returns keys with scores less than score_start(2014-04-23)
 	* Bug fixes:
 		- Redesign network flow, support very large batch commands
 		- Fix bug on ssdb-dump that lose data, print out error message(2014-04-05)

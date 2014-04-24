@@ -113,9 +113,9 @@ public:
 	int qfront(const Bytes &name, std::string *item);
 	// @return 0: empty queue, 1: item peeked, -1: error
 	int qback(const Bytes &name, std::string *item);
-	// @return -1: error, 1: item added
-	int qpush_front(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
-	int qpush_back(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
+	// @return -1: error, other: the new length of the queue
+	int64_t qpush_front(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
+	int64_t qpush_back(const Bytes &name, const Bytes &item, char log_type=BinlogType::SYNC);
 	// @return 0: empty queue, 1: item popped, -1: error
 	int qpop_front(const Bytes &name, std::string *item, char log_type=BinlogType::SYNC);
 	int qpop_back(const Bytes &name, std::string *item, char log_type=BinlogType::SYNC);
@@ -127,7 +127,7 @@ public:
 	int qget(const Bytes &name, int64_t index, std::string *item);
 
 private:
-	int _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
+	int64_t _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
 	int _qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
 };
 

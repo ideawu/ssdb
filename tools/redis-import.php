@@ -133,7 +133,8 @@ function scan_command_available(){
 	global $redis;
 
 	if(method_exists($redis, 'scan')){
-		$redis_version = $redis->info()['redis_version'];
+		$info = $redis->info();
+		$redis_version = $info['redis_version'];
 		$ps = explode('.', $redis_version);
 		if(count($ps) > 2){
 			$n = $ps[0] * 10 + $ps[1];
