@@ -131,6 +131,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	this->last_seq = 0;
 	this->tran_seq = 0;
 	this->capacity = LOG_QUEUE_SIZE;
+	this->no_log_ = false;
 	
 	Binlog log;
 	if(this->find_last(&log) == 1){
@@ -206,13 +207,23 @@ leveldb::Status BinlogQueue::commit(){
 	return s;
 }
 
+void BinlogQueue::no_log(){
+	no_log_ = true;
+}
+
 void BinlogQueue::add_log(char type, char cmd, const leveldb::Slice &key){
+	if(no_log_){
+		return;
+	}
 	tran_seq ++;
 	Binlog log(tran_seq, type, cmd, key);
 	batch.Put(encode_seq_key(tran_seq), log.repr());
 }
 
 void BinlogQueue::add_log(char type, char cmd, const std::string &key){
+	if(no_log_){
+		return;
+	}
 	leveldb::Slice s(key);
 	this->add_log(type, cmd, s);
 }
