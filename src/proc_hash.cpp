@@ -247,6 +247,21 @@ static int proc_hclear(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
+static int proc_hgetall(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		HIterator *it = serv->ssdb->hscan(req[1], "", "", 9999999999);
+		resp->push_back("ok");
+		while(it->next()){
+			resp->push_back(it->key);
+			resp->push_back(it->val);
+		}
+		delete it;
+	}
+	return 0;
+}
+
 static int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");

@@ -478,6 +478,7 @@ while(true){
 				break;
 			case 'scan':
 			case 'rscan':
+			case 'hgetall':
 			case 'hscan':
 			case 'hrscan':
 				printf('%-15s %s\n', 'key', 'value');
