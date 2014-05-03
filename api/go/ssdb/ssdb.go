@@ -81,6 +81,14 @@ func (c *Client) send(args []interface{}) error {
 			s = arg
 		case []byte:
 			s = string(arg)
+		case []string:
+			for _, s := range arg {
+				buf.WriteString(fmt.Sprintf("%d", len(s)))
+				buf.WriteByte('\n')
+				buf.WriteString(s)
+				buf.WriteByte('\n')
+			}
+			continue
 		case int:
 			s = fmt.Sprintf("%d", arg)
 		case int64:

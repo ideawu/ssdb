@@ -16,8 +16,14 @@ func main() {
 	}
 
 	defer db.Close()
-
 	var val interface{}
+
+	keys := []string{}
+	keys = append(keys, "c");
+	keys = append(keys, "d");
+	val, err = db.Do("multi_get", "a", "b", keys);
+	fmt.Printf("%s\n", val);
+
 	db.Set("a", "xxx")
 	val, err = db.Get("a")
 	fmt.Printf("%s\n", val)
