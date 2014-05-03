@@ -4,6 +4,7 @@
 #include "ttl.h"
 
 #define EXPIRATION_LIST_KEY "\xff\xff\xff\xff\xff|EXPIRE_LIST|KV"
+#define NUM_EXPIRATION_KEYS_IN_MEM    1000
 
 ExpirationHandler::ExpirationHandler(SSDB *ssdb){
 	this->ssdb = ssdb;
@@ -18,10 +19,9 @@ ExpirationHandler::~ExpirationHandler(){
 	thread_quit = true;
 }
 
-void ExpirationHandler::start(){
-	int count = 0;
+void ExpirationHandler::load_expiration_keys_from_db(int num){
 	ZIterator *it;
-	it = ssdb->zscan(this->list_name, "", "", "", 999999999);
+	it = ssdb->zscan(this->list_name, "", "", "", num);
 	while(it->next()){
 		int64_t score = str_to_int64(it->score);
 		if(score < 2000000000){
@@ -29,11 +29,13 @@ void ExpirationHandler::start(){
 			score *= 1000;
 		}
 		expiration_keys.add(it->key, score);
-		count ++;
 	}
 	delete it;
-	log_debug("loaded %d expiration key(s)", count);
-	
+}
+
+void ExpirationHandler::start(){
+	this->load_expiration_keys_from_db(NUM_EXPIRATION_KEYS_IN_MEM);
+
 	thread_quit = false;
 	pthread_t tid;
 	int err = pthread_create(&tid, NULL, &ExpirationHandler::thread_func, this);
@@ -68,6 +70,9 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 		return -1;
 	}
 	expiration_keys.add(key.String(), expired);
+	if(expiration_keys.size() > NUM_EXPIRATION_KEYS_IN_MEM){
+		expiration_keys.pop_back();
+	}
 	
 	return 0;
 }
@@ -93,6 +98,10 @@ void* ExpirationHandler::thread_func(void *arg){
 					ssdb->del(*key);
 					ssdb->zdel(handler->list_name, *key);
 					handler->expiration_keys.pop_front();
+					
+					if(handler->expiration_keys.empty()){
+						handler->load_expiration_keys_from_db(NUM_EXPIRATION_KEYS_IN_MEM);
+					}
 					continue;
 				}
 			}

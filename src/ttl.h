@@ -24,6 +24,7 @@ private:
 	void start();
 	void stop();
 	static void* thread_func(void *arg);
+	void load_expiration_keys_from_db(int num);
 };
 
 #endif
