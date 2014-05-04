@@ -61,12 +61,12 @@ class BinlogQueue{
 		int del_range(uint64_t start, uint64_t end);
 		
 		void merge();
+		bool no_log_;
 	public:
 		Mutex mutex;
 
 		BinlogQueue(leveldb::DB *db);
 		~BinlogQueue();
-		
 		void begin();
 		void rollback();
 		leveldb::Status commit();
@@ -74,6 +74,7 @@ class BinlogQueue{
 		void Put(const leveldb::Slice& key, const leveldb::Slice& value);
 		// leveldb delete
 		void Delete(const leveldb::Slice& key);
+		void no_log();
 		void add_log(char type, char cmd, const leveldb::Slice &key);
 		void add_log(char type, char cmd, const std::string &key);
 		

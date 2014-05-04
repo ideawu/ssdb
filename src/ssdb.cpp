@@ -47,10 +47,15 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int block_size = conf.get_num("leveldb.block_size");
 	int compaction_speed = conf.get_num("leveldb.compaction_speed");
 	std::string compression = conf.get_str("leveldb.compression");
+	std::string binlog_onoff = conf.get_str("replication.binlog");
 
 	strtolower(&compression);
 	if(compression != "yes"){
 		compression = "no";
+	}
+	strtolower(&binlog_onoff);
+	if(binlog_onoff != "no"){
+		binlog_onoff = "yes";
 	}
 
 	if(cache_size <= 0){
@@ -70,6 +75,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("write_buffer     : %d MB", write_buffer_size);
 	log_info("compaction_speed : %d MB/s", compaction_speed);
 	log_info("compression      : %s", compression.c_str());
+	log_info("binlog           : %s", binlog_onoff.c_str());
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -101,6 +107,9 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 		goto err;
 	}
 	ssdb->binlogs = new BinlogQueue(ssdb->db);
+	if(binlog_onoff == "no"){
+		ssdb->binlogs->no_log();
+	}
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");

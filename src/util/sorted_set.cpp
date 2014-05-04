@@ -74,12 +74,24 @@ int SortedSet::front(std::string *key, int64_t *score) const{
 }
 
 int SortedSet::pop_front(){
-	std::set<Item>::iterator it2 = sorted_set.begin();
-	if(it2 == sorted_set.end()){
+	if(sorted_set.empty()){
 		return 0;
 	}
-	const Item &item = *it2;
+	std::set<Item>::iterator it = sorted_set.begin();
+	const Item &item = *it;
 	existed.erase(item.key);
-	sorted_set.erase(it2);
+	sorted_set.erase(it);
+	return 1;
+}
+
+int SortedSet::pop_back(){
+	if(sorted_set.empty()){
+		return 0;
+	}
+	std::set<Item>::iterator it = sorted_set.end();
+	it --;
+	const Item &item = *it;
+	existed.erase(item.key);
+	sorted_set.erase(it);
 	return 1;
 }

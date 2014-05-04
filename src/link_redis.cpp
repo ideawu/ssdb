@@ -79,7 +79,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_MGET, "mget",		"multi_get",	REPLY_MULTI_BULK},
 	{STRATEGY_HMGET, "hmget",	"multi_hget",	REPLY_MULTI_BULK},
 	
-	{STRATEGY_HGETALL,	"hgetall",		"hscan",		REPLY_MULTI_BULK},
+	{STRATEGY_HGETALL,	"hgetall",		"hgetall",		REPLY_MULTI_BULK},
 	{STRATEGY_HKEYS,	"hkeys", 		"hkeys", 		REPLY_MULTI_BULK},
 	{STRATEGY_HVALS,	"hvals", 		"hvals", 		REPLY_MULTI_BULK},
 	{STRATEGY_SETEX,	"setex",		"setx", 		REPLY_STATUS},
@@ -128,7 +128,7 @@ int RedisLink::convert_req(){
 	}
 	this->req_desc = &(it->second);
 
-	if(this->req_desc->strategy == STRATEGY_HGETALL || this->req_desc->strategy == STRATEGY_HKEYS
+	if(this->req_desc->strategy == STRATEGY_HKEYS
 			||  this->req_desc->strategy == STRATEGY_HVALS
 	){
 		recv_string.push_back(req_desc->ssdb_cmd);

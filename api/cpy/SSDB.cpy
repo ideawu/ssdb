@@ -167,6 +167,7 @@ class SSDB{
 				break;
 			case 'scan':
 			case 'rscan':
+			case 'hgetall':
 			case 'hscan':
 			case 'hrscan':
 				if(resp[0] == 'ok'){
