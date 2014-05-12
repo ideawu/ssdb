@@ -7,6 +7,7 @@
 		- Don't push all expiration keys in memory, use less memory(2014-05-03)
 		- Provide an option to disable binlog(2014-05-03)
 		- Add hgetall command(2014-05-03)
+		- Fix memory issue on cache_size larger than 2048(2014-05-12);
 	* Incompatible changes:
 		- qpush returns the length of the queue/list after the push operations(2014-04-10)
 		- zrscan returns keys with score equal to score_start if key_start is ommit, previously it only returns keys with scores less than score_start(2014-04-23)
