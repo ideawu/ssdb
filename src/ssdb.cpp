@@ -42,7 +42,7 @@ SSDB::~SSDB(){
 SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	std::string main_db_path = base_dir + "/data";
 	std::string meta_db_path = base_dir + "/meta";
-	int cache_size = conf.get_num("leveldb.cache_size");
+	size_t cache_size = (size_t)conf.get_num("leveldb.cache_size");
 	int write_buffer_size = conf.get_num("leveldb.write_buffer_size");
 	int block_size = conf.get_num("leveldb.block_size");
 	int compaction_speed = conf.get_num("leveldb.compaction_speed");
