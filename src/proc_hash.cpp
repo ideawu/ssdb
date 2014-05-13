@@ -251,7 +251,7 @@ static int proc_hgetall(Server *serv, Link *link, const Request &req, Response *
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		HIterator *it = serv->ssdb->hscan(req[1], "", "", 9999999999);
+		HIterator *it = serv->ssdb->hscan(req[1], "", "", 2000000000);
 		resp->push_back("ok");
 		while(it->next()){
 			resp->push_back(it->key);
