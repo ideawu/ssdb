@@ -100,9 +100,13 @@ void* BackendSync::_run_thread(void *arg){
 			idle = 0;
 		}
 
+		float data_size_mb = link->output->size() / 1024.0 / 1024.0;
 		if(link->flush() == -1){
 			log_info("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
 			break;
+		}
+		if(ssdb->get_sync_speed() > 0){
+			usleep((data_size_mb / ssdb->get_sync_speed()) * 1000 * 1000);
 		}
 	}
 
