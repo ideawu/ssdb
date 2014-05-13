@@ -1,6 +1,8 @@
 #!/bin/sh
 BASE_DIR=`pwd`
-TARGET_OS=`uname -s`
+if test -z "$TARGET_OS"; then
+	TARGET_OS=`uname -s`
+fi
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
@@ -22,6 +24,10 @@ case "$TARGET_OS" in
         ;;
     Linux)
         PLATFORM_CLIBS="-pthread"
+        ;;
+    OS_ANDROID_CROSSCOMPILE)
+        PLATFORM_CLIBS="-pthread"
+        SNAPPY_HOST="--host=i386-linux"
         ;;
     CYGWIN_*)
         PLATFORM_CLIBS="-lpthread"
@@ -56,7 +62,7 @@ cd $SNAPPY_PATH
 if [ ! -f Makefile ]; then
 	echo ""
 	echo "##### building snappy... #####"
-	./configure
+	./configure $SNAPPY_HOST
 	# FUCK! snappy compilation doesn't work on some linux!
 	find . | xargs touch
 	make
@@ -67,7 +73,7 @@ cd "$DIR"
 
 
 case "$TARGET_OS" in
-	CYGWIN*|FreeBSD)
+	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)
 		echo "not using jemalloc on $TARGET_OS"
 	;;
 	*)
@@ -95,6 +101,9 @@ echo "#endif" >> src/version.h
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD)
 	;;
+        OS_ANDROID_CROSSCOMPILE)
+                echo "#define OS_ANDROID 1" >> src/version.h
+        ;;
 	*)
 		echo "#include <stdlib.h>" >> src/version.h
 		echo "#include <jemalloc/jemalloc.h>" >> src/version.h
@@ -121,7 +130,7 @@ echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
 
 
 case "$TARGET_OS" in
-	CYGWIN*|FreeBSD)
+	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)
 	;;
 	*)
 		echo "CLIBS += \"$JEMALLOC_PATH/lib/libjemalloc.a\"" >> build_config.mk
