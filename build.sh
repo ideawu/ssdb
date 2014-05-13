@@ -1,12 +1,12 @@
 #!/bin/sh
 BASE_DIR=`pwd`
-if test -z "$TARGET_OS"; then
-	TARGET_OS=`uname -s`
-fi
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.14.0"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
+if test -z "$TARGET_OS"; then
+	TARGET_OS=`uname -s`
+fi
 if test -z "$MAKE"; then
 	MAKE=make
 fi
