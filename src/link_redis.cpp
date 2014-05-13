@@ -136,7 +136,7 @@ int RedisLink::convert_req(){
 			recv_string.push_back(recv_bytes[1].String());
 			recv_string.push_back("");
 			recv_string.push_back("");
-			recv_string.push_back("99999999999999");
+			recv_string.push_back("2000000000");
 		}
 		return 0;
 	}
@@ -279,7 +279,7 @@ int RedisLink::convert_req(){
 			recv_string.push_back(offset);
 		}
 		if(count.empty()){
-			recv_string.push_back("999999999999");
+			recv_string.push_back("2000000000");
 		}else{
 			recv_string.push_back(count);
 		}
