@@ -9,7 +9,7 @@
 #include "t_hash.h"
 #include "t_zset.h"
 
-SSDB::SSDB(){
+SSDB::SSDB(): sync_speed_(0){
 	db = NULL;
 	meta_db = NULL;
 	binlogs = NULL;
@@ -114,6 +114,8 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
+			ssdb->sync_speed_ = repl_conf->get_num("sync_speed");
+			log_info("sync_speed      : %d MB/s", ssdb->sync_speed_);
 			std::vector<Config *> children = repl_conf->children;
 			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
 				Config *c = *it;
