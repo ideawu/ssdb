@@ -24,6 +24,7 @@ private:
 	leveldb::DB* db;
 	leveldb::DB* meta_db;
 	leveldb::Options options;
+	int sync_speed_;
 
 	std::vector<Slave *> slaves;
 	
@@ -42,6 +43,7 @@ public:
 	std::vector<std::string> info() const;
 	void compact() const;
 	int key_range(std::vector<std::string> *keys) const;
+	int sync_speed() const { return sync_speed_; }
 
 	/* raw operates */
 
