@@ -1,3 +1,7 @@
+* 1.6.8.7 (2014-05-15)
+	* New features:
+		- Support Android build
+		- Add sync speed limit
 * 1.6.8.6 (2014-03-29)
 	* New features:
 		- Reduce round trip time for single request(2014-04-04)
