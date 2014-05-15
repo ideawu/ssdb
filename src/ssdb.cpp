@@ -48,6 +48,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int compaction_speed = conf.get_num("leveldb.compaction_speed");
 	std::string compression = conf.get_str("leveldb.compression");
 	std::string binlog_onoff = conf.get_str("replication.binlog");
+	int sync_speed = conf.get_num("replication.sync_speed");
 
 	strtolower(&compression);
 	if(compression != "yes"){
@@ -76,6 +77,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("compaction_speed : %d MB/s", compaction_speed);
 	log_info("compression      : %s", compression.c_str());
 	log_info("binlog           : %s", binlog_onoff.c_str());
+	log_info("sync_speed       : %d MB/s", sync_speed);
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -114,8 +116,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
-			ssdb->sync_speed_ = repl_conf->get_num("sync_speed");
-			log_info("sync_speed      : %d MB/s", ssdb->sync_speed_);
+			ssdb->sync_speed_ = sync_speed;
 			std::vector<Config *> children = repl_conf->children;
 			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
 				Config *c = *it;
