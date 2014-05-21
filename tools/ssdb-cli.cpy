@@ -130,7 +130,7 @@ function flushdb(link, data_type){
 	printf('\n');
 	printf('============================ DANGER! ============================\n');
 	printf('This operation is DANGEROUS and is not recoverable, if you\n');
-	printf('realy want to flush the whole db(delete ALL data in ssdb server),\n');
+	printf('really want to flush the whole db(delete ALL data in ssdb server),\n');
 	printf('input \'yes\' and press Enter, or just press Enter to cancel\n');
 	printf('=================================================================\n');
 	printf('\n');
