@@ -126,6 +126,20 @@ function zclear(link, zname, verbose=true){
 	return ret;
 }
 
+function qclear(link, zname, verbose=true){
+	ret = 0;
+	num = 0;
+	batch = 1000;
+	last_count = 0;
+
+	r = link.request('qclear', [zname]);
+	try{
+		ret = r.data;
+	}catch(Exception e){
+	}
+	return ret;
+}
+
 function flushdb(link, data_type){
 	printf('\n');
 	printf('============================ DANGER! ============================\n');
@@ -208,6 +222,31 @@ function flushdb(link, data_type){
 		}
 		printf('delete[zset] %d zset(s), %d key(s).\n', d_zset, d_zkeys);
 	}
+	
+	d_list = 0;
+	d_lkeys = 0;
+	if(data_type == '' || data_type == 'list'){
+		while(true){
+			resp = link.request('qlist', ['', '', batch]);
+			if(len(resp.data) == 0){
+				break;
+			}
+			last_num = 0;
+			foreach(resp.data as zname){
+				d_list += 1;
+				deleted_num = qclear(link, zname, false);
+				d_lkeys += deleted_num;
+				if(d_zkeys - last_num >= batch){
+					last_num = d_lkeys;
+					printf('delete[list] %d list(s), %d key(s).\n', d_list, d_lkeys);
+				}
+			}
+			if(d_lkeys - last_num >= batch){
+				printf('delete[list] %d list(s), %d key(s).\n', d_list, d_lkeys);
+			}
+		}
+		printf('delete[list] %d list(s), %d key(s).\n', d_list, d_lkeys);
+	}
 
 	printf('\n');
 	printf('===== flushdb stats =====\n');
@@ -219,6 +258,9 @@ function flushdb(link, data_type){
 	}
 	if(data_type == '' || data_type == 'zset'){
 		printf('[zset] %8d zset(s), %8d key(s).\n', d_zset, d_zkeys);
+	}
+	if(data_type == '' || data_type == 'list'){
+		printf('[list] %8d list(s), %8d key(s).\n', d_list, d_lkeys);
 	}
 	printf('\n');
 	

@@ -8,6 +8,7 @@
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
+#include "t_queue.h"
 
 SSDB::SSDB(): sync_speed_(0){
 	db = NULL;
@@ -261,6 +262,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 	std::string kstart, kend;
 	std::string hstart, hend;
 	std::string zstart, zend;
+	std::string qstart, qend;
 	
 	Iterator *it;
 	
@@ -347,6 +349,34 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		}
 	}
 	delete it;
+	
+	it = this->iterator(encode_qsize_key(""), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::QSIZE){
+			std::string n;
+			if(decode_qsize_key(ks, &n) == -1){
+				ret = -1;
+			}else{
+				qstart = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->rev_iterator(encode_qsize_key("\xff"), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::QSIZE){
+			std::string n;
+			if(decode_qsize_key(ks, &n) == -1){
+				ret = -1;
+			}else{
+				qend = n;
+			}
+		}
+	}
+	delete it;
 
 	keys->push_back(kstart);
 	keys->push_back(kend);
@@ -354,6 +384,8 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 	keys->push_back(hend);
 	keys->push_back(zstart);
 	keys->push_back(zend);
+	keys->push_back(qstart);
+	keys->push_back(qend);
 	
 	return ret;
 }

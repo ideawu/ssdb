@@ -420,6 +420,13 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 				hexmem(tmp[5].data(), tmp[5].size()).c_str()
 				);
 			resp->push_back(buf);
+			
+			resp->push_back("key_range.list");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
+				hexmem(tmp[7].data(), tmp[7].size()).c_str()
+				);
+			resp->push_back(buf);
 		}
 	}
 
