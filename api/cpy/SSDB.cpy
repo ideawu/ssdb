@@ -109,6 +109,7 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+			case 'ttl':
 			case 'setnx':
 			case 'incr':
 			case 'decr':

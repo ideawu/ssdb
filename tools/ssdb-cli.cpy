@@ -471,6 +471,7 @@ while(true){
 			case 'getset':
 			case 'setnx':
 			case 'get':
+			case 'ttl':
 			case 'zget':
 			case 'hget':
 			case 'qfront':

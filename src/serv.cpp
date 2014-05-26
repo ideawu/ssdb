@@ -224,7 +224,7 @@ static Command commands[] = {
 	PROC(compact, "rt"),
 	PROC(key_range, "r"),
 
-	PROC(ttl, "wt"),
+	PROC(ttl, "r"),
 	PROC(ping, "r"),
 
 	{NULL, NULL, 0, NULL}
@@ -465,13 +465,12 @@ static int proc_key_range(Server *serv, Link *link, const Request &req, Response
 }
 
 static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() == 1 || (req.size() - 1) % 2 != 0){
+	if(req.size() != 2){
 		resp->push_back("client_error");
 	}else{
-		for(int i=1; i<req.size(); i+=2){
-			serv->expiration->set_ttl(req[i], req[i+1].Int());
-		}
+		int64_t ttl = serv->expiration->get_ttl(req[1]);
 		resp->push_back("ok");
+		resp->push_back(int64_to_str(ttl));
 	}
 	return 0;
 }
