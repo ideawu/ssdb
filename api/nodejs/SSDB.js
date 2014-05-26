@@ -74,7 +74,7 @@ exports.connect = function(host, port, timeout, listener){
 
 	self.send_request = function(params){
 		var bs = [];
-		for(var i in params){
+		for(var i=0;i<params.length;i++){
 			var p = params[i];
 			var len = 0;
 			if(!(p instanceof Buffer)){
