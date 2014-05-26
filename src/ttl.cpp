@@ -77,6 +77,15 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 	return 0;
 }
 
+int64_t ExpirationHandler::get_ttl(const Bytes &key){
+	std::string score;
+	if(ssdb->zget(this->list_name, key, &score) == 1){
+		int64_t ex = str_to_int64(score);
+		return (ex - time_ms())/1000;
+	}
+	return -1;
+}
+
 void* ExpirationHandler::thread_func(void *arg){
 	log_debug("ExpirationHandler started");
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
