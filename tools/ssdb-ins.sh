@@ -2,18 +2,18 @@
 # this script is used to start/stop one ssdb-server instance
 
 ssdb_root=/usr/local/ssdb
+config=$2
 
 usage(){
 	echo "Usage:"
 	echo "    $0 {start|stop|restart} config"
 }
 
-if [ -z "$2" ]; then
+if [ -z "$config" ]; then
 	echo "[error] no config file specified!"
 	usage;
 	exit;
 fi
-config=$2
 if [ ! -f "$config" ]; then
 	echo "[error] bad config file: $config"
 	exit;

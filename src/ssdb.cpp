@@ -8,8 +8,9 @@
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
+#include "t_queue.h"
 
-SSDB::SSDB(){
+SSDB::SSDB(): sync_speed_(0){
 	db = NULL;
 	meta_db = NULL;
 	binlogs = NULL;
@@ -48,6 +49,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int compaction_speed = conf.get_num("leveldb.compaction_speed");
 	std::string compression = conf.get_str("leveldb.compression");
 	std::string binlog_onoff = conf.get_str("replication.binlog");
+	int sync_speed = conf.get_num("replication.sync_speed");
 
 	strtolower(&compression);
 	if(compression != "yes"){
@@ -76,6 +78,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("compaction_speed : %d MB/s", compaction_speed);
 	log_info("compression      : %s", compression.c_str());
 	log_info("binlog           : %s", binlog_onoff.c_str());
+	log_info("sync_speed       : %d MB/s", sync_speed);
 
 	SSDB *ssdb = new SSDB();
 	//
@@ -114,6 +117,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
+			ssdb->sync_speed_ = sync_speed;
 			std::vector<Config *> children = repl_conf->children;
 			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
 				Config *c = *it;
@@ -258,6 +262,7 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 	std::string kstart, kend;
 	std::string hstart, hend;
 	std::string zstart, zend;
+	std::string qstart, qend;
 	
 	Iterator *it;
 	
@@ -344,6 +349,34 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 		}
 	}
 	delete it;
+	
+	it = this->iterator(encode_qsize_key(""), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::QSIZE){
+			std::string n;
+			if(decode_qsize_key(ks, &n) == -1){
+				ret = -1;
+			}else{
+				qstart = n;
+			}
+		}
+	}
+	delete it;
+	
+	it = this->rev_iterator(encode_qsize_key("\xff"), "", 1);
+	if(it->next()){
+		Bytes ks = it->key();
+		if(ks.data()[0] == DataType::QSIZE){
+			std::string n;
+			if(decode_qsize_key(ks, &n) == -1){
+				ret = -1;
+			}else{
+				qend = n;
+			}
+		}
+	}
+	delete it;
 
 	keys->push_back(kstart);
 	keys->push_back(kend);
@@ -351,6 +384,8 @@ int SSDB::key_range(std::vector<std::string> *keys) const{
 	keys->push_back(hend);
 	keys->push_back(zstart);
 	keys->push_back(zend);
+	keys->push_back(qstart);
+	keys->push_back(qend);
 	
 	return ret;
 }
