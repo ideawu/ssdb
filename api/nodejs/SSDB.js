@@ -29,7 +29,7 @@ exports.connect = function(host, port, timeout, listener){
 			listener('connect_failed', e);
 		}else{
 			var callback = callbacks.shift();
-			callback(['error']);
+			if(callback)callback(['error']);
 		}
 	});
 	sock.connect(port, host, function(){
