@@ -110,6 +110,7 @@ class SSDB{
 				}
 				break;
 			case 'ttl':
+			case 'expire':
 			case 'setnx':
 			case 'incr':
 			case 'decr':

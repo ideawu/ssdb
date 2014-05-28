@@ -126,6 +126,7 @@ static proc_map_t proc_map;
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
 	DEF_PROC(ttl);
+	DEF_PROC(expire);
 	DEF_PROC(clear_binlog);
 	DEF_PROC(ping);
 #undef DEF_PROC
@@ -225,6 +226,7 @@ static Command commands[] = {
 	PROC(key_range, "r"),
 
 	PROC(ttl, "r"),
+	PROC(expire, "wt"),
 	PROC(ping, "r"),
 
 	{NULL, NULL, 0, NULL}
@@ -471,6 +473,26 @@ static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp
 		int64_t ttl = serv->expiration->get_ttl(req[1]);
 		resp->push_back("ok");
 		resp->push_back(int64_to_str(ttl));
+	}
+	return 0;
+}
+
+static int proc_expire(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 3){
+		resp->push_back("client_error");
+	}else{
+		std::string val;
+		int ret = serv->ssdb->get(req[1], &val);
+		if(ret == 1){
+			ret = serv->expiration->set_ttl(req[1], req[2].Int());
+			if(ret != -1){
+				resp->push_back("ok");
+				resp->push_back("1");
+				return 0;
+			}
+		}
+		resp->push_back("ok");
+		resp->push_back("0");
 	}
 	return 0;
 }

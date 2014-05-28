@@ -1,5 +1,6 @@
-* 1.6.8.7 (2014-05-15)
+* 1.6.8.7
 	* New features:
+        - Add expire command(2014-05-28)
 		- Add ttl command(2014-05-26)
 		- Add `flushdb list`(2014-05-22)
 		- Support Android build
