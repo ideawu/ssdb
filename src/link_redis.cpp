@@ -51,6 +51,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "incr",		"incr",			REPLY_INT},
 	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
 	{STRATEGY_AUTO, "ttl",		"ttl",			REPLY_INT},
+	{STRATEGY_AUTO, "expire",	"expire",		REPLY_INT},
 
 	{STRATEGY_AUTO, "hset",		"hset",			REPLY_INT},
 	{STRATEGY_AUTO, "hget",		"hget",			REPLY_BULK},
