@@ -26,7 +26,8 @@ enum STRATEGY{
 	STRATEGY_ZINCRBY,
 	STRATEGY_REMRANGEBYRANK,
 	STRATEGY_REMRANGEBYSCORE,
-	STRATEGY_NULL
+	STRATEGY_NULL,
+	STRATEGY_KEYS
 };
 
 static bool inited = false;
@@ -51,6 +52,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "incr",		"incr",			REPLY_INT},
 	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
 	{STRATEGY_AUTO, "ttl",		"ttl",			REPLY_INT},
+	{STRATEGY_KEYS, "keys",		"keys",			REPLY_MULTI_BULK},
 
 	{STRATEGY_AUTO, "hset",		"hset",			REPLY_INT},
 	{STRATEGY_AUTO, "hget",		"hget",			REPLY_BULK},
@@ -136,6 +138,15 @@ int RedisLink::convert_req(){
 		if(recv_bytes.size() == 2){
 			recv_string.push_back(recv_bytes[1].String());
 			recv_string.push_back("");
+			recv_string.push_back("");
+			recv_string.push_back("2000000000");
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_KEYS){
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() == 2){
+			recv_string.push_back(recv_bytes[1].String());
 			recv_string.push_back("");
 			recv_string.push_back("2000000000");
 		}
