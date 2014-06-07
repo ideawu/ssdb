@@ -173,6 +173,49 @@ std::string double_to_str(double v){
 	return std::string(buf);
 }
 
+static inline
+std::string substr(const std::string &str, int start, int size){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	if(size < 0){
+		size = (str.size() + size) - start;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+std::string str_slice(const std::string &str, int start, int end){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	int size;
+	if(end < 0){
+		size = (str.size() + end + 1) - start;
+	}else{
+		size = end - start + 1;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+int bitcount(const char *p, int size){
+	int n = 0;
+	for(int i=0; i<size; i++){
+		unsigned char c = (unsigned char)p[i];
+		while(c){
+			n += c & 1;
+			c = c >> 1;
+		}
+	}
+	return n;
+}
 
 // is big endia. TODO: auto detect
 #if 0

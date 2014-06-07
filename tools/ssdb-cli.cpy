@@ -468,9 +468,14 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
+			case 'getbit':
+			case 'setbit':
+			case 'countbit':
+			case 'strlen':
 			case 'getset':
 			case 'setnx':
 			case 'get':
+			case 'substr':
 			case 'ttl':
 			case 'expire':
 			case 'zget':

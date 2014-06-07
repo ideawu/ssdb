@@ -56,15 +56,7 @@ static int proc_setnx(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->setnx(req[1], req[2]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else if(ret == 0){
-			resp->push_back("ok");
-			resp->push_back("0");
-		}else{
-			resp->push_back("ok");
-			resp->push_back("1");
-		}
+		serv->bool_reply(resp, ret);
 	}
 	return 0;
 }
@@ -83,10 +75,10 @@ static int proc_setx(Server *serv, Link *link, const Request &req, Response *res
 	ret = serv->expiration->set_ttl(req[1], req[3].Int());
 	if(ret == -1){
 		resp->push_back("error");
-		return 0;
+	}else{
+		resp->push_back("ok");
+		resp->push_back("1");
 	}
-	resp->push_back("ok");
-	resp->push_back("1");
 	return 0;
 }
 
@@ -97,16 +89,7 @@ static int proc_exists(Server *serv, Link *link, const Request &req, Response *r
 		const Bytes key = req[1];
 		std::string val;
 		int ret = serv->ssdb->get(key, &val);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back("1");
-		}else if(ret == 0){
-			resp->push_back("ok");
-			resp->push_back("0");
-		}else{
-			resp->push_back("error");
-			resp->push_back("0");
-		}
+		serv->bool_reply(resp, ret);
 	}
 	return 0;
 }
@@ -141,10 +124,7 @@ static int proc_multi_set(Server *serv, Link *link, const Request &req, Response
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
-			resp->push_back("ok");
-			char buf[20];
-			sprintf(buf, "%d", ret);
-			resp->push_back(buf);
+			serv->int_reply(resp, ret);
 		}
 	}
 	return 0;
@@ -158,10 +138,7 @@ static int proc_multi_del(Server *serv, Link *link, const Request &req, Response
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
-			resp->push_back("ok");
-			char buf[20];
-			sprintf(buf, "%d", ret);
-			resp->push_back(buf);
+			serv->int_reply(resp, ret);
 		}
 	}
 	return 0;
@@ -282,3 +259,150 @@ static int proc_decr(Server *serv, Link *link, const Request &req, Response *res
 	return _incr(serv->ssdb, req, resp, -1);
 }
 
+static int proc_getbit(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		int ret = serv->ssdb->getbit(req[1], req[2].Int());
+		serv->bool_reply(resp, ret);
+	}
+	return 0;
+}
+
+static int proc_setbit(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		int offset = req[2].Int();
+		if(req[3].size() == 0 || (req[3].data()[0] != '0' && req[3].data()[0] != '1')){
+			resp->push_back("client_error");
+			resp->push_back("bit is not an integer or out of range");
+			return 0;
+		}
+		int on = req[3].Int();
+		int ret = serv->ssdb->setbit(key, offset, on);
+		serv->bool_reply(resp, ret);
+	}
+	return 0;
+}
+
+static int proc_countbit(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		int start = 0;
+		if(req.size() > 2){
+			start = req[2].Int();
+		}
+		int size = -1;
+		if(req.size() > 3){
+			size = req[3].Int();
+		}
+		std::string val;
+		int ret = serv->ssdb->get(key, &val);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			std::string str = substr(val, start, size);
+			int count = bitcount(str.data(), str.size());
+			serv->int_reply(resp, count);
+		}
+	}
+	return 0;
+}
+
+static int proc_redis_bitcount(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		int start = 0;
+		if(req.size() > 2){
+			start = req[2].Int();
+		}
+		int size = -1;
+		if(req.size() > 3){
+			size = req[3].Int();
+		}
+		std::string val;
+		int ret = serv->ssdb->get(key, &val);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			std::string str = str_slice(val, start, size);
+			int count = bitcount(str.data(), str.size());
+			serv->int_reply(resp, count);
+		}
+	}
+	return 0;
+}
+
+static int proc_substr(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		int start = 0;
+		if(req.size() > 2){
+			start = req[2].Int();
+		}
+		int size = -1;
+		if(req.size() > 3){
+			size = req[3].Int();
+		}
+		std::string val;
+		int ret = serv->ssdb->get(key, &val);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			std::string str = substr(val, start, size);
+			resp->push_back("ok");
+			resp->push_back(str);
+		}
+	}
+	return 0;
+}
+
+static int proc_redis_getrange(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		int start = 0;
+		if(req.size() > 2){
+			start = req[2].Int();
+		}
+		int size = -1;
+		if(req.size() > 3){
+			size = req[3].Int();
+		}
+		std::string val;
+		int ret = serv->ssdb->get(key, &val);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			std::string str = str_slice(val, start, size);
+			resp->push_back("ok");
+			resp->push_back(str);
+		}
+	}
+	return 0;
+}
+
+static int proc_strlen(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &key = req[1];
+		std::string val;
+		int ret = serv->ssdb->get(key, &val);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			serv->int_reply(resp, (int)val.size());
+		}
+	}
+	return 0;
+}

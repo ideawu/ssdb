@@ -90,6 +90,7 @@ class SSDB{
 					return new SSDB_Response(resp[0], 1);
 				}
 				break;
+			case 'substr':
 			case 'get':
 			case 'getset':
 			case 'hget':
@@ -109,6 +110,10 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+			case 'getbit':
+			case 'setbit':
+			case 'countbit':
+			case 'strlen':
 			case 'ttl':
 			case 'expire':
 			case 'setnx':

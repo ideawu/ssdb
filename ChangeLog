@@ -1,5 +1,6 @@
 * 1.6.8.7
 	* New features:
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
         - Add expire command(2014-05-28)
 		- Add ttl command(2014-05-26)
 		- Add `flushdb list`(2014-05-22)
