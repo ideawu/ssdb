@@ -42,7 +42,7 @@ static std::string serialize_req(T &req){
 
 void welcome(){
 	printf("ssdb-dump - SSDB backup command\n");
-	printf("Copyright (c) 2012-2014 ideawu.com\n");
+	printf("Copyright (c) 2012-2014 ssdb.io\n");
 	printf("\n");
 }
 

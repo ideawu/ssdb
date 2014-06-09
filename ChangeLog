@@ -1,3 +1,7 @@
+* 1.6.8.8
+	* New features:
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+
 * 1.6.8.7
 	* New features:
 		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
@@ -6,6 +10,7 @@
 		- Add `flushdb list`(2014-05-22)
 		- Support Android build
 		- Add sync speed limit
+
 * 1.6.8.6 (2014-03-29)
 	* New features:
 		- Reduce round trip time for single request(2014-04-04)
