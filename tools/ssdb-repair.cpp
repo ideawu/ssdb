@@ -16,7 +16,7 @@
 
 void welcome(){
 	printf("ssdb-repair - SSDB repair tool\n");
-	printf("Copyright (c) 2013-2014 ideawu.com\n");
+	printf("Copyright (c) 2013-2014 ssdb.io\n");
 	printf("\n");
 }
 

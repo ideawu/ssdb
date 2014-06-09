@@ -52,6 +52,11 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
 	{STRATEGY_AUTO, "ttl",		"ttl",			REPLY_INT},
 	{STRATEGY_AUTO, "expire",	"expire",		REPLY_INT},
+	{STRATEGY_AUTO, "getbit",	"getbit",		REPLY_INT},
+	{STRATEGY_AUTO, "setbit",	"setbit",		REPLY_INT},
+	{STRATEGY_AUTO, "strlen",	"strlen",		REPLY_INT},
+	{STRATEGY_AUTO, "bitcount",	"redis_bitcount",		REPLY_INT},
+	{STRATEGY_AUTO, "getrange",	"redis_getrange",		REPLY_BULK},
 
 	{STRATEGY_AUTO, "hset",		"hset",			REPLY_INT},
 	{STRATEGY_AUTO, "hget",		"hget",			REPLY_BULK},
@@ -126,6 +131,9 @@ int RedisLink::convert_req(){
 	it = cmd_table.find(cmd);
 	if(it == cmd_table.end()){
 		recv_string.push_back(cmd);
+		for(int i=1; i<recv_bytes.size(); i++){
+			recv_string.push_back(recv_bytes[i].String());
+		}
 		return 0;
 	}
 	this->req_desc = &(it->second);

@@ -298,7 +298,7 @@ void run(int argc, char **argv){
 
 void welcome(){
 	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
-	fprintf(stderr, "Copyright (c) 2012-2014 ideawu.com\n");
+	fprintf(stderr, "Copyright (c) 2012-2014 ssdb.io\n");
 	fprintf(stderr, "\n");
 }
 

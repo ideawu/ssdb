@@ -60,6 +60,8 @@ public:
 	int incr(const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
 	int multi_set(const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
+	int setbit(const Bytes &key, int bitoffset, int on, char log_type=BinlogType::SYNC);
+	int getbit(const Bytes &key, int bitoffset);
 	
 	int get(const Bytes &key, std::string *val) const;
 	int getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type=BinlogType::SYNC);

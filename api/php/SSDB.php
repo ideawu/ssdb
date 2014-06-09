@@ -525,6 +525,10 @@ class SSDB
 			return new SSDB_Response('disconnected', 'Connection closed');
 		}
 		switch($cmd){
+			case 'getbit':
+			case 'setbit':
+			case 'countbit':
+			case 'strlen':
 			case 'set':
 			case 'setx':
 			case 'setnx':
@@ -567,6 +571,7 @@ class SSDB
 				$val = isset($resp[1])? floatval($resp[1]) : (float)0;
 				return new SSDB_Response($resp[0], $val);
 			case 'get':
+			case 'substr':
 			case 'getset':
 			case 'hget':
 			case 'qget':

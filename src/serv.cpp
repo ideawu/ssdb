@@ -45,6 +45,13 @@ static proc_map_t proc_map;
 	DEF_PROC(setx);
 	DEF_PROC(setnx);
 	DEF_PROC(getset);
+	DEF_PROC(getbit);
+	DEF_PROC(setbit);
+	DEF_PROC(countbit);
+	DEF_PROC(substr);
+	DEF_PROC(strlen);
+	DEF_PROC(redis_bitcount);
+	DEF_PROC(redis_getrange);
 	DEF_PROC(del);
 	DEF_PROC(incr);
 	DEF_PROC(decr);
@@ -139,6 +146,13 @@ static Command commands[] = {
 	PROC(setx, "wt"),
 	PROC(setnx, "wt"),
 	PROC(getset, "wt"),
+	PROC(getbit, "r"),
+	PROC(setbit, "wt"),
+	PROC(countbit, "r"),
+	PROC(substr, "r"),
+	PROC(strlen, "r"),
+	PROC(redis_bitcount, "r"),
+	PROC(redis_getrange, "r"),
 	PROC(del, "wt"),
 	PROC(incr, "wt"),
 	PROC(decr, "wt"),
@@ -331,6 +345,27 @@ void Server::proc(ProcJob *job){
 	}
 }
 
+void Server::bool_reply(Response *resp, int ret, const char *errmsg){
+	if(ret == -1){
+		resp->push_back("error");
+		if(errmsg){
+			resp->push_back(errmsg);
+		}
+	}else if(ret == 0){
+		resp->push_back("ok");
+		resp->push_back("0");
+	}else{
+		resp->push_back("ok");
+		resp->push_back("1");
+	}
+}
+
+void Server::int_reply(Response *resp, int num){
+	resp->push_back("ok");
+	char buf[20];
+	sprintf(buf, "%d", num);
+	resp->push_back(buf);
+}
 
 Server::ProcWorker::ProcWorker(const std::string &name){
 	this->name = name;

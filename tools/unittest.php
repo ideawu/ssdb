@@ -148,6 +148,27 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === 'a');
 		$ret = $ssdb->get('TEST_a');
 		$this->assert($ret === 'b');
+
+		$key = 'TEST_a';
+		$ssdb->del($key);
+		$ret = $ssdb->setbit($key, 8, 1);
+		$this->assert($ret === 0);
+		$ret = $ssdb->setbit($key, 8, 1);
+		$this->assert($ret === 1);
+		$ret = $ssdb->countbit($key, 0, 1);
+		$this->assert($ret === 0);
+		$ret = $ssdb->countbit($key, 0, 2);
+		$this->assert($ret === 1);
+		$ret = $ssdb->strlen($key);
+		$this->assert($ret === 2);
+		$val = '0123456789';
+		$ssdb->set($key, $val);
+		$this->assert($ssdb->substr($key, 0, 1) === substr($val, 0, 1));
+		$this->assert($ssdb->substr($key, -1, -1) === substr($val, -1, -1));
+		$this->assert($ssdb->substr($key, 0, -1) === substr($val, 0, -1));
+		$this->assert($ssdb->substr($key, -1, -2) === substr($val, -1, -2));
+		$this->assert($ssdb->substr($key, -2, -1) === substr($val, -2, -1));
+		$this->assert($ssdb->substr($key, -2, 2) === substr($val, -2, 2));
 	}
 	
 	function test_queue(){
