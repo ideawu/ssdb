@@ -448,6 +448,11 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
+	function hgetall($name){
+		$args = func_get_args();
+		return $this->__call(__FUNCTION__, $args);
+	}
+
 	function hscan($name, $key_start, $key_end, $limit){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
@@ -643,6 +648,7 @@ class SSDB
 			case 'zrrange':
 			case 'hscan':
 			case 'hrscan':
+			case 'hgetall':
 			case 'multi_hsize':
 			case 'multi_zsize':
 			case 'multi_get':
