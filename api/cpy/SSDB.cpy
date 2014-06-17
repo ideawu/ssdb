@@ -162,6 +162,7 @@ class SSDB{
 			case 'keys':
 			case 'zkeys':
 			case 'hkeys':
+			case 'list':
 			case 'hlist':
 			case 'zlist':
 				data = [];
