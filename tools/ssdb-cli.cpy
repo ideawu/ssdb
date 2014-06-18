@@ -7,6 +7,7 @@ try{
 }catch(Exception e){
 }
 
+escape_data = false;
 
 function welcome(){
 	sys.stderr.write('ssdb (cli) - ssdb command line tool.\n');
@@ -20,6 +21,8 @@ function show_command_help(){
 	print '';
 	print '# Display ssdb-server status';
 	print '	info';
+	print '# Escape/Do not escape response data';
+	print '	: escape yes|no';
 	print '# KEY-VALUE COMMANDS';
 	print '	set key value';
 	print '	setx key value ttl';
@@ -83,6 +86,10 @@ function usage(){
 }
 
 function repr_data(str){
+	gs = globals();
+	if(gs['escape_data'] == false){
+		return str;
+	}
 	ret = repr(str);
 	if(len(ret) > 0){
 		if(ret[0] == '\''){
@@ -388,6 +395,32 @@ while(true){
 	}
 	cmd = ps[0].lower();
 	args = ps[1 .. ];
+	
+	if(cmd == ':'){
+		op = '';
+		if(len(args) > 0){
+			op = args[0];
+		}
+		if(op != 'escape'){
+			print "Bad setting!";
+			continue;
+		}
+		yn = 'yes';
+		if(len(args) > 1){
+			yn = args[1];
+		}
+		gs = globals();
+		if(yn == 'yes'){
+			gs['escape_data'] = true;
+			print "  Escape response";
+		}else if(yn == 'no' || yn == 'none'){
+			gs['escape_data'] = false;
+			print "  No escape response";
+		}else{
+			print "  Usage: escape yes|no";
+		}
+		continue;
+	}
 	
 	try{
 		if(cmd == 'flushdb'){
