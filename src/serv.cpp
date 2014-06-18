@@ -161,7 +161,7 @@ static Command commands[] = {
 	PROC(keys, "rt"),
 	PROC(exists, "r"),
 	PROC(multi_exists, "r"),
-	PROC(multi_get, "r"),
+	PROC(multi_get, "rt"),
 	PROC(multi_set, "wt"),
 	PROC(multi_del, "wt"),
 
@@ -181,7 +181,7 @@ static Command commands[] = {
 	PROC(hexists, "r"),
 	PROC(multi_hexists, "r"),
 	PROC(multi_hsize, "r"),
-	PROC(multi_hget, "r"),
+	PROC(multi_hget, "rt"),
 	PROC(multi_hset, "wt"),
 	PROC(multi_hdel, "wt"),
 
@@ -209,7 +209,7 @@ static Command commands[] = {
 	PROC(zexists, "r"),
 	PROC(multi_zexists, "r"),
 	PROC(multi_zsize, "r"),
-	PROC(multi_zget, "r"),
+	PROC(multi_zget, "rt"),
 	PROC(multi_zset, "wt"),
 	PROC(multi_zdel, "wt"),
 

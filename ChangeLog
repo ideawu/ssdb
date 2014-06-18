@@ -1,6 +1,7 @@
 * 1.6.8.8
 	* New features:
 		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+		- Put multi_*get commands to execute in worker thread(2014-06-17)
 
 * 1.6.8.7
 	* New features:
