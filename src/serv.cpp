@@ -249,6 +249,7 @@ static Command commands[] = {
 
 Server::Server(SSDB *ssdb){
 	this->ssdb = ssdb;
+	link_count = 0;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
 
@@ -419,7 +420,23 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back("ssdb-server");
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
-	
+	{
+		resp->push_back("links");
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%d", serv->link_count);
+		resp->push_back(buf);
+	}
+	{
+		uint64_t calls = 0;
+		for(Command *cmd=commands; cmd->name; cmd++){
+			calls += cmd->calls;
+		}
+		resp->push_back("total_calls");
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%" PRIu64, calls);
+		resp->push_back(buf);
+	}
+
 	if(req.size() > 1 && req[1] == "cmd"){
 		for(Command *cmd=commands; cmd->name; cmd++){
 			char buf[128];

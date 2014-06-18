@@ -64,6 +64,7 @@ class Server{
 		static const int READER_THREADS = 10;
 		static const int WRITER_THREADS = 1;
 	public:
+		int link_count;
 		SSDB *ssdb;
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
