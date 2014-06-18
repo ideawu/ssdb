@@ -31,7 +31,6 @@ SSDB *ssdb = NULL;
 Link *serv_link = NULL;
 IpFilter *ip_filter = NULL;
 Fdevents *fdes = NULL;
-int link_count = 0;
 
 typedef std::vector<Link *> ready_list_t;
 
@@ -91,9 +90,6 @@ Link* accept_link(){
 		delete link;
 		return NULL;
 	}
-	link_count ++;				
-	log_debug("new link from %s:%d, fd: %d, link_count: %d",
-		link->remote_ip, link->remote_port, link->fd(), link_count);
 				
 	link->nodelay();
 	link->noblock();
@@ -212,7 +208,7 @@ void run(int argc, char **argv){
 		// status report
 		if((uint32_t)(g_ticks - last_ticks) >= STATUS_REPORT_TICKS){
 			last_ticks = g_ticks;
-			log_info("ssdb working, links: %d", link_count);
+			log_info("ssdb working, links: %d", serv.link_count);
 		}
 		
 		ready_list.swap(ready_list_2);
@@ -234,6 +230,9 @@ void run(int argc, char **argv){
 			if(fde->data.ptr == serv_link){
 				Link *link = accept_link();
 				if(link){
+					serv.link_count ++;				
+					log_debug("new link from %s:%d, fd: %d, links: %d",
+						link->remote_ip, link->remote_port, link->fd(), serv.link_count);
 					fdes->set(link->fd(), FDEVENT_IN, 1, link);
 				}
 			}else if(fde->data.ptr == serv.reader || fde->data.ptr == serv.writer){
@@ -244,7 +243,7 @@ void run(int argc, char **argv){
 					exit(0);
 				}
 				if(proc_result(job, ready_list) == PROC_ERROR){
-					link_count --;
+					serv.link_count --;
 				}
 			}else{
 				proc_client_event(fde, ready_list);
@@ -254,7 +253,7 @@ void run(int argc, char **argv){
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
 			if(link->error()){
-				link_count --;
+				serv.link_count --;
 				fdes->del(link->fd());
 				delete link;
 				continue;
@@ -263,7 +262,7 @@ void run(int argc, char **argv){
 			const Request *req = link->recv();
 			if(req == NULL){
 				log_warn("fd: %d, link parse error, delete link", link->fd());
-				link_count --;
+				serv.link_count --;
 				fdes->del(link->fd());
 				delete link;
 				continue;
@@ -284,12 +283,12 @@ void run(int argc, char **argv){
 			}
 			if(job.result == PROC_BACKEND){
 				fdes->del(link->fd());
-				link_count --;
+				serv.link_count --;
 				continue;
 			}
 			
 			if(proc_result(job, ready_list_2) == PROC_ERROR){
-				link_count --;
+				serv.link_count --;
 			}
 		} // end foreach ready link
 	}
