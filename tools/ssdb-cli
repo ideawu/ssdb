@@ -1,5 +1,5 @@
 #!/bin/sh
-DIR=`dirname $0`
+DIR=`dirname "$(readlink -f $0)"`
 
 if [ -e $DIR/../deps/cpy/cpy ]; then
 	CPY=$DIR/../deps/cpy/cpy
