@@ -1,3 +1,10 @@
 #!/bin/sh
 DIR=`dirname $0`
-$DIR/../deps/cpy/cpy $DIR/ssdb-cli.cpy $@
+
+if [ -e $DIR/../deps/cpy/cpy ]; then
+	CPY=$DIR/../deps/cpy/cpy
+else
+	CPY=$DIR/deps/cpy/cpy
+fi
+
+$CPY $DIR/ssdb-cli.cpy $@

@@ -1,10 +1,7 @@
 #ifndef UTIL_BYTES_H_
 #define UTIL_BYTES_H_
 
-#include <string>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "../include.h"
 #include "leveldb/slice.h"
 #include "strings.h"
 
@@ -18,6 +15,11 @@ class Bytes{
 		Bytes(){
 			data_ = "";
 			size_ = 0;
+		}
+
+		Bytes(void *data, int size){
+			data_ = (char *)data;
+			size_ = size;
 		}
 
 		Bytes(const char *data, int size){
@@ -78,7 +80,7 @@ class Bytes{
 			return str_to_int64(data_, size_);
 		}
 
-		int64_t Uint64() const{
+		uint64_t Uint64() const{
 			return str_to_uint64(data_, size_);
 		}
 
@@ -168,7 +170,7 @@ class Buffer{
 		// 保证不改变后半段的数据, 以便使已生成的 Bytes 不失效.
 		void nice();
 		// 扩大缓冲区
-		int grow(int require=0);
+		int grow();
 
 		std::string stats() const;
 		int read_record(Bytes *s);
@@ -179,6 +181,75 @@ class Buffer{
 		int append(const Bytes &s);
 
 		int append_record(const Bytes &s);
+};
+
+
+class Decoder{
+private:
+	const char *p;
+	int size;
+	Decoder(){}
+public:
+	Decoder(const char *p, int size){
+		this->p = p;
+		this->size = size;
+	}
+	int skip(int n){
+		if(size < n){
+			return -1;
+		}
+		p += n;
+		size -= n;
+		return n;
+	}
+	int read_int64(int64_t *ret){
+		if(size < sizeof(int64_t)){
+			return -1;
+		}
+		if(ret){
+			*ret = *(int64_t *)p;
+		}
+		p += sizeof(int64_t);
+		size -= sizeof(int64_t);
+		return sizeof(int64_t);
+	}
+	int read_uint64(uint64_t *ret){
+		if(size < sizeof(uint64_t)){
+			return -1;
+		}
+		if(ret){
+			*ret = *(uint64_t *)p;
+		}
+		p += sizeof(uint64_t);
+		size -= sizeof(uint64_t);
+		return sizeof(uint64_t);
+	}
+	int read_data(std::string *ret){
+		int n = size;
+		if(ret){
+			ret->assign(p, size);
+		}
+		p += size;
+		size = 0;
+		return n;
+	}
+	int read_8_data(std::string *ret=NULL){
+		if(size < 1){
+			return -1;
+		}
+		int len = (uint8_t)p[0];
+		p += 1;
+		size -= 1;
+		if(size < len){
+			return -1;
+		}
+		if(ret){
+			ret->assign(p, len);
+		}
+		p += len;
+		size -= len;
+		return 1 + len;
+	}
 };
 
 #endif

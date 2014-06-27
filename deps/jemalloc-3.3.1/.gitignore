@@ -1,0 +1,15 @@
+*.d
+bin/jemalloc\.sh
+Makefile
+config.log
+config.stamp
+config.status
+doc/*
+lib/
+include/jemalloc/internal/jemalloc_internal.h
+include/jemalloc/internal/size_classes.h
+include/jemalloc/jemalloc.h
+include/jemalloc/jemalloc_defs.h
+test/jemalloc_test.h
+
+

@@ -1,13 +1,8 @@
 #ifndef UTIL_LOG_H
 #define UTIL_LOG_H
 
-#include <unistd.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "../include.h"
 #include <pthread.h>
-#include <limits.h>
 
 class Logger{
 	public:
@@ -73,7 +68,7 @@ int log_write(int level, const char *fmt, ...);
 
 
 #ifdef NDEBUG
-	#define log_trace(fmt, args...)
+	#define log_trace(fmt, args...) do{}while(0)
 #else
 	#define log_trace(fmt, args...)	\
 		log_write(Logger::LEVEL_TRACE, "%s(%d): " fmt, __FILE__, __LINE__, ##args)

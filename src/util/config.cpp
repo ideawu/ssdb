@@ -1,8 +1,3 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "log.h"
 #include "config.h"
 #include "strings.h"
@@ -39,13 +34,13 @@ Config* Config::load(const char *filename){
 		}
 
 		/* 有效行以 \t* 开头 */
-		int indent = 0;
-		char *key = buf;
-		while(*key == '\t'){
-			indent++;
-			key++;
-		}
+		int indent = strspn(buf, "\t");
+		char *key = buf + indent;
 
+		if(*key == '#'){
+			cfg->add("#", key + 1, lineno);
+			continue;
+		}
 		if(indent <= last_indent){
 			for(int i = indent; i <= last_indent; i++){
 				/* 第一个配置时, 此条件为真 */
@@ -57,17 +52,8 @@ Config* Config::load(const char *filename){
 			log_error("invalid indent line(%d)", lineno);
 			goto err;
 		}
-
-		/* 注释行以 \t*# 开头 */
-		if(*key == '#'){
-			log_trace("%s", key);
-			cfg = cfg->add("#", key + 1, lineno);
-			if(cfg == NULL){
-				goto err;
-			}
-			last_indent = indent;
-			continue;
-		}else if(isspace(*key)){
+		
+		if(isspace(*key)){
 			log_error("invalid line(%d): unexpected whitespace char '%c'", lineno, *key);
 			goto err;
 		}
@@ -122,8 +108,8 @@ Config::~Config(){
 
 Config* Config::add(const char *key, const char *val, int lineno){
 	if(key[0] != '#' && this->find_child(key)){
-		log_error("line: %d, duplicated '%s'", lineno, key);
-		return NULL;
+		//log_error("line: %d, duplicated '%s'", lineno, key);
+		//return NULL;
 	}
 
 	Config *child = new Config(key, val);

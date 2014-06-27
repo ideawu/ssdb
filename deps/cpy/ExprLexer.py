@@ -1,4 +1,4 @@
-# $ANTLR 3.4 Expr.g 2012-12-10 22:38:59
+# $ANTLR 3.5 Expr.g 2013-04-12 19:22:24
 
 import sys
 from antlr3 import *
@@ -2102,15 +2102,16 @@ class ExprLexer(Lexer):
     # $ANTLR start "DOUBLE_QUOTE_CHARS"
     def mDOUBLE_QUOTE_CHARS(self, ):
         try:
-            # Expr.g:388:2: (~ ( '\"' ) | '\\\\' '\"' )
-            alt8 = 2
+            # Expr.g:388:2: (~ ( '\"' ) | '\\\\' '\"' | '\\\\' '\\\\' )
+            alt8 = 3
             LA8_0 = self.input.LA(1)
 
             if (LA8_0 == 92) :
-                LA8_1 = self.input.LA(2)
-
-                if (LA8_1 == 34) :
+                LA8 = self.input.LA(2)
+                if LA8 == 34:
                     alt8 = 2
+                elif LA8 == 92:
+                    alt8 = 3
                 else:
                     alt8 = 1
 
@@ -2143,6 +2144,14 @@ class ExprLexer(Lexer):
                 self.match(34)
 
 
+            elif alt8 == 3:
+                # Expr.g:391:4: '\\\\' '\\\\'
+                pass 
+                self.match(92)
+
+                self.match(92)
+
+
 
         finally:
             pass
@@ -2154,15 +2163,16 @@ class ExprLexer(Lexer):
     # $ANTLR start "SINGLE_QUOTE_CHARS"
     def mSINGLE_QUOTE_CHARS(self, ):
         try:
-            # Expr.g:393:2: (~ ( '\\'' ) | '\\\\' '\\'' )
-            alt9 = 2
+            # Expr.g:394:2: (~ ( '\\'' ) | '\\\\' '\\'' | '\\\\' '\\\\' )
+            alt9 = 3
             LA9_0 = self.input.LA(1)
 
             if (LA9_0 == 92) :
-                LA9_1 = self.input.LA(2)
-
-                if (LA9_1 == 39) :
+                LA9 = self.input.LA(2)
+                if LA9 == 39:
                     alt9 = 2
+                elif LA9 == 92:
+                    alt9 = 3
                 else:
                     alt9 = 1
 
@@ -2175,7 +2185,7 @@ class ExprLexer(Lexer):
 
 
             if alt9 == 1:
-                # Expr.g:393:4: ~ ( '\\'' )
+                # Expr.g:394:4: ~ ( '\\'' )
                 pass 
                 if (0 <= self.input.LA(1) <= 38) or (40 <= self.input.LA(1) <= 65535):
                     self.input.consume()
@@ -2188,11 +2198,19 @@ class ExprLexer(Lexer):
 
 
             elif alt9 == 2:
-                # Expr.g:394:4: '\\\\' '\\''
+                # Expr.g:395:4: '\\\\' '\\''
                 pass 
                 self.match(92)
 
                 self.match(39)
+
+
+            elif alt9 == 3:
+                # Expr.g:396:4: '\\\\' '\\\\'
+                pass 
+                self.match(92)
+
+                self.match(92)
 
 
 
@@ -2206,17 +2224,17 @@ class ExprLexer(Lexer):
     # $ANTLR start "NEWLINE"
     def mNEWLINE(self, ):
         try:
-            # Expr.g:398:2: ( ( '\\r' )? '\\n' )
-            # Expr.g:398:4: ( '\\r' )? '\\n'
+            # Expr.g:400:2: ( ( '\\r' )? '\\n' )
+            # Expr.g:400:4: ( '\\r' )? '\\n'
             pass 
-            # Expr.g:398:4: ( '\\r' )?
+            # Expr.g:400:4: ( '\\r' )?
             alt10 = 2
             LA10_0 = self.input.LA(1)
 
             if (LA10_0 == 13) :
                 alt10 = 1
             if alt10 == 1:
-                # Expr.g:398:4: '\\r'
+                # Expr.g:400:4: '\\r'
                 pass 
                 self.match(13)
 
@@ -2241,10 +2259,10 @@ class ExprLexer(Lexer):
             _type = WS
             _channel = DEFAULT_CHANNEL
 
-            # Expr.g:402:2: ( ( ' ' | '\\t' | '\\r' | '\\n' )+ )
-            # Expr.g:402:4: ( ' ' | '\\t' | '\\r' | '\\n' )+
+            # Expr.g:404:2: ( ( ' ' | '\\t' | '\\r' | '\\n' )+ )
+            # Expr.g:404:4: ( ' ' | '\\t' | '\\r' | '\\n' )+
             pass 
-            # Expr.g:402:4: ( ' ' | '\\t' | '\\r' | '\\n' )+
+            # Expr.g:404:4: ( ' ' | '\\t' | '\\r' | '\\n' )+
             cnt11 = 0
             while True: #loop11
                 alt11 = 2
@@ -2299,13 +2317,13 @@ class ExprLexer(Lexer):
             _type = COMMENT
             _channel = DEFAULT_CHANNEL
 
-            # Expr.g:405:2: ( '/*' ( options {greedy=false; } : . )* '*/' )
-            # Expr.g:405:4: '/*' ( options {greedy=false; } : . )* '*/'
+            # Expr.g:407:2: ( '/*' ( options {greedy=false; } : . )* '*/' )
+            # Expr.g:407:4: '/*' ( options {greedy=false; } : . )* '*/'
             pass 
             self.match("/*")
 
 
-            # Expr.g:405:9: ( options {greedy=false; } : . )*
+            # Expr.g:407:9: ( options {greedy=false; } : . )*
             while True: #loop12
                 alt12 = 2
                 LA12_0 = self.input.LA(1)
@@ -2324,7 +2342,7 @@ class ExprLexer(Lexer):
 
 
                 if alt12 == 1:
-                    # Expr.g:405:34: .
+                    # Expr.g:407:34: .
                     pass 
                     self.matchAny()
 
@@ -2358,10 +2376,10 @@ class ExprLexer(Lexer):
             _type = LINECOMMENT
             _channel = DEFAULT_CHANNEL
 
-            # Expr.g:408:2: ( ( '//' | '#' ) (~ ( '\\r' | '\\n' ) )* NEWLINE )
-            # Expr.g:408:4: ( '//' | '#' ) (~ ( '\\r' | '\\n' ) )* NEWLINE
+            # Expr.g:410:2: ( ( '//' | '#' ) (~ ( '\\r' | '\\n' ) )* NEWLINE )
+            # Expr.g:410:4: ( '//' | '#' ) (~ ( '\\r' | '\\n' ) )* NEWLINE
             pass 
-            # Expr.g:408:4: ( '//' | '#' )
+            # Expr.g:410:4: ( '//' | '#' )
             alt13 = 2
             LA13_0 = self.input.LA(1)
 
@@ -2376,21 +2394,21 @@ class ExprLexer(Lexer):
 
 
             if alt13 == 1:
-                # Expr.g:408:5: '//'
+                # Expr.g:410:5: '//'
                 pass 
                 self.match("//")
 
 
 
             elif alt13 == 2:
-                # Expr.g:408:10: '#'
+                # Expr.g:410:10: '#'
                 pass 
                 self.match(35)
 
 
 
 
-            # Expr.g:408:15: (~ ( '\\r' | '\\n' ) )*
+            # Expr.g:410:15: (~ ( '\\r' | '\\n' ) )*
             while True: #loop14
                 alt14 = 2
                 LA14_0 = self.input.LA(1)

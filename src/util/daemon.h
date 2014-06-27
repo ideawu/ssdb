@@ -1,10 +1,7 @@
 #ifndef UTIL_DAEMON_H
 #define UTIL_DAEMON_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "../include.h"
 
 int daemonize(const char *dir=NULL){
 	switch(fork()){

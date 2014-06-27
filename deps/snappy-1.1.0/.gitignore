@@ -1,0 +1,15 @@
+*.lo
+*.libs
+*.deps
+*.la
+*.o
+Makefile
+config.h
+config.log
+config.status
+libtool
+snappy_unittest
+stamp-h1
+testdata
+
+

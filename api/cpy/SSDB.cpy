@@ -54,7 +54,7 @@ class SSDB{
 		return this._closed;
 	}
 
-	function request(cmd, params=null){
+	function request(cmd, params=null){        
 		if(params == null){
 			params = [];
 		}
@@ -72,20 +72,34 @@ class SSDB{
 			case 'set':
 			case 'zset':
 			case 'hset':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 			case 'del':
 			case 'zdel':
 			case 'hdel':
 			case 'multi_set':
 			case 'multi_del':
+			case 'multi_hset':
+			case 'multi_hdel':
+			case 'multi_zset':
+			case 'multi_zdel':
 				if(len(resp) > 1){
-					return new SSDB_Response(resp[0], resp[1]);
+					return new SSDB_Response(resp[0], int(resp[1]));
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], 1);
 				}
 				break;
+			case 'substr':
 			case 'get':
-			case 'zget':
+			case 'getset':
 			case 'hget':
+			case 'qfront':
+			case 'qback':
+			case 'qget':
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						return new SSDB_Response('ok', resp[1]);
@@ -96,6 +110,13 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+			case 'getbit':
+			case 'setbit':
+			case 'countbit':
+			case 'strlen':
+			case 'ttl':
+			case 'expire':
+			case 'setnx':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
@@ -104,10 +125,29 @@ class SSDB{
 			case 'hdecr':
 			case 'hsize':
 			case 'zsize':
+			case 'qsize':
+			case 'zget':
+			case 'zrank':
+			case 'zrrank':
+			case 'zsum':
+			case 'zcount':
+			case 'zavg':
+			case 'zremrangebyrank':
+			case 'zremrangebyscore':
+			case 'hclear':
+			case 'zclear':
+			case 'qclear':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{
-							val = int(resp[1]);
+							if(cmd == 'zavg'){
+								val = float(resp[1]);
+							}else{
+								val = int(resp[1]);
+							}
 							return new SSDB_Response('ok', val);
 						}catch(Exception e){
 							return new SSDB_Response('server_error', 'Invalid response');
@@ -122,6 +162,7 @@ class SSDB{
 			case 'keys':
 			case 'zkeys':
 			case 'hkeys':
+			case 'list':
 			case 'hlist':
 			case 'zlist':
 				data = [];
@@ -134,6 +175,7 @@ class SSDB{
 				break;
 			case 'scan':
 			case 'rscan':
+			case 'hgetall':
 			case 'hscan':
 			case 'hrscan':
 				if(resp[0] == 'ok'){
@@ -155,6 +197,8 @@ class SSDB{
 				break;
 			case 'zscan':
 			case 'zrscan':
+			case 'zrange':
+			case 'zrrange':
 				if(resp[0] == 'ok'){
 					if(len(resp) % 2 == 1){
 						data = {'index':[], 'items':{}};
@@ -177,13 +221,63 @@ class SSDB{
 					return new SSDB_Response(resp[0]);
 				}
 				break;
+            case 'exists':
+            case 'hexists':
+            case 'zexists':
+                data = false;
+				if(resp[0] == 'ok'){
+                    if(len(resp) >= 2){
+                        if(resp[1] == '1'){
+                            data = true;
+                        }
+                    }
+                }
+				return new SSDB_Response(resp[0], data);
+                break;
+            case 'multi_exists':
+            case 'multi_hexists':
+            case 'multi_zexists':
+				data = {};
+				if(len(resp) % 2 == 1){
+					for(i=1; i<len(resp); i+=2){
+						k = resp[i];
+						if(resp[i + 1] == '1'){
+                            v = true;
+                        }else{
+                            v = false;
+                        }
+						data[k] = v;
+					}
+                }
+				return new SSDB_Response('ok', data);
+                break;
 			case 'multi_get':
+			case 'multi_hget':
 				if(resp[0] == 'ok'){
 					if(len(resp) % 2 == 1){
 						data = {};
 						for(i=1; i<len(resp); i+=2){
 							k = resp[i];
 							v = resp[i + 1];
+							data[k] = v;
+						}
+						return new SSDB_Response('ok', data);
+					}else{
+						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					return new SSDB_Response(resp[0]);
+				}
+				break;
+			case 'multi_hsize':
+			case 'multi_zsize':
+			case 'multi_zget':
+				if(resp[0] == 'ok'){
+					if(len(resp) % 2 == 1){
+						data = {};
+						for(i=1; i<len(resp); i+=2){
+							k = resp[i];
+							v = int(resp[i + 1]);
 							data[k] = v;
 						}
 						return new SSDB_Response('ok', data);

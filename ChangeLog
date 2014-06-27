@@ -1,0 +1,44 @@
+* 1.6.8.8
+	* New features:
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+		- Put multi_*get commands to execute in worker thread(2014-06-17)
+	* Incompatible changes:
+		- Inlucde links, total_calls in info cmd's reply(2014-06-17)
+
+* 1.6.8.7
+	* New features:
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+        - Add expire command(2014-05-28)
+		- Add ttl command(2014-05-26)
+		- Add `flushdb list`(2014-05-22)
+		- Support Android build
+		- Add sync speed limit
+
+* 1.6.8.6 (2014-03-29)
+	* New features:
+		- Reduce round trip time for single request(2014-04-04)
+		- Add zcount, zsum, zavg, zRemRangeByScore, zRemRangeByRank commands(2014-04-06)
+		- Update redis-import.php to use Redis SCAN command if available(2014-04-07)
+		- qpush/qpush_* accept multiple values(2014-04-13)
+		- Don't push all expiration keys in memory, use less memory(2014-05-03)
+		- Provide an option to disable binlog(2014-05-03)
+		- Add hgetall command(2014-05-03)
+		- Fix memory issue on cache_size larger than 2048(2014-05-12);
+	* Incompatible changes:
+		- qpush returns the length of the queue/list after the push operations(2014-04-10)
+		- zrscan returns keys with score equal to score_start if key_start is ommit, previously it only returns keys with scores less than score_start(2014-04-23)
+	* Bug fixes:
+		- Redesign network flow, support very large batch commands
+		- Fix bug on ssdb-dump that lose data, print out error message(2014-04-05)
+
+* 1.6.8.5 (2014-03-05)
+	* New features:
+		- Add qslice(lrange), qget(lindex, lget) commands.
+		- Add getset, setnx commands.
+	* Incompatible changes:
+		- Queue/List data will be replicated(sync) to slaves.
+	* Bug fixes:
+		- Fix ssdb::Client::connect() possible memory leak
+		- Fix ttl overflow bug
+		- Fix nodejs api bug on binary data(2014-03-27)
+

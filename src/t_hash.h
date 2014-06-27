@@ -13,15 +13,13 @@ std::string encode_hsize_key(const Bytes &name){
 
 inline static
 int decode_hsize_key(const Bytes &slice, std::string *name){
-	int size = slice.size();
-	if(size < 1){
+	Decoder decoder(slice.data(), slice.size());
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	const char *p = slice.data();
-	p += 1;
-	size -= 1;
-
-	name->assign(p, size);
+	if(decoder.read_data(name) == -1){
+		return -1;
+	}
 	return 0;
 }
 
@@ -37,33 +35,20 @@ std::string encode_hash_key(const Bytes &name, const Bytes &key){
 }
 
 inline static
-int decode_hash_key(const Bytes &slice, std::string *name,
-		std::string *key){
-	int size = slice.size();
-	if(size < 1){
+int decode_hash_key(const Bytes &slice, std::string *name, std::string *key){
+	Decoder decoder(slice.data(), slice.size());
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	const char *p = slice.data();
-	p += 1;
-	size -= 1;
-
-	int len;
-	len = p[0];
-	p += 1;
-	size -= 1;
-	if(size < len){
+	if(decoder.read_8_data(name) == -1){
 		return -1;
 	}
-	name->assign(p, len);
-	p += len;
-	size -= len;
-
-	p += 1;
-	size -= 1;
-	if(size < 0){
+	if(decoder.skip(1) == -1){
 		return -1;
 	}
-	key->assign(p, size);
+	if(decoder.read_data(key) == -1){
+		return -1;
+	}
 	return 0;
 }
 

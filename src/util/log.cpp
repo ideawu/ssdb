@@ -1,9 +1,3 @@
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <limits.h>
 #include "log.h"
 
 static Logger logger;
@@ -48,7 +42,7 @@ Logger::Logger(){
 Logger::~Logger(){
 	if(mutex){
 		pthread_mutex_destroy(mutex);
-		delete mutex;
+		free(mutex);
 	}
 	this->close();
 }
@@ -56,7 +50,7 @@ Logger::~Logger(){
 void Logger::threadsafe(){
 	if(mutex){
 		pthread_mutex_destroy(mutex);
-		delete mutex;
+		free(mutex);
 		mutex = NULL;
 	}
 	mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
@@ -157,7 +151,7 @@ int Logger::get_level(const char *levelname){
 	return LEVEL_DEBUG;
 }
 
-inline static const char* header(int level){
+inline static const char* level_name(int level){
 	switch(level){
 		case Logger::LEVEL_FATAL:
 			return "[FATAL] ";
@@ -175,6 +169,7 @@ inline static const char* header(int level){
 	return "";
 }
 
+#define LEVEL_NAME_LEN	8
 #define LOG_BUF_LEN		4096
 
 int Logger::logv(int level, const char *fmt, va_list ap){
@@ -201,8 +196,8 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	}
 	ptr += len;
 
-	strcat(ptr, header(level));
-	ptr += strlen(header(level));
+	memcpy(ptr, level_name(level), LEVEL_NAME_LEN);
+	ptr += LEVEL_NAME_LEN;
 
 	int space = sizeof(buf) - (ptr - buf) - 10;
 	len = vsnprintf(ptr, space, fmt, ap);
@@ -214,7 +209,6 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	*ptr = '\0';
 
 	len = ptr - buf;
-
 	// change to write(), without locking?
 	if(this->mutex){
 		pthread_mutex_lock(this->mutex);

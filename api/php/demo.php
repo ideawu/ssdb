@@ -8,55 +8,41 @@
  * SSDB PHP API demo.
  */
 
-include('SSDB.php');
+include(dirname(__FILE__) . '/SSDB.php');
 $host = '127.0.0.1';
 $port = 8888;
 
 
 try{
-	$ssdb = new SSDB($host, $port);
+	$ssdb = new SimpleSSDB($host, $port);
+	//$ssdb->easy();
 }catch(Exception $e){
 	die(__LINE__ . ' ' . $e->getMessage());
 }
 
-echo $ssdb->set('test', date('Y-m-d H:i:s')) . "\n";
+var_dump($ssdb->set('test', time()));
+var_dump($ssdb->set('test', time()));
 echo $ssdb->get('test') . "\n";
-echo $ssdb->incr('test', 1) . "\n";
-echo $ssdb->decr('test', 1) . "\n";
-echo $ssdb->scan('a', 'z', 10) . "\n";
-echo $ssdb->rscan('z', 'a', 10) . "\n";
-echo $ssdb->keys('a', 'z', 10) . "\n";
-echo $ssdb->del('test') . "\n";
-echo $ssdb->get('test') . "\n";
+var_dump($ssdb->del('test'));
+var_dump($ssdb->del('test'));
+var_dump($ssdb->get('test'));
 echo "\n";
-echo $ssdb->zset('test', 'a', time()) . "\n";
-echo $ssdb->zget('test', 'a') . "\n";
-echo $ssdb->zincr('test', 'a', 1) . "\n";
-echo $ssdb->zdecr('test', 'a', 1) . "\n";
-echo $ssdb->zscan('test', 'a', time() - 100, time() + 10, 10) . "\n";
-echo $ssdb->zrscan('test', 'a', '', time() - 100, time() + 10) . "\n";
-echo $ssdb->zkeys('test', 'a', time() - 100, time() + 10, 10) . "\n";
-echo $ssdb->zsize('test') . "\n";
-echo $ssdb->zlist('a', 'z', 10) . "\n";
-echo $ssdb->zdel('test', 'a') . "\n";
-echo $ssdb->zget('test', 'a') . "\n";
-echo "\n";
-echo $ssdb->hset('test', 'b', time()) . "\n";
+
+var_dump($ssdb->hset('test', 'b', time()));
+var_dump($ssdb->hset('test', 'b', time()));
 echo $ssdb->hget('test', 'b') . "\n";
-echo $ssdb->hincr('test', 'b', 1) . "\n";
-echo $ssdb->hdecr('test', 'b', 1) . "\n";
-echo $ssdb->hscan('test', 'a', 'z', 10) . "\n";
-echo $ssdb->hrscan('test', 'z', 'a', 10) . "\n";
-echo $ssdb->hkeys('test', 'a', 'z', 10) . "\n";
-echo $ssdb->hsize('test') . "\n";
-echo $ssdb->hlist('a', 'z', 10) . "\n";
-echo $ssdb->hdel('test', 'b') . "\n";
-echo $ssdb->hget('test', 'b') . "\n";
+var_dump($ssdb->hdel('test', 'b'));
+var_dump($ssdb->hdel('test', 'b'));
+var_dump($ssdb->hget('test', 'b'));
 echo "\n";
-echo $ssdb->multi_set(array('a' => '1', 'b' => 2)) . "\n";
-echo $ssdb->multi_get(array('a', 'b')) . "\n";
-echo $ssdb->multi_del(array('a', 'b')) . "\n";
-echo $ssdb->multi_get(array('a', 'b')) . "\n";
+
+var_dump($ssdb->zset('test', 'a', time()));
+var_dump($ssdb->zset('test', 'a', time()));
+echo $ssdb->zget('test', 'a') . "\n";
+var_dump($ssdb->zdel('test', 'a'));
+var_dump($ssdb->zdel('test', 'a'));
+var_dump($ssdb->zget('test', 'a'));
+echo "\n";
 
 $ssdb->close();
 

@@ -1,12 +1,9 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <unistd.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
+#include "../include.h"
 #include <string>
+#include <algorithm>
 
 inline static
 int is_empty_str(const char *str){
@@ -46,6 +43,16 @@ char *trim(char *str){
 	p = ltrim(str);
 	rtrim(p);
 	return p;
+}
+
+inline static
+void strtolower(std::string *str){
+	std::transform(str->begin(), str->end(), str->begin(), ::tolower);
+}
+
+inline static
+void strtoupper(std::string *str){
+	std::transform(str->begin(), str->end(), str->begin(), ::toupper);
 }
 
 inline static
@@ -110,6 +117,11 @@ int str_to_int(const char *p, int size){
 }
 
 static inline
+int str_to_int(const std::string &str){
+	return atoi(str.c_str());
+}
+
+static inline
 std::string int_to_str(int v){
 	char buf[21] = {0};
 	snprintf(buf, sizeof(buf), "%d", v);
@@ -117,26 +129,31 @@ std::string int_to_str(int v){
 }
 
 static inline
+int64_t str_to_int64(const std::string &str){
+	return (int64_t)atoll(str.c_str());
+}
+
+static inline
 int64_t str_to_int64(const char *p, int size){
-	return atoll(std::string(p, size).c_str());
+	return (int64_t)atoll(std::string(p, size).c_str());
 }
 
 static inline
 std::string int64_to_str(int64_t v){
 	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%lld", (long long int)v);
+	snprintf(buf, sizeof(buf), "%" PRId64 "", v);
 	return std::string(buf);
 }
 
 static inline
-int64_t str_to_uint64(const char *p, int size){
-	return strtol(std::string(p, size).c_str(), (char **)NULL, 10);
+uint64_t str_to_uint64(const char *p, int size){
+	return (uint64_t)strtoull(std::string(p, size).c_str(), (char **)NULL, 10);
 }
 
 static inline
 std::string uint64_to_str(uint64_t v){
 	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%llu", (long long unsigned int)v);
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", v);
 	return std::string(buf);
 }
 
@@ -156,7 +173,49 @@ std::string double_to_str(double v){
 	return std::string(buf);
 }
 
-/**/
+static inline
+std::string substr(const std::string &str, int start, int size){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	if(size < 0){
+		size = (str.size() + size) - start;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+std::string str_slice(const std::string &str, int start, int end){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	int size;
+	if(end < 0){
+		size = (str.size() + end + 1) - start;
+	}else{
+		size = end - start + 1;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+int bitcount(const char *p, int size){
+	int n = 0;
+	for(int i=0; i<size; i++){
+		unsigned char c = (unsigned char)p[i];
+		while(c){
+			n += c & 1;
+			c = c >> 1;
+		}
+	}
+	return n;
+}
 
 // is big endia. TODO: auto detect
 #if 0

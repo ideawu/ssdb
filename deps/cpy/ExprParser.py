@@ -1,4 +1,4 @@
-# $ANTLR 3.4 Expr.g 2012-12-10 22:38:58
+# $ANTLR 3.5 Expr.g 2013-04-12 19:22:24
 
 import sys
 from antlr3 import *
@@ -237,7 +237,6 @@ class ExprParser(Parser):
         EOF1 = None
         stmt2 = None
 
-
         EOF1_tree = None
         stream_EOF = RewriteRuleTokenStream(self._adaptor, "token EOF")
 
@@ -385,39 +384,22 @@ class ExprParser(Parser):
 
         char_literal3 = None
         exec_stmt4 = None
-
         import_stmt5 = None
-
         print_stmt6 = None
-
         printf_stmt7 = None
-
         break_stmt8 = None
-
         continue_stmt9 = None
-
         return_stmt10 = None
-
         if_stmt11 = None
-
         while_stmt12 = None
-
         do_while_stmt13 = None
-
         switch_stmt14 = None
-
         for_stmt15 = None
-
         foreach_stmt16 = None
-
         throw_stmt17 = None
-
         try_stmt18 = None
-
         func_decl19 = None
-
         class_decl20 = None
-
 
         char_literal3_tree = None
         stream_92 = RewriteRuleTokenStream(self._adaptor, "token 92")
@@ -806,7 +788,6 @@ class ExprParser(Parser):
         char_literal23 = None
         stmt22 = None
 
-
         char_literal21_tree = None
         char_literal23_tree = None
         stream_132 = RewriteRuleTokenStream(self._adaptor, "token 132")
@@ -937,9 +918,7 @@ class ExprParser(Parser):
         char_literal26 = None
         char_literal28 = None
         module_path25 = None
-
         module_path27 = None
-
 
         string_literal24_tree = None
         char_literal26_tree = None
@@ -1087,9 +1066,7 @@ class ExprParser(Parser):
 
         string_literal31 = None
         module29 = None
-
         module30 = None
-
 
         string_literal31_tree = None
 
@@ -1181,9 +1158,7 @@ class ExprParser(Parser):
         char_literal37 = None
         char_literal38 = None
         expr34 = None
-
         expr_list36 = None
-
 
         string_literal32_tree = None
         char_literal33_tree = None
@@ -1256,7 +1231,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: expr, expr_list
+                # elements: expr_list, expr
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -1341,7 +1316,6 @@ class ExprParser(Parser):
         string_literal39 = None
         char_literal41 = None
         expr_list40 = None
-
 
         string_literal39_tree = None
         char_literal41_tree = None
@@ -1643,7 +1617,6 @@ class ExprParser(Parser):
         char_literal48 = None
         expr47 = None
 
-
         string_literal46_tree = None
         char_literal48_tree = None
         stream_125 = RewriteRuleTokenStream(self._adaptor, "token 125")
@@ -1766,11 +1739,8 @@ class ExprParser(Parser):
         root_0 = None
 
         if_clause49 = None
-
         else_if_clause50 = None
-
         else_clause51 = None
-
 
 
         try:
@@ -1885,9 +1855,7 @@ class ExprParser(Parser):
         char_literal53 = None
         char_literal55 = None
         expr54 = None
-
         block56 = None
-
 
         string_literal52_tree = None
         char_literal53_tree = None
@@ -1934,7 +1902,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: expr, block
+                # elements: block, expr
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -2013,7 +1981,6 @@ class ExprParser(Parser):
 
         string_literal57 = None
         if_clause58 = None
-
 
         string_literal57_tree = None
         stream_112 = RewriteRuleTokenStream(self._adaptor, "token 112")
@@ -2114,7 +2081,6 @@ class ExprParser(Parser):
 
         string_literal59 = None
         block60 = None
-
 
         string_literal59_tree = None
         stream_112 = RewriteRuleTokenStream(self._adaptor, "token 112")
@@ -2217,9 +2183,7 @@ class ExprParser(Parser):
         char_literal62 = None
         char_literal64 = None
         expr63 = None
-
         block65 = None
-
 
         string_literal61_tree = None
         char_literal62_tree = None
@@ -2349,9 +2313,7 @@ class ExprParser(Parser):
         char_literal71 = None
         char_literal72 = None
         block67 = None
-
         expr70 = None
-
 
         string_literal66_tree = None
         string_literal68_tree = None
@@ -2493,9 +2455,7 @@ class ExprParser(Parser):
         char_literal74 = None
         char_literal76 = None
         expr75 = None
-
         case_block77 = None
-
 
         string_literal73_tree = None
         char_literal74_tree = None
@@ -2622,9 +2582,7 @@ class ExprParser(Parser):
         char_literal78 = None
         char_literal81 = None
         case_clause79 = None
-
         default_clause80 = None
-
 
         char_literal78_tree = None
         char_literal81_tree = None
@@ -2750,11 +2708,8 @@ class ExprParser(Parser):
         root_0 = None
 
         case_test82 = None
-
         stmt83 = None
-
         break_stmt84 = None
-
 
         stream_case_test = RewriteRuleSubtreeStream(self._adaptor, "rule case_test")
         stream_stmt = RewriteRuleSubtreeStream(self._adaptor, "rule stmt")
@@ -2846,7 +2801,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: stmt, break_stmt, case_test
+                # elements: stmt, case_test, break_stmt
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -2941,7 +2896,6 @@ class ExprParser(Parser):
         string_literal85 = None
         char_literal87 = None
         expr86 = None
-
 
         string_literal85_tree = None
         char_literal87_tree = None
@@ -3050,7 +3004,6 @@ class ExprParser(Parser):
         string_literal88 = None
         char_literal89 = None
         stmt90 = None
-
 
         string_literal88_tree = None
         char_literal89_tree = None
@@ -3184,13 +3137,9 @@ class ExprParser(Parser):
         char_literal95 = None
         char_literal96 = None
         a = None
-
         b = None
-
         expr94 = None
-
         block97 = None
-
 
         string_literal91_tree = None
         char_literal92_tree = None
@@ -3291,7 +3240,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: block, b, expr, a
+                # elements: expr, block, a, b
                 # token labels: 
                 # rule labels: retval, b, a
                 # token list labels: 
@@ -3397,11 +3346,8 @@ class ExprParser(Parser):
         string_literal101 = None
         char_literal103 = None
         expr100 = None
-
         each102 = None
-
         block104 = None
-
 
         string_literal98_tree = None
         char_literal99_tree = None
@@ -3464,7 +3410,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: each, expr, block
+                # elements: expr, block, each
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -3546,9 +3492,7 @@ class ExprParser(Parser):
         ID106 = None
         string_literal107 = None
         each_val105 = None
-
         each_val108 = None
-
 
         ID106_tree = None
         string_literal107_tree = None
@@ -3656,7 +3600,7 @@ class ExprParser(Parser):
 
 
                     # AST Rewrite
-                    # elements: ID, each_val
+                    # elements: each_val, ID
                     # token labels: 
                     # rule labels: retval
                     # token list labels: 
@@ -3871,7 +3815,6 @@ class ExprParser(Parser):
         char_literal114 = None
         expr113 = None
 
-
         string_literal112_tree = None
         char_literal114_tree = None
         stream_92 = RewriteRuleTokenStream(self._adaptor, "token 92")
@@ -3978,11 +3921,8 @@ class ExprParser(Parser):
 
         string_literal115 = None
         block116 = None
-
         catch_clause117 = None
-
         finally_clause118 = None
-
 
         string_literal115_tree = None
         stream_130 = RewriteRuleTokenStream(self._adaptor, "token 130")
@@ -4064,7 +4004,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: catch_clause, finally_clause, block
+                # elements: finally_clause, catch_clause, block
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -4161,9 +4101,7 @@ class ExprParser(Parser):
         ID122 = None
         char_literal123 = None
         module121 = None
-
         block124 = None
-
 
         string_literal119_tree = None
         char_literal120_tree = None
@@ -4229,7 +4167,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: block, module, ID
+                # elements: block, ID, module
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -4317,7 +4255,6 @@ class ExprParser(Parser):
 
         string_literal125 = None
         block126 = None
-
 
         string_literal125_tree = None
         stream_114 = RewriteRuleTokenStream(self._adaptor, "token 114")
@@ -4419,9 +4356,7 @@ class ExprParser(Parser):
         string_literal127 = None
         ID128 = None
         params129 = None
-
         block130 = None
-
 
         string_literal127_tree = None
         ID128_tree = None
@@ -4546,9 +4481,7 @@ class ExprParser(Parser):
         char_literal133 = None
         char_literal135 = None
         param_decl132 = None
-
         param_decl134 = None
-
 
         char_literal131_tree = None
         char_literal133_tree = None
@@ -4707,7 +4640,6 @@ class ExprParser(Parser):
         char_literal137 = None
         atom138 = None
 
-
         ID136_tree = None
         char_literal137_tree = None
 
@@ -4803,7 +4735,6 @@ class ExprParser(Parser):
         char_literal145 = None
         class_element144 = None
 
-
         string_literal139_tree = None
         ID140_tree = None
         string_literal141_tree = None
@@ -4889,7 +4820,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: ID, class_element, ID
+                # elements: ID, ID, class_element
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -4983,11 +4914,8 @@ class ExprParser(Parser):
         root_0 = None
 
         var_def146 = None
-
         constructor147 = None
-
         func_decl148 = None
-
 
 
         try:
@@ -5120,9 +5048,7 @@ class ExprParser(Parser):
         char_literal157 = None
         char_literal159 = None
         expr152 = None
-
         expr158 = None
-
 
         string_literal149_tree = None
         ID150_tree = None
@@ -5216,7 +5142,7 @@ class ExprParser(Parser):
 
 
                     # AST Rewrite
-                    # elements: ID, expr
+                    # elements: expr, ID
                     # token labels: 
                     # rule labels: retval
                     # token list labels: 
@@ -5308,7 +5234,7 @@ class ExprParser(Parser):
 
 
                     # AST Rewrite
-                    # elements: expr, 127, ID
+                    # elements: expr, ID, 127
                     # token labels: 
                     # rule labels: retval
                     # token list labels: 
@@ -5398,9 +5324,7 @@ class ExprParser(Parser):
         string_literal160 = None
         string_literal161 = None
         params162 = None
-
         block163 = None
-
 
         string_literal160_tree = None
         string_literal161_tree = None
@@ -5440,7 +5364,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: block, params
+                # elements: params, block
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -5519,9 +5443,7 @@ class ExprParser(Parser):
 
         char_literal165 = None
         primary164 = None
-
         primary166 = None
-
 
         char_literal165_tree = None
         stream_86 = RewriteRuleTokenStream(self._adaptor, "token 86")
@@ -5655,9 +5577,7 @@ class ExprParser(Parser):
 
         ID167 = None
         index_expr168 = None
-
         call_expr169 = None
-
 
         ID167_tree = None
 
@@ -5766,7 +5686,6 @@ class ExprParser(Parser):
         char_literal170 = None
         char_literal172 = None
         expr_list171 = None
-
 
         char_literal170_tree = None
         char_literal172_tree = None
@@ -5895,11 +5814,8 @@ class ExprParser(Parser):
         string_literal178 = None
         char_literal180 = None
         expr174 = None
-
         expr177 = None
-
         expr179 = None
-
 
         char_literal173_tree = None
         char_literal175_tree = None
@@ -6129,9 +6045,7 @@ class ExprParser(Parser):
 
         char_literal182 = None
         exec_expr181 = None
-
         exec_expr183 = None
-
 
         char_literal182_tree = None
         stream_82 = RewriteRuleTokenStream(self._adaptor, "token 82")
@@ -6265,9 +6179,7 @@ class ExprParser(Parser):
 
         char_literal185 = None
         member_expr184 = None
-
         member_expr186 = None
-
 
         char_literal185_tree = None
 
@@ -6366,15 +6278,10 @@ class ExprParser(Parser):
         string_literal192 = None
         string_literal194 = None
         member_expr187 = None
-
         assign_op188 = None
-
         expr189 = None
-
         member_expr193 = None
-
         member_expr195 = None
-
 
         string_literal190_tree = None
         string_literal191_tree = None
@@ -6834,7 +6741,6 @@ class ExprParser(Parser):
         char_literal198 = None
         exec_list197 = None
 
-
         char_literal198_tree = None
         stream_92 = RewriteRuleTokenStream(self._adaptor, "token 92")
         stream_exec_list = RewriteRuleSubtreeStream(self._adaptor, "rule exec_list")
@@ -6935,9 +6841,7 @@ class ExprParser(Parser):
         char_literal200 = None
         char_literal202 = None
         expr199 = None
-
         expr201 = None
-
 
         char_literal200_tree = None
         char_literal202_tree = None
@@ -7095,7 +6999,6 @@ class ExprParser(Parser):
         logic_or_expr203 = None
 
 
-
         try:
             try:
                 # Expr.g:277:2: ( logic_or_expr )
@@ -7156,9 +7059,7 @@ class ExprParser(Parser):
 
         string_literal205 = None
         logic_and_expr204 = None
-
         logic_and_expr206 = None
-
 
         string_literal205_tree = None
 
@@ -7254,9 +7155,7 @@ class ExprParser(Parser):
 
         string_literal208 = None
         bitwise_or_expr207 = None
-
         bitwise_or_expr209 = None
-
 
         string_literal208_tree = None
 
@@ -7352,9 +7251,7 @@ class ExprParser(Parser):
 
         char_literal211 = None
         bitwise_xor_expr210 = None
-
         bitwise_xor_expr212 = None
-
 
         char_literal211_tree = None
 
@@ -7450,9 +7347,7 @@ class ExprParser(Parser):
 
         char_literal214 = None
         bitwise_and_expr213 = None
-
         bitwise_and_expr215 = None
-
 
         char_literal214_tree = None
 
@@ -7548,9 +7443,7 @@ class ExprParser(Parser):
 
         char_literal217 = None
         relation_expr216 = None
-
         relation_expr218 = None
-
 
         char_literal217_tree = None
 
@@ -7646,9 +7539,7 @@ class ExprParser(Parser):
 
         set220 = None
         add_expr219 = None
-
         add_expr221 = None
-
 
         set220_tree = None
 
@@ -7754,9 +7645,7 @@ class ExprParser(Parser):
 
         set223 = None
         mul_expr222 = None
-
         mul_expr224 = None
-
 
         set223_tree = None
 
@@ -7867,9 +7756,7 @@ class ExprParser(Parser):
 
         set226 = None
         not_expr225 = None
-
         not_expr227 = None
-
 
         set226_tree = None
 
@@ -7981,7 +7868,6 @@ class ExprParser(Parser):
         op = None
         negative_expr228 = None
 
-
         op_tree = None
         stream_68 = RewriteRuleTokenStream(self._adaptor, "token 68")
         stream_negative_expr = RewriteRuleSubtreeStream(self._adaptor, "rule negative_expr")
@@ -8016,7 +7902,7 @@ class ExprParser(Parser):
 
 
                 # AST Rewrite
-                # elements: 68, negative_expr, negative_expr
+                # elements: negative_expr, negative_expr, 68
                 # token labels: 
                 # rule labels: retval
                 # token list labels: 
@@ -8099,7 +7985,6 @@ class ExprParser(Parser):
 
         op = None
         atom229 = None
-
 
         op_tree = None
         stream_83 = RewriteRuleTokenStream(self._adaptor, "token 83")
@@ -8219,19 +8104,12 @@ class ExprParser(Parser):
         char_literal236 = None
         char_literal238 = None
         literal230 = None
-
         member_expr231 = None
-
         array_decl232 = None
-
         object_decl233 = None
-
         new_clause234 = None
-
         sprintf235 = None
-
         expr237 = None
-
 
         char_literal236_tree = None
         char_literal238_tree = None
@@ -8521,9 +8399,7 @@ class ExprParser(Parser):
 
         string_literal240 = None
         module241 = None
-
         call_expr242 = None
-
 
         string_literal240_tree = None
         stream_121 = RewriteRuleTokenStream(self._adaptor, "token 121")
@@ -8770,7 +8646,6 @@ class ExprParser(Parser):
         char_literal248 = None
         expr_list247 = None
 
-
         char_literal246_tree = None
         char_literal248_tree = None
         stream_101 = RewriteRuleTokenStream(self._adaptor, "token 101")
@@ -8897,9 +8772,7 @@ class ExprParser(Parser):
         char_literal253 = None
         char_literal254 = None
         property250 = None
-
         property252 = None
-
 
         char_literal249_tree = None
         char_literal251_tree = None
@@ -9081,7 +8954,6 @@ class ExprParser(Parser):
         char_literal256 = None
         expr257 = None
 
-
         set255_tree = None
         char_literal256_tree = None
 
@@ -9175,9 +9047,7 @@ class ExprParser(Parser):
         char_literal261 = None
         char_literal263 = None
         expr260 = None
-
         expr_list262 = None
-
 
         string_literal258_tree = None
         char_literal259_tree = None
@@ -9310,14 +9180,20 @@ class ExprParser(Parser):
         # Expr.g:232:4: ( '[' expr ']' )
         # Expr.g:232:4: '[' expr ']'
         pass 
+        root_0 = self._adaptor.nil()
+
+
         self.match(self.input, 100, self.FOLLOW_100_in_synpred1_Expr1439)
+
 
         self._state.following.append(self.FOLLOW_expr_in_synpred1_Expr1441)
         self.expr()
 
         self._state.following.pop()
 
+
         self.match(self.input, 101, self.FOLLOW_101_in_synpred1_Expr1443)
+
 
 
 

@@ -1,3 +1,0 @@
-#!/bin/sh
-DIR=`dirname $0`
-$DIR/../deps/cpy/cpy $DIR/ssdb-benchmark.cpy $@

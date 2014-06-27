@@ -1,25 +1,60 @@
-#include <pthread.h>
-#include <vector>
+#include "util/fde.h"
 #include "slave.h"
+#include "t_kv.h"
+#include "t_hash.h"
+#include "t_zset.h"
+#include "t_queue.h"
+#include "include.h"
 
-Slave::Slave(const SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port){
+Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
+	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta_db = meta_db;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
-
+	this->is_mirror = is_mirror;
+	if(this->is_mirror){
+		this->log_type = BinlogType::MIRROR;
+	}else{
+		this->log_type = BinlogType::SYNC;
+	}
+	
+	{
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s|%d", master_ip.c_str(), master_port);
+		this->set_id(buf);
+	}
+	
+	this->link = NULL;
 	this->last_seq = 0;
 	this->last_key = "";
-
-	load_status();
-	log_debug("last_seq: %llu, last_key: %s",
-		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+	this->connect_retry = 0;
+	
+	this->copy_count = 0;
+	this->sync_count = 0;
 }
 
 Slave::~Slave(){
 	log_debug("stopping slave thread...");
-	stop();
+	if(!thread_quit){
+		stop();
+	}
+	if(link){
+		delete link;
+	}
 	log_debug("Slave finalized");
+}
+
+void Slave::start(){
+	load_status();
+	log_debug("last_seq: %" PRIu64 ", last_key: %s",
+		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+
+	thread_quit = false;
+	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
+	if(err != 0){
+		log_error("can't create thread: %s", strerror(err));
+	}
 }
 
 void Slave::stop(){
@@ -31,219 +66,364 @@ void Slave::stop(){
 	}
 }
 
+void Slave::set_id(const std::string &id){
+	this->id_ = id;
+}
+
 std::string Slave::status_key(){
-	std::string key = "slave.status|";
-	key.append(master_ip);
-	key.append("|");
-	char buf[10];
-	sprintf(buf, "%d", master_port);
-	key.append(buf);
+	static std::string key;
+	if(key.empty()){
+		key = "new.slave.status|" + this->id_;
+	}
 	return key;
 }
 
 void Slave::load_status(){
 	std::string key = status_key();
-	std::string status;
-	leveldb::Status s;
-	s = meta_db->Get(leveldb::ReadOptions(), key, &status);
-	if(s.IsNotFound()){
-		return;
-	}
+	std::string val;
+	leveldb::Status s = meta_db->Get(leveldb::ReadOptions(), key, &val);
 	if(s.ok()){
-		if(status.size() < sizeof(uint64_t)){
-			log_error("invlid format of status");
+		if(val.size() < sizeof(uint64_t)){
+			log_error("invalid format of status");
 		}else{
-			last_seq = *((uint64_t *)(status.data()));
-			last_key = std::string(status.data() + sizeof(uint64_t), status.size() - sizeof(uint64_t));
-			log_debug("load_status seq: %llu, key: %s",
-				last_seq,
-				hexmem(last_key.data(), last_key.size()).c_str());
+			last_seq = *((uint64_t *)(val.data()));
+			last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
 		}
 	}
 }
 
 void Slave::save_status(){
 	std::string key = status_key();
-	std::string status;
-	status.append((char *)&this->last_seq, sizeof(uint64_t));
-	status.append(this->last_key);
-	meta_db->Put(leveldb::WriteOptions(), key, status);
+	std::string val;
+	val.append((char *)&this->last_seq, sizeof(uint64_t));
+	val.append(this->last_key);
+	meta_db->Put(leveldb::WriteOptions(), key, val);
 }
 
-void Slave::start(){
-	thread_quit = false;
-	int err = pthread_create(&run_thread_tid, NULL, &Slave::_run_thread, this);
-	if(err != 0){
-		log_error("can't create thread: %s", strerror(err));
-	}
-}
-
-template<class T>
-static std::string serialize_req(T &req){
-	std::string ret;
-	char buf[50];
-	for(int i=0; i<req.size(); i++){
-		if(i >= 5 && i < req.size() - 1){
-			sprintf(buf, "[%d more...]", (int)req.size() - i - 1);
-			ret.append(buf);
-			break;
-		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
-			std::string h = hexmem(req[i].data(), req[i].size());
-			ret.append(h);
+int Slave::connect(){
+	const char *ip = this->master_ip.c_str();
+	int port = this->master_port;
+	
+	if(++connect_retry % 50 == 1){
+		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), connect_retry-1, ip, port);
+		link = Link::connect(ip, port);
+		if(link == NULL){
+			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
+			goto err;
 		}else{
-			sprintf(buf, "[%d bytes]", (int)req[i].size());
-			ret.append(buf);
+			connect_retry = 0;
+			char seq_buf[20];
+			sprintf(seq_buf, "%" PRIu64 "", this->last_seq);
+			
+			const char *type = is_mirror? "mirror" : "sync";
+			
+			link->send("sync140", seq_buf, this->last_key, type);
+			if(link->flush() == -1){
+				log_error("[%s]network error", this->id_.c_str());
+				delete link;
+				link = NULL;
+				goto err;
+			}
+			log_info("[%s]ready to receive binlogs", this->id_.c_str());
+			return 1;
 		}
-		if(i < req.size() - 1){
-			ret.append(" ");
-		}
 	}
-	return ret;
-}
-
-static Link* connect(const char *ip, int port, uint64_t last_seq, std::string &last_key){
-	Link *link = Link::connect(ip, port);
-	if(link == NULL){
-		log_error("failed to connect to master: %s:%d!", ip, port);
-		goto err;
-	}
-	// TODO: set link.recv_timeout
-
-	char seq_buf[20];
-	sprintf(seq_buf, "%llu", last_seq);
-
-	link->output->append_record("sync");
-	link->output->append_record(seq_buf);
-	link->output->append_record(last_key);
-	link->output->append('\n');
-
-	if(link->flush() == -1){
-		log_error("network error");
-		goto err;
-	}
-
-	log_info("ready to receive sync commands...");
-	return link;
+	return 0;
 err:
-	return NULL;
+	return -1;
 }
 
 void* Slave::_run_thread(void *arg){
 	Slave *slave = (Slave *)arg;
-	const SSDB *ssdb = slave->ssdb;
-	const char *ip = slave->master_ip.c_str();
-	int port = slave->master_port;
-	Link *link = NULL;
-
-	int retry = 0;
 	const std::vector<Bytes> *req;
+	Fdevents select;
+	const Fdevents::events_t *events;
+	int idle = 0;
+	bool reconnect = false;
+	
+#define RECV_TIMEOUT	200
+#define MAX_RECV_IDLE	300 * 1000/RECV_TIMEOUT
+
 	while(!slave->thread_quit){
-		if(link == NULL){
-			usleep(100 * 1000);
-			if(retry > 100){
-				retry = 61;
-			}
-			// TODO: 找一个公式
-			if(retry == 0 || retry == 10 || retry == 30 || retry == 60 || retry == 100){
-				log_info("[%d] connecting to master at %s:%d...", retry, ip, port);
-				link = connect(ip, port, slave->last_seq, slave->last_key);
-			}
-			if(link == NULL){
-				retry ++;
-				continue;
+		if(reconnect){
+			reconnect = false;
+			select.del(slave->link->fd());
+			delete slave->link;
+			slave->link = NULL;
+		}
+		if(!slave->connected()){
+			if(slave->connect() != 1){
+				usleep(100 * 1000);
 			}else{
-				retry = 0;
-			}
-		}
-
-		req = link->recv();
-		if(req == NULL){
-			retry = 1;
-			delete link;
-			link = NULL;
-			log_info("recv error, reconnecting to master...");
-			continue;
-		}else if(req->empty()){
-			if(link->read() <= 0){
-				retry = 1;
-				delete link;
-				link = NULL;
-				log_info("network error, reconnecting to master...");
+				select.set(slave->link->fd(), FDEVENT_IN, 0, NULL);
 			}
 			continue;
 		}
+		
+		events = select.wait(RECV_TIMEOUT);
+		if(events == NULL){
+			log_error("events.wait error: %s", strerror(errno));
+			sleep(1);
+			continue;
+		}else if(events->empty()){
+			if(idle++ >= MAX_RECV_IDLE){
+				log_error("the master hasn't responsed for awhile, reconnect...");
+				idle = 0;
+				reconnect = true;
+			}
+			continue;
+		}
+		idle = 0;
 
-		Bytes cmd = req->at(0);
-		if(cmd == "dump_begin"){
-			log_info("dump begin");
-			// TODO: patch-diff old data
-		}else if(cmd == "dump_end"){
-			log_info("dump end, step in sync");
-			slave->last_key = "";
-			slave->save_status();
-		}else if(cmd == "dump_set"){
-			log_debug("%s", serialize_req(*req).c_str());
-			if(req->size() != 4){
-				log_warn("invalid dump_set params!");
+		if(slave->link->read() <= 0){
+			log_error("link.read error: %s, reconnecting to master", strerror(errno));
+			reconnect = true;
+			sleep(1);
+			continue;
+		}
+
+		while(1){
+			req = slave->link->recv();
+			if(req == NULL){
+				log_error("link.recv error: %s, reconnecting to master", strerror(errno));
+				reconnect = true;
+				sleep(1);
 				break;
-			}
-			uint64_t seq = req->at(1).Uint64();
-			Bytes key = req->at(2);
-			Bytes val = req->at(3);
-			slave->last_key = key.String();
-			if(seq > 0){
-				slave->last_seq = seq;
-			}
-
-			int ret = ssdb->raw_set(key, val);
-			if(ret == -1){
-				log_error("ssdb.raw_set error!");
-			}
-			slave->save_status();
-		}else if(cmd == "sync_set"){
-			log_debug("%s", serialize_req(*req).c_str());
-			if(req->size() != 4){
-				log_warn("invalid sync_set params!");
+			}else if(req->empty()){
 				break;
+			}else{
+				if(slave->proc(*req) == -1){
+					goto err;
+				}
 			}
-			uint64_t seq = req->at(1).Uint64();
-			Bytes key = req->at(2);
-			Bytes val = req->at(3);
-			// sync
-			slave->last_seq = seq;
-
-			int ret = ssdb->raw_set(key, val);
-			if(ret == -1){
-				log_error("ssdb.raw_set error!");
-			}
-			slave->save_status();
-		}else if(cmd == "sync_del"){
-			log_debug("%s", serialize_req(*req).c_str());
-			if(req->size() != 3){
-				log_warn("invalid del params!");
-				break;
-			}
-			uint64_t seq = req->at(1).Uint64();
-			Bytes key = req->at(2);
-			slave->last_seq = seq;
-
-			int ret = ssdb->raw_del(key);
-			if(ret == -1){
-				log_error("ssdb.raw_del error!");
-			}
-
-			slave->save_status();
-		}else if(cmd == "noop"){
-			//
-		}else{
-			log_warn("unknow sync command: %s", serialize_req(*req).c_str());
 		}
 	} // end while
-
-	if(link){
-		delete link;
-	}
 	log_info("Slave thread quit");
 	return (void *)NULL;
+
+err:
+	log_fatal("Slave thread exit unexpectedly");
+	exit(0);
+	return (void *)NULL;;
 }
+
+int Slave::proc(const std::vector<Bytes> &req){
+	Binlog log;
+	if(log.load(req[0].Slice()) == -1){
+		log_error("invalid binlog!");
+		return 0;
+	}
+	const char *sync_type = this->is_mirror? "mirror" : "sync";
+	switch(log.type()){
+		case BinlogType::NOOP:
+			return this->proc_noop(log, req);
+			break;
+		case BinlogType::COPY:{
+			if(++copy_count % 1000 == 1){
+				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
+					copy_count, this->last_seq, log.seq());
+			}
+			if(req.size() >= 2){
+				log_debug("[%s] %s [%d]", sync_type, log.dumps().c_str(), req[1].size());
+			}else{
+				log_debug("[%s] %s", sync_type, log.dumps().c_str());
+			}
+			this->proc_copy(log, req);
+			break;
+		}
+		case BinlogType::SYNC:
+		case BinlogType::MIRROR:{
+			if(++sync_count % 1000 == 1){
+				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
+					sync_count, this->last_seq, log.seq());
+			}
+			if(req.size() >= 2){
+				log_debug("[%s] %s [%d]", sync_type, log.dumps().c_str(), req[1].size());
+			}else{
+				log_debug("[%s] %s", sync_type, log.dumps().c_str());
+			}
+			this->proc_sync(log, req);
+			break;
+		}
+		default:
+			break;
+	}
+	return 0;
+}
+
+int Slave::proc_noop(const Binlog &log, const std::vector<Bytes> &req){
+	uint64_t seq = log.seq();
+	if(this->last_seq != seq){
+		log_debug("noop last_seq: %" PRIu64 ", seq: %" PRIu64 "", this->last_seq, seq);
+		this->last_seq = seq;
+		this->save_status();
+	}
+	return 0;
+}
+
+int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
+	switch(log.cmd()){
+		case BinlogCommand::BEGIN:
+			log_info("copy begin");
+			break;
+		case BinlogCommand::END:
+			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
+				copy_count, this->last_seq, log.seq());
+			this->last_key = "";
+			this->save_status();
+			break;
+		default:
+			return proc_sync(log, req);
+			break;
+	}
+	return 0;
+}
+
+int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
+	switch(log.cmd()){
+		case BinlogCommand::KSET:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string key;
+				if(decode_kv_key(log.key(), &key) == -1){
+					break;
+				}
+				log_trace("set %s", hexmem(key.data(), key.size()).c_str());
+				if(ssdb->set(key, req[1], log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::KDEL:
+			{
+				std::string key;
+				if(decode_kv_key(log.key(), &key) == -1){
+					break;
+				}
+				log_trace("del %s", hexmem(key.data(), key.size()).c_str());
+				if(ssdb->del(key, log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::HSET:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name, key;
+				if(decode_hash_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("hset %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				if(ssdb->hset(name, key, req[1], log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::HDEL:
+			{
+				std::string name, key;
+				if(decode_hash_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("hdel %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				if(ssdb->hdel(name, key, log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::ZSET:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name, key;
+				if(decode_zset_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("zset %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				if(ssdb->zset(name, key, req[1], log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::ZDEL:
+			{
+				std::string name, key;
+				if(decode_zset_key(log.key(), &name, &key) == -1){
+					break;
+				}
+				log_trace("zdel %s %s",
+					hexmem(name.data(), name.size()).c_str(),
+					hexmem(key.data(), key.size()).c_str());
+				if(ssdb->zdel(name, key, log_type) == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::QPUSH_BACK:
+		case BinlogCommand::QPUSH_FRONT:
+			{
+				if(req.size() != 2){
+					break;
+				}
+				std::string name;
+				uint64_t seq;
+				if(decode_qitem_key(log.key(), &name, &seq) == -1){
+					break;
+				}
+				if(seq < QITEM_MIN_SEQ || seq > QITEM_MAX_SEQ){
+					break;
+				}
+				int ret;
+				if(log.cmd() == BinlogCommand::QPUSH_BACK){
+					log_trace("qpush_back %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpush_back(name, req[1], log_type);
+				}else{
+					log_trace("qpush_front %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpush_front(name, req[1], log_type);
+				}
+				if(ret == -1){
+					return -1;
+				}
+			}
+			break;
+		case BinlogCommand::QPOP_BACK:
+		case BinlogCommand::QPOP_FRONT:
+			{
+				int ret;
+				const Bytes name = log.key();
+				std::string tmp;
+				if(log.cmd() == BinlogCommand::QPOP_BACK){
+					log_trace("qpop_back %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpop_back(name, &tmp, log_type);
+				}else{
+					log_trace("qpop_front %s", hexmem(name.data(), name.size()).c_str());
+					ret = ssdb->qpop_front(name, &tmp, log_type);
+				}
+				if(ret == -1){
+					return -1;
+				}
+			}
+			break;
+		default:
+			log_error("unknown binlog, type=%d, cmd=%d", log.type(), log.cmd());
+			break;
+	}
+	this->last_seq = log.seq();
+	if(log.type() == BinlogType::COPY){
+		this->last_key = log.key().String();
+	}
+	this->save_status();
+	return 0;
+}
+

@@ -1,14 +1,66 @@
 #ifndef UTIL_THREAD_H_
 #define UTIL_THREAD_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
+#include "../include.h"
 #include <pthread.h>
 #include <queue>
 #include <vector>
+
+
+class Mutex{
+	private:
+		pthread_mutex_t mutex;
+	public:
+		Mutex(){
+			pthread_mutex_init(&mutex, NULL);
+		}
+		~Mutex(){
+			pthread_mutex_destroy(&mutex);
+		}
+		void lock(){
+			pthread_mutex_lock(&mutex);
+		}
+		void unlock(){
+			pthread_mutex_unlock(&mutex);
+		}
+};
+
+class Locking{
+	private:
+		Mutex *mutex;
+		// No copying allowed
+		Locking(const Locking&);
+		void operator=(const Locking&);
+	public:
+		Locking(Mutex *mutex){
+			this->mutex = mutex;
+			this->mutex->lock();
+		}
+		~Locking(){
+			this->mutex->unlock();
+		}
+
+};
+
+/*
+class Semaphore {
+	private:
+		pthread_cond_t cond;
+		pthread_mutex_t mutex;
+	public:
+		Semaphore(Mutex* mu){
+			pthread_cond_init(&cond, NULL);
+			pthread_mutex_init(&mutex, NULL);
+		}
+		~CondVar(){
+			pthread_cond_destroy(&cond);
+			pthread_mutex_destroy(&mutex);
+		}
+		void wait();
+		void signal();
+};
+*/
+
 
 // Thread safe queue
 template <class T>
@@ -24,6 +76,7 @@ class Queue{
 		bool empty();
 		int size();
 		int push(const T item);
+		// TODO: with timeout
 		int pop(T *data);
 };
 
@@ -48,20 +101,28 @@ class SelectableQueue{
 		int pop(T *data);
 };
 
-
 template<class W, class JOB>
 class WorkerPool{
 	public:
 		class Worker{
 			public:
+				Worker(){};
+				Worker(const std::string &name);
+				virtual ~Worker(){}
 				int id;
+				virtual void init(){}
+				virtual void destroy(){}
 				virtual int proc(JOB *job) = 0;
+			private:
+			protected:
+				std::string name;
 		};
 	private:
+		std::string name;
 		Queue<JOB> jobs;
 		SelectableQueue<JOB> results;
 
-		int num_works;
+		int num_workers;
 		std::vector<pthread_t> tids;
 		bool started;
 
@@ -71,14 +132,18 @@ class WorkerPool{
 		};
 		static void* _run_worker(void *arg);
 	public:
-		WorkerPool(int num_works);
+		WorkerPool(const char *name="");
 		~WorkerPool();
 
-		int fd_result();
-		void add_job(JOB job);
-		void get_result(JOB *job);
-		int start();
+		int fd(){
+			return results.fd();
+		}
+		
+		int start(int num_workers);
 		int stop();
+		
+		int push(JOB job);
+		int pop(JOB *job);
 };
 
 
@@ -162,7 +227,9 @@ int Queue<T>::pop(T *data){
 
 template <class T>
 SelectableQueue<T>::SelectableQueue(){
-	pipe(fds);
+	if(pipe(fds) == -1){
+		exit(0);
+	}
 	pthread_mutex_init(&mutex, NULL);
 }
 
@@ -181,7 +248,9 @@ int SelectableQueue<T>::push(const T item){
 	{
 		items.push(item);
 	}
-	::write(fds[1], "1", 1);
+	if(::write(fds[1], "1", 1) == -1){
+		exit(0);
+	}
 	pthread_mutex_unlock(&mutex);
 	return 1;
 }
@@ -224,8 +293,8 @@ int SelectableQueue<T>::pop(T *data){
 
 
 template<class W, class JOB>
-WorkerPool<W, JOB>::WorkerPool(int num_works){
-	this->num_works = num_works;
+WorkerPool<W, JOB>::WorkerPool(const char *name){
+	this->name = name;
 	this->started = false;
 }
 
@@ -237,18 +306,13 @@ WorkerPool<W, JOB>::~WorkerPool(){
 }
 
 template<class W, class JOB>
-int WorkerPool<W, JOB>::fd_result(){
-	return results.fd_read();
+int WorkerPool<W, JOB>::push(JOB job){
+	return this->jobs.push(job);
 }
 
 template<class W, class JOB>
-void WorkerPool<W, JOB>::add_job(JOB job){
-	this->jobs.push(job);
-}
-
-template<class W, class JOB>
-void WorkerPool<W, JOB>::get_result(JOB *job){
-	this->results.pop(job);
+int WorkerPool<W, JOB>::pop(JOB *job){
+	return this->results.pop(job);
 }
 
 template<class W, class JOB>
@@ -258,9 +322,10 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 	WorkerPool *tp = p->tp;
 	delete p;
 
-	W w;
+	W w(tp->name);
 	Worker *worker = (Worker *)&w;
 	worker->id = id;
+	worker->init();
 	while(1){
 		JOB job;
 		if(tp->jobs.pop(&job) == -1){
@@ -275,17 +340,19 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 			break;
 		}
 	}
+	worker->destroy();
 	return (void *)NULL;
 }
 
 template<class W, class JOB>
-int WorkerPool<W, JOB>::start(){
+int WorkerPool<W, JOB>::start(int num_workers){
+	this->num_workers = num_workers;
 	if(started){
 		return 0;
 	}
 	int err;
 	pthread_t tid;
-	for(int i=0; i<num_works; i++){
+	for(int i=0; i<num_workers; i++){
 		struct run_arg *arg = new run_arg();
 		arg->id = i;
 		arg->tp = this;
@@ -305,7 +372,10 @@ template<class W, class JOB>
 int WorkerPool<W, JOB>::stop(){
 	// TODO: notify works quit and wait
 	for(int i=0; i<tids.size(); i++){
+#ifdef OS_ANDROID
+#else
 		pthread_cancel(tids[i]);
+#endif
 	}
 	return 0;
 }
@@ -328,12 +398,12 @@ int main(){
 	for(int i=0; i<num_jobs; i++){
 		//usleep(200 * 1000);
 		//printf("job: %d\n", i);
-		tp.add_job(i);
+		tp.push_job(i);
 	}
 	printf("add end\n");
 	for(int i=0; i<num_jobs; i++){
 		int job;
-		tp.get_result(&job);
+		tp.pop_result(&job);
 		printf("result: %d, %d\n", i, job);
 	}
 	printf("end\n");

@@ -1,5 +1,7 @@
 #ifndef UTIL_FDE_SELECT_H
 #define UTIL_FDE_SELECT_H
+#include <errno.h>
+#include "log.h"
 
 Fdevents::Fdevents(){
 	maxfd = -1;
@@ -21,14 +23,23 @@ bool Fdevents::isset(int fd, int flag){
 }
 
 int Fdevents::set(int fd, int flags, int data_num, void *data_ptr){
+	if(fd > FD_SETSIZE - 1){
+		return -1;
+	}
+
+	struct Fdevent *fde = get_fde(fd);
+	if(fde->s_flags & flags){
+		return 0;
+	}
+
 	if(flags & FDEVENT_IN)  FD_SET(fd, &readset);
 	if(flags & FDEVENT_OUT) FD_SET(fd, &writeset);
 
-	struct Fdevent *fde = get_fde(fd);
 	fde->data.num = data_num;
 	fde->data.ptr = data_ptr;
 	fde->s_flags |= flags;
 	maxfd = fd > maxfd? fd: maxfd;
+
 	return 0;
 }
 
@@ -38,17 +49,20 @@ int Fdevents::del(int fd){
 
 	struct Fdevent *fde = get_fde(fd);
 	fde->s_flags = FDEVENT_NONE;
-	while(this->events[maxfd]->s_flags == 0){
+	while(maxfd >= 0 && this->events[maxfd]->s_flags == 0){
 		maxfd --;
 	}
 	return 0;
 }
 
 int Fdevents::clr(int fd, int flags){
+	struct Fdevent *fde = get_fde(fd);
+	if(!(fde->s_flags & flags)){
+		return 0;
+	}
 	if(flags & FDEVENT_IN)  FD_CLR(fd, &readset);
 	if(flags & FDEVENT_OUT) FD_CLR(fd, &writeset);
 
-	struct Fdevent *fde = get_fde(fd);
 	fde->s_flags &= ~flags;
 	while(this->events[maxfd]->s_flags == 0){
 		maxfd --;
@@ -61,6 +75,8 @@ const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 	struct Fdevent *fde;
 	int i, ret;
 
+	ready_events.clear();
+	
 	fd_set t_readset = readset;
 	fd_set t_writeset = writeset;
 
@@ -72,11 +88,12 @@ const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 		ret = ::select(maxfd + 1, &t_readset, &t_writeset, NULL, NULL);
 	}
 	if(ret < 0){
-		// error!
+		if(errno == EINTR){
+			return &ready_events;
+		}
 		return NULL;
 	}
 
-	ready_events.clear();
 	if(ret > 0){
 		for(i = 0; i <= maxfd && (int)ready_events.size() < ret; i++){
 			fde = this->events[i];

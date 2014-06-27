@@ -24,6 +24,9 @@ bool Fdevents::isset(int fd, int flag){
 
 int Fdevents::set(int fd, int flags, int data_num, void *data_ptr){
 	struct Fdevent *fde = get_fde(fd);
+	if(fde->s_flags & flags){
+		return 0;
+	}
 	int ctl_op = fde->s_flags? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
 
 	fde->s_flags |= flags;
@@ -57,6 +60,9 @@ int Fdevents::del(int fd){
 
 int Fdevents::clr(int fd, int flags){
 	struct Fdevent *fde = get_fde(fd);
+	if(!(fde->s_flags & flags)){
+		return 0;
+	}
 
 	fde->s_flags &= ~flags;
 	int ctl_op = fde->s_flags? EPOLL_CTL_MOD: EPOLL_CTL_DEL;
@@ -77,20 +83,16 @@ int Fdevents::clr(int fd, int flags){
 const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 	struct Fdevent *fde;
 	struct epoll_event *epe;
+	ready_events.clear();
 
-	int nfds;
-	while(1){
-		nfds = epoll_wait(ep_fd, ep_events, MAX_FDS, timeout_ms);
-		if(nfds == -1){
-			if(errno == EINTR){
-				continue;
-			}
-			return NULL;
+	int nfds = epoll_wait(ep_fd, ep_events, MAX_FDS, timeout_ms);
+	if(nfds == -1){
+		if(errno == EINTR){
+			return &ready_events;
 		}
-		break;
+		return NULL;
 	}
 
-	ready_events.clear();
 	for(int i = 0; i < nfds; i++){
 		epe = &ep_events[i];
 		fde = (struct Fdevent *)epe->data.ptr;
