@@ -77,6 +77,12 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 	return 0;
 }
 
+int ExpirationHandler::del_ttl(const Bytes &key){
+	expiration_keys.del(key.String());
+	ssdb->zdel(this->list_name, key);
+	return 0;
+}
+
 int64_t ExpirationHandler::get_ttl(const Bytes &key){
 	std::string score;
 	if(ssdb->zget(this->list_name, key, &score) == 1){

@@ -12,6 +12,7 @@ class ExpirationHandler
 public:
 	ExpirationHandler(SSDB *ssdb);
 	~ExpirationHandler();
+	int del_ttl(const Bytes &key);
 	int set_ttl(const Bytes &key, int64_t ttl);
 	// "In Redis 2.6 or older the command returns -1 if the key does not exist
 	// or if the key exist but has no associated expire. Starting with Redis 2.8.."
