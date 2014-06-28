@@ -5,6 +5,8 @@
 	* Incompatible changes:
 		- Delete expireation info when deleting key(2014-06-28)
 		- Inlucde links, total_calls in info cmd's reply(2014-06-17)
+	* Bug fixes:
+		- Fix zRangeByScore(redis) bug(2014-06-28)
 
 * 1.6.8.7
 	* New features:
