@@ -285,7 +285,9 @@ int RedisLink::convert_req(){
 			}
 			recv_string.push_back(smax);
 		}
-		if(!offset.empty()){
+		if(offset.empty()){
+			recv_string.push_back("0");
+		}else{
 			recv_string.push_back(offset);
 		}
 		if(count.empty()){
