@@ -138,6 +138,10 @@ static int proc_multi_del(Server *serv, Link *link, const Request &req, Response
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
+			for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
+				const Bytes key = *it;
+				serv->expiration->del_ttl(key);
+			}
 			serv->int_reply(resp, ret);
 		}
 	}
@@ -174,6 +178,8 @@ static int proc_del(Server *serv, Link *link, const Request &req, Response *resp
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
+			serv->expiration->del_ttl(req[1]);
+			
 			resp->push_back("ok");
 			resp->push_back("1");
 		}
