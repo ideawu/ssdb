@@ -173,9 +173,9 @@ int main(int argc, char **argv){
 	int clients = 50;
 
 	welcome();
+	usage(argc, argv);
 	for(int i=1; i<argc; i++){
 		if(strcmp("-v", argv[i]) == 0){
-			usage(argc, argv);
 			exit(0);
 		}
 	}
