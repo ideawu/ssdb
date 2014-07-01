@@ -78,6 +78,7 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 }
 
 int ExpirationHandler::del_ttl(const Bytes &key){
+	Locking l(&mutex);
 	expiration_keys.del(key.String());
 	ssdb->zdel(this->list_name, key);
 	return 0;
