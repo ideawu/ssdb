@@ -3,13 +3,14 @@
 
 #include "include.h"
 #include "ssdb.h"
-#include "util/sorted_set.h"
 #include "util/thread.h"
 #include <string>
 
 class ExpirationHandler
 {
 public:
+	Mutex mutex;
+
 	ExpirationHandler(SSDB *ssdb);
 	~ExpirationHandler();
 	int del_ttl(const Bytes &key);
@@ -23,8 +24,7 @@ private:
 	SSDB *ssdb;
 	volatile bool thread_quit;
 	std::string list_name;
-	SortedSet expiration_keys;
-	Mutex mutex;
+	int64_t first_timeout;
 
 	void start();
 	void stop();

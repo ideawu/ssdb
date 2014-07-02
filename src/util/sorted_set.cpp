@@ -73,6 +73,27 @@ int SortedSet::front(std::string *key, int64_t *score) const{
 	return 0;
 }
 
+int SortedSet::back(const std::string **key, int64_t *score) const{
+	std::set<Item>::reverse_iterator it2 = sorted_set.rbegin();
+	if(it2 == sorted_set.rend()){
+		return 0;
+	}
+	const Item &item = *it2;
+	*key = &item.key;
+	if(score){
+		*score = item.score;
+	}
+	return 1;
+}
+
+int64_t SortedSet::max_score() const{
+	int64_t score = 0;
+	const std::string *key;
+	this->back(&key, &score);
+	return score;
+}
+
+
 int SortedSet::pop_front(){
 	if(sorted_set.empty()){
 		return 0;

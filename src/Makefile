@@ -3,7 +3,7 @@ include ../build_config.mk
 OBJS = ssdb.o t_kv.o t_hash.o t_zset.o t_queue.o link.o \
 	backend_dump.o backend_sync.o slave.o binlog.o serv.o \
 	iterator.o ttl.o
-UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o util/sorted_set.o
+UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o
 EXES = ../ssdb-server
 
 
