@@ -16,11 +16,9 @@ public:
 	int add(const std::string &key, int64_t score);
 	// 0: not found, 1: found and deleted
 	int del(const std::string &key);
-	// key will be pointed to the first item if SortedSet not empty
-	int front(const std::string **key, int64_t *score=NULL) const;
 	// the first item is copied into key if SortedSet not empty
 	int front(std::string *key, int64_t *score=NULL) const;
-	int back(const std::string **key, int64_t *score=NULL) const;
+	int back(std::string *key, int64_t *score=NULL) const;
 	int64_t max_score() const;
 	int pop_front();
 	int pop_back();

@@ -50,36 +50,26 @@ int SortedSet::del(const std::string &key){
 	return ret;
 }
 
-int SortedSet::front(const std::string **key, int64_t *score) const{
+int SortedSet::front(std::string *key, int64_t *score) const{
 	std::set<Item>::iterator it2 = sorted_set.begin();
 	if(it2 == sorted_set.end()){
 		return 0;
 	}
 	const Item &item = *it2;
-	*key = &item.key;
+	*key = item.key;
 	if(score){
 		*score = item.score;
 	}
 	return 1;
 }
 
-int SortedSet::front(std::string *key, int64_t *score) const{
-	const std::string *ptr;
-	if(front(&ptr, score)){
-		// string copy
-		*key = *ptr;
-		return 1;
-	}
-	return 0;
-}
-
-int SortedSet::back(const std::string **key, int64_t *score) const{
+int SortedSet::back(std::string *key, int64_t *score) const{
 	std::set<Item>::reverse_iterator it2 = sorted_set.rbegin();
 	if(it2 == sorted_set.rend()){
 		return 0;
 	}
 	const Item &item = *it2;
-	*key = &item.key;
+	*key = item.key;
 	if(score){
 		*score = item.score;
 	}
@@ -88,7 +78,7 @@ int SortedSet::back(const std::string **key, int64_t *score) const{
 
 int64_t SortedSet::max_score() const{
 	int64_t score = 0;
-	const std::string *key;
+	std::string key;
 	this->back(&key, &score);
 	return score;
 }
