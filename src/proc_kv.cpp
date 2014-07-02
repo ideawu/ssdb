@@ -132,6 +132,7 @@ static int proc_multi_set(Server *serv, Link *link, const Request &req, Response
 }
 
 static int proc_multi_del(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{

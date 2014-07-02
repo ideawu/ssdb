@@ -530,6 +530,7 @@ static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp
 }
 
 static int proc_expire(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
