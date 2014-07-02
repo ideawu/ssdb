@@ -125,14 +125,14 @@ void* ExpirationHandler::thread_func(void *arg){
 			}
 		
 			int64_t score;
-			const std::string *key;
+			std::string key;
 			if(handler->fast_keys.front(&key, &score)){
 				handler->first_timeout = score;
 				
 				if(score <= time_ms()){
-					log_debug("expired %s", key->c_str());
-					ssdb->del(*key);
-					ssdb->zdel(handler->list_name, *key);
+					log_debug("expired %s", key.c_str());
+					ssdb->del(key);
+					ssdb->zdel(handler->list_name, key);
 					handler->fast_keys.pop_front();
 				}
 			}
