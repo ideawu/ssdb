@@ -4,6 +4,7 @@
 #include "include.h"
 #include "ssdb.h"
 #include "util/thread.h"
+#include "util/sorted_set.h"
 #include <string>
 
 class ExpirationHandler
@@ -25,6 +26,7 @@ private:
 	volatile bool thread_quit;
 	std::string list_name;
 	int64_t first_timeout;
+	SortedSet fast_keys;
 
 	void start();
 	void stop();

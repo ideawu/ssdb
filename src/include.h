@@ -22,9 +22,11 @@
 #include "version.h"
 
 #ifndef UINT64_MAX
-	#define UINT64_MAX        18446744073709551615ULL
+	#define UINT64_MAX		18446744073709551615ULL
 #endif
-
+#ifndef INT64_MAX
+	#define INT64_MAX		0x7fffffffffffffffLL
+#endif
 
 static const int SSDB_SCORE_WIDTH		= 9;
 static const int SSDB_KEY_LEN_MAX		= 255;
