@@ -130,10 +130,10 @@ void* ExpirationHandler::thread_func(void *arg){
 				handler->first_timeout = score;
 				
 				if(score <= time_ms()){
-					handler->fast_keys.pop_front();
 					log_debug("expired %s", key->c_str());
 					ssdb->del(*key);
 					ssdb->zdel(handler->list_name, *key);
+					handler->fast_keys.pop_front();
 				}
 			}
 		}
