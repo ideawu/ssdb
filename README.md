@@ -133,6 +133,10 @@ See [Changes-Made-to-LevelDB wiki](https://github.com/ideawu/ssdb/wiki/Changes-M
 
 SSDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Clause), a very flexible license to use.
 
+## Authors
+
+@ideawu
+
 ## Thanks
 
 * 刘建辉, liujianhui@gongchang.com
