@@ -18,17 +18,20 @@ install:
 	mkdir -p ${PREFIX}/deps
 	mkdir -p ${PREFIX}/var
 	mkdir -p ${PREFIX}/var_slave
-	cp ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
+	mkdir -p ${PREFIX}/bin
+    mkdir -p ${PREFIX}/sbin
+    mkdir -p ${PREFIX}/conf
+	cp ssdb-server ${PREFIX}/sbin
+	cp ssdb.conf ssdb_slave.conf ${PREFIX}/conf
 	cp -r api ${PREFIX}
 	cp -r \
 		tools/ssdb-bench tools/ssdb-cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
 		tools/ssdb-ins.sh tools/unittest.php \
-		${PREFIX}
+		${PREFIX}/bin
 	cp -r deps/cpy ${PREFIX}/deps
-	chmod ugo+rwx ${PREFIX}
-	chmod -R ugo+rw ${PREFIX}
+	chmod -R 755 ${PREFIX}
 	rm -f ${PREFIX}/Makefile
 
 clean:
