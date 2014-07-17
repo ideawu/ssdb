@@ -20,8 +20,8 @@ install:
 	mkdir -p ${PREFIX}/var_slave
 	# add by stefan_bo
 	mkdir -p ${PREFIX}/bin
-    	mkdir -p ${PREFIX}/sbin
-    	mkdir -p ${PREFIX}/conf
+	mkdir -p ${PREFIX}/sbin
+	mkdir -p ${PREFIX}/conf
 	cp ssdb-server ${PREFIX}/sbin
 	cp ssdb.conf ssdb_slave.conf ${PREFIX}/conf
 	cp -r api ${PREFIX}
