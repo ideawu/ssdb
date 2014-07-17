@@ -34,6 +34,8 @@ install:
 	cp -r deps/cpy ${PREFIX}/deps
 	chmod -R 755 ${PREFIX}
 	rm -f ${PREFIX}/Makefile
+	cp tools/ssdb.sh /etc/init.d/ssdb 
+	chmod +x /etc/init.d/ssdb.sh
 
 clean:
 	rm -f *.exe.stackdump
