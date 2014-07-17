@@ -18,6 +18,7 @@ install:
 	mkdir -p ${PREFIX}/deps
 	mkdir -p ${PREFIX}/var
 	mkdir -p ${PREFIX}/var_slave
+	# add by stefan_bo
 	mkdir -p ${PREFIX}/bin
     mkdir -p ${PREFIX}/sbin
     mkdir -p ${PREFIX}/conf
