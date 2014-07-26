@@ -13,8 +13,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * Client API supports including [C++](http://ssdb.io/docs/cpp/), [PHP](http://ssdb.io/docs/php/), Python, Cpy, [Java](http://ssdb.io/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://ssdb.io/docs/go/)
 * Persistent queue service
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
-* <i>Future Features</i>
-  * <i>Distributed</i>
+* GUI administration tool([phpssdbadmin](https://github.com/ssdb/phpssdbadmin))
 
 ## PHP client API example
 
