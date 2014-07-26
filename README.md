@@ -10,7 +10,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
 * Redis clients are supported
-* Client API supports including [C++](http://ssdb.io/docs/cpp/), [PHP](http://ssdb.io/docs/php/), Python, Cpy, [Java](http://ssdb.io/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://ssdb.io/docs/go/)
+* Client API supports including [C++](http://ssdb.io/docs/cpp/), [PHP](http://ssdb.io/docs/php/), [Python](https://github.com/hit9/ssdb.py), Cpy, [Java](http://ssdb.io/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://ssdb.io/docs/go/)
 * Persistent queue service
 * **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
 * GUI administration tool([phpssdbadmin](https://github.com/ssdb/phpssdbadmin))
@@ -122,6 +122,7 @@ Download ssdb-server.exe from here: https://github.com/ideawu/ssdb-bin
 * [Google LevelDB](https://code.google.com/p/leveldb/)
 * [Lua ssdb client driver for the ngx_lua](https://github.com/LazyZhu/lua-resty-ssdb)
 * [Yet another ssdb client for Python](https://github.com/ifduyue/pyssdb)
+* [Another ssdb client for Python](https://github.com/hit9/ssdb.py)
 * [SSDB 中文文档](http://www.ideawu.net/blog/category/ssdb)
 
 ## Changes made to LevelDB
