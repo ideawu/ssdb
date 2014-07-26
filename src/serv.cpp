@@ -49,9 +49,9 @@ static proc_map_t proc_map;
 	DEF_PROC(setbit);
 	DEF_PROC(countbit);
 	DEF_PROC(substr);
+	DEF_PROC(getrange);
 	DEF_PROC(strlen);
 	DEF_PROC(redis_bitcount);
-	DEF_PROC(redis_getrange);
 	DEF_PROC(del);
 	DEF_PROC(incr);
 	DEF_PROC(decr);
@@ -150,9 +150,9 @@ static Command commands[] = {
 	PROC(setbit, "wt"),
 	PROC(countbit, "r"),
 	PROC(substr, "r"),
+	PROC(getrange, "r"),
 	PROC(strlen, "r"),
 	PROC(redis_bitcount, "r"),
-	PROC(redis_getrange, "r"),
 	PROC(del, "wt"),
 	PROC(incr, "wt"),
 	PROC(decr, "wt"),

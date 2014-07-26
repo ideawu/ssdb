@@ -357,7 +357,7 @@ static int proc_substr(Server *serv, Link *link, const Request &req, Response *r
 		if(req.size() > 2){
 			start = req[2].Int();
 		}
-		int size = -1;
+		int size = 2000000000;
 		if(req.size() > 3){
 			size = req[3].Int();
 		}
@@ -374,7 +374,7 @@ static int proc_substr(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_redis_getrange(Server *serv, Link *link, const Request &req, Response *resp){
+static int proc_getrange(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
