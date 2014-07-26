@@ -1,6 +1,6 @@
 # SSDB - A fast NoSQL database for storing big list of data
 
-SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL database, __an alternative for Redis__.
+SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL database, __an alternative to Redis__.
 
 SSDB is stable, production-ready and is widely used by many Internet companies including QIHU 360.
 
