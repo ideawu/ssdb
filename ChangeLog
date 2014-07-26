@@ -5,9 +5,11 @@
 	* Incompatible changes:
 		- Delete expireation info when deleting key(2014-06-28)
 		- Inlucde links, total_calls in info cmd's reply(2014-06-17)
+		- Rename redis_getrange command to getrange(2014-07-27)
 	* Bug fixes:
 		- Fix zRangeByScore(redis) bug(2014-06-28)
 		- Fix key expiration/ttl bug(2014-07-02)
+		- Return entrire string when substr's params are ommitted(2014-07-27)
 
 * 1.6.8.7
 	* New features:
