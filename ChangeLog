@@ -1,5 +1,6 @@
 * 1.6.8.8
 	* New features:
+		- Add hrlist, zrlist, qrlist commands(2014-07-27)
 		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
 		- Put multi_*get commands to execute in worker thread(2014-06-17)
 	* Incompatible changes:
@@ -7,9 +8,9 @@
 		- Inlucde links, total_calls in info cmd's reply(2014-06-17)
 		- Rename redis_getrange command to getrange(2014-07-27)
 	* Bug fixes:
+		- Return entrire string when substr's params are ommitted(2014-07-27)
 		- Fix zRangeByScore(redis) bug(2014-06-28)
 		- Fix key expiration/ttl bug(2014-07-02)
-		- Return entrire string when substr's params are ommitted(2014-07-27)
 
 * 1.6.8.7
 	* New features:

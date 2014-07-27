@@ -346,6 +346,25 @@ static int proc_hlist(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
+static int proc_hrlist(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		uint64_t limit = req[3].Uint64();
+		std::vector<std::string> list;
+		int ret = serv->ssdb->hrlist(req[1], req[2], limit, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
+	}
+	return 0;
+}
+
 // dir := +1|-1
 static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){

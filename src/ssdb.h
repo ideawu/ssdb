@@ -81,6 +81,8 @@ public:
 	int hget(const Bytes &name, const Bytes &key, std::string *val) const;
 	int hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) const;
+	int hrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list) const;
 	HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const;
 	HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) const;
 
@@ -111,6 +113,8 @@ public:
 			const Bytes &score_start, const Bytes &score_end, uint64_t limit) const;
 	int zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) const;
+	int zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list) const;
 	
 	int64_t qsize(const Bytes &name);
 	// @return 0: empty queue, 1: item peeked, -1: error
@@ -125,6 +129,8 @@ public:
 	int qpop_back(const Bytes &name, std::string *item, char log_type=BinlogType::SYNC);
 	int qfix(const Bytes &name);
 	int qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list);
+	int qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list);
 	int qslice(const Bytes &name, int64_t offset, int64_t limit,
 			std::vector<std::string> *list);
