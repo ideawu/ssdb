@@ -602,14 +602,15 @@ while(true){
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'hlist':
+			case 'hrlist':
 			case 'zlist':
+			case 'zrlist':
 			case 'qlist':
+			case 'qrlist':
 			case 'qslice':
 			case 'qrange':
-				printf('  %15s\n', 'name');
-				print ('-' * 17);
 				foreach(resp.data as k){
-					printf('  %15s\n', repr_data(k));
+					printf('  %s\n', repr_data(k));
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;

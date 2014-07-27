@@ -187,9 +187,7 @@ KIterator* SSDB::rscan(const Bytes &start, const Bytes &end, uint64_t limit) con
 	if(start.empty()){
 		key_start.append(1, 255);
 	}
-	if(end.empty()){
-		key_end = "";
-	}else{
+	if(!end.empty()){
 		key_end = encode_kv_key(end);
 	}
 	//dump(key_start.data(), key_start.size(), "scan.start");

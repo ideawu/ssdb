@@ -244,15 +244,7 @@ int SSDB::qpop_back(const Bytes &name, std::string *item, char log_type){
 	return _qpop(name, item, QBACK_SEQ, log_type);
 }
 
-int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
-		std::vector<std::string> *list){
-	std::string start;
-	std::string end;
-	start = encode_qsize_key(name_s);
-	if(!name_e.empty()){
-		end = encode_qsize_key(name_e);
-	}
-	Iterator *it = this->iterator(start, end, limit);
+static void get_qnames(Iterator *it, std::vector<std::string> *list){
 	while(it->next()){
 		Bytes ks = it->key();
 		//dump(ks.data(), ks.size());
@@ -265,6 +257,39 @@ int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		}
 		list->push_back(n);
 	}
+}
+
+int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
+	std::string start;
+	std::string end;
+	
+	start = encode_qsize_key(name_s);
+	if(!name_e.empty()){
+		end = encode_qsize_key(name_e);
+	}
+	
+	Iterator *it = this->iterator(start, end, limit);
+	get_qnames(it, list);
+	delete it;
+	return 0;
+}
+
+int SSDB::qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
+	std::string start;
+	std::string end;
+	
+	start = encode_qsize_key(name_s);
+	if(name_s.empty()){
+		start.append(1, 255);
+	}
+	if(!name_e.empty()){
+		end = encode_qsize_key(name_e);
+	}
+	
+	Iterator *it = this->rev_iterator(start, end, limit);
+	get_qnames(it, list);
 	delete it;
 	return 0;
 }

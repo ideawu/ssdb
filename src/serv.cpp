@@ -77,6 +77,7 @@ static proc_map_t proc_map;
 	DEF_PROC(hkeys);
 	DEF_PROC(hvals);
 	DEF_PROC(hlist);
+	DEF_PROC(hrlist);
 	DEF_PROC(hexists);
 	DEF_PROC(multi_hexists);
 	DEF_PROC(multi_hsize);
@@ -99,6 +100,7 @@ static proc_map_t proc_map;
 	DEF_PROC(zrscan);
 	DEF_PROC(zkeys);
 	DEF_PROC(zlist);
+	DEF_PROC(zrlist);
 	DEF_PROC(zcount);
 	DEF_PROC(zsum);
 	DEF_PROC(zavg);
@@ -123,6 +125,7 @@ static proc_map_t proc_map;
 	DEF_PROC(qfix);
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
+	DEF_PROC(qrlist);
 	DEF_PROC(qslice);
 	DEF_PROC(qrange);
 	DEF_PROC(qget);
@@ -178,6 +181,7 @@ static Command commands[] = {
 	PROC(hkeys, "rt"),
 	PROC(hvals, "rt"),
 	PROC(hlist, "rt"),
+	PROC(hrlist, "rt"),
 	PROC(hexists, "r"),
 	PROC(multi_hexists, "r"),
 	PROC(multi_hsize, "r"),
@@ -201,6 +205,7 @@ static Command commands[] = {
 	PROC(zrscan, "rt"),
 	PROC(zkeys, "rt"),
 	PROC(zlist, "rt"),
+	PROC(zrlist, "rt"),
 	PROC(zcount, "rt"),
 	PROC(zsum, "rt"),
 	PROC(zavg, "rt"),
@@ -225,6 +230,7 @@ static Command commands[] = {
 	PROC(qfix, "wt"),
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),
+	PROC(qrlist, "rt"),
 	PROC(qslice, "rt"),
 	PROC(qrange, "rt"),
 	PROC(qget, "r"),

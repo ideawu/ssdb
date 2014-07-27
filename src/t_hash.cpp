@@ -195,15 +195,7 @@ HIterator* SSDB::hrscan(const Bytes &name, const Bytes &start, const Bytes &end,
 	return new HIterator(this->rev_iterator(key_start, key_end, limit), name);
 }
 
-int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
-		std::vector<std::string> *list) const{
-	std::string start;
-	std::string end;
-	start = encode_hsize_key(name_s);
-	if(!name_e.empty()){
-		end = encode_hsize_key(name_e);
-	}
-	Iterator *it = this->iterator(start, end, limit);
+static void get_hnames(Iterator *it, std::vector<std::string> *list){
 	while(it->next()){
 		Bytes ks = it->key();
 		if(ks.data()[0] != DataType::HSIZE){
@@ -215,6 +207,39 @@ int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		}
 		list->push_back(n);
 	}
+}
+
+int SSDB::hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list) const{
+	std::string start;
+	std::string end;
+	
+	start = encode_hsize_key(name_s);
+	if(!name_e.empty()){
+		end = encode_hsize_key(name_e);
+	}
+	
+	Iterator *it = this->iterator(start, end, limit);
+	get_hnames(it, list);
+	delete it;
+	return 0;
+}
+
+int SSDB::hrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list) const{
+	std::string start;
+	std::string end;
+	
+	start = encode_hsize_key(name_s);
+	if(name_s.empty()){
+		start.append(1, 255);
+	}
+	if(!name_e.empty()){
+		end = encode_hsize_key(name_e);
+	}
+	
+	Iterator *it = this->rev_iterator(start, end, limit);
+	get_hnames(it, list);
 	delete it;
 	return 0;
 }
