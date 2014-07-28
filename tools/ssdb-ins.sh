@@ -23,7 +23,7 @@ dir=`dirname $config`
 pidfile=$dir/`cat $config | sed -n 's/pidfile[[:blank:]]*=[[:blank:]]//p' | sed -n 's/^\.\///p'`
 
 start(){
-	${ssdb_root}/ssdb-server -d ${config}
+	${ssdb_root}/sbin/ssdb-server -d ${config}
 	if [ $? = "0" ]; then
 		echo "ssdb started."
 	else
