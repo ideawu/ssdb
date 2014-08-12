@@ -4,7 +4,6 @@ Makefile
 config.log
 config.stamp
 config.status
-doc/*
 lib/
 include/jemalloc/internal/jemalloc_internal.h
 include/jemalloc/internal/size_classes.h
