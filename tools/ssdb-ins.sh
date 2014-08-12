@@ -7,22 +7,28 @@ config=$2
 usage(){
 	echo "Usage:"
 	echo "    $0 {start|stop|restart} config"
+	exit
 }
 
 if [ -z "$config" ]; then
 	echo "[error] no config file specified!"
 	usage;
-	exit;
 fi
 if [ ! -f "$config" ]; then
 	echo "[error] bad config file: $config"
 	exit;
 fi
 
+echo "ssdb instance: $config"
+
 dir=`dirname $config`
 pidfile=$dir/`cat $config | sed -n 's/pidfile[[:blank:]]*=[[:blank:]]//p' | sed -n 's/^\.\///p'`
 
 start(){
+	if [ -f "$pidfile" ]; then
+		stop
+	fi
+
 	${ssdb_root}/ssdb-server -d ${config}
 	if [ $? = "0" ]; then
 		echo "ssdb started."
