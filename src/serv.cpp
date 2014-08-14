@@ -144,7 +144,7 @@ static proc_map_t proc_map;
 
 #define PROC(c, f) {#c, f, 0, proc_##c, 0, 0, 0}
 static Command commands[] = {
-	PROC(get, "r"),
+	PROC(get, "rt"),
 	PROC(set, "wt"),
 	PROC(setx, "wt"),
 	PROC(setnx, "wt"),
