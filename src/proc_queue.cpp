@@ -75,6 +75,18 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 				resp->push_back("error");
 				return 0;
 			}
+			if(serv->ssdb->qsize_max > 0 && size > serv->ssdb->qsize_max){
+				int64_t pop_count = size - serv->ssdb->qsize_max;
+				for(int64_t i = 0; i < pop_count; i++) {
+					std::string item;
+					if(front_or_back == QFRONT){
+						serv->ssdb->qpop_back(req[1], &item);
+					}else{
+						serv->ssdb->qpop_front(req[1], &item);
+					}
+					size = size - 1;
+				}
+			}
 		}
 		
 		char buf[20];
