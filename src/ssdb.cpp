@@ -54,7 +54,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	int64_t qsize_max_num = -1;
 	
 	if (!qsize_max_str.empty()) {
-		qsize_max_num = _atoi64(qsize_max_str.c_str());
+		qsize_max_num = atoll(qsize_max_str.c_str());
 	}
 	
 	if (qsize_max_num <= 0){
