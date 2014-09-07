@@ -148,6 +148,9 @@ int Logger::get_level(const char *levelname){
 	if(strcmp("fatal", levelname) == 0){
 		return LEVEL_FATAL;
 	}
+	if(strcmp("none", levelname) == 0){
+		return LEVEL_NONE;
+	}
 	return LEVEL_DEBUG;
 }
 
