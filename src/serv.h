@@ -100,7 +100,7 @@ static std::string serialize_req(T &req){
 			ret.append(buf);
 			break;
 		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
+		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 50){
 			if(req[i].size() == 0){
 				ret.append("\"\"");
 			}else{
