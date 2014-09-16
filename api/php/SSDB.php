@@ -124,7 +124,7 @@ class SSDB
 		}
 		foreach($this->batch_cmds as $op){
 			list($cmd, $params) = $op;
-			$resp = $this->recv_resp($cmd);
+			$resp = $this->recv_resp($cmd, $params);
 			$resp = $this->check_easy_resp($cmd, $resp);
 			$ret[] = $resp;
 		}
@@ -158,7 +158,7 @@ class SSDB
 			if($this->send_req($cmd, $params) === false){
 				$resp = new SSDB_Response('error', 'send error');
 			}else{
-				$resp = $this->recv_resp($cmd);
+				$resp = $this->recv_resp($cmd, $params);
 			}
 		}catch(SSDBException $e){
 			if($this->_easy){
@@ -522,7 +522,7 @@ class SSDB
 		return $this->send($req);
 	}
 
-	private function recv_resp($cmd){
+	private function recv_resp($cmd, $params){
 		$resp = $this->recv();
 		if($resp === false){
 			return new SSDB_Response('error', 'Unknown error');
@@ -582,14 +582,34 @@ class SSDB
 			case 'qget':
 			case 'qfront':
 			case 'qback':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
 				if($resp[0] == 'ok'){
 					if(count($resp) == 2){
 						return new SSDB_Response('ok', $resp[1]);
 					}else{
 						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
+				}
+				break;
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
+				if($resp[0] == 'ok'){
+					$size = 1;
+					if(isset($params[1])){
+						$size = intval($params[1]);
+					}
+					if($size <= 1){
+						if(count($resp) == 2){
+							return new SSDB_Response('ok', $resp[1]);
+						}else{
+							return new SSDB_Response('server_error', 'Invalid response');
+						}
+					}else{
+						$data = array_slice($resp, 1);
+						return new SSDB_Response('ok', $data);
 					}
 				}else{
 					$errmsg = isset($resp[1])? $resp[1] : '';
@@ -604,9 +624,7 @@ class SSDB
 			case 'qslice':
 				$data = array();
 				if($resp[0] == 'ok'){
-					for($i=1; $i<count($resp); $i++){
-						$data[] = $resp[$i];
-					}
+					$data = array_slice($resp, 1);
 				}
 				return new SSDB_Response($resp[0], $data);
 			case 'exists':

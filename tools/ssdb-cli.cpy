@@ -516,9 +516,6 @@ while(true){
 			case 'qfront':
 			case 'qback':
 			case 'qget':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
@@ -609,6 +606,9 @@ while(true){
 			case 'qrlist':
 			case 'qslice':
 			case 'qrange':
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 				foreach(resp.data as k){
 					printf('  %s\n', repr_data(k));
 				}

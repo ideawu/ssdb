@@ -102,9 +102,23 @@ static inline
 int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
 	if(req.size() < 2){
 		resp->push_back("client_error");
-	}else{
-		std::string item;
-		int ret;
+		return 0;
+	}
+	
+	int size = 1;
+	if(req.size() > 2){
+		size = req[2].Int();
+		if(size <= 0){
+			resp->push_back("error");
+			resp->push_back("bad parameter");
+			return 0;
+		}
+	}
+		
+	int ret;
+	std::string item;
+
+	if(size == 1){
 		if(front_or_back == QFRONT){
 			ret = serv->ssdb->qpop_front(req[1], &item);
 		}else{
@@ -118,7 +132,22 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 			resp->push_back("ok");
 			resp->push_back(item);
 		}
+	}else{
+		resp->push_back("ok");
+		while(--size >= 0){
+			if(front_or_back == QFRONT){
+				ret = serv->ssdb->qpop_front(req[1], &item);
+			}else{
+				ret = serv->ssdb->qpop_back(req[1], &item);
+			}
+			if(ret <= 0){
+				break;
+			}else{
+				resp->push_back(item);
+			}
+		}
 	}
+
 	return 0;
 }
 

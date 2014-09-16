@@ -215,6 +215,21 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret == 9);
 		$ret = $ssdb->qback($name);
 		$this->assert($ret == 0);
+
+		$ssdb->qclear($name);
+		for($i=0; $i<7; $i++){
+			$size = $ssdb->qpush_back($name, $i);
+		}
+		$ret = $ssdb->qpop_front($name, 2);
+		$this->assert(is_array($ret));
+		$this->assert(count($ret) == 2);
+		$this->assert($ret[0] == 0);
+		$this->assert($ret[1] == 1);
+		
+		$ret = $ssdb->qpop_back($name, 2);
+		$this->assert(is_array($ret));
+		$ret = $ssdb->qpop($name, 2);
+		$this->assert(is_array($ret));
 	}
 
 	function test_hash(){

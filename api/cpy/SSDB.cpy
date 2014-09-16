@@ -97,14 +97,33 @@ class SSDB{
 			case 'qfront':
 			case 'qback':
 			case 'qget':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						return new SSDB_Response('ok', resp[1]);
 					}else{
 						return new SSDB_Response('server_error', 'Invalid response');
+					}
+				}else{
+					return new SSDB_Response(resp[0]);
+				}
+				break;
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
+				if(resp[0] == 'ok'){
+					size = 1;
+					try{
+						size = int(params[2]);
+					}catch(Exception e){
+					}
+					if(size <= 1){
+						if(len(resp) == 2){
+							return new SSDB_Response('ok', resp[1]);
+						}else{
+							return new SSDB_Response('server_error', 'Invalid response');
+						}
+					}else{
+						return new SSDB_Response('ok', resp[1 .. ]);
 					}
 				}else{
 					return new SSDB_Response(resp[0]);
@@ -165,12 +184,7 @@ class SSDB{
 			case 'list':
 			case 'hlist':
 			case 'zlist':
-				data = [];
-				if(resp[0] == 'ok'){
-					for(i=1; i<len(resp); i++){
-						data.append(resp[i]);
-					}
-				}
+				data = resp[1 ..];
 				return new SSDB_Response(resp[0], data);
 				break;
 			case 'scan':
@@ -290,10 +304,7 @@ class SSDB{
 				break;
 			default:
 				if(len(resp) > 1){
-					data = [];
-					for(i=1; i<len(resp); i++){
-						data.append(resp[i]);
-					}
+					data = resp[1 ..];
 				}else{
 					data = '';
 				}
