@@ -139,6 +139,7 @@ static proc_map_t proc_map;
 	DEF_PROC(expire);
 	DEF_PROC(clear_binlog);
 	DEF_PROC(ping);
+	DEF_PROC(auth);
 #undef DEF_PROC
 
 
@@ -248,6 +249,7 @@ static Command commands[] = {
 	PROC(ttl, "r"),
 	PROC(expire, "wt"),
 	PROC(ping, "r"),
+	PROC(auth, "r"),
 
 	{NULL, NULL, 0, NULL}
 };
@@ -255,7 +257,8 @@ static Command commands[] = {
 
 Server::Server(SSDB *ssdb){
 	this->ssdb = ssdb;
-	link_count = 0;
+	this->link_count = 0;
+	this->need_auth = false;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
 
@@ -316,25 +319,30 @@ void Server::proc(ProcJob *job){
 		resp.push_back("Unknown Command: " + req->at(0).String());
 	}else{
 		Command *cmd = it->second;
-		job->cmd = cmd;
-		if(cmd->flags & Command::FLAG_THREAD){
-			if(cmd->flags & Command::FLAG_WRITE){
-				job->result = PROC_THREAD;
-				writer->push(*job);
-				return; /////
-			}else if(cmd->flags & Command::FLAG_READ){
-				job->result = PROC_THREAD;
-				reader->push(*job);
-				return; /////
-			}else{
-				log_error("bad command config: %s", cmd->name);
+		if(this->need_auth && job->link->auth == false && strcmp(cmd->name, "auth") != 0){
+			resp.push_back("noauth");
+			resp.push_back("authentication required");
+		}else{
+			job->cmd = cmd;
+			if(cmd->flags & Command::FLAG_THREAD){
+				if(cmd->flags & Command::FLAG_WRITE){
+					job->result = PROC_THREAD;
+					writer->push(*job);
+					return; /////
+				}else if(cmd->flags & Command::FLAG_READ){
+					job->result = PROC_THREAD;
+					reader->push(*job);
+					return; /////
+				}else{
+					log_error("bad command config: %s", cmd->name);
+				}
 			}
-		}
 
-		proc_t p = cmd->proc;
-		job->time_wait = 1000 *(millitime() - job->stime);
-		job->result = (*p)(this, job->link, *req, &resp);
-		job->time_proc = 1000 *(millitime() - job->stime);
+			proc_t p = cmd->proc;
+			job->time_wait = 1000 *(millitime() - job->stime);
+			job->result = (*p)(this, job->link, *req, &resp);
+			job->time_proc = 1000 *(millitime() - job->stime);
+		}
 	}
 	if(job->result == PROC_BACKEND){
 		return;
@@ -558,6 +566,23 @@ static int proc_expire(Server *serv, Link *link, const Request &req, Response *r
 
 static int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
+	return 0;
+}
+
+static int proc_auth(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		if(!serv->need_auth || req[1] == serv->password){
+			link->auth = true;
+			resp->push_back("ok");
+			resp->push_back("1");
+		}else{
+			resp->push_back("error");
+			resp->push_back("invalid password");
+		}
+	}
 	return 0;
 }
 

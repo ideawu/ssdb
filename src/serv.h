@@ -69,6 +69,8 @@ class Server{
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 		ExpirationHandler *expiration;
+		bool need_auth;
+		std::string password;
 
 		Server(SSDB *ssdb);
 		~Server();
@@ -100,7 +102,7 @@ static std::string serialize_req(T &req){
 			ret.append(buf);
 			break;
 		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
+		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 50){
 			if(req[i].size() == 0){
 				ret.append("\"\"");
 			}else{

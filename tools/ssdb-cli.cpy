@@ -359,6 +359,8 @@ try{
 }catch(Exception e){
 }
 
+password = false;
+
 while(true){
 	line = '';
 	c = sprintf('ssdb %s:%s> ', host, str(port));
@@ -421,6 +423,11 @@ while(true){
 		}
 		continue;
 	}
+	if(cmd == 'auth'){
+		if(len(args) > 0){
+			password = args[0];
+		}
+	}
 	
 	try{
 		if(cmd == 'flushdb'){
@@ -461,6 +468,9 @@ while(true){
 				continue;
 			}
 			print '';
+			if(password){
+				ret = link.request('auth', [password]);
+			}
 		}else{
 			break;
 		}
@@ -471,7 +481,11 @@ while(true){
 		if(resp.not_found()){
 			print 'not_found';
 		}else{
-			print 'error: ' + resp.code;
+			s = resp.code;
+			if(resp.message){
+				s += ': ' + resp.message;
+			}
+			print s;
 		}
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
@@ -516,9 +530,6 @@ while(true){
 			case 'qfront':
 			case 'qback':
 			case 'qget':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
 			case 'incr':
 			case 'decr':
 			case 'zincr':
@@ -548,6 +559,7 @@ while(true){
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
+			case 'auth':
 			case 'set':
 			case 'setx':
 			case 'zset':
@@ -609,6 +621,9 @@ while(true){
 			case 'qrlist':
 			case 'qslice':
 			case 'qrange':
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
 				foreach(resp.data as k){
 					printf('  %s\n', repr_data(k));
 				}

@@ -347,12 +347,16 @@ const std::vector<Bytes>* RedisLink::recv_req(Buffer *input){
 }
 
 int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
-	if(resp[0] == "error" || resp[0] == "fail"){
-		output->append("-ERR \r\n");
+	if(resp[0] == "error" || resp[0] == "fail" || resp[0] == "client_error"){
+		output->append("-ERR ");
+		if(resp.size() >= 2){
+			output->append(resp[1]);
+		}
+		output->append("\r\n");
 		return 0;
 	}
-	if(resp[0] == "client_error"){
-		output->append("-ERR ");
+	if(resp[0] == "noauth"){
+		output->append("-NOAUTH ");
 		if(resp.size() >= 2){
 			output->append(resp[1]);
 		}

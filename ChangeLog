@@ -1,3 +1,7 @@
+* 1.7.0.0
+	* New features:
+		- Add auth command(2014-09-20)
+		- Enable qpop multi elements at a time(2014-09-16)
 * 1.6.8.8
 	* New features:
 		- Add hrlist, zrlist, qrlist commands(2014-07-27)

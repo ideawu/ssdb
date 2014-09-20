@@ -22,6 +22,7 @@ class Link{
 	public:
 		char remote_ip[INET_ADDRSTRLEN];
 		int remote_port;
+		bool auth;
 
 		static int min_recv_buf;
 		static int min_send_buf;
