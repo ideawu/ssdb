@@ -1,6 +1,9 @@
+* 1.7.0.0
+	* New features:
+		- Add auth command(2014-09-20)
+		- Enable qpop multi elements at a time(2014-09-16)
 * 1.6.8.8
 	* New features:
-		- Enable qpop multi elements at a time
 		- Add hrlist, zrlist, qrlist commands(2014-07-27)
 		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
 		- Put multi_*get commands to execute in worker thread(2014-06-17)

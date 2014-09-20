@@ -17,6 +17,7 @@ class SSDBTest extends UnitTest{
 		$host = '127.0.0.1';
 		$port = 8888;
 		$this->ssdb = new SimpleSSDB($host, $port);
+		$this->ssdb->auth('very-strong-password-11111111111111111');
 		$this->clear();
 	}
 

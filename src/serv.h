@@ -69,6 +69,8 @@ class Server{
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 		ExpirationHandler *expiration;
+		bool need_auth;
+		std::string password;
 
 		Server(SSDB *ssdb);
 		~Server();

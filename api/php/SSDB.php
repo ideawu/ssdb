@@ -138,15 +138,23 @@ class SSDB
 		$cmd = array_shift($args);
 		return $this->__call($cmd, $args);
 	}
+	
+	private $async_auth_password = null;
+	
+	function auth($password){
+		$this->async_auth_password = $password;
+		return null;
+	}
 
 	function __call($cmd, $params=array()){
 		$cmd = strtolower($cmd);
-		// act like Redis::zAdd($key, $score, $value);
-		if($cmd == 'zadd'){
-			$cmd = 'zset';
-			$t = $params[1];
-			$params[1] = $params[2];
-			$params[2] = $t;
+		if($this->async_auth_password !== null){
+			$pass = $this->async_auth_password;
+			$this->async_auth_password = null;
+			$auth = $this->__call('auth', array($pass));
+			if($auth !== true){
+				throw new Exception("Authentication failed");
+			}
 		}
 
 		if($this->batch_mode){
@@ -167,6 +175,12 @@ class SSDB
 				$resp = new SSDB_Response('error', $e->getMessage());
 			}
 		}
+
+		if($resp->code == 'noauth'){
+			$msg = $resp->message;
+			throw new Exception($msg);
+		}
+		
 		$resp = $this->check_easy_resp($cmd, $resp);
 		return $resp;
 	}
@@ -187,69 +201,12 @@ class SSDB
 		}
 	}
 
-	// all supported are listed, for documentation purpose
-
 	function multi_set($kvs=array()){
 		$args = array();
 		foreach($kvs as $k=>$v){
 			$args[] = $k;
 			$args[] = $v;
 		}
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_get($args=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_del($keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_exists($keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_hexists($name, $keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_zexists($name, $keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_hsize($keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_zsize($keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_hget($name, $keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_zget($name, $keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_hdel($name, $keys=array()){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function multi_zdel($name, $keys=array()){
-		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
@@ -271,107 +228,12 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	/**/
-
-	function set($key, $val){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function setx($key, $val, $ttl){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
 	function incr($key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function decr($key, $val){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function exists($key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function get($key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function del($key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function scan($key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function rscan($key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function keys($key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	/* zset */
-
-	function zset($name, $key, $score){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	// for migrate from Redis::zAdd()
-	function zadd($key, $score, $value){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zget($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zexists($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zdel($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zrange($name, $offset, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zclear($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zscan($name, $key_start, $score_start, $score_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zrscan($name, $key_start, $score_start, $score_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zkeys($name, $key_start, $score_start, $score_end, $limit){
+	function decr($key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -381,29 +243,14 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zdecr($name, $key, $score){
+	function zdecr($name, $key, $score=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function zsize($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zlist($name_start, $name_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zrank($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function zrrank($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
+	function zadd($key, $score, $value){
+		$args = array($key, $value, $score);
+		return $this->__call('zset', $args);
 	}
 
 	function zRevRank($name, $key){
@@ -411,61 +258,9 @@ class SSDB
 		return $this->__call("zrrank", $args);
 	}
 
-	function zrrange($name, $offset, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
 	function zRevRange($name, $offset, $limit){
 		$args = func_get_args();
 		return $this->__call("zrrange", $args);
-	}
-
-	/* hashmap */
-
-	function hset($name, $key, $val){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hget($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hexists($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hdel($name, $key){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hclear($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hgetall($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hscan($name, $key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hrscan($name, $key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hkeys($name, $key_start, $key_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
 	}
 
 	function hincr($name, $key, $val=1){
@@ -473,39 +268,7 @@ class SSDB
 		return $this->__call(__FUNCTION__, $args);
 	}
 
-	function hdecr($name, $key, $val){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hsize($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function hlist($name_start, $name_end, $limit){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-	
-	/*****/
-
-	function qfront($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function qback($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function qpop($name){
-		$args = func_get_args();
-		return $this->__call(__FUNCTION__, $args);
-	}
-
-	function qpush($name, $item){
+	function hdecr($name, $key, $val=1){
 		$args = func_get_args();
 		return $this->__call(__FUNCTION__, $args);
 	}
@@ -528,6 +291,10 @@ class SSDB
 			return new SSDB_Response('error', 'Unknown error');
 		}else if(!$resp){
 			return new SSDB_Response('disconnected', 'Connection closed');
+		}
+		if($resp[0] == 'noauth'){
+			$errmsg = isset($resp[1])? $resp[1] : '';
+			return new SSDB_Response($resp[0], $errmsg);
 		}
 		switch($cmd){
 			case 'getbit':
@@ -570,11 +337,21 @@ class SSDB
 			case 'zsum':
 			case 'zremrangebyrank':
 			case 'zremrangebyscore':
-				$val = isset($resp[1])? intval($resp[1]) : 0;
-				return new SSDB_Response($resp[0], $val);
+				if($resp[0] == 'ok'){
+					$val = isset($resp[1])? intval($resp[1]) : 0;
+					return new SSDB_Response($resp[0], $val);
+				}else{
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
+				}
 			case 'zavg':
-				$val = isset($resp[1])? floatval($resp[1]) : (float)0;
-				return new SSDB_Response($resp[0], $val);
+				if($resp[0] == 'ok'){
+					$val = isset($resp[1])? floatval($resp[1]) : (float)0;
+					return new SSDB_Response($resp[0], $val);
+				}else{
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
+				}
 			case 'get':
 			case 'substr':
 			case 'getset':
@@ -622,11 +399,17 @@ class SSDB
 			case 'hlist':
 			case 'zlist':
 			case 'qslice':
-				$data = array();
 				if($resp[0] == 'ok'){
-					$data = array_slice($resp, 1);
+					$data = array();
+					if($resp[0] == 'ok'){
+						$data = array_slice($resp, 1);
+					}
+					return new SSDB_Response($resp[0], $data);
+				}else{
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
 				}
-				return new SSDB_Response($resp[0], $data);
+			case 'auth':
 			case 'exists':
 			case 'hexists':
 			case 'zexists':
@@ -655,7 +438,8 @@ class SSDB
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response($resp[0]);
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
 				}
 				break;
 			case 'scan':
@@ -687,7 +471,8 @@ class SSDB
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response($resp[0]);
+					$errmsg = isset($resp[1])? $resp[1] : '';
+					return new SSDB_Response($resp[0], $errmsg);
 				}
 				break;
 			default:
