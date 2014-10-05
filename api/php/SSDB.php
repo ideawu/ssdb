@@ -525,25 +525,20 @@ class SSDB
 					echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
 				}
 				$data = rtrim($data, "\n");
-				// $data = substr($data, 0, -1);
 				if ($is_data_packet == 0 && $data == ""){
-					// print "Found no data, return";
 					return $ret;
 				}
 				elseif ($is_data_packet == 0){
-					// echo "Got Length: $data\n";
 					$next_item_len = $data - 1;
 					$is_data_packet = 1;
 				}
 				else{
 					$current_item .= $data;
 					if (isset($current_item[$next_item_len])) { // isset is faster than strlen for length checks
-						// echo "Full packet: $current_item";
 						$ret[] = $current_item;
 						$next_item_len = 0;
 						$is_data_packet = 0;
 						$current_item = "";
-						// print "end packet";
 					}
 					else{
 						$current_item .= "\n";
