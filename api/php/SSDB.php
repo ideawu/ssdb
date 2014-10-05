@@ -79,6 +79,7 @@ class SSDB
 		if(function_exists('stream_set_chunk_size')){
 			@stream_set_chunk_size($this->sock, 1024 * 1024);
 		}
+
 	}
 
 	/**
@@ -512,9 +513,10 @@ class SSDB
 	}
 
 	private function recv(){
-		$next_line_len = 0;
+		$next_item_len = 0;
 		$is_data_packet = 0;
 		$ret = array();
+		$current_item = "";
 
 		while(true){
 			try{
@@ -522,25 +524,35 @@ class SSDB
 				if($this->debug){
 					echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
 				}
-
-				$data = trim($data);
+				$data = rtrim($data, "\n");
+				// $data = substr($data, 0, -1);
 				if ($is_data_packet == 0 && $data == ""){
+					// print "Found no data, return";
 					return $ret;
 				}
 				elseif ($is_data_packet == 0){
-					$next_line_len = $data;
+					// echo "Got Length: $data\n";
+					$next_item_len = $data - 1;
 					$is_data_packet = 1;
 				}
 				else{
-					$ret[] = $data;
-					$is_data_packet = 0;
+					$current_item .= $data;
+					if (isset($current_item[$next_item_len])) { // isset is faster than strlen for length checks
+						// echo "Full packet: $current_item";
+						$ret[] = $current_item;
+						$next_item_len = 0;
+						$is_data_packet = 0;
+						$current_item = "";
+						// print "end packet";
+					}
+					else{
+						$current_item .= "\n";
+					}
 				}
-
 			} catch(Exception $e){
 				$data = '';
 			}
-
-			if($data == false){
+			if($data === false){
 				$this->close();
 				throw new SSDBException('Connection lost');
 			}
