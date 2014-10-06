@@ -79,8 +79,9 @@ class SSDB
 		if(function_exists('stream_set_chunk_size')){
 			@stream_set_chunk_size($this->sock, 1024 * 1024);
 		}
+
 	}
-	
+
 	/**
 	 * After this method invoked with yesno=true, all requesting methods
 	 * will not return a SSDB_Response object.
@@ -132,15 +133,15 @@ class SSDB
 		$this->batch_cmds = array();
 		return $ret;
 	}
-	
+
 	function request(){
 		$args = func_get_args();
 		$cmd = array_shift($args);
 		return $this->__call($cmd, $args);
 	}
-	
+
 	private $async_auth_password = null;
-	
+
 	function auth($password){
 		$this->async_auth_password = $password;
 		return null;
@@ -180,7 +181,7 @@ class SSDB
 			$msg = $resp->message;
 			throw new Exception($msg);
 		}
-		
+
 		$resp = $this->check_easy_resp($cmd, $resp);
 		return $resp;
 	}
@@ -512,67 +513,44 @@ class SSDB
 	}
 
 	private function recv(){
-		while(true){
-			$ret = $this->parse();
-			if($ret === null){
-				try{
-					$data = @fread($this->sock, 1024 * 1024);
-					if($this->debug){
-						echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
-					}
-				}catch(Exception $e){
-					$data = '';
-				}
-				if($data == false){
-					$this->close();
-					throw new SSDBException('Connection lost');
-				}
-				$this->recv_buf .= $data;
-			}else{
-				return $ret;
-			}
-		}
-	}
-
-	private function parse(){
-		//if(len($this->recv_buf)){print 'recv_buf: ' + repr($this->recv_buf);}
+		$next_item_len = 0;
+		$is_data_packet = 0;
 		$ret = array();
-		$spos = 0;
-		$epos = 0;
-		// performance issue for large reponse
-		//$this->recv_buf = ltrim($this->recv_buf);
+		$current_item = "";
+
 		while(true){
-			$spos = $epos;
-			$epos = strpos($this->recv_buf, "\n", $spos);
-			if($epos === false){
-				break;
+			try{
+				$data = @fgets($this->sock);
+				if($this->debug){
+					echo '< ' . str_replace(array("\r", "\n"), array('\r', '\n'), $data) . "\n";
+				}
+				$data = rtrim($data, "\n");
+				if ($is_data_packet == 0 && $data == ""){
+					return $ret;
+				}
+				elseif ($is_data_packet == 0){
+					$next_item_len = $data - 1;
+					$is_data_packet = 1;
+				}
+				else{
+					$current_item .= $data;
+					if (isset($current_item[$next_item_len])) { // isset is faster than strlen for length checks
+						$ret[] = $current_item;
+						$next_item_len = 0;
+						$is_data_packet = 0;
+						$current_item = "";
+					}
+					else{
+						$current_item .= "\n";
+					}
+				}
+			} catch(Exception $e){
+				$data = '';
 			}
-			$epos += 1;
-			$line = substr($this->recv_buf, $spos, $epos - $spos);
-			$spos = $epos;
-
-			$line = trim($line);
-			if(strlen($line) == 0){ // head end
-				$this->recv_buf = substr($this->recv_buf, $spos);
-				return $ret;
+			if($data === false){
+				$this->close();
+				throw new SSDBException('Connection lost');
 			}
-
-			$num = intval($line);
-			$epos = $spos + $num;
-			if($epos > strlen($this->recv_buf)){
-				break;
-			}
-			$data = substr($this->recv_buf, $spos, $epos - $spos);
-			$ret[] = $data;
-
-			$spos = $epos;
-			$epos = strpos($this->recv_buf, "\n", $spos);
-			if($epos === false){
-				break;
-			}
-			$epos += 1;
 		}
-
-		return null;
 	}
 }
