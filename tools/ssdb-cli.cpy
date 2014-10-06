@@ -559,6 +559,7 @@ while(true){
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
+			case 'compact':
 			case 'auth':
 			case 'set':
 			case 'setx':

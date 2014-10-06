@@ -528,51 +528,69 @@ class SSDB
 					throw new SSDBException('Connection lost');
 				}
 				$this->recv_buf .= $data;
+#				echo "read " . strlen($data) . " total: " . strlen($this->recv_buf) . "\n";
 			}else{
 				return $ret;
 			}
 		}
 	}
 
+	const STEP_SIZE = 0;
+	const STEP_DATA = 1;
+	public $resp = array();
+	public $step;
+	public $block_size;
+
 	private function parse(){
-		//if(len($this->recv_buf)){print 'recv_buf: ' + repr($this->recv_buf);}
-		$ret = array();
+		if(!$this->resp){
+			$this->step = self::STEP_SIZE;
+		}
 		$spos = 0;
 		$epos = 0;
+		$buf_size = strlen($this->recv_buf);
 		// performance issue for large reponse
 		//$this->recv_buf = ltrim($this->recv_buf);
 		while(true){
 			$spos = $epos;
-			$epos = strpos($this->recv_buf, "\n", $spos);
-			if($epos === false){
+			if($this->step === self::STEP_SIZE){
+				$epos = strpos($this->recv_buf, "\n", $spos);
+				if($epos === false){
+					break;
+				}
+				$epos += 1;
+				$line = substr($this->recv_buf, $spos, $epos - $spos);
+				$spos = $epos;
+
+				$line = trim($line);
+				if(strlen($line) == 0){ // head end
+					$this->recv_buf = substr($this->recv_buf, $spos);
+					$ret = $this->resp;
+					$this->resp = array();
+					return $ret;
+				}
+				$this->block_size = intval($line);
+				$this->step = self::STEP_DATA;
+			}
+			if($this->step === self::STEP_DATA){
+				$epos = $spos + $this->block_size;
+				if($epos <= $buf_size){
+					$n = strpos($this->recv_buf, "\n", $epos);
+					if($n !== false){
+						$data = substr($this->recv_buf, $spos, $epos - $spos);
+						$this->resp[] = $data;
+						$epos = $n + 1;
+						$this->step = self::STEP_SIZE;
+						continue;
+					}
+				}
 				break;
 			}
-			$epos += 1;
-			$line = substr($this->recv_buf, $spos, $epos - $spos);
-			$spos = $epos;
-
-			$line = trim($line);
-			if(strlen($line) == 0){ // head end
-				$this->recv_buf = substr($this->recv_buf, $spos);
-				return $ret;
-			}
-
-			$num = intval($line);
-			$epos = $spos + $num;
-			if($epos > strlen($this->recv_buf)){
-				break;
-			}
-			$data = substr($this->recv_buf, $spos, $epos - $spos);
-			$ret[] = $data;
-
-			$spos = $epos;
-			$epos = strpos($this->recv_buf, "\n", $spos);
-			if($epos === false){
-				break;
-			}
-			$epos += 1;
 		}
 
+		// packet not ready
+		if($spos > 0){
+			$this->recv_buf = substr($this->recv_buf, $spos);
+		}
 		return null;
 	}
 }
