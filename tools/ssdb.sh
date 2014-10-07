@@ -9,8 +9,9 @@ ssdb_root=/usr/local/ssdb
 configs="/data/ssdb_data/test/ssdb.conf"
 
  
-# Source function library.
-. /etc/rc.d/init.d/functions
+if [ -f /etc/rc.d/init.d/functions ]; then
+	. /etc/rc.d/init.d/functions
+fi
  
 start() {
 	for conf in $configs; do
