@@ -167,7 +167,7 @@ int main(int argc, char **argv){
 				}
 
 				dump_count ++;
-				if((int)log10(dump_count - 1) != (int)log10(dump_count)){
+				if((int)log10(dump_count - 1) != (int)log10(dump_count) || (dump_count > 0 && dump_count % 50000 == 0)){
 					printf("received %d entry(s)\n", dump_count);
 				}
 			}else{
