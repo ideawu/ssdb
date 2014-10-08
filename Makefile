@@ -4,6 +4,7 @@ $(shell sh build.sh 1>&2)
 include build_config.mk
 
 all:
+	mkdir -p var var_slave
 	chmod u+x "${LEVELDB_PATH}/build_detect_platform"
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli
