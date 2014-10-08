@@ -50,6 +50,16 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	std::string compression = conf.get_str("leveldb.compression");
 	std::string binlog_onoff = conf.get_str("replication.binlog");
 	int sync_speed = conf.get_num("replication.sync_speed");
+	std::string qsize_max_str = conf.get_str("server.qsize_max");
+	int64_t qsize_max_num = -1;
+	
+	if (!qsize_max_str.empty()) {
+		qsize_max_num = atoll(qsize_max_str.c_str());
+	}
+	
+	if (qsize_max_num <= 0){
+		qsize_max_num = -1;
+	}
 
 	strtolower(&compression);
 	if(compression != "yes"){
@@ -82,6 +92,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 
 	SSDB *ssdb = new SSDB();
 	//
+	ssdb->qsize_max = qsize_max_num;
 	ssdb->options.create_if_missing = true;
 	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
 	ssdb->options.block_cache = leveldb::NewLRUCache(cache_size * 1048576);

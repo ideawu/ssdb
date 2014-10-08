@@ -116,6 +116,7 @@ public:
 	int zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) const;
 	
+	int64_t qsize_max;
 	int64_t qsize(const Bytes &name);
 	// @return 0: empty queue, 1: item peeked, -1: error
 	int qfront(const Bytes &name, std::string *item);
