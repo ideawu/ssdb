@@ -1,5 +1,6 @@
 * 1.7.0.0
 	* New features:
+		- Add max_open_files config, default is 100(2014-10-08)
 		- Add auth command(2014-09-20)
 		- Enable qpop multi elements at a time(2014-09-16)
 * 1.6.8.8
