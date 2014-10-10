@@ -65,21 +65,21 @@ void usage(int argc, char **argv){
 	exit(1);   
 }
 
-int parse_options(Config &config, int argc, char **argv){
+int parse_options(Config *config, int argc, char **argv){
 	int i;
 	for(i = 1; i < argc; i++) {
 		bool lastarg = i==argc-1;
 		if(!strcmp(argv[i],"-h") && !lastarg){
-			config.ip = argv[++i];
+			config->ip = argv[++i];
 		}else if(!strcmp(argv[i], "-h") && lastarg){
 			usage(argc, argv);
 		}else if(!strcmp(argv[i], "-p") && !lastarg){
-			config.port = atoi(argv[++i]);
+			config->port = atoi(argv[++i]);
 		}else if(!strcmp(argv[i], "-a") && !lastarg){
-			config.hasauth = true;
-			config.auth = argv[++i];
+			config->hasauth = true;
+			config->auth = argv[++i];
 		}else if(!strcmp(argv[i], "-o") && !lastarg){
-			config.output_folder = argv[++i];
+			config->output_folder = argv[++i];
 		}else{
 			if(argv[i][0] == '-'){
 				fprintf(stderr,
@@ -104,16 +104,19 @@ int main(int argc, char **argv){
 	config.port = 8888;
 	config.hasauth = false;
     
-	int firstarg = parse_options(config, argc, argv);
+	int firstarg = parse_options(&config, argc, argv);
+	if(firstarg == 1 && firstarg + 3 <= argc){
+		// compatibale with old style arguments
+		config.ip = argv[firstarg + 0];
+		config.port = atoi(argv[firstarg + 1]);
+		config.output_folder = argv[firstarg + 2];
+	}
 
 	if(config.output_folder.empty()){
 		fprintf(stderr, "ERROR: -o <output_folder> is required!\n");
 		usage(argc, argv);
 		exit(1);
 	}
-
-	argc -= firstarg;
-	argv += firstarg;
     
 	if(file_exists(config.output_folder.c_str())){
 		fprintf(stderr, "ERROR: output_folder[%s] exists!\n", config.output_folder.c_str());
@@ -144,7 +147,7 @@ int main(int argc, char **argv){
 	// connect to server
 	Link *link = Link::connect(config.ip.c_str(), config.port);
 	if(link == NULL){
-		fprintf(stderr, "ERROR: error connecting to server!\n");
+		fprintf(stderr, "ERROR: error connecting to server: %s:%d!\n", config.ip.c_str(), config.port);
 		exit(1);
 	}
 	if(config.hasauth){
