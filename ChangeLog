@@ -3,6 +3,8 @@
 		- Add max_open_files config, default is 100(2014-10-08)
 		- Add auth command(2014-09-20)
 		- Enable qpop multi elements at a time(2014-09-16)
+	* Incompatible changes:
+		- Rewrite hexmem, this affects log messages(2014-10-10)
 * 1.6.8.8
 	* New features:
 		- Add hrlist, zrlist, qrlist commands(2014-07-27)
