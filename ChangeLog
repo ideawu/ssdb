@@ -1,5 +1,6 @@
 * 1.7.0.0
 	* New features:
+		- ssdb-dump support auth(2014-10-10)
 		- Add max_open_files config, default is 100(2014-10-08)
 		- Add auth command(2014-09-20)
 		- Enable qpop multi elements at a time(2014-09-16)
@@ -23,7 +24,7 @@
 * 1.6.8.7
 	* New features:
 		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
-        - Add expire command(2014-05-28)
+		- Add expire command(2014-05-28)
 		- Add ttl command(2014-05-26)
 		- Add `flushdb list`(2014-05-22)
 		- Support Android build
