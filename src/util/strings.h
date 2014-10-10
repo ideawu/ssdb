@@ -75,7 +75,107 @@ std::string real_dirname(const char *filepath){
 }
 
 inline static
+std::string str_escape(const char *s, int size){
+	static const char *hex = "0123456789abcdef";
+	std::string ret;
+	for(int i=0; i<size; i++){
+		char c = s[i];
+		switch(c){
+			case '\r':
+				ret.append("\\r");
+				break;
+			case '\n':
+				ret.append("\\n");
+				break;
+			case '\t':
+				ret.append("\\t");
+				break;
+			case '\\':
+				ret.append("\\\\");
+				break;
+			case ' ':
+				ret.push_back(c);
+				break;
+			default:
+				if(c >= '!' && c <= '~'){
+					ret.push_back(c);
+				}else{
+					ret.append("\\x");
+					unsigned char d = c;
+					ret.push_back(hex[d >> 4]);
+					ret.push_back(hex[d & 0x0f]);
+				}
+				break;
+		}
+	}
+	return ret;
+}
+
+inline static
+std::string str_escape(const std::string &s){
+	return str_escape(s.data(), (int)s.size());
+}
+
+inline static
+int hex_int(char c){
+	if(c >= '0' && c <= '9'){
+		return c - '0';
+	}else{
+		return c - 'a' + 10;
+	}
+}
+
+inline static
+std::string str_unescape(const char *s, int size){
+	std::string ret;
+	for(int i=0; i<size; i++){
+		char c = s[i];
+		if(c != '\\'){
+			ret.push_back(c);
+		}else{
+			if(i >= size - 1){
+				continue;
+			}
+			char c2 = s[++i];
+			switch(c2){
+				case 'r':
+					ret.push_back('\r');
+					break;
+				case 'n':
+					ret.push_back('\n');
+					break;
+				case 't':
+					ret.push_back('\t');
+					break;
+				case '\\':
+					ret.push_back('\\');
+					break;
+				case 'x':
+					if(i < size - 2){
+						char c3 = s[++i];
+						char c4 = s[++i];
+						ret.push_back((char)((hex_int(c3) << 4) + hex_int(c4)));
+					}
+					break;
+				default:
+					ret.push_back('\\');
+					ret.push_back(c2);
+					break;
+			}
+		}
+	}
+	return ret;
+}
+
+inline static
+std::string str_unescape(const std::string &s){
+	return str_unescape(s.data(), (int)s.size());
+}
+
+inline static
 std::string hexmem(const void *p, int size){
+	return str_escape((char *)p, size);
+	/*
 	std::string ret;
 	char buf[4];
 	for(int i=0; i<size; i++){
@@ -97,6 +197,7 @@ std::string hexmem(const void *p, int size){
 		}
 	}
 	return ret;
+	*/
 }
 
 // TODO: mem_printf("%5c%d%s", p, size);
