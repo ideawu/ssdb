@@ -11,23 +11,91 @@ from ExprLexer import ExprLexer
 from ExprParser import ExprParser
 
 class CpyEngine:
+	found_files = set()
+
+	def find_imports(self, srcfile, base_dir):
+		#print '  file', srcfile
+		srcfile = os.path.realpath(srcfile)
+		if srcfile in self.found_files:
+			return set()
+		self.found_files.add(srcfile)
+		
+		lines = []
+		with open(srcfile, 'rt') as fp:
+			lines = fp.readlines()
+
+		imports = []
+		for line in lines:
+			if line.find('import') == -1:
+				continue
+			line = line.strip().strip(';');
+			ps = line.split();
+			if ps[0] != 'import':
+				continue
+			for p in ps[ 1 :]:
+				p = p.strip(',')
+				imports.append(p);
+
+		for p in imports:
+			#print 'import ' + p
+			self.find_files(p, base_dir);
+		return self.found_files
+
+	def find_files(self, member, base_dir):
+		ps = member.split('.')
+		last = ps.pop(-1)
+		path = base_dir + '/' + '/'.join(ps)
+		if last == '*':
+			if os.path.isdir(path):
+				fs = os.listdir(path)
+				for f in fs:
+					if f.endswith('.cpy'):
+						file = os.path.realpath(path + '/' + f)
+						self.find_imports(file, path)
+		else:
+			file = path + '/' + last + '.cpy'
+			if os.path.isfile(file):
+				self.find_imports(file, path)
+		
 	def compile(self, srcfile, base_dir, output_dir):
+		srcfile = os.path.realpath(srcfile)
+		base_dir = os.path.realpath(base_dir)
+		output_dir = os.path.realpath(output_dir)
+
+		files = self.find_imports(srcfile, base_dir)
+		files.remove(srcfile)
+		if len(files) > 0:
+			files = list(files)
+			files.sort()
+			#print '  ' + '\n  '.join(files)
+
+		shead, stail = os.path.split(srcfile)
+		slen = len(shead)
+		for f in files:
+			head, tail = os.path.split(f)
+			rel_dir = head[slen :]
+			self._compile(f, base_dir, output_dir + rel_dir)
+
+		dstfile = self._compile(srcfile, base_dir, output_dir)
+		return dstfile
+				
+	def _compile(self, srcfile, base_dir, output_dir):
 		head, tail = os.path.split(srcfile)
+
+		dstfile = os.path.normpath(output_dir + '/' + tail.split('.')[0] + '.py')
+		if os.path.exists(dstfile):
+			src_mtime = os.path.getmtime(srcfile)
+			dst_mtime = os.path.getmtime(dstfile)
+			#print src_mtime, dst_mtime
+			if src_mtime < dst_mtime:
+				return dstfile
+		#print 'compile: %-30s=> %s' % (srcfile[len(base_dir)+1:], dstfile[len(base_dir)+1:])
+
 		if not os.path.exists(output_dir):
-			os.mkdir(output_dir)
+			os.makedirs(output_dir)
 		if not os.path.exists(output_dir + '/__init__.py'):
 			fp = open(output_dir + '/__init__.py', 'w')
 			fp.close()
-
-		dstfile = os.path.normpath(output_dir + '/' + tail.split('.')[0] + '.py')
-		#print 'compile: %-30s=> %s' % (srcfile, dstfile)
-		if os.environ.has_key('FAST_CPY') and os.environ['FAST_CPY'] == 'yes':
-			if os.path.exists(dstfile):
-				src_mtime = os.path.getmtime(srcfile)
-				dst_mtime = os.path.getmtime(dstfile)
-				#print src_mtime, dst_mtime
-				if src_mtime < dst_mtime:
-					return dstfile
 
 		#fp = codecs.open(sys.argv[1], 'r', 'utf-8')
 		fp = open(srcfile, 'r')
@@ -119,9 +187,8 @@ class CpyBuilder:
 			if srcfile in self.compiled_files:
 				return
 			self.compiled_files.add(srcfile)
-
-			e = CpyEngine()
-			d = e.compile(srcfile, base_dir, output_dir)
+			#e = CpyEngine()
+			#d = e.compile(srcfile, base_dir, output_dir)
 
 	def op_import(self, member, all):
 		ps = member.split('.')

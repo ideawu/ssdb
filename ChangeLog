@@ -1,5 +1,6 @@
 * 1.7.0.0
 	* New features:
+		- ssdb-cli performance improved(2014-10-11)
 		- Add export, import commands in ssdb-cli(2014-10-11)
 		- Add qtrim_front, qtrim_back commands(2014-10-11)
 		- ssdb-dump support auth(2014-10-10)

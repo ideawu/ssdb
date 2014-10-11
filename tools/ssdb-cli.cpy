@@ -126,7 +126,7 @@ if(port == ''){
 try{
 	port = int(port);
 }catch(Exception e){
-	print 'Invalid argument port: ', port;
+	sys.stderr.write(sprintf('Invalid argument port: ', port));
 	usage();
 	sys.exit(0);
 }
@@ -138,15 +138,15 @@ import SSDB.SSDB;
 try{
 	link = new SSDB(host, port);
 }catch(socket.error e){
-	printf('Failed to connect to: %s:%d\n', host, port);
-	print 'Connection error: ', str(e);
+	sys.stderr.write(sprintf('Failed to connect to: %s:%d\n', host, port));
+	sys.stderr.write(sprintf('Connection error: %s\n', str(e)));
 	sys.exit(0);
 }
 welcome();
 
 try{
 	resp = link.request('info', []);
-	print 'version: ' + resp.data[2] + '\n';
+	sys.stderr.write('version: ' + resp.data[2] + '\n\n');
 }catch(Exception e){
 }
 
@@ -169,7 +169,7 @@ while(true){
 	}
 	line = line.strip();
 	if(line == 'q' || line == 'quit'){
-		print 'bye.';
+		sys.stderr.write('bye.\n');
 		break;
 	}
 	if(line == 'h' || line == 'help'){
@@ -180,7 +180,7 @@ while(true){
 	try{
 		ps = shlex.split(line);
 	}catch(Exception e){
-		print 'error: ', e;
+		sys.stderr.write(sprintf('error: %s\n', str(e)));
 		continue;
 	}
 	if(len(ps) == 0){
@@ -195,7 +195,7 @@ while(true){
 			op = args[0];
 		}
 		if(op != 'escape'){
-			print "Bad setting!";
+			sys.stderr.write("Bad setting!\n");
 			continue;
 		}
 		yn = 'yes';
@@ -205,12 +205,12 @@ while(true){
 		gs = globals();
 		if(yn == 'yes'){
 			gs['escape_data'] = true;
-			print "  Escape response";
+			sys.stderr.write("  Escape response\n");
 		}else if(yn == 'no' || yn == 'none'){
 			gs['escape_data'] = false;
-			print "  No escape response";
+			sys.stderr.write("  No escape response\n");
 		}else{
-			print "  Usage: escape yes|no";
+			sys.stderr.write("  Usage: escape yes|no\n");
 		}
 		continue;
 	}
@@ -221,7 +221,7 @@ while(true){
 	}
 	if(cmd == 'export'){
 		if(len(args) < 1){
-			print 'Usage: export out_file';
+			sys.stderr.write('Usage: export out_file\n');
 			continue;
 		}
 		filename = args[0];
@@ -230,7 +230,7 @@ while(true){
 	}
 	if(cmd == 'import'){
 		if(len(args) < 1){
-			print 'Usage: import in_file';
+			sys.stderr.write('Usage: import in_file\n');
 			continue;
 		}
 		filename = args[0];
@@ -265,18 +265,18 @@ while(true){
 			time.sleep(retry);
 			retry ++;
 			if(retry > max_retry){
-				print 'cannot connect to server, give up...';
+				sys.stderr.write('cannot connect to server, give up...\n');
 				break;
 			}
-			printf('[%d/%d] reconnecting to server... ', retry, max_retry);
+			sys.stderr.write(sprintf('[%d/%d] reconnecting to server... ', retry, max_retry));
 			try{
 				link = new SSDB(host, port);
-				print 'done.';
+				sys.stderr.write('done.\n');
 			}catch(socket.error e){
-				print 'Connect error: ', str(e);
+				sys.stderr.write(sprintf('Connect error: %s\n', str(e)));
 				continue;
 			}
-			print '';
+			sys.stderr.write('\n');
 			if(password){
 				ret = link.request('auth', [password]);
 			}
@@ -288,13 +288,13 @@ while(true){
 	time_consume = timespan(stime);
 	if(!resp.ok()){
 		if(resp.not_found()){
-			print 'not_found';
+			sys.stderr.write('not_found\n');
 		}else{
 			s = resp.code;
 			if(resp.message){
 				s += ': ' + resp.message;
 			}
-			print s;
+			sys.stderr.write(str(s) + '\n');
 		}
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
@@ -312,8 +312,8 @@ while(true){
 			case 'multi_exists':
 			case 'multi_hexists':
 			case 'multi_zexists':
-				printf('%-15s %s\n', 'key', 'value');
-				print ('-' * 25);
+				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
+				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data as k=>v){
 					if(v == true){
 						s = 'true';
@@ -387,8 +387,8 @@ while(true){
 			case 'hgetall':
 			case 'hscan':
 			case 'hrscan':
-				printf('%-15s %s\n', 'key', 'value');
-				print ('-' * 25);
+				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
+				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data['index'] as k){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
 				}
@@ -398,8 +398,8 @@ while(true){
 			case 'zrscan':
 			case 'zrange':
 			case 'zrrange':
-				printf('%-15s %s\n', 'key', 'score');
-				print ('-' * 25);
+				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'score'));
+				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data['index'] as k){
 					score = resp.data['items'][k];
 					printf('  %-15s: %s\n', repr_data(repr_data(k)), score);
@@ -410,16 +410,16 @@ while(true){
 			case 'list':
 			case 'zkeys':
 			case 'hkeys':
-				printf('  %15s\n', 'key');
-				print ('-' * 17);
+				sys.stderr.write(sprintf('  %15s\n', 'key'));
+				sys.stderr.write('-' * 17 + '\n');
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			case 'hvals':
-				printf('  %15s\n', 'value');
-				print ('-' * 17);
+				sys.stderr.write(sprintf('  %15s\n', 'value'));
+				sys.stderr.write('-' * 17 + '\n');
 				foreach(resp.data as k){
 					printf('  %15s\n', repr_data(k));
 				}
@@ -444,8 +444,8 @@ while(true){
 			case 'multi_get':
 			case 'multi_hget':
 			case 'multi_zget':
-				printf('%-15s %s\n', 'key', 'value');
-				print ('-' * 25);
+				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
+				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data as k=>v){
 					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
 				}
@@ -465,7 +465,7 @@ while(true){
 				break;
 			case 'key_range':
 				if(len(resp.data) != 6){
-					print 'error!';
+					sys.stderr.write('error!\n');
 				}else{
 					for(i=0; i<len(resp.data); i++){
 						resp.data[i] = repr_data(resp.data[i]);
