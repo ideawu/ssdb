@@ -231,6 +231,15 @@ class SSDBTest extends UnitTest{
 		$this->assert(is_array($ret));
 		$ret = $ssdb->qpop($name, 2);
 		$this->assert(is_array($ret));
+
+		$ssdb->qclear($name);
+		for($i=0; $i<3; $i++){
+			$ssdb->qpush_back($name, $i);
+		}
+		$ret = $ssdb->qtrim_front($name, 2);
+		$this->assert($ret === 2);
+		$ret = $ssdb->qtrim_back($name, 2);
+		$this->assert($ret === 1);
 	}
 
 	function test_hash(){

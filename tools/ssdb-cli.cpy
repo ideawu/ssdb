@@ -355,7 +355,7 @@ welcome();
 
 try{
 	resp = link.request('info', []);
-	print 'ssdb-server version: ' + resp.data[2] + '\n';
+	print 'version: ' + resp.data[2] + '\n';
 }catch(Exception e){
 }
 
@@ -556,6 +556,8 @@ while(true){
 			case 'qpush':
 			case 'qpush_front':
 			case 'qpush_back':
+			case 'qtrim_front':
+			case 'qtrim_back':
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
