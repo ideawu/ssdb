@@ -22,7 +22,8 @@ install:
 	cp ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
 	cp -r api ${PREFIX}
 	cp -r \
-		tools/ssdb-bench tools/ssdb-cli \
+		tools/ssdb-bench \
+		tools/ssdb-cli tools/ssdb_cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
 		tools/ssdb-ins.sh tools/unittest.php \
