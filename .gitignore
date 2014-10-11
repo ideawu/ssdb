@@ -5,7 +5,7 @@
 *.pyc
 var/*
 var_slave/*
-dev_ssdb.conf
+dev_ssdb.conf*
 *.swp
 *_cpy_*
 ssdb-server
