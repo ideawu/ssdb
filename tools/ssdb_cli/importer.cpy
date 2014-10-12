@@ -27,6 +27,9 @@ function run(link, filename){
 			return;
 		}
 		cmd = ps[0].lower();
+		foreach(ps as k=>v){
+			ps[k] = str(v).decode('string-escape');
+		}
 		
 		link.request(cmd, ps[ 1 ..]);
 	}

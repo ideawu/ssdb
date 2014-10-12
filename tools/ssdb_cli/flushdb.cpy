@@ -1,3 +1,32 @@
+function hclear(link, hname, verbose=true){
+	ret = 0;
+	r = link.request('hclear', [hname]);
+	try{
+		ret = r.data;
+	}catch(Exception e){
+	}
+	return ret;
+}
+
+function zclear(link, zname, verbose=true){
+	ret = 0;
+	r = link.request('zclear', [zname]);
+	try{
+		ret = r.data;
+	}catch(Exception e){
+	}
+	return ret;
+}
+
+function qclear(link, zname, verbose=true){
+	ret = 0;
+	r = link.request('qclear', [zname]);
+	try{
+		ret = r.data;
+	}catch(Exception e){
+	}
+	return ret;
+}
 function flushdb(link, data_type){
 	printf('\n');
 	printf('============================ DANGER! ============================\n');
