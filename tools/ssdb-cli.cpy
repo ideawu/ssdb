@@ -52,23 +52,12 @@ function usage(){
 	print '	ssdb-cli -h 127.0.0.1 -p 8888';
 }
 
-function repr_data(str){
+function repr_data(s){
 	gs = globals();
 	if(gs['escape_data'] == false){
-		return str;
+		return s;
 	}
-	ret = repr(str);
-	if(len(ret) > 0){
-		if(ret[0] == '\''){
-			ret = ret.replace("\\'", "'");
-			ret = ret[1 .. -1];
-		}else if(ret[0] == '"'){
-			ret = ret.replace('\\"', '"');
-			ret = ret[1 .. -1];
-		}else{
-		}
-	}
-	ret = ret.replace("\\\\", "\\");
+	ret = str(s).encode('string-escape');
 	return ret;
 }
 
@@ -77,6 +66,14 @@ function timespan(stime){
 	ts = etime - stime;
 	time_consume = ts.seconds + ts.microseconds/1000000.;
 	return time_consume;
+}
+
+function show_version(){
+	try{
+		resp = link.request('info', []);
+		sys.stderr.write('version: ' + resp.data[2] + '\n\n');
+	}catch(Exception e){
+	}
 }
 
 
@@ -143,12 +140,10 @@ try{
 	sys.exit(0);
 }
 welcome();
-
-try{
-	resp = link.request('info', []);
-	sys.stderr.write('version: ' + resp.data[2] + '\n\n');
-}catch(Exception e){
+if(sys.stdin.isatty()){
+	show_version();
 }
+
 
 password = false;
 
@@ -187,8 +182,13 @@ while(true){
 		continue;
 	}
 	cmd = ps[0].lower();
-	args = ps[1 .. ];
-	
+	if(cmd.startswith(':')){
+		ps[0] = cmd[1 ..];
+		cmd = ':';
+		args = ps;
+	}else{
+		args = ps[1 .. ];
+	}
 	if(cmd == ':'){
 		op = '';
 		if(len(args) > 0){
