@@ -309,6 +309,8 @@ class SSDB
 			case 'qpush':
 			case 'qpush_front':
 			case 'qpush_back':
+			case 'qtrim_front':
+			case 'qtrim_back':
 			case 'del':
 			case 'zdel':
 			case 'hdel':

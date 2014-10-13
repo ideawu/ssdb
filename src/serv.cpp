@@ -122,6 +122,8 @@ static proc_map_t proc_map;
 	DEF_PROC(qpop);
 	DEF_PROC(qpop_front);
 	DEF_PROC(qpop_back);
+	DEF_PROC(qtrim_front);
+	DEF_PROC(qtrim_back);
 	DEF_PROC(qfix);
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
@@ -228,6 +230,8 @@ static Command commands[] = {
 	PROC(qpop, "wt"),
 	PROC(qpop_front, "wt"),
 	PROC(qpop_back, "wt"),
+	PROC(qtrim_front, "wt"),
+	PROC(qtrim_back, "wt"),
 	PROC(qfix, "wt"),
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),

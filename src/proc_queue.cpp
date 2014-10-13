@@ -105,14 +105,9 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 		return 0;
 	}
 	
-	int size = 1;
+	uint64_t size = 1;
 	if(req.size() > 2){
-		size = req[2].Int();
-		if(size <= 0){
-			resp->push_back("error");
-			resp->push_back("bad parameter");
-			return 0;
-		}
+		size = req[2].Uint64();
 	}
 		
 	int ret;
@@ -134,7 +129,7 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 		}
 	}else{
 		resp->push_back("ok");
-		while(--size >= 0){
+		while(size-- > 0){
 			if(front_or_back == QFRONT){
 				ret = serv->ssdb->qpop_front(req[1], &item);
 			}else{
@@ -161,6 +156,48 @@ static int proc_qpop_back(Server *serv, Link *link, const Request &req, Response
 
 static int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpop_func(serv, link, req, resp, QFRONT);
+}
+
+static inline
+int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
+	if(req.size() < 2){
+		resp->push_back("client_error");
+		return 0;
+	}
+	
+	uint64_t size = 1;
+	if(req.size() > 2){
+		size = req[2].Uint64();
+	}
+		
+	uint64_t count = 0;
+	for(; count<size; count++){
+		int ret;
+		std::string item;
+		if(front_or_back == QFRONT){
+			ret = serv->ssdb->qpop_front(req[1], &item);
+		}else{
+			ret = serv->ssdb->qpop_back(req[1], &item);
+		}
+		if(ret <= 0){
+			break;
+		}
+	}
+
+	char buf[20];
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
+	resp->push_back("ok");
+	resp->push_back(buf);
+
+	return 0;
+}
+
+static int proc_qtrim_front(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qtrim_func(serv, link, req, resp, QFRONT);
+}
+
+static int proc_qtrim_back(Server *serv, Link *link, const Request &req, Response *resp){
+	return proc_qtrim_func(serv, link, req, resp, QBACK);
 }
 
 static int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){

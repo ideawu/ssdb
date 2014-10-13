@@ -138,6 +138,18 @@ std::string str_unescape(const char *s, int size){
 			}
 			char c2 = s[++i];
 			switch(c2){
+				case 'a':
+					ret.push_back('\a');
+					break;
+				case 'b':
+					ret.push_back('\b');
+					break;
+				case 'f':
+					ret.push_back('\f');
+					break;
+				case 'v':
+					ret.push_back('\v');
+					break;
 				case 'r':
 					ret.push_back('\r');
 					break;
@@ -158,7 +170,6 @@ std::string str_unescape(const char *s, int size){
 					}
 					break;
 				default:
-					ret.push_back('\\');
 					ret.push_back(c2);
 					break;
 			}

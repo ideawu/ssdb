@@ -126,7 +126,7 @@ class SSDB{
 						size = int(params[2]);
 					}catch(Exception e){
 					}
-					if(size <= 1){
+					if(size == 1){
 						if(len(resp) == 2){
 							return new SSDB_Response('ok', resp[1]);
 						}else{
@@ -169,6 +169,8 @@ class SSDB{
 			case 'qpush':
 			case 'qpush_front':
 			case 'qpush_back':
+			case 'qtrim_front':
+			case 'qtrim_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{
