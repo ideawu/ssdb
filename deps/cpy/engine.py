@@ -20,9 +20,9 @@ class CpyEngine:
 			return set()
 		self.found_files.add(srcfile)
 		
-		lines = []
-		with open(srcfile, 'rt') as fp:
-			lines = fp.readlines()
+		fp = open(srcfile, 'rt')
+		lines = fp.readlines()
+		fp.close()
 
 		imports = []
 		for line in lines:
