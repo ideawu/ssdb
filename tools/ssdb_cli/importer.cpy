@@ -18,7 +18,7 @@ function run(link, filename){
 		progress_2 = int(float(read_size)/total_size * 100);
 		if(progress_2 - progress >= 5 || read_size == total_size){
 			progress = progress_2;
-			printf("%02d%%\n", progress_2);
+			printf("%2d%%\n", progress_2);
 		}
 		
 		ps = line.strip().split('\t');
@@ -33,4 +33,5 @@ function run(link, filename){
 		
 		link.request(cmd, ps[ 1 ..]);
 	}
+	print 'done.';
 }

@@ -89,6 +89,7 @@ class CpyEngine:
 			#print src_mtime, dst_mtime
 			if src_mtime < dst_mtime:
 				return dstfile
+		#print 'compile: %-30s=> %s' % (srcfile, dstfile)
 		#print 'compile: %-30s=> %s' % (srcfile[len(base_dir)+1:], dstfile[len(base_dir)+1:])
 
 		if not os.path.exists(output_dir):
