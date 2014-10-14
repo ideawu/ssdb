@@ -23,10 +23,9 @@ function show_progress(){
 	progress_2 = int(float(read_size)/total_size * 100);
 	if(progress_2 - progress >= 5 || read_size == total_size){
 		gs['progress'] = progress_2;
-		printf("%02d%%\n", progress_2);
+		printf("%2d%%\n", progress_2);
 	}
 }
-
 
 function run(link, output_file){
 	if(os.path.exists(output_file)){
@@ -82,6 +81,7 @@ function run(link, output_file){
 		}
 	}
 
-	read_size = total_size;
+	gs['read_size'] = gs['total_size'];
 	show_progress();
+	print 'done.';
 }

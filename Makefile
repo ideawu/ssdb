@@ -29,8 +29,8 @@ install:
 		tools/ssdb-ins.sh tools/unittest.php \
 		${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
-	chmod ugo+rwx ${PREFIX}
-	chmod -R ugo+rw ${PREFIX}
+	chmod 755 ${PREFIX}
+	chmod -R ugo+rw ${PREFIX}/*
 	rm -f ${PREFIX}/Makefile
 
 clean:

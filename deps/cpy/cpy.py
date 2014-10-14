@@ -57,7 +57,7 @@ sys.path.append(os.path.dirname(dstfile))
 #print ('-----')
 
 dstfile = os.path.abspath(dstfile)
-os.chdir(base_dir);
+#os.chdir(base_dir);
 if not is_compile:
 	sys.argv = sys.argv[1 :]
 	sys.path.insert(0, os.path.dirname(dstfile))
