@@ -151,10 +151,8 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 	if(config.hasauth){
-		link->send("auth", config.auth.c_str());
-		link->flush();
-		const std::vector<Bytes> *packet = link->response();
-		if(packet == NULL || packet->size() != 1 || packet->begin()->String() != "ok"){
+		const std::vector<Bytes> *resp = link->request("auth", config.auth.c_str());
+		if(resp == NULL || resp->at(0) != "ok"){
 			fprintf(stderr, "ERROR: auth error!\n");
 			exit(1);
 		}
