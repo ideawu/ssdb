@@ -12,6 +12,7 @@
 #include "util/strings.h"
 #include "util/file.h"
 #include "util/ip_filter.h"
+#include <dlfcn.h>
 
 #define TICK_INTERVAL       100 // ms
 #define STATUS_REPORT_TICKS (300 * 1000/TICK_INTERVAL) // second
@@ -450,7 +451,20 @@ void init(int argc, char **argv){
 			log_info("server.auth on");
 		}
 	}
-
+	void *plugin_handle;
+	{// plugin
+		const char * plugin_path = conf->get_str("server.plugin_path");
+		if (plugin_path) {
+			log_info("load plugin %s", plugin_path);
+			plugin_handle = dlopen(plugin_path, RTLD_LAZY);
+			if (!plugin_handle) {
+				log_fatal("load plugin fail! %s", dlerror());
+				exit(1);
+			}
+		} else {
+			plugin_handle = NULL;
+		}
+	}
 	// WARN!!!
 	// deamonize() MUST be called before any thread has been created!
 	if(is_daemon){
@@ -472,6 +486,20 @@ void init(int argc, char **argv){
 		if(!password.empty()){
 			serv->need_auth = true;
 			serv->password = password;
+		}
+		if (plugin_handle) {
+			typedef int (*ssdb_plugin_init)(Server *, const char* opt);
+			ssdb_plugin_init c = (ssdb_plugin_init)dlsym(plugin_handle, "ssdb_plugin_init");
+			if (!c) {
+				log_fatal("load plugin fail! %s", dlerror());
+				exit(1);
+			}
+			int re = c(serv, conf->get_str("server.plugin_opt"));
+			if (re) {
+				log_fatal("load plugin fail! re=%d", re);
+				dlclose(plugin_handle);
+				exit(1);
+			}
 		}
 	}
 

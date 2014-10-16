@@ -259,6 +259,26 @@ static Command commands[] = {
 };
 #undef PROC
 
+void Server::add_command(Command *cmd) {
+	for(const char *p=cmd->sflags; *p!='\0'; p++){
+		switch(*p){
+			case 'r':
+				cmd->flags |= Command::FLAG_READ;
+				break;
+			case 'w':
+				cmd->flags |= Command::FLAG_WRITE;
+				break;
+			case 'b':
+				cmd->flags |= Command::FLAG_BACKEND;
+				break;
+			case 't':
+				cmd->flags |= Command::FLAG_THREAD;
+				break;
+		}
+	}
+	proc_map[cmd->name] = cmd;
+}
+
 Server::Server(SSDB *ssdb){
 	this->ssdb = ssdb;
 	this->link_count = 0;
@@ -267,23 +287,7 @@ Server::Server(SSDB *ssdb){
 	backend_sync = new BackendSync(ssdb);
 
 	for(Command *cmd=commands; cmd->name; cmd++){
-		for(const char *p=cmd->sflags; *p!='\0'; p++){
-			switch(*p){
-				case 'r':
-					cmd->flags |= Command::FLAG_READ;
-					break;
-				case 'w':
-					cmd->flags |= Command::FLAG_WRITE;
-					break;
-				case 'b':
-					cmd->flags |= Command::FLAG_BACKEND;
-					break;
-				case 't':
-					cmd->flags |= Command::FLAG_THREAD;
-					break;
-			}
-		}
-		proc_map[cmd->name] = cmd;
+		add_command(cmd);
 	}
 	// for k-v data, list === keys
 	proc_map["list"] = proc_map["keys"];
