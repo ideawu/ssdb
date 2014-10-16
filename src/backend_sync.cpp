@@ -100,9 +100,13 @@ void* BackendSync::_run_thread(void *arg){
 			idle = 0;
 		}
 
+		float data_size_mb = link->output->size() / 1024.0 / 1024.0;
 		if(link->flush() == -1){
 			log_info("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
 			break;
+		}
+		if(ssdb->sync_speed() > 0){
+			usleep((data_size_mb / ssdb->sync_speed()) * 1000 * 1000);
 		}
 	}
 
@@ -198,18 +202,24 @@ void BackendSync::Client::noop(){
 
 int BackendSync::Client::copy(){
 	if(this->iter == NULL){
-		log_debug("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
+		log_info("new iterator, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
 		std::string key = this->last_key;
 		if(this->last_key.empty()){
 			key.push_back(DataType::MIN_PREFIX);
 		}
 		this->iter = backend->ssdb->iterator(key, "", -1);
+		log_info("iterator created, last_key: '%s'", hexmem(last_key.data(), last_key.size()).c_str());
 	}
 	int ret = 0;
 	int iterate_count = 0;
+	int64_t stime = time_ms();
 	while(true){
 		// Prevent copy() from blocking too long
-		if(++iterate_count > 10000 || link->output->size() > 2 * 1024 * 1024){
+		if(++iterate_count > 1000 || link->output->size() > 2 * 1024 * 1024){
+			break;
+		}
+		if(time_ms() - stime > 3000){
+			log_info("copy blocks too long, flush");
 			break;
 		}
 		

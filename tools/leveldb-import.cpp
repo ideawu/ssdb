@@ -15,7 +15,7 @@
 
 void welcome(){
 	printf("leveldb-import - Import existing leveldb into ssdb\n");
-	printf("Copyright (c) 2013-2014 ideawu.com\n");
+	printf("Copyright (c) 2013-2014 ssdb.io\n");
 	printf("\n");
 }
 

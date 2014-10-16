@@ -31,7 +31,7 @@ SSDB *ssdb = NULL;
 Link *serv_link = NULL;
 IpFilter *ip_filter = NULL;
 Fdevents *fdes = NULL;
-int link_count = 0;
+Server *serv = NULL;
 
 typedef std::vector<Link *> ready_list_t;
 
@@ -91,9 +91,6 @@ Link* accept_link(){
 		delete link;
 		return NULL;
 	}
-	link_count ++;				
-	log_debug("new link from %s:%d, fd: %d, link_count: %d",
-		link->remote_ip, link->remote_port, link->fd(), link_count);
 				
 	link->nodelay();
 	link->noblock();
@@ -200,11 +197,10 @@ void run(int argc, char **argv){
 	ready_list_t ready_list_2;
 	ready_list_t::iterator it;
 	const Fdevents::events_t *events;
-	Server serv(ssdb);
 
 	fdes->set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
-	fdes->set(serv.reader->fd(), FDEVENT_IN, 0, serv.reader);
-	fdes->set(serv.writer->fd(), FDEVENT_IN, 0, serv.writer);
+	fdes->set(serv->reader->fd(), FDEVENT_IN, 0, serv->reader);
+	fdes->set(serv->writer->fd(), FDEVENT_IN, 0, serv->writer);
 	
 	uint32_t last_ticks = g_ticks;
 	
@@ -212,7 +208,7 @@ void run(int argc, char **argv){
 		// status report
 		if((uint32_t)(g_ticks - last_ticks) >= STATUS_REPORT_TICKS){
 			last_ticks = g_ticks;
-			log_info("ssdb working, links: %d", link_count);
+			log_info("ssdb working, links: %d", serv->link_count);
 		}
 		
 		ready_list.swap(ready_list_2);
@@ -234,9 +230,12 @@ void run(int argc, char **argv){
 			if(fde->data.ptr == serv_link){
 				Link *link = accept_link();
 				if(link){
+					serv->link_count ++;				
+					log_debug("new link from %s:%d, fd: %d, links: %d",
+						link->remote_ip, link->remote_port, link->fd(), serv->link_count);
 					fdes->set(link->fd(), FDEVENT_IN, 1, link);
 				}
-			}else if(fde->data.ptr == serv.reader || fde->data.ptr == serv.writer){
+			}else if(fde->data.ptr == serv->reader || fde->data.ptr == serv->writer){
 				WorkerPool<Server::ProcWorker, ProcJob> *worker = (WorkerPool<Server::ProcWorker, ProcJob> *)fde->data.ptr;
 				ProcJob job;
 				if(worker->pop(&job) == 0){
@@ -244,7 +243,7 @@ void run(int argc, char **argv){
 					exit(0);
 				}
 				if(proc_result(job, ready_list) == PROC_ERROR){
-					link_count --;
+					serv->link_count --;
 				}
 			}else{
 				proc_client_event(fde, ready_list);
@@ -254,7 +253,7 @@ void run(int argc, char **argv){
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
 			if(link->error()){
-				link_count --;
+				serv->link_count --;
 				fdes->del(link->fd());
 				delete link;
 				continue;
@@ -263,7 +262,7 @@ void run(int argc, char **argv){
 			const Request *req = link->recv();
 			if(req == NULL){
 				log_warn("fd: %d, link parse error, delete link", link->fd());
-				link_count --;
+				serv->link_count --;
 				fdes->del(link->fd());
 				delete link;
 				continue;
@@ -277,19 +276,19 @@ void run(int argc, char **argv){
 
 			ProcJob job;
 			job.link = link;
-			serv.proc(&job);
+			serv->proc(&job);
 			if(job.result == PROC_THREAD){
 				fdes->del(link->fd());
 				continue;
 			}
 			if(job.result == PROC_BACKEND){
 				fdes->del(link->fd());
-				link_count --;
+				serv->link_count --;
 				continue;
 			}
 			
 			if(proc_result(job, ready_list_2) == PROC_ERROR){
-				link_count --;
+				serv->link_count --;
 			}
 		} // end foreach ready link
 	}
@@ -298,7 +297,7 @@ void run(int argc, char **argv){
 
 void welcome(){
 	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
-	fprintf(stderr, "Copyright (c) 2012-2014 ideawu.com\n");
+	fprintf(stderr, "Copyright (c) 2012-2014 ssdb.io\n");
 	fprintf(stderr, "\n");
 }
 
@@ -404,6 +403,7 @@ void init(int argc, char **argv){
 	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 	
+	std::string password;
 	ip_filter = new IpFilter();
 	// init ip_filter
 	{
@@ -425,7 +425,7 @@ void init(int argc, char **argv){
 			}
 		}
 	}
-
+	
 	{ // server
 		const char *ip = conf->get_str("server.ip");
 		int port = conf->get_num("server.port");
@@ -436,7 +436,19 @@ void init(int argc, char **argv){
 			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
 			exit(1);
 		}
-		log_info("server listen on: %s:%d", ip, port);
+		log_info("server listen on %s:%d", ip, port);
+
+		password = conf->get_str("server.auth");
+		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
+			log_fatal("weak password is not allowed!");
+			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
+			exit(1);
+		}
+		if(password.empty()){
+			log_info("server.auth off");
+		}else{
+			log_info("server.auth on");
+		}
 	}
 
 	// WARN!!!
@@ -454,8 +466,16 @@ void init(int argc, char **argv){
 		}
 	}
 
+	{
+		serv = new Server(ssdb);
+		serv->need_auth = false;		
+		if(!password.empty()){
+			serv->need_auth = true;
+			serv->password = password;
+		}
+	}
+
 	write_pidfile();
-	
 	log_info("ssdb server started.");
 }
 

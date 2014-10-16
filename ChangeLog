@@ -1,9 +1,52 @@
+* 1.7.0.0
+	* New features:
+		- export(ssdb-cli) command supports -i(interactive) option(2014-10-16)
+		- ssdb-cli performance improved(2014-10-11)
+		- Add export, import commands in ssdb-cli(2014-10-11)
+		- Add qtrim_front, qtrim_back commands(2014-10-11)
+		- ssdb-dump support auth(2014-10-10)
+		- Add max_open_files config, default is 100(2014-10-08)
+		- Add auth command(2014-09-20)
+		- Enable qpop multi elements at a time(2014-09-16)
+	* Incompatible changes:
+		- Rewrite hexmem, this affects log messages(2014-10-10)
+* 1.6.8.8
+	* New features:
+		- Add hrlist, zrlist, qrlist commands(2014-07-27)
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+		- Put multi_*get commands to execute in worker thread(2014-06-17)
+	* Incompatible changes:
+		- Delete expireation info when deleting key(2014-06-28)
+		- Inlucde links, total_calls in info cmd's reply(2014-06-17)
+		- Rename redis_getrange command to getrange(2014-07-27)
+	* Bug fixes:
+		- Fix ssdb-bench bug on del bench(2014-08-21)
+		- Return entrire string when substr's params are ommitted(2014-07-27)
+		- Fix key expiration/ttl bug(2014-07-02)
+		- Fix zRangeByScore(redis) bug(2014-06-28)
+
+* 1.6.8.7
+	* New features:
+		- Add string/bit operations: getbit, setbit, bitcount, strlen, substr(getrange)(2014-06-07)
+		- Add expire command(2014-05-28)
+		- Add ttl command(2014-05-26)
+		- Add `flushdb list`(2014-05-22)
+		- Support Android build
+		- Add sync speed limit
+
 * 1.6.8.6 (2014-03-29)
 	* New features:
 		- Reduce round trip time for single request(2014-04-04)
 		- Add zcount, zsum, zavg, zRemRangeByScore, zRemRangeByRank commands(2014-04-06)
 		- Update redis-import.php to use Redis SCAN command if available(2014-04-07)
+		- qpush/qpush_* accept multiple values(2014-04-13)
+		- Don't push all expiration keys in memory, use less memory(2014-05-03)
+		- Provide an option to disable binlog(2014-05-03)
+		- Add hgetall command(2014-05-03)
+		- Fix memory issue on cache_size larger than 2048(2014-05-12);
 	* Incompatible changes:
+		- qpush returns the length of the queue/list after the push operations(2014-04-10)
+		- zrscan returns keys with score equal to score_start if key_start is ommit, previously it only returns keys with scores less than score_start(2014-04-23)
 	* Bug fixes:
 		- Redesign network flow, support very large batch commands
 		- Fix bug on ssdb-dump that lose data, print out error message(2014-04-05)

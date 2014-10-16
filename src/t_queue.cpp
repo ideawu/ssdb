@@ -113,7 +113,7 @@ int SSDB::qback(const Bytes &name, std::string *item){
 	return ret;
 }
 
-int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
+int64_t SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 
 	int ret;
@@ -167,14 +167,14 @@ int SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_se
 		log_error("Write error!");
 		return -1;
 	}
-	return 1;
+	return size;
 }
 
-int SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QFRONT_SEQ, log_type);
 }
 
-int SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QBACK_SEQ, log_type);
 }
 
@@ -244,15 +244,7 @@ int SSDB::qpop_back(const Bytes &name, std::string *item, char log_type){
 	return _qpop(name, item, QBACK_SEQ, log_type);
 }
 
-int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
-		std::vector<std::string> *list){
-	std::string start;
-	std::string end;
-	start = encode_qsize_key(name_s);
-	if(!name_e.empty()){
-		end = encode_qsize_key(name_e);
-	}
-	Iterator *it = this->iterator(start, end, limit);
+static void get_qnames(Iterator *it, std::vector<std::string> *list){
 	while(it->next()){
 		Bytes ks = it->key();
 		//dump(ks.data(), ks.size());
@@ -265,6 +257,39 @@ int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		}
 		list->push_back(n);
 	}
+}
+
+int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
+	std::string start;
+	std::string end;
+	
+	start = encode_qsize_key(name_s);
+	if(!name_e.empty()){
+		end = encode_qsize_key(name_e);
+	}
+	
+	Iterator *it = this->iterator(start, end, limit);
+	get_qnames(it, list);
+	delete it;
+	return 0;
+}
+
+int SSDB::qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
+	std::string start;
+	std::string end;
+	
+	start = encode_qsize_key(name_s);
+	if(name_s.empty()){
+		start.append(1, 255);
+	}
+	if(!name_e.empty()){
+		end = encode_qsize_key(name_e);
+	}
+	
+	Iterator *it = this->rev_iterator(start, end, limit);
+	get_qnames(it, list);
 	delete it;
 	return 0;
 }

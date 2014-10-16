@@ -17,7 +17,13 @@ class SSDB_Response{
 		if(code == 'ok'){
 			this.data = data_or_message;
 		}else{
-			this.message = data_or_message;
+			if(isinstance(data_or_message, list)){
+				if(len(data_or_message) > 0){
+					this.message = data_or_message[0];
+				}
+			}else{
+				this.message = data_or_message;
+			}
 		}
 	}
 
@@ -84,21 +90,23 @@ class SSDB{
 			case 'multi_hdel':
 			case 'multi_zset':
 			case 'multi_zdel':
-				if(len(resp) > 1){
-					return new SSDB_Response(resp[0], int(resp[1]));
+				if(resp[0] == 'ok'){
+					if(len(resp) > 1){
+						return new SSDB_Response(resp[0], int(resp[1]));
+					}else{
+						return new SSDB_Response(resp[0], 1);
+					}
 				}else{
-					return new SSDB_Response(resp[0], 1);
+					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
+			case 'substr':
 			case 'get':
 			case 'getset':
 			case 'hget':
 			case 'qfront':
 			case 'qback':
 			case 'qget':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						return new SSDB_Response('ok', resp[1]);
@@ -106,9 +114,37 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
+			case 'qpop':
+			case 'qpop_front':
+			case 'qpop_back':
+				if(resp[0] == 'ok'){
+					size = 1;
+					try{
+						size = int(params[2]);
+					}catch(Exception e){
+					}
+					if(size == 1){
+						if(len(resp) == 2){
+							return new SSDB_Response('ok', resp[1]);
+						}else{
+							return new SSDB_Response('server_error', 'Invalid response');
+						}
+					}else{
+						return new SSDB_Response('ok', resp[1 .. ]);
+					}
+				}else{
+					return new SSDB_Response(resp[0], resp[1 .. ]);
+				}
+				break;
+			case 'getbit':
+			case 'setbit':
+			case 'countbit':
+			case 'strlen':
+			case 'ttl':
+			case 'expire':
 			case 'setnx':
 			case 'incr':
 			case 'decr':
@@ -130,6 +166,11 @@ class SSDB{
 			case 'hclear':
 			case 'zclear':
 			case 'qclear':
+			case 'qpush':
+			case 'qpush_front':
+			case 'qpush_back':
+			case 'qtrim_front':
+			case 'qtrim_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) == 2){
 						try{
@@ -146,24 +187,20 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
 			case 'keys':
 			case 'zkeys':
 			case 'hkeys':
+			case 'list':
 			case 'hlist':
 			case 'zlist':
-				data = [];
-				if(resp[0] == 'ok'){
-					for(i=1; i<len(resp); i++){
-						data.append(resp[i]);
-					}
-				}
-				return new SSDB_Response(resp[0], data);
+				return new SSDB_Response(resp[0], resp[1 .. ]);
 				break;
 			case 'scan':
 			case 'rscan':
+			case 'hgetall':
 			case 'hscan':
 			case 'hrscan':
 				if(resp[0] == 'ok'){
@@ -180,7 +217,7 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
 			case 'zscan':
@@ -206,39 +243,46 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
+			case 'auth':
             case 'exists':
             case 'hexists':
             case 'zexists':
-                data = false;
 				if(resp[0] == 'ok'){
+	                data = false;
                     if(len(resp) >= 2){
                         if(resp[1] == '1'){
                             data = true;
                         }
                     }
-                }
-				return new SSDB_Response(resp[0], data);
+					return new SSDB_Response(resp[0], data);
+                }else{
+					return new SSDB_Response(resp[0], resp[1 ..]);
+				}
                 break;
             case 'multi_exists':
             case 'multi_hexists':
             case 'multi_zexists':
-				data = {};
-				if(len(resp) % 2 == 1){
-					for(i=1; i<len(resp); i+=2){
-						k = resp[i];
-						if(resp[i + 1] == '1'){
-                            v = true;
-                        }else{
-                            v = false;
-                        }
-						data[k] = v;
-					}
-                }
-				return new SSDB_Response('ok', data);
-                break;
+				if(resp[0] == 'ok'){
+					data = {};
+					if(len(resp) % 2 == 1){
+						for(i=1; i<len(resp); i+=2){
+							k = resp[i];
+							if(resp[i + 1] == '1'){
+	                            v = true;
+	                        }else{
+	                            v = false;
+	                        }
+							data[k] = v;
+						}
+	                }
+					return new SSDB_Response('ok', data);
+				}else{
+					return new SSDB_Response(resp[0], resp[1 ..]);
+				}
+				break;
 			case 'multi_get':
 			case 'multi_hget':
 				if(resp[0] == 'ok'){
@@ -254,7 +298,7 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 ..]);
 				}
 				break;
 			case 'multi_hsize':
@@ -273,19 +317,11 @@ class SSDB{
 						return new SSDB_Response('server_error', 'Invalid response');
 					}
 				}else{
-					return new SSDB_Response(resp[0]);
+					return new SSDB_Response(resp[0], resp[1 ..]);
 				}
 				break;
 			default:
-				if(len(resp) > 1){
-					data = [];
-					for(i=1; i<len(resp); i++){
-						data.append(resp[i]);
-					}
-				}else{
-					data = '';
-				}
-				return new SSDB_Response(resp[0], data);
+				return new SSDB_Response(resp[0], resp[1 ..]);
 				break;
 		}
 		return new SSDB_Response('error', 'Unknown error');

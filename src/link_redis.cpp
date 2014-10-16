@@ -50,6 +50,14 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "exists",	"exists",		REPLY_INT},
 	{STRATEGY_AUTO, "incr",		"incr",			REPLY_INT},
 	{STRATEGY_AUTO, "decr",		"decr",			REPLY_INT},
+	{STRATEGY_AUTO, "ttl",		"ttl",			REPLY_INT},
+	{STRATEGY_AUTO, "expire",	"expire",		REPLY_INT},
+	{STRATEGY_AUTO, "getbit",	"getbit",		REPLY_INT},
+	{STRATEGY_AUTO, "setbit",	"setbit",		REPLY_INT},
+	{STRATEGY_AUTO, "strlen",	"strlen",		REPLY_INT},
+	{STRATEGY_AUTO, "bitcount",	"redis_bitcount",		REPLY_INT},
+	{STRATEGY_AUTO, "substr",	"getrange",		REPLY_BULK},
+	{STRATEGY_AUTO, "getrange",	"getrange",		REPLY_BULK},
 
 	{STRATEGY_AUTO, "hset",		"hset",			REPLY_INT},
 	{STRATEGY_AUTO, "hget",		"hget",			REPLY_BULK},
@@ -79,7 +87,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_MGET, "mget",		"multi_get",	REPLY_MULTI_BULK},
 	{STRATEGY_HMGET, "hmget",	"multi_hget",	REPLY_MULTI_BULK},
 	
-	{STRATEGY_HGETALL,	"hgetall",		"hscan",		REPLY_MULTI_BULK},
+	{STRATEGY_HGETALL,	"hgetall",		"hgetall",		REPLY_MULTI_BULK},
 	{STRATEGY_HKEYS,	"hkeys", 		"hkeys", 		REPLY_MULTI_BULK},
 	{STRATEGY_HVALS,	"hvals", 		"hvals", 		REPLY_MULTI_BULK},
 	{STRATEGY_SETEX,	"setex",		"setx", 		REPLY_STATUS},
@@ -90,8 +98,8 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_ZRANGEBYSCORE,	"zrangebyscore",	"zscan",	REPLY_MULTI_BULK},
 	{STRATEGY_ZREVRANGEBYSCORE,	"zrevrangebyscore",	"zrscan",	REPLY_MULTI_BULK},
 
-	{STRATEGY_AUTO,		"lpush",		"qpush_front", 		REPLY_STATUS},
-	{STRATEGY_AUTO,		"rpush",		"qpush_back", 		REPLY_STATUS},
+	{STRATEGY_AUTO,		"lpush",		"qpush_front", 		REPLY_INT},
+	{STRATEGY_AUTO,		"rpush",		"qpush_back", 		REPLY_INT},
 	{STRATEGY_AUTO,		"lpop",			"qpop_front", 		REPLY_BULK},
 	{STRATEGY_AUTO,		"rpop",			"qpop_back", 		REPLY_BULK},
 	{STRATEGY_AUTO, 	"llen",			"qsize",			REPLY_INT},
@@ -124,11 +132,14 @@ int RedisLink::convert_req(){
 	it = cmd_table.find(cmd);
 	if(it == cmd_table.end()){
 		recv_string.push_back(cmd);
+		for(int i=1; i<recv_bytes.size(); i++){
+			recv_string.push_back(recv_bytes[i].String());
+		}
 		return 0;
 	}
 	this->req_desc = &(it->second);
 
-	if(this->req_desc->strategy == STRATEGY_HGETALL || this->req_desc->strategy == STRATEGY_HKEYS
+	if(this->req_desc->strategy == STRATEGY_HKEYS
 			||  this->req_desc->strategy == STRATEGY_HVALS
 	){
 		recv_string.push_back(req_desc->ssdb_cmd);
@@ -136,7 +147,7 @@ int RedisLink::convert_req(){
 			recv_string.push_back(recv_bytes[1].String());
 			recv_string.push_back("");
 			recv_string.push_back("");
-			recv_string.push_back("99999999999999");
+			recv_string.push_back("2000000000");
 		}
 		return 0;
 	}
@@ -170,8 +181,17 @@ int RedisLink::convert_req(){
 		return 0;
 	}
 	if(this->req_desc->strategy == STRATEGY_REMRANGEBYRANK
-		|| this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE
-		|| this->req_desc->strategy == STRATEGY_ZRANGE
+		|| this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE)
+	{
+		recv_string.push_back(req_desc->ssdb_cmd);
+		if(recv_bytes.size() >= 4){
+			recv_string.push_back(recv_bytes[1].String());
+			recv_string.push_back(recv_bytes[2].String());
+			recv_string.push_back(recv_bytes[3].String());
+		}
+		return 0;
+	}
+	if(this->req_desc->strategy == STRATEGY_ZRANGE
 		|| this->req_desc->strategy == STRATEGY_ZREVRANGE)
 	{
 		recv_string.push_back(req_desc->ssdb_cmd);
@@ -266,11 +286,13 @@ int RedisLink::convert_req(){
 			}
 			recv_string.push_back(smax);
 		}
-		if(!offset.empty()){
+		if(offset.empty()){
+			recv_string.push_back("0");
+		}else{
 			recv_string.push_back(offset);
 		}
 		if(count.empty()){
-			recv_string.push_back("999999999999");
+			recv_string.push_back("2000000000");
 		}else{
 			recv_string.push_back(count);
 		}
@@ -325,12 +347,16 @@ const std::vector<Bytes>* RedisLink::recv_req(Buffer *input){
 }
 
 int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
-	if(resp[0] == "error" || resp[0] == "fail"){
-		output->append("-ERR \r\n");
+	if(resp[0] == "error" || resp[0] == "fail" || resp[0] == "client_error"){
+		output->append("-ERR ");
+		if(resp.size() >= 2){
+			output->append(resp[1]);
+		}
+		output->append("\r\n");
 		return 0;
 	}
-	if(resp[0] == "client_error"){
-		output->append("-ERR ");
+	if(resp[0] == "noauth"){
+		output->append("-NOAUTH ");
 		if(resp.size() >= 2){
 			output->append(resp[1]);
 		}

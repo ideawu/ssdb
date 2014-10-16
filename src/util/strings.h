@@ -75,7 +75,118 @@ std::string real_dirname(const char *filepath){
 }
 
 inline static
+std::string str_escape(const char *s, int size){
+	static const char *hex = "0123456789abcdef";
+	std::string ret;
+	for(int i=0; i<size; i++){
+		char c = s[i];
+		switch(c){
+			case '\r':
+				ret.append("\\r");
+				break;
+			case '\n':
+				ret.append("\\n");
+				break;
+			case '\t':
+				ret.append("\\t");
+				break;
+			case '\\':
+				ret.append("\\\\");
+				break;
+			case ' ':
+				ret.push_back(c);
+				break;
+			default:
+				if(c >= '!' && c <= '~'){
+					ret.push_back(c);
+				}else{
+					ret.append("\\x");
+					unsigned char d = c;
+					ret.push_back(hex[d >> 4]);
+					ret.push_back(hex[d & 0x0f]);
+				}
+				break;
+		}
+	}
+	return ret;
+}
+
+inline static
+std::string str_escape(const std::string &s){
+	return str_escape(s.data(), (int)s.size());
+}
+
+inline static
+int hex_int(char c){
+	if(c >= '0' && c <= '9'){
+		return c - '0';
+	}else{
+		return c - 'a' + 10;
+	}
+}
+
+inline static
+std::string str_unescape(const char *s, int size){
+	std::string ret;
+	for(int i=0; i<size; i++){
+		char c = s[i];
+		if(c != '\\'){
+			ret.push_back(c);
+		}else{
+			if(i >= size - 1){
+				continue;
+			}
+			char c2 = s[++i];
+			switch(c2){
+				case 'a':
+					ret.push_back('\a');
+					break;
+				case 'b':
+					ret.push_back('\b');
+					break;
+				case 'f':
+					ret.push_back('\f');
+					break;
+				case 'v':
+					ret.push_back('\v');
+					break;
+				case 'r':
+					ret.push_back('\r');
+					break;
+				case 'n':
+					ret.push_back('\n');
+					break;
+				case 't':
+					ret.push_back('\t');
+					break;
+				case '\\':
+					ret.push_back('\\');
+					break;
+				case 'x':
+					if(i < size - 2){
+						char c3 = s[++i];
+						char c4 = s[++i];
+						ret.push_back((char)((hex_int(c3) << 4) + hex_int(c4)));
+					}
+					break;
+				default:
+					ret.push_back(c2);
+					break;
+			}
+		}
+	}
+	return ret;
+}
+
+inline static
+std::string str_unescape(const std::string &s){
+	return str_unescape(s.data(), (int)s.size());
+}
+
+inline static
 std::string hexmem(const void *p, int size){
+	return str_escape((char *)p, size);
+	/*
 	std::string ret;
 	char buf[4];
 	for(int i=0; i<size; i++){
@@ -97,6 +208,7 @@ std::string hexmem(const void *p, int size){
 		}
 	}
 	return ret;
+	*/
 }
 
 // TODO: mem_printf("%5c%d%s", p, size);
@@ -173,6 +285,49 @@ std::string double_to_str(double v){
 	return std::string(buf);
 }
 
+static inline
+std::string substr(const std::string &str, int start, int size){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	if(size < 0){
+		size = (str.size() + size) - start;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+std::string str_slice(const std::string &str, int start, int end){
+	if(start < 0){
+		start = str.size() + start;
+	}
+	int size;
+	if(end < 0){
+		size = (str.size() + end + 1) - start;
+	}else{
+		size = end - start + 1;
+	}
+	if(start < 0 || start >= str.size() || size < 0){
+		return "";
+	}
+	return str.substr(start, size);
+}
+
+static inline
+int bitcount(const char *p, int size){
+	int n = 0;
+	for(int i=0; i<size; i++){
+		unsigned char c = (unsigned char)p[i];
+		while(c){
+			n += c & 1;
+			c = c >> 1;
+		}
+	}
+	return n;
+}
 
 // is big endia. TODO: auto detect
 #if 0

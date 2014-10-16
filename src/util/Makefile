@@ -20,11 +20,6 @@ bytes.o: bytes.h bytes.cpp
 sorted_set.o: sorted_set.h sorted_set.cpp
 	${CXX} ${CFLAGS} -c sorted_set.cpp
 
-
-test: sorted_set.o log.o
-	${CXX} -o test_sorted_set ${CFLAGS} sorted_set.o log.o test_sorted_set.cpp
-	
-
 clean:
 	rm -f ${EXES} ${OBJS}
 

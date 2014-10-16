@@ -45,6 +45,13 @@ static proc_map_t proc_map;
 	DEF_PROC(setx);
 	DEF_PROC(setnx);
 	DEF_PROC(getset);
+	DEF_PROC(getbit);
+	DEF_PROC(setbit);
+	DEF_PROC(countbit);
+	DEF_PROC(substr);
+	DEF_PROC(getrange);
+	DEF_PROC(strlen);
+	DEF_PROC(redis_bitcount);
 	DEF_PROC(del);
 	DEF_PROC(incr);
 	DEF_PROC(decr);
@@ -64,11 +71,13 @@ static proc_map_t proc_map;
 	DEF_PROC(hincr);
 	DEF_PROC(hdecr);
 	DEF_PROC(hclear);
+	DEF_PROC(hgetall);
 	DEF_PROC(hscan);
 	DEF_PROC(hrscan);
 	DEF_PROC(hkeys);
 	DEF_PROC(hvals);
 	DEF_PROC(hlist);
+	DEF_PROC(hrlist);
 	DEF_PROC(hexists);
 	DEF_PROC(multi_hexists);
 	DEF_PROC(multi_hsize);
@@ -91,6 +100,7 @@ static proc_map_t proc_map;
 	DEF_PROC(zrscan);
 	DEF_PROC(zkeys);
 	DEF_PROC(zlist);
+	DEF_PROC(zrlist);
 	DEF_PROC(zcount);
 	DEF_PROC(zsum);
 	DEF_PROC(zavg);
@@ -112,10 +122,14 @@ static proc_map_t proc_map;
 	DEF_PROC(qpop);
 	DEF_PROC(qpop_front);
 	DEF_PROC(qpop_back);
+	DEF_PROC(qtrim_front);
+	DEF_PROC(qtrim_back);
 	DEF_PROC(qfix);
 	DEF_PROC(qclear);
 	DEF_PROC(qlist);
+	DEF_PROC(qrlist);
 	DEF_PROC(qslice);
+	DEF_PROC(qrange);
 	DEF_PROC(qget);
 
 	DEF_PROC(dump);
@@ -124,8 +138,10 @@ static proc_map_t proc_map;
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
 	DEF_PROC(ttl);
+	DEF_PROC(expire);
 	DEF_PROC(clear_binlog);
 	DEF_PROC(ping);
+	DEF_PROC(auth);
 #undef DEF_PROC
 
 
@@ -136,6 +152,13 @@ static Command commands[] = {
 	PROC(setx, "wt"),
 	PROC(setnx, "wt"),
 	PROC(getset, "wt"),
+	PROC(getbit, "r"),
+	PROC(setbit, "wt"),
+	PROC(countbit, "r"),
+	PROC(substr, "r"),
+	PROC(getrange, "r"),
+	PROC(strlen, "r"),
+	PROC(redis_bitcount, "r"),
 	PROC(del, "wt"),
 	PROC(incr, "wt"),
 	PROC(decr, "wt"),
@@ -144,7 +167,7 @@ static Command commands[] = {
 	PROC(keys, "rt"),
 	PROC(exists, "r"),
 	PROC(multi_exists, "r"),
-	PROC(multi_get, "r"),
+	PROC(multi_get, "rt"),
 	PROC(multi_set, "wt"),
 	PROC(multi_del, "wt"),
 
@@ -155,15 +178,17 @@ static Command commands[] = {
 	PROC(hincr, "wt"),
 	PROC(hdecr, "wt"),
 	PROC(hclear, "wt"),
+	PROC(hgetall, "rt"),
 	PROC(hscan, "rt"),
 	PROC(hrscan, "rt"),
 	PROC(hkeys, "rt"),
 	PROC(hvals, "rt"),
 	PROC(hlist, "rt"),
+	PROC(hrlist, "rt"),
 	PROC(hexists, "r"),
 	PROC(multi_hexists, "r"),
 	PROC(multi_hsize, "r"),
-	PROC(multi_hget, "r"),
+	PROC(multi_hget, "rt"),
 	PROC(multi_hset, "wt"),
 	PROC(multi_hdel, "wt"),
 
@@ -183,6 +208,7 @@ static Command commands[] = {
 	PROC(zrscan, "rt"),
 	PROC(zkeys, "rt"),
 	PROC(zlist, "rt"),
+	PROC(zrlist, "rt"),
 	PROC(zcount, "rt"),
 	PROC(zsum, "rt"),
 	PROC(zavg, "rt"),
@@ -191,7 +217,7 @@ static Command commands[] = {
 	PROC(zexists, "r"),
 	PROC(multi_zexists, "r"),
 	PROC(multi_zsize, "r"),
-	PROC(multi_zget, "r"),
+	PROC(multi_zget, "rt"),
 	PROC(multi_zset, "wt"),
 	PROC(multi_zdel, "wt"),
 
@@ -204,10 +230,14 @@ static Command commands[] = {
 	PROC(qpop, "wt"),
 	PROC(qpop_front, "wt"),
 	PROC(qpop_back, "wt"),
+	PROC(qtrim_front, "wt"),
+	PROC(qtrim_back, "wt"),
 	PROC(qfix, "wt"),
 	PROC(qclear, "wt"),
 	PROC(qlist, "rt"),
+	PROC(qrlist, "rt"),
 	PROC(qslice, "rt"),
+	PROC(qrange, "rt"),
 	PROC(qget, "r"),
 
 	PROC(clear_binlog, "wt"),
@@ -220,8 +250,10 @@ static Command commands[] = {
 	PROC(compact, "rt"),
 	PROC(key_range, "r"),
 
-	PROC(ttl, "wt"),
+	PROC(ttl, "r"),
+	PROC(expire, "wt"),
 	PROC(ping, "r"),
+	PROC(auth, "r"),
 
 	{NULL, NULL, 0, NULL}
 };
@@ -229,6 +261,8 @@ static Command commands[] = {
 
 Server::Server(SSDB *ssdb){
 	this->ssdb = ssdb;
+	this->link_count = 0;
+	this->need_auth = false;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
 
@@ -289,25 +323,30 @@ void Server::proc(ProcJob *job){
 		resp.push_back("Unknown Command: " + req->at(0).String());
 	}else{
 		Command *cmd = it->second;
-		job->cmd = cmd;
-		if(cmd->flags & Command::FLAG_THREAD){
-			if(cmd->flags & Command::FLAG_WRITE){
-				job->result = PROC_THREAD;
-				writer->push(*job);
-				return; /////
-			}else if(cmd->flags & Command::FLAG_READ){
-				job->result = PROC_THREAD;
-				reader->push(*job);
-				return; /////
-			}else{
-				log_error("bad command config: %s", cmd->name);
+		if(this->need_auth && job->link->auth == false && strcmp(cmd->name, "auth") != 0){
+			resp.push_back("noauth");
+			resp.push_back("authentication required");
+		}else{
+			job->cmd = cmd;
+			if(cmd->flags & Command::FLAG_THREAD){
+				if(cmd->flags & Command::FLAG_WRITE){
+					job->result = PROC_THREAD;
+					writer->push(*job);
+					return; /////
+				}else if(cmd->flags & Command::FLAG_READ){
+					job->result = PROC_THREAD;
+					reader->push(*job);
+					return; /////
+				}else{
+					log_error("bad command config: %s", cmd->name);
+				}
 			}
-		}
 
-		proc_t p = cmd->proc;
-		job->time_wait = 1000 *(millitime() - job->stime);
-		job->result = (*p)(this, job->link, *req, &resp);
-		job->time_proc = 1000 *(millitime() - job->stime);
+			proc_t p = cmd->proc;
+			job->time_wait = 1000 *(millitime() - job->stime);
+			job->result = (*p)(this, job->link, *req, &resp);
+			job->time_proc = 1000 *(millitime() - job->stime);
+		}
 	}
 	if(job->result == PROC_BACKEND){
 		return;
@@ -325,6 +364,27 @@ void Server::proc(ProcJob *job){
 	}
 }
 
+void Server::bool_reply(Response *resp, int ret, const char *errmsg){
+	if(ret == -1){
+		resp->push_back("error");
+		if(errmsg){
+			resp->push_back(errmsg);
+		}
+	}else if(ret == 0){
+		resp->push_back("ok");
+		resp->push_back("0");
+	}else{
+		resp->push_back("ok");
+		resp->push_back("1");
+	}
+}
+
+void Server::int_reply(Response *resp, int num){
+	resp->push_back("ok");
+	char buf[20];
+	sprintf(buf, "%d", num);
+	resp->push_back(buf);
+}
 
 Server::ProcWorker::ProcWorker(const std::string &name){
 	this->name = name;
@@ -378,7 +438,23 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back("ssdb-server");
 	resp->push_back("version");
 	resp->push_back(SSDB_VERSION);
-	
+	{
+		resp->push_back("links");
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%d", serv->link_count);
+		resp->push_back(buf);
+	}
+	{
+		uint64_t calls = 0;
+		for(Command *cmd=commands; cmd->name; cmd++){
+			calls += cmd->calls;
+		}
+		resp->push_back("total_calls");
+		char buf[32];
+		snprintf(buf, sizeof(buf), "%" PRIu64, calls);
+		resp->push_back(buf);
+	}
+
 	if(req.size() > 1 && req[1] == "cmd"){
 		for(Command *cmd=commands; cmd->name; cmd++){
 			char buf[128];
@@ -414,6 +490,13 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
 				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
 				hexmem(tmp[5].data(), tmp[5].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.list");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
+				hexmem(tmp[7].data(), tmp[7].size()).c_str()
 				);
 			resp->push_back(buf);
 		}
@@ -454,19 +537,56 @@ static int proc_key_range(Server *serv, Link *link, const Request &req, Response
 }
 
 static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() == 1 || (req.size() - 1) % 2 != 0){
+	if(req.size() != 2){
 		resp->push_back("client_error");
 	}else{
-		for(int i=1; i<req.size(); i+=2){
-			serv->expiration->set_ttl(req[i], req[i+1].Int());
+		int64_t ttl = serv->expiration->get_ttl(req[1]);
+		resp->push_back("ok");
+		resp->push_back(int64_to_str(ttl));
+	}
+	return 0;
+}
+
+static int proc_expire(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
+	if(req.size() != 3){
+		resp->push_back("client_error");
+	}else{
+		std::string val;
+		int ret = serv->ssdb->get(req[1], &val);
+		if(ret == 1){
+			ret = serv->expiration->set_ttl(req[1], req[2].Int());
+			if(ret != -1){
+				resp->push_back("ok");
+				resp->push_back("1");
+				return 0;
+			}
 		}
 		resp->push_back("ok");
+		resp->push_back("0");
 	}
 	return 0;
 }
 
 static int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
+	return 0;
+}
+
+static int proc_auth(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		if(!serv->need_auth || req[1] == serv->password){
+			link->auth = true;
+			resp->push_back("ok");
+			resp->push_back("1");
+		}else{
+			resp->push_back("error");
+			resp->push_back("invalid password");
+		}
+	}
 	return 0;
 }
 

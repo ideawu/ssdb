@@ -388,6 +388,25 @@ static int proc_zlist(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
+static int proc_zrlist(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		uint64_t limit = req[3].Uint64();
+		std::vector<std::string> list;
+		int ret = serv->ssdb->zrlist(req[1], req[2], limit, &list);
+		if(ret == -1){
+			resp->push_back("error");
+		}else{
+			resp->push_back("ok");
+			for(int i=0; i<list.size(); i++){
+				resp->push_back(list[i]);
+			}
+		}
+	}
+	return 0;
+}
+
 // dir := +1|-1
 static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
@@ -507,9 +526,9 @@ static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Re
 		resp->push_back("client_error");
 		return 0;
 	}
-	uint64_t offset = req[2].Uint64();
-	uint64_t limit = req[3].Uint64();
-	ZIterator *it = serv->ssdb->zrange(req[1], offset, limit);
+	uint64_t start = req[2].Uint64();
+	uint64_t end = req[3].Uint64();
+	ZIterator *it = serv->ssdb->zrange(req[1], start, end - start + 1);
 	uint64_t count = 0;
 	while(it->next()){
 		count ++;

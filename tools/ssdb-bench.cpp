@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string>
 #include <vector>
+#include <map>
 #include "link.h"
 #include "util/fde.h"
 #include "util/log.h"
@@ -17,7 +18,7 @@ struct Data
 	std::string num;
 };
 
-std::vector<Data *> *ds;
+std::map<std::string, Data *> *ds;
 Fdevents *fdes;
 std::vector<Link *> *free_links;
 std::vector<Link *> *busy_links;
@@ -25,7 +26,7 @@ std::vector<Link *> *busy_links;
 
 void welcome(){
 	printf("ssdb-bench - SSDB benchmark tool, %s\n", SSDB_VERSION);
-	printf("Copyright (c) 2013-2014 ideawu.com\n");
+	printf("Copyright (c) 2013-2014 ssdb.io\n");
 	printf("\n");
 }
 
@@ -43,8 +44,8 @@ void usage(int argc, char **argv){
 
 void init_data(int num){
 	srand(time(NULL));
-	ds = new std::vector<Data *>();
-	for(int i=0; i<num; i++){
+	ds = new std::map<std::string, Data *>();
+	while(ds->size() < num){
 		Data *d = new Data();
 		char buf[1024];
 
@@ -55,7 +56,7 @@ void init_data(int num){
 		d->key = buf;
 		snprintf(buf, sizeof(buf), "v%0100d", n);
 		d->val = buf;
-		ds->push_back(d);
+		ds->insert(make_pair(d->key, d));
 	}
 }
 
@@ -84,11 +85,12 @@ void bench(std::string cmd){
 
 	double stime = millitime();
 	while(1){
-		while(!free_links->empty() && num_sent < ds->size()){
+		std::map<std::string, Data *>::iterator it = ds->begin();
+		while(!free_links->empty() && it != ds->end()){
 			Link *link = free_links->back();
 			free_links->pop_back();
 
-			Data *d = ds->at(num_sent);
+			Data *d = it->second;
 			num_sent ++;
 
 			if(cmd == "set"){
@@ -173,9 +175,9 @@ int main(int argc, char **argv){
 	int clients = 50;
 
 	welcome();
+	usage(argc, argv);
 	for(int i=1; i<argc; i++){
 		if(strcmp("-v", argv[i]) == 0){
-			usage(argc, argv);
 			exit(0);
 		}
 	}

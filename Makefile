@@ -4,6 +4,7 @@ $(shell sh build.sh 1>&2)
 include build_config.mk
 
 all:
+	mkdir -p var var_slave
 	chmod u+x "${LEVELDB_PATH}/build_detect_platform"
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/ssdb-cli
@@ -21,14 +22,15 @@ install:
 	cp ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
 	cp -r api ${PREFIX}
 	cp -r \
-		tools/ssdb-bench tools/ssdb-cli \
+		tools/ssdb-bench \
+		tools/ssdb-cli tools/ssdb_cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
 		tools/ssdb-ins.sh tools/unittest.php \
 		${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
-	chmod ugo+rwx ${PREFIX}
-	chmod -R ugo+rw ${PREFIX}
+	chmod 755 ${PREFIX}
+	chmod -R ugo+rw ${PREFIX}/*
 	rm -f ${PREFIX}/Makefile
 
 clean:

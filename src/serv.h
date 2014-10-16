@@ -64,14 +64,21 @@ class Server{
 		static const int READER_THREADS = 10;
 		static const int WRITER_THREADS = 1;
 	public:
+		int link_count;
 		SSDB *ssdb;
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 		ExpirationHandler *expiration;
+		bool need_auth;
+		std::string password;
 
 		Server(SSDB *ssdb);
 		~Server();
 		void proc(ProcJob *job);
+		
+		// TODO: move into Response
+		void int_reply(Response *resp, int num);
+		void bool_reply(Response *resp, int ret, const char *errmsg=NULL);
 
 		// WARN: pipe latency is about 20 us, it is really slow!
 		class ProcWorker : public WorkerPool<ProcWorker, ProcJob>::Worker{
@@ -95,7 +102,7 @@ static std::string serialize_req(T &req){
 			ret.append(buf);
 			break;
 		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 30){
+		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 50){
 			if(req[i].size() == 0){
 				ret.append("\"\"");
 			}else{

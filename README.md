@@ -10,11 +10,10 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * Designed to store collection data
 * Persistent key-value, key-zset, key-map('hashmap') storage
 * Redis clients are supported
-* Client API supports including [C++](http://www.ideawu.com/ssdb/docs/cpp/), [PHP](http://www.ideawu.com/ssdb/docs/php/), Python, Cpy, [Java](http://www.ideawu.com/ssdb/docs/java/), [nodejs](https://github.com/ideawu/ssdb/wiki/Documentation_nodejs_API), [Ruby](https://github.com/bsm/ssdb-rb), [Go](http://www.ideawu.com/ssdb/docs/go/)
+* Client API supports including C++, PHP, Python, Cpy, Java, nodejs, Ruby, Go([see all](http://ssdb.io/docs/clients.html))
 * Persistent queue service
-* **Replication(master-slave), load balance** [\[see wiki Replication\]](https://github.com/ideawu/ssdb/wiki/Replication)
-* <i>Future Features</i>
-  * <i>Distributed</i>
+* **Replication(master-slave), load balance**
+* GUI administration tool([phpssdbadmin](https://github.com/ssdb/phpssdbadmin))
 
 ## PHP client API example
 
@@ -27,11 +26,11 @@ $resp = $ssdb->get('key');
 echo $resp; // output: 123
 ```
 
-[More...](http://www.ideawu.com/ssdb/docs/php/)
+[More...](http://ssdb.io/docs/php/)
 
 ## Documentation
 
-* [View online](http://www.ideawu.com/ssdb/)
+* [View online](http://ssdb.io/docs/)
 * [Contribute to SSDB documentation project](https://github.com/ideawu/ssdb-docs)
 
 ## Compile and Install
@@ -57,7 +56,7 @@ $ ./tools/ssdb-cli -p 8888
 $ kill `cat ./var/ssdb.pid`
 ```
 
-See [Compile and Install wiki](http://www.ideawu.com/ssdb/docs/install.html)
+See [Compile and Install wiki](http://ssdb.io/docs/install.html)
 
 ## Performance
 
@@ -74,9 +73,9 @@ readrand  :    0.310 ms/op      315.0 MB/s
 
 ### SSDB vs Redis
 
-![Benchmark vs Redis](http://www.ideawu.com/ssdb/ssdb-vs-redis.png?github)
+![Benchmark vs Redis](http://ssdb.io/ssdb-vs-redis.png?github)
 
-[View full SSDB vs Redis benchmark charts...](http://www.ideawu.com/ssdb/)
+[View full SSDB vs Redis benchmark charts...](http://ssdb.io/)
 
 ### Concurrency benchmark
 
@@ -105,7 +104,7 @@ Run on a 2013 MacBook Pro 13 inch with Retina display.
 
 ## Architecture
 
-![ssdb architecture](http://www.ideawu.com/ssdb/ssdb.png)
+![ssdb architecture](http://ssdb.io/ssdb.png)
 
 ## Who's using SSDB?
 
@@ -133,6 +132,11 @@ See [Changes-Made-to-LevelDB wiki](https://github.com/ideawu/ssdb/wiki/Changes-M
 
 SSDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Clause), a very flexible license to use.
 
+## Authors
+
+@ideawu
+
 ## Thanks
 
-* 刘建辉 liujianhui@gongchang.com
+* 刘建辉, liujianhui@gongchang.com
+* wendal(陈镇铖), wendal1985@gmail.com, http://wendal.net 
