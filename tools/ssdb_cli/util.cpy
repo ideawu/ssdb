@@ -25,9 +25,19 @@ class SSDB_iterator_base
 	public index = [];
 	public key = '';
 	public val = '';
+	public end = '';
 	
 	function init(link){
 		this.link = link;
+	}
+	
+	function seek(s){
+		this.key = s;
+	}
+	
+	function set_range(s, e=''){
+		this.key = s;
+		this.end = e;
 	}
 }
 
@@ -44,7 +54,7 @@ class SSDB_kv_scan extends SSDB_iterator_base
 			return false;
 		}
 		if(len(this.index) == 0){
-			resp = this.link.request('scan', [this.key, '', this.batch]);
+			resp = this.link.request('scan', [this.key, this.end, this.batch]);
 			if(len(resp.data['index']) == 0){
 				this.finish = true;
 				return false;
@@ -75,7 +85,7 @@ class SSDB_hash_list extends SSDB_iterator_base
 			return false;
 		}
 		if(len(this.index) == 0){
-			resp = this.link.request('hlist', [this.key, '', this.batch]);
+			resp = this.link.request('hlist', [this.key, this.end, this.batch]);
 			if(len(resp.data) == 0){
 				this.finish = true;
 				return false;
@@ -98,7 +108,7 @@ class SSDB_zset_list extends SSDB_iterator_base
 			return false;
 		}
 		if(len(this.index) == 0){
-			resp = this.link.request('zlist', [this.key, '', this.batch]);
+			resp = this.link.request('zlist', [this.key, this.end, this.batch]);
 			if(len(resp.data) == 0){
 				this.finish = true;
 				return false;
@@ -128,7 +138,7 @@ class SSDB_queue_list extends SSDB_iterator_base
 			return false;
 		}
 		if(len(this.index) == 0){
-			resp = this.link.request('qlist', [this.key, '', this.batch]);
+			resp = this.link.request('qlist', [this.key, this.end, this.batch]);
 			if(len(resp.data) == 0){
 				this.finish = true;
 				return false;

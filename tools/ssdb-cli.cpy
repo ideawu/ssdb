@@ -25,7 +25,8 @@ function show_command_help(){
 	print '# escape/do not escape response data';
 	print '    : escape yes|no';
 	print '# export/import';
-	print '    export out_file';
+	print '    export [-i] out_file';
+	print '        -i    interactive mode';
 	print '    import in_file';
 	print '';
 	print 'see http://ssdb.io/docs/php/ for commands details';
@@ -71,7 +72,7 @@ function timespan(stime){
 function show_version(){
 	try{
 		resp = link.request('info', []);
-		sys.stderr.write('version: ' + resp.data[2] + '\n\n');
+		sys.stderr.write('server version: ' + resp.data[2] + '\n\n');
 	}catch(Exception e){
 	}
 }
@@ -140,6 +141,7 @@ try{
 	sys.stderr.write(sprintf('Connection error: %s\n', str(e)));
 	sys.exit(0);
 }
+
 welcome();
 if(sys.stdin.isatty()){
 	show_version();
@@ -215,10 +217,16 @@ while(true){
 		}
 		continue;
 	}
+	if(cmd == 'v'){
+		show_version();
+		continue;
+	}
 	if(cmd == 'auth'){
-		if(len(args) > 0){
-			password = args[0];
+		if(len(args) == 0){
+			sys.stderr.write('Usage: auth password\n');
 		}
+		password = args[0];
+		continue;
 	}
 	if(cmd == 'export'){
 		exporter.run(link, args);
