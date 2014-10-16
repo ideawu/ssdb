@@ -27,7 +27,24 @@ function show_progress(){
 	}
 }
 
-function run(link, output_file){
+function run(link, args){
+	output_file = false;
+	interactive = false;
+	foreach(args as arg){
+		if(arg == '-i'){
+			interactive = true;
+		}else{
+			output_file = arg;
+		}
+	}
+	if(output_file == false){
+		sys.stderr.write('Usage: export [-i] out_file\n');
+		return;
+	}
+	if(interactive){
+		// TODO:
+	}
+	
 	if(os.path.exists(output_file)){
 		print 'Error: ' + output_file + ' already exists!';
 		return;

@@ -130,6 +130,7 @@ try{
 
 sys.path.append('./api/python');
 sys.path.append('../api/python');
+sys.path.append('/usr/local/ssdb/api/python');
 import SSDB.SSDB;
 
 try{
@@ -220,12 +221,7 @@ while(true){
 		}
 	}
 	if(cmd == 'export'){
-		if(len(args) < 1){
-			sys.stderr.write('Usage: export out_file\n');
-			continue;
-		}
-		filename = args[0];
-		exporter.run(link, filename);
+		exporter.run(link, args);
 		continue;
 	}
 	if(cmd == 'import'){
