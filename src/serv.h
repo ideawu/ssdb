@@ -10,6 +10,7 @@
 #include "backend_dump.h"
 #include "backend_sync.h"
 #include "ttl.h"
+#include "resp.h"
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
@@ -17,7 +18,6 @@
 #define PROC_BACKEND	100
 
 typedef std::vector<Bytes> Request;
-typedef std::vector<std::string> Response;
 
 
 class Server;
@@ -75,10 +75,6 @@ class Server{
 		Server(SSDB *ssdb);
 		~Server();
 		void proc(ProcJob *job);
-		
-		// TODO: move into Response
-		void int_reply(Response *resp, int num);
-		void bool_reply(Response *resp, int ret, const char *errmsg=NULL);
 
 		// WARN: pipe latency is about 20 us, it is really slow!
 		class ProcWorker : public WorkerPool<ProcWorker, ProcJob>::Worker{

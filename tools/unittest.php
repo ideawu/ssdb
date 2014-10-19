@@ -236,6 +236,14 @@ class SSDBTest extends UnitTest{
 		for($i=0; $i<3; $i++){
 			$ssdb->qpush_back($name, $i);
 		}
+
+		$ret = $ssdb->qset($name, 0, 'www');
+		$this->assert($ret !== false);
+		$ret = $ssdb->qset($name, 9990, 'www');
+		$this->assert($ret === false);
+		$ret = $ssdb->qget($name, 0);
+		$this->assert($ret === 'www');
+
 		$ret = $ssdb->qtrim_front($name, 2);
 		$this->assert($ret === 2);
 		$ret = $ssdb->qtrim_back($name, 2);

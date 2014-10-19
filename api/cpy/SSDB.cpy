@@ -75,6 +75,8 @@ class SSDB{
 			return new SSDB_Response('disconnected', 'Connection closed');
 		}
 		switch(cmd){
+			case 'ping':
+			case 'qset':
 			case 'set':
 			case 'zset':
 			case 'hset':

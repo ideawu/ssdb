@@ -131,6 +131,7 @@ static proc_map_t proc_map;
 	DEF_PROC(qslice);
 	DEF_PROC(qrange);
 	DEF_PROC(qget);
+	DEF_PROC(qset);
 
 	DEF_PROC(dump);
 	DEF_PROC(sync140);
@@ -239,6 +240,7 @@ static Command commands[] = {
 	PROC(qslice, "rt"),
 	PROC(qrange, "rt"),
 	PROC(qget, "r"),
+	PROC(qset, "wt"),
 
 	PROC(clear_binlog, "wt"),
 
@@ -352,38 +354,16 @@ void Server::proc(ProcJob *job){
 		return;
 	}
 	
-	if(job->link->send(resp) == -1){
+	if(job->link->send(resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
 		if(log_level() >= Logger::LEVEL_DEBUG){
 			log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
 				job->time_wait, job->time_proc,
 				serialize_req(*req).c_str(),
-				serialize_req(resp).c_str());
+				serialize_req(resp.resp).c_str());
 		}
 	}
-}
-
-void Server::bool_reply(Response *resp, int ret, const char *errmsg){
-	if(ret == -1){
-		resp->push_back("error");
-		if(errmsg){
-			resp->push_back(errmsg);
-		}
-	}else if(ret == 0){
-		resp->push_back("ok");
-		resp->push_back("0");
-	}else{
-		resp->push_back("ok");
-		resp->push_back("1");
-	}
-}
-
-void Server::int_reply(Response *resp, int num){
-	resp->push_back("ok");
-	char buf[20];
-	sprintf(buf, "%d", num);
-	resp->push_back(buf);
 }
 
 Server::ProcWorker::ProcWorker(const std::string &name){
@@ -405,13 +385,13 @@ int Server::ProcWorker::proc(ProcJob *job){
 	job->time_wait = 1000 * (stime - job->stime);
 	job->time_proc = 1000 *(etime - stime);
 
-	if(job->link->send(resp) == -1){
+	if(job->link->send(resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
 		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
 			job->time_wait, job->time_proc,
 			serialize_req(*req).c_str(),
-			serialize_req(resp).c_str());
+			serialize_req(resp.resp).c_str());
 	}
 	return 0;
 }
@@ -440,19 +420,15 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	resp->push_back(SSDB_VERSION);
 	{
 		resp->push_back("links");
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%d", serv->link_count);
-		resp->push_back(buf);
+		resp->add(serv->link_count);
 	}
 	{
-		uint64_t calls = 0;
+		int64_t calls = 0;
 		for(Command *cmd=commands; cmd->name; cmd++){
 			calls += cmd->calls;
 		}
 		resp->push_back("total_calls");
-		char buf[32];
-		snprintf(buf, sizeof(buf), "%" PRIu64, calls);
-		resp->push_back(buf);
+		resp->add(calls);
 	}
 
 	if(req.size() > 1 && req[1] == "cmd"){
@@ -542,7 +518,7 @@ static int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp
 	}else{
 		int64_t ttl = serv->expiration->get_ttl(req[1]);
 		resp->push_back("ok");
-		resp->push_back(int64_to_str(ttl));
+		resp->push_back(int_to_str(ttl));
 	}
 	return 0;
 }

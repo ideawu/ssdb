@@ -374,6 +374,8 @@ while(true){
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
+			case 'ping':
+			case 'qset':
 			case 'compact':
 			case 'auth':
 			case 'set':

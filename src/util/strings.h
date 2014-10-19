@@ -224,6 +224,30 @@ void dump(const void *p, int size, const char *msg = NULL){
 }
 
 static inline
+std::string int_to_str(int v){
+	char buf[21] = {0};
+	snprintf(buf, sizeof(buf), "%d", v);
+	return std::string(buf);
+}
+
+static inline
+std::string int_to_str(int64_t v){
+	char buf[21] = {0};
+	snprintf(buf, sizeof(buf), "%" PRId64 "", v);
+	return std::string(buf);
+}
+
+static inline
+std::string int_to_str(uint64_t v){
+	char buf[21] = {0};
+	snprintf(buf, sizeof(buf), "%" PRIu64 "", v);
+	return std::string(buf);
+}
+
+#define int64_to_str int_to_str
+#define uint64_to_str int_to_str
+
+static inline
 int str_to_int(const char *p, int size){
 	return atoi(std::string(p, size).c_str());
 }
@@ -231,13 +255,6 @@ int str_to_int(const char *p, int size){
 static inline
 int str_to_int(const std::string &str){
 	return atoi(str.c_str());
-}
-
-static inline
-std::string int_to_str(int v){
-	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%d", v);
-	return std::string(buf);
 }
 
 static inline
@@ -251,22 +268,8 @@ int64_t str_to_int64(const char *p, int size){
 }
 
 static inline
-std::string int64_to_str(int64_t v){
-	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%" PRId64 "", v);
-	return std::string(buf);
-}
-
-static inline
 uint64_t str_to_uint64(const char *p, int size){
 	return (uint64_t)strtoull(std::string(p, size).c_str(), (char **)NULL, 10);
-}
-
-static inline
-std::string uint64_to_str(uint64_t v){
-	char buf[21] = {0};
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", v);
-	return std::string(buf);
 }
 
 static inline
