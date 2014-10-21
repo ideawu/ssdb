@@ -1,3 +1,6 @@
+* 1.7.0.1
+	* New features:
+		- Add qset/lset command, rewrite Response(2014-10-19)
 * 1.7.0.0
 	* New features:
 		- export(ssdb-cli) command supports -i(interactive) option(2014-10-16)

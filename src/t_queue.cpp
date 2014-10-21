@@ -113,6 +113,45 @@ int SSDB::qback(const Bytes &name, std::string *item){
 	return ret;
 }
 
+// return: 0: index out of range, -1: error, 1: ok
+int SSDB::qset(const Bytes &name, int64_t index, const Bytes &item){
+	Transaction trans(binlogs);
+	int64_t size = this->qsize(name);
+	if(size == -1){
+		return -1;
+	}
+	if(index > size || index < -size){
+		return 0;
+	}
+	
+	int ret;
+	uint64_t seq;
+	if(index >= 0){
+		ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+		seq += index;
+	}else{
+		ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+		seq += index + 1;
+	}
+	if(ret == -1){
+		return -1;
+	}
+	if(ret == 0){
+		return 0;
+	}
+
+	ret = qset_one(this, name, seq, item);
+	if(ret == -1){
+		return -1;
+	}
+	leveldb::Status s = binlogs->commit();
+	if(!s.ok()){
+		log_error("Write error!");
+		return -1;
+	}
+	return 1;
+}
+
 int64_t SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 

@@ -5,14 +5,7 @@ static int proc_qsize(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int64_t ret = serv->ssdb->qsize(req[1]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			char buf[20];
-			sprintf(buf, "%" PRIu64 "", ret);
-			resp->push_back("ok");
-			resp->push_back(buf);
-		}
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
@@ -23,14 +16,7 @@ static int proc_qfront(Server *serv, Link *link, const Request &req, Response *r
 	}else{
 		std::string item;
 		int ret = serv->ssdb->qfront(req[1], &item);
-		if(ret == -1){
-			resp->push_back("error");
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(item);
-		}
+		resp->reply_get(ret, &item);
 	}
 	return 0;
 }
@@ -41,14 +27,7 @@ static int proc_qback(Server *serv, Link *link, const Request &req, Response *re
 	}else{
 		std::string item;
 		int ret = serv->ssdb->qback(req[1], &item);
-		if(ret == -1){
-			resp->push_back("error");
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(item);
-		}
+		resp->reply_get(ret, &item);
 	}
 	return 0;
 }
@@ -77,10 +56,7 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 			}
 		}
 		
-		char buf[20];
-		sprintf(buf, "%" PRId64 "", size);
-		resp->push_back("ok");
-		resp->push_back(buf);
+		resp->reply_int(0, size);
 	}
 	return 0;
 }
@@ -119,14 +95,7 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 		}else{
 			ret = serv->ssdb->qpop_back(req[1], &item);
 		}
-		if(ret == -1){
-			resp->push_back("error");
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(item);
-		}
+		resp->reply_get(ret, &item);
 	}else{
 		resp->push_back("ok");
 		while(size-- > 0){
@@ -170,7 +139,7 @@ int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp
 		size = req[2].Uint64();
 	}
 		
-	uint64_t count = 0;
+	int count = 0;
 	for(; count<size; count++){
 		int ret;
 		std::string item;
@@ -183,11 +152,7 @@ int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp
 			break;
 		}
 	}
-
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 
 	return 0;
 }
@@ -207,14 +172,7 @@ static int proc_qlist(Server *serv, Link *link, const Request &req, Response *re
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->qlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -226,14 +184,7 @@ static int proc_qrlist(Server *serv, Link *link, const Request &req, Response *r
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->qrlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -256,8 +207,7 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
-		uint64_t total = 0;
-		
+		int64_t count = 0;
 		while(1){
 			std::string item;
 			int ret = serv->ssdb->qpop_front(req[1], &item);
@@ -267,13 +217,9 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 			if(ret == -1){
 				return -1;
 			}
-			total += 1;
+			count += 1;
 		}
-		
-		char buf[20];
-		snprintf(buf, sizeof(buf), "%" PRIu64 "", total);
-		resp->push_back("ok");
-		resp->push_back(buf);
+		resp->reply_int(0, count);
 	}
 	return 0;
 }
@@ -286,14 +232,7 @@ static int proc_qslice(Server *serv, Link *link, const Request &req, Response *r
 		int64_t end = req[3].Int64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->qslice(req[1], begin, end, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -312,14 +251,7 @@ static int proc_qrange(Server *serv, Link *link, const Request &req, Response *r
 		}
 		std::vector<std::string> list;
 		int ret = serv->ssdb->qslice(req[1], begin, end, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -331,13 +263,24 @@ static int proc_qget(Server *serv, Link *link, const Request &req, Response *res
 		int64_t index = req[2].Int64();
 		std::string item;
 		int ret = serv->ssdb->qget(req[1], index, &item);
-		if(ret == -1){
+		resp->reply_get(ret, &item);
+	}
+	return 0;
+}
+
+static int proc_qset(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() < 4){
+		resp->push_back("client_error");
+	}else{
+		const Bytes &name = req[1];
+		int64_t index = req[2].Int64();
+		const Bytes &item = req[3];
+		int ret = serv->ssdb->qset(name, index, item);
+		if(ret == -1 || ret == 0){
 			resp->push_back("error");
-		}else if(ret == 0){
-			resp->push_back("not_found");
+			resp->push_back("index out of range");
 		}else{
 			resp->push_back("ok");
-			resp->push_back(item);
 		}
 	}
 	return 0;

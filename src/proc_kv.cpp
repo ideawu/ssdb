@@ -6,14 +6,7 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 	}else{
 		std::string val;
 		int ret = serv->ssdb->get(req[1], &val);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back(val);
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("error");
-		}
+		resp->reply_get(ret, &val);
 	}
 	return 0;
 }
@@ -24,14 +17,7 @@ static int proc_getset(Server *serv, Link *link, const Request &req, Response *r
 	}else{
 		std::string val;
 		int ret = serv->ssdb->getset(req[1], &val, req[2]);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back(val);
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("error");
-		}
+		resp->reply_get(ret, &val);
 	}
 	return 0;
 }
@@ -56,7 +42,7 @@ static int proc_setnx(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->setnx(req[1], req[2]);
-		serv->bool_reply(resp, ret);
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -90,7 +76,7 @@ static int proc_exists(Server *serv, Link *link, const Request &req, Response *r
 		const Bytes key = req[1];
 		std::string val;
 		int ret = serv->ssdb->get(key, &val);
-		serv->bool_reply(resp, ret);
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -122,11 +108,7 @@ static int proc_multi_set(Server *serv, Link *link, const Request &req, Response
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->multi_set(req, 1);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			serv->int_reply(resp, ret);
-		}
+		resp->reply_int(0, ret);
 	}
 	return 0;
 }
@@ -144,7 +126,7 @@ static int proc_multi_del(Server *serv, Link *link, const Request &req, Response
 				const Bytes key = *it;
 				serv->expiration->del_ttl(key);
 			}
-			serv->int_reply(resp, ret);
+			resp->reply_int(0, ret);
 		}
 	}
 	return 0;
@@ -161,11 +143,6 @@ static int proc_multi_get(Server *serv, Link *link, const Request &req, Response
 			if(ret == 1){
 				resp->push_back(req[i].String());
 				resp->push_back(val);
-			}else if(ret == 0){
-				//
-			}else{
-				// error
-				log_error("error");
 			}
 		}
 	}
@@ -244,18 +221,13 @@ static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() <= 1){
 		resp->push_back("client_error");
 	}else{
-		std::string new_val;
-		int64_t val = 1;
+		int64_t by = 1;
 		if(req.size() > 2){
-			val = req[2].Int64();
+			by = req[2].Int64();
 		}
-		int ret = ssdb->incr(req[1], dir * val, &new_val);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(new_val);
-		}
+		int64_t new_val;
+		int ret = ssdb->incr(req[1], dir * by, &new_val);
+		resp->reply_int(ret, new_val);
 	}
 	return 0;
 }
@@ -273,7 +245,7 @@ static int proc_getbit(Server *serv, Link *link, const Request &req, Response *r
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->getbit(req[1], req[2].Int());
-		serv->bool_reply(resp, ret);
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -291,7 +263,7 @@ static int proc_setbit(Server *serv, Link *link, const Request &req, Response *r
 		}
 		int on = req[3].Int();
 		int ret = serv->ssdb->setbit(key, offset, on);
-		serv->bool_reply(resp, ret);
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -316,7 +288,7 @@ static int proc_countbit(Server *serv, Link *link, const Request &req, Response 
 		}else{
 			std::string str = substr(val, start, size);
 			int count = bitcount(str.data(), str.size());
-			serv->int_reply(resp, count);
+			resp->reply_int(0, count);
 		}
 	}
 	return 0;
@@ -342,7 +314,7 @@ static int proc_redis_bitcount(Server *serv, Link *link, const Request &req, Res
 		}else{
 			std::string str = str_slice(val, start, size);
 			int count = bitcount(str.data(), str.size());
-			serv->int_reply(resp, count);
+			resp->reply_int(0, count);
 		}
 	}
 	return 0;
@@ -407,11 +379,7 @@ static int proc_strlen(Server *serv, Link *link, const Request &req, Response *r
 		const Bytes &key = req[1];
 		std::string val;
 		int ret = serv->ssdb->get(key, &val);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			serv->int_reply(resp, (int)val.size());
-		}
+		resp->reply_int(ret, val.size());
 	}
 	return 0;
 }

@@ -7,16 +7,7 @@ static int proc_hexists(Server *serv, Link *link, const Request &req, Response *
 		const Bytes &key = req[2];
 		std::string val;
 		int ret = serv->ssdb->hget(name, key, &val);
-		if(ret == -1){
-			resp->push_back("error");
-			resp->push_back("0");
-		}else if(ret == 0){
-			resp->push_back("ok");
-			resp->push_back("0");
-		}else{
-			resp->push_back("ok");
-			resp->push_back("1");
-		}
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -54,9 +45,7 @@ static int proc_multi_hsize(Server *serv, Link *link, const Request &req, Respon
 			if(ret == -1){
 				resp->push_back("-1");
 			}else{
-				char buf[20];
-				sprintf(buf, "%" PRId64 "", ret);
-				resp->push_back(buf);
+				resp->add(ret);
 			}
 		}
 	}
@@ -81,10 +70,7 @@ static int proc_multi_hset(Server *serv, Link *link, const Request &req, Respons
 				num += ret;
 			}
 		}
-		resp->push_back("ok");
-		char buf[20];
-		sprintf(buf, "%d", num);
-		resp->push_back(buf);
+		resp->reply_int(0, num);
 	}
 	return 0;
 }
@@ -106,10 +92,7 @@ static int proc_multi_hdel(Server *serv, Link *link, const Request &req, Respons
 				num += ret;
 			}
 		}
-		resp->push_back("ok");
-		char buf[20];
-		sprintf(buf, "%d", num);
-		resp->push_back(buf);
+		resp->reply_int(0, num);
 	}
 	return 0;
 }
@@ -129,10 +112,6 @@ static int proc_multi_hget(Server *serv, Link *link, const Request &req, Respons
 			if(ret == 1){
 				resp->push_back(key.String());
 				resp->push_back(val);
-			}else if(ret == 0){
-				//
-			}else{
-				resp->push_back("0");
 			}
 		}
 	}
@@ -144,14 +123,7 @@ static int proc_hsize(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int64_t ret = serv->ssdb->hsize(req[1]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			char buf[20];
-			sprintf(buf, "%" PRIu64 "", ret);
-			resp->push_back("ok");
-			resp->push_back(buf);
-		}
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
@@ -161,16 +133,7 @@ static int proc_hset(Server *serv, Link *link, const Request &req, Response *res
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->hset(req[1], req[2], req[3]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			if(ret == 0){
-				resp->push_back("0");
-			}else{
-				resp->push_back("1");
-			}
-		}
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -181,14 +144,7 @@ static int proc_hget(Server *serv, Link *link, const Request &req, Response *res
 	}else{
 		std::string val;
 		int ret = serv->ssdb->hget(req[1], req[2], &val);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back(val);
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("error");
-		}
+		resp->reply_get(ret, &val);
 	}
 	return 0;
 }
@@ -198,16 +154,7 @@ static int proc_hdel(Server *serv, Link *link, const Request &req, Response *res
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->hdel(req[1], req[2]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			if(ret == 0){
-				resp->push_back("0");
-			}else{
-				resp->push_back("1");
-			}
-		}
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -219,15 +166,15 @@ static int proc_hclear(Server *serv, Link *link, const Request &req, Response *r
 	}
 	
 	const Bytes &name = req[1];
-	uint64_t total = 0;
+	int64_t count = 0;
 	while(1){
 		HIterator *it = serv->ssdb->hscan(name, "", "", 1000);
 		int num = 0;
 		while(it->next()){
 			int ret = serv->ssdb->hdel(name, it->key);
 			if(ret == -1){
-				resp->push_back("error");
 				delete it;
+				resp->push_back("error");
 				return 0;
 			}
 			num ++;
@@ -237,12 +184,9 @@ static int proc_hclear(Server *serv, Link *link, const Request &req, Response *r
 		if(num == 0){
 			break;
 		}
-		total += num;
+		count += num;
 	}
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", total);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 
 	return 0;
 }
@@ -334,14 +278,7 @@ static int proc_hlist(Server *serv, Link *link, const Request &req, Response *re
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->hlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -353,14 +290,7 @@ static int proc_hrlist(Server *serv, Link *link, const Request &req, Response *r
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->hrlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -370,18 +300,13 @@ static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		std::string new_val;
-		int64_t val = 1;
+		int64_t by = 1;
 		if(req.size() > 3){
-			val = req[3].Int64();
+			by = req[3].Int64();
 		}
-		int ret = ssdb->hincr(req[1], req[2], dir * val, &new_val);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(new_val);
-		}
+		int64_t new_val;
+		int ret = ssdb->hincr(req[1], req[2], dir * by, &new_val);
+		resp->reply_int(ret, new_val);
 	}
 	return 0;
 }

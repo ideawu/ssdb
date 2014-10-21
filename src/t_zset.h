@@ -94,9 +94,7 @@ int decode_zscore_key(const Bytes &slice, std::string *name, std::string *key, s
 	}else{
 		if(score != NULL){
 			s = decode_score(s);
-			char buf[21] = {0};
-			snprintf(buf, sizeof(buf), "%" PRId64 "", s);
-			score->assign(buf);
+			score->assign(int_to_str(s));
 		}
 	}
 	if(decoder.skip(1) == -1){

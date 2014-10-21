@@ -8,16 +8,7 @@ static int proc_zexists(Server *serv, Link *link, const Request &req, Response *
 		const Bytes &key = req[2];
 		std::string val;
 		int ret = serv->ssdb->zget(name, key, &val);
-		if(ret == -1){
-			resp->push_back("error");
-			resp->push_back("0");
-		}else if(ret == 0){
-			resp->push_back("ok");
-			resp->push_back("0");
-		}else{
-			resp->push_back("ok");
-			resp->push_back("1");
-		}
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -55,9 +46,7 @@ static int proc_multi_zsize(Server *serv, Link *link, const Request &req, Respon
 			if(ret == -1){
 				resp->push_back("-1");
 			}else{
-				char buf[20];
-				sprintf(buf, "%" PRId64 "", ret);
-				resp->push_back(buf);
+				resp->add(ret);
 			}
 		}
 	}
@@ -82,10 +71,7 @@ static int proc_multi_zset(Server *serv, Link *link, const Request &req, Respons
 				num += ret;
 			}
 		}
-		resp->push_back("ok");
-		char buf[20];
-		sprintf(buf, "%d", num);
-		resp->push_back(buf);
+		resp->reply_int(0, num);
 	}
 	return 0;
 }
@@ -107,10 +93,7 @@ static int proc_multi_zdel(Server *serv, Link *link, const Request &req, Respons
 				num += ret;
 			}
 		}
-		resp->push_back("ok");
-		char buf[20];
-		sprintf(buf, "%d", num);
-		resp->push_back(buf);
+		resp->reply_int(0, num);
 	}
 	return 0;
 }
@@ -130,10 +113,6 @@ static int proc_multi_zget(Server *serv, Link *link, const Request &req, Respons
 			if(ret == 1){
 				resp->push_back(key.String());
 				resp->push_back(score);
-			}else if(ret == 0){
-				//
-			}else{
-				resp->push_back("0");
 			}
 		}
 	}
@@ -145,14 +124,7 @@ static int proc_zset(Server *serv, Link *link, const Request &req, Response *res
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->zset(req[1], req[2], req[3]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			char buf[20];
-			sprintf(buf, "%d", ret);
-			resp->push_back(buf);
-		}
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
@@ -162,32 +134,18 @@ static int proc_zsize(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int64_t ret = serv->ssdb->zsize(req[1]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			char buf[20];
-			sprintf(buf, "%" PRId64 "", ret);
-			resp->push_back("ok");
-			resp->push_back(buf);
-		}
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
 
 static int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() >= 3){
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
 		std::string score;
 		int ret = serv->ssdb->zget(req[1], req[2], &score);
-		if(ret == 1){
-			resp->push_back("ok");
-			resp->push_back(score);
-		}else if(ret == 0){
-			resp->push_back("not_found");
-		}else{
-			resp->push_back("error");
-		}
-	}else{
-		resp->push_back("client_error");
+		resp->reply_get(ret, &score);
 	}
 	return 0;
 }
@@ -197,16 +155,7 @@ static int proc_zdel(Server *serv, Link *link, const Request &req, Response *res
 		resp->push_back("client_error");
 	}else{
 		int ret = serv->ssdb->zdel(req[1], req[2]);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			if(ret == 0){
-				resp->push_back("0");
-			}else{
-				resp->push_back("1");
-			}
-		}
+		resp->reply_bool(ret);
 	}
 	return 0;
 }
@@ -216,10 +165,7 @@ static int proc_zrank(Server *serv, Link *link, const Request &req, Response *re
 		resp->push_back("client_error");
 	}else{
 		int64_t ret = serv->ssdb->zrank(req[1], req[2]);
-		char buf[20];
-		sprintf(buf, "%" PRId64 "", ret);
-		resp->push_back("ok");
-		resp->push_back(buf);
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
@@ -229,10 +175,7 @@ static int proc_zrrank(Server *serv, Link *link, const Request &req, Response *r
 		resp->push_back("client_error");
 	}else{
 		int64_t ret = serv->ssdb->zrrank(req[1], req[2]);
-		char buf[20];
-		sprintf(buf, "%" PRId64 "", ret);
-		resp->push_back("ok");
-		resp->push_back(buf);
+		resp->reply_int(ret, ret);
 	}
 	return 0;
 }
@@ -278,7 +221,7 @@ static int proc_zclear(Server *serv, Link *link, const Request &req, Response *r
 	}
 	
 	const Bytes &name = req[1];
-	uint64_t total = 0;
+	int64_t count = 0;
 	while(1){
 		ZIterator *it = serv->ssdb->zrange(name, 0, 1000);
 		int num = 0;
@@ -296,12 +239,9 @@ static int proc_zclear(Server *serv, Link *link, const Request &req, Response *r
 		if(num == 0){
 			break;
 		}
-		total += num;
+		count += num;
 	}
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", total);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 
 	return 0;
 }
@@ -376,14 +316,7 @@ static int proc_zlist(Server *serv, Link *link, const Request &req, Response *re
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->zlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -395,14 +328,7 @@ static int proc_zrlist(Server *serv, Link *link, const Request &req, Response *r
 		uint64_t limit = req[3].Uint64();
 		std::vector<std::string> list;
 		int ret = serv->ssdb->zrlist(req[1], req[2], limit, &list);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			for(int i=0; i<list.size(); i++){
-				resp->push_back(list[i]);
-			}
-		}
+		resp->reply_list(ret, list);
 	}
 	return 0;
 }
@@ -412,18 +338,13 @@ static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
-		std::string new_val;
-		int64_t val = 1;
+		int64_t by = 1;
 		if(req.size() > 3){
-			val = req[3].Int64();
+			by = req[3].Int64();
 		}
-		int ret = ssdb->zincr(req[1], req[2], dir * val, &new_val);
-		if(ret == -1){
-			resp->push_back("error");
-		}else{
-			resp->push_back("ok");
-			resp->push_back(new_val);
-		}
+		int64_t new_val;
+		int ret = ssdb->zincr(req[1], req[2], dir * by, &new_val);
+		resp->reply_int(ret, new_val);
 	}
 	return 0;
 }
@@ -441,17 +362,14 @@ static int proc_zcount(Server *serv, Link *link, const Request &req, Response *r
 		resp->push_back("client_error");
 		return 0;
 	}
-	uint64_t count = 0;
+	int64_t count = 0;
 	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
 	while(it->next()){
 		count ++;
 	}
 	delete it;
 	
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 	return 0;
 }
 
@@ -467,10 +385,7 @@ static int proc_zsum(Server *serv, Link *link, const Request &req, Response *res
 	}
 	delete it;
 	
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRId64 "", sum);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, sum);
 	return 0;
 }
 
@@ -480,19 +395,17 @@ static int proc_zavg(Server *serv, Link *link, const Request &req, Response *res
 		return 0;
 	}
 	int64_t sum = 0;
-	uint64_t count = 0;
+	int64_t count = 0;
 	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
 	while(it->next()){
 		sum += str_to_int64(it->score);
 		count ++;
 	}
 	delete it;
-	
 	double avg = (double)sum/count;
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%f", avg);
+	
 	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->add(avg);
 	return 0;
 }
 
@@ -502,22 +415,19 @@ static int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, R
 		return 0;
 	}
 	ZIterator *it = serv->ssdb->zscan(req[1], "", req[2], req[3], -1);
-	uint64_t count = 0;
+	int64_t count = 0;
 	while(it->next()){
 		count ++;
 		int ret = serv->ssdb->zdel(req[1], it->key);
 		if(ret == -1){
-			resp->push_back("error");
 			delete it;
+			resp->push_back("error");
 			return 0;
 		}
 	}
 	delete it;
 	
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 	return 0;
 }
 
@@ -529,7 +439,7 @@ static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Re
 	uint64_t start = req[2].Uint64();
 	uint64_t end = req[3].Uint64();
 	ZIterator *it = serv->ssdb->zrange(req[1], start, end - start + 1);
-	uint64_t count = 0;
+	int64_t count = 0;
 	while(it->next()){
 		count ++;
 		int ret = serv->ssdb->zdel(req[1], it->key);
@@ -541,10 +451,7 @@ static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Re
 	}
 	delete it;
 	
-	char buf[20];
-	snprintf(buf, sizeof(buf), "%" PRIu64 "", count);
-	resp->push_back("ok");
-	resp->push_back(buf);
+	resp->reply_int(0, count);
 	return 0;
 }
 

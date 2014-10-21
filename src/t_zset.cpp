@@ -50,23 +50,20 @@ int SSDB::zdel(const Bytes &name, const Bytes &key, char log_type){
 	return ret;
 }
 
-int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val, char log_type){
+int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	Transaction trans(binlogs);
 
-	int64_t val;
 	std::string old;
 	int ret = this->zget(name, key, &old);
 	if(ret == -1){
 		return -1;
 	}else if(ret == 0){
-		val = by;
+		*new_val = by;
 	}else{
-		val = str_to_int64(old.data(), old.size()) + by;
+		*new_val = str_to_int64(old.data(), old.size()) + by;
 	}
 
-	*new_val = int64_to_str(val);
-
-	ret = zset_one(this, name, key, *new_val, log_type);
+	ret = zset_one(this, name, key, int_to_str(*new_val), log_type);
 	if(ret >= 0){
 		if(ret > 0){
 			if(incr_zsize(this, name, ret) == -1){
@@ -401,9 +398,7 @@ int SSDB::zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 
 static std::string filter_score(const Bytes &score){
 	int64_t s = score.Int64();
-	char buf[32];
-	snprintf(buf, sizeof(buf), "%" PRId64 "", s);
-	return std::string(buf);
+	return int_to_str(s);
 }
 
 // returns the number of newly added items

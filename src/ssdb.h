@@ -57,7 +57,7 @@ public:
 	int set(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int setnx(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int del(const Bytes &key, char log_type=BinlogType::SYNC);
-	int incr(const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
+	int incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	int multi_set(const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 	int setbit(const Bytes &key, int bitoffset, int on, char log_type=BinlogType::SYNC);
@@ -73,7 +73,7 @@ public:
 
 	int hset(const Bytes &name, const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int hdel(const Bytes &name, const Bytes &key, char log_type=BinlogType::SYNC);
-	int hincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
+	int hincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	//int multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	//int multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 
@@ -90,7 +90,7 @@ public:
 
 	int zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type=BinlogType::SYNC);
 	int zdel(const Bytes &name, const Bytes &key, char log_type=BinlogType::SYNC);
-	int zincr(const Bytes &name, const Bytes &key, int64_t by, std::string *new_val, char log_type=BinlogType::SYNC);
+	int zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	//int multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	//int multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 	
@@ -135,6 +135,7 @@ public:
 	int qslice(const Bytes &name, int64_t offset, int64_t limit,
 			std::vector<std::string> *list);
 	int qget(const Bytes &name, int64_t index, std::string *item);
+	int qset(const Bytes &name, int64_t index, const Bytes &item);
 
 private:
 	int64_t _qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);

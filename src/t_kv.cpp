@@ -124,24 +124,21 @@ int SSDB::del(const Bytes &key, char log_type){
 	return 1;
 }
 
-int SSDB::incr(const Bytes &key, int64_t by, std::string *new_val, char log_type){
+int SSDB::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	Transaction trans(binlogs);
 
-	int64_t val;
 	std::string old;
 	int ret = this->get(key, &old);
 	if(ret == -1){
 		return -1;
 	}else if(ret == 0){
-		val = by;
+		*new_val = by;
 	}else{
-		val = str_to_int64(old.data(), old.size()) + by;
+		*new_val = str_to_int64(old.data(), old.size()) + by;
 	}
 
-	*new_val = int64_to_str(val);
 	std::string buf = encode_kv_key(key);
-	
-	binlogs->Put(buf, *new_val);
+	binlogs->Put(buf, int_to_str(*new_val));
 	binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 
 	leveldb::Status s = binlogs->commit();
