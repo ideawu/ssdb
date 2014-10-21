@@ -21,7 +21,6 @@ struct Data
 std::map<std::string, Data *> *ds;
 Fdevents *fdes;
 std::vector<Link *> *free_links;
-std::vector<Link *> *busy_links;
 
 
 void welcome(){
@@ -37,7 +36,7 @@ void usage(int argc, char **argv){
 	printf("Options:\n");
 	printf("    ip          server ip (default 127.0.0.1)\n");
 	printf("    port        server port (default 8888)\n");
-	printf("    requests    Total number of requests (default 10000)\n");
+	printf("    requests    Total number of requests (default 1000)\n");
 	printf("    clients     Number of parallel connections (default 50)\n");
 	printf("\n");
 }
@@ -63,12 +62,11 @@ void init_data(int num){
 void init_links(int num, const char *ip, int port){
 	fdes = new Fdevents();
 	free_links = new std::vector<Link *>();
-	busy_links = new std::vector<Link *>();
 
 	for(int i=0; i<num; i++){
 		Link *link = Link::connect(ip, port);
 		if(!link){
-			printf("connect error! %s\n", strerror(errno));
+			fprintf(stderr, "connect error! %s\n", strerror(errno));
 			exit(0);
 		}
 		fdes->set(link->fd(), FDEVENT_IN, 0, link);
@@ -76,56 +74,70 @@ void init_links(int num, const char *ip, int port){
 	}
 }
 
+void send_req(Link *link, const std::string &cmd, const Data *d){
+	if(cmd == "set"){
+		link->send(cmd, d->key, d->val);
+	}else if(cmd == "get"){
+		link->send(cmd, d->key);
+	}else if(cmd == "del"){
+		link->send(cmd, d->key);
+	}else if(cmd == "hset"){
+		link->send(cmd, "h", d->key, d->val);
+	}else if(cmd == "hget"){
+		link->send(cmd, "h", d->key);
+	}else if(cmd == "hdel"){
+		link->send(cmd, "h", d->key);
+	}else if(cmd == "zset"){
+		link->send(cmd, "z", d->key, d->num);
+	}else if(cmd == "zget"){
+		link->send(cmd, "z", d->key);
+	}else if(cmd == "zdel"){
+		link->send(cmd, "z", d->key);
+	}else if(cmd == "qpush"){
+		link->send(cmd, "h", d->key, d->val);
+	}else if(cmd == "qpop"){
+		link->send(cmd, "h", d->key);
+	}else{
+		log_error("bad command!");
+		exit(0);
+	}
+	link->flush();
+}
+
 void bench(std::string cmd){
-	int total = ds->size();
+	int total = ds->size() * free_links->size();
 	int finished = 0;
 	int num_sent = 0;
 	
 	printf("========== %s ==========\n", cmd.c_str());
 
+	std::map<std::string, Data *>::iterator it;
+	it = ds->begin();
+	
 	double stime = millitime();
 	while(1){
-		std::map<std::string, Data *>::iterator it = ds->begin();
-		while(!free_links->empty() && it != ds->end()){
+		while(!free_links->empty()){
+			if(num_sent == total){
+				break;
+			}
+			num_sent ++;
+
 			Link *link = free_links->back();
 			free_links->pop_back();
 
-			Data *d = it->second;
-			num_sent ++;
-
-			if(cmd == "set"){
-				link->send(cmd, d->key, d->val);
-			}else if(cmd == "get"){
-				link->send(cmd, d->key);
-			}else if(cmd == "del"){
-				link->send(cmd, d->key);
-			}else if(cmd == "hset"){
-				link->send(cmd, "h", d->key, d->val);
-			}else if(cmd == "hget"){
-				link->send(cmd, "h", d->key);
-			}else if(cmd == "hdel"){
-				link->send(cmd, "h", d->key);
-			}else if(cmd == "zset"){
-				link->send(cmd, "z", d->key, d->num);
-			}else if(cmd == "zget"){
-				link->send(cmd, "z", d->key);
-			}else if(cmd == "zdel"){
-				link->send(cmd, "z", d->key);
-			}else if(cmd == "qpush"){
-				link->send(cmd, "h", d->key, d->val);
-			}else if(cmd == "qpop"){
-				link->send(cmd, "h", d->key);
-			}else{
-				printf("bad command!\n");
-				exit(0);
+			if(it == ds->end()){
+				it = ds->begin();
 			}
-			link->flush();
+			
+			send_req(link, cmd, it->second);
+
+			it ++;
 		}
 
 		const Fdevents::events_t *events;
 		events = fdes->wait(50);
 		if(events == NULL){
-			log_fatal("events.wait error: %s", strerror(errno));
+			log_error("events.wait error: %s", strerror(errno));
 			break;
 		}
 
@@ -135,19 +147,15 @@ void bench(std::string cmd){
 
 			int len = link->read();
 			if(len <= 0){
-				log_fatal("fd: %d, read: %d, delete link", link->fd(), len);
+				log_error("fd: %d, read: %d, delete link", link->fd(), len);
 				exit(0);
 			}
 
 			const std::vector<Bytes> *resp = link->recv();
 			if(resp == NULL){
-				printf("error\n");
+				log_error("error");
 				break;
 			}else if(resp->empty()){
-				if(link->read() <= 0){
-					printf("read end\n");
-					break;
-				}
 				continue;
 			}else{
 				if(resp->at(0) != "ok"){
@@ -171,7 +179,7 @@ void bench(std::string cmd){
 int main(int argc, char **argv){
 	const char *ip = "127.0.0.1";
 	int port = 8888;
-	int requests = 10000;
+	int requests = 1000;
 	int clients = 50;
 
 	welcome();
