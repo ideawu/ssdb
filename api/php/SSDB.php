@@ -297,6 +297,8 @@ class SSDB
 			return new SSDB_Response($resp[0], $errmsg);
 		}
 		switch($cmd){
+			case 'ping':
+			case 'qset':
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':
@@ -514,6 +516,7 @@ class SSDB
 	}
 
 	private function recv(){
+		$this->step = self::STEP_SIZE;
 		while(true){
 			$ret = $this->parse();
 			if($ret === null){
@@ -525,7 +528,7 @@ class SSDB
 				}catch(Exception $e){
 					$data = '';
 				}
-				if($data == false){
+				if($data === false || $data === ''){
 					$this->close();
 					throw new SSDBException('Connection lost');
 				}
@@ -544,9 +547,6 @@ class SSDB
 	public $block_size;
 
 	private function parse(){
-		if(!$this->resp){
-			$this->step = self::STEP_SIZE;
-		}
 		$spos = 0;
 		$epos = 0;
 		$buf_size = strlen($this->recv_buf);
