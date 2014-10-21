@@ -36,7 +36,7 @@ void usage(int argc, char **argv){
 	printf("Options:\n");
 	printf("    ip          server ip (default 127.0.0.1)\n");
 	printf("    port        server port (default 8888)\n");
-	printf("    requests    Total number of requests (default 1000)\n");
+	printf("    requests    Total number of requests (default 10000)\n");
 	printf("    clients     Number of parallel connections (default 50)\n");
 	printf("\n");
 }
@@ -105,7 +105,7 @@ void send_req(Link *link, const std::string &cmd, const Data *d){
 }
 
 void bench(std::string cmd){
-	int total = ds->size() * free_links->size();
+	int total = (int)ds->size();
 	int finished = 0;
 	int num_sent = 0;
 	
@@ -124,13 +124,8 @@ void bench(std::string cmd){
 
 			Link *link = free_links->back();
 			free_links->pop_back();
-
-			if(it == ds->end()){
-				it = ds->begin();
-			}
 			
 			send_req(link, cmd, it->second);
-
 			it ++;
 		}
 
@@ -179,7 +174,7 @@ void bench(std::string cmd){
 int main(int argc, char **argv){
 	const char *ip = "127.0.0.1";
 	int port = 8888;
-	int requests = 1000;
+	int requests = 10000;
 	int clients = 50;
 
 	welcome();
