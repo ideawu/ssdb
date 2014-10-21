@@ -82,21 +82,21 @@ void send_req(Link *link, const std::string &cmd, const Data *d){
 	}else if(cmd == "del"){
 		link->send(cmd, d->key);
 	}else if(cmd == "hset"){
-		link->send(cmd, "h", d->key, d->val);
+		link->send(cmd, "TEST", d->key, d->val);
 	}else if(cmd == "hget"){
-		link->send(cmd, "h", d->key);
+		link->send(cmd, "TEST", d->key);
 	}else if(cmd == "hdel"){
-		link->send(cmd, "h", d->key);
+		link->send(cmd, "TEST", d->key);
 	}else if(cmd == "zset"){
-		link->send(cmd, "z", d->key, d->num);
+		link->send(cmd, "TEST", d->key, d->num);
 	}else if(cmd == "zget"){
-		link->send(cmd, "z", d->key);
+		link->send(cmd, "TEST", d->key);
 	}else if(cmd == "zdel"){
-		link->send(cmd, "z", d->key);
+		link->send(cmd, "TEST", d->key);
 	}else if(cmd == "qpush"){
-		link->send(cmd, "h", d->key, d->val);
+		link->send(cmd, "TEST", d->key);
 	}else if(cmd == "qpop"){
-		link->send(cmd, "h", d->key);
+		link->send(cmd, "TEST");
 	}else{
 		log_error("bad command!");
 		exit(0);
