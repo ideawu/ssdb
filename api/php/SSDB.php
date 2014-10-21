@@ -516,6 +516,7 @@ class SSDB
 	}
 
 	private function recv(){
+		$this->step = self::STEP_SIZE;
 		while(true){
 			$ret = $this->parse();
 			if($ret === null){
@@ -527,7 +528,7 @@ class SSDB
 				}catch(Exception $e){
 					$data = '';
 				}
-				if($data == false){
+				if($data === false || $data === ''){
 					$this->close();
 					throw new SSDBException('Connection lost');
 				}
@@ -546,9 +547,6 @@ class SSDB
 	public $block_size;
 
 	private function parse(){
-		if(!$this->resp){
-			$this->step = self::STEP_SIZE;
-		}
 		$spos = 0;
 		$epos = 0;
 		$buf_size = strlen($this->recv_buf);
