@@ -1,6 +1,8 @@
 /* kv */
+#include "serv.h"
+#include "t_kv.h"
 
-static int proc_get(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_get(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -11,7 +13,7 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-static int proc_getset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_getset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -22,7 +24,7 @@ static int proc_getset(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_set(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_set(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -37,7 +39,7 @@ static int proc_set(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-static int proc_setnx(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_setnx(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -47,7 +49,7 @@ static int proc_setnx(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_setx(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_setx(Server *serv, Link *link, const Request &req, Response *resp){
 	Locking l(&serv->expiration->mutex);
 	if(req.size() < 4){
 		resp->push_back("client_error");
@@ -69,7 +71,39 @@ static int proc_setx(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_exists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_ttl(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		int64_t ttl = serv->expiration->get_ttl(req[1]);
+		resp->push_back("ok");
+		resp->push_back(int_to_str(ttl));
+	}
+	return 0;
+}
+
+int proc_expire(Server *serv, Link *link, const Request &req, Response *resp){
+	Locking l(&serv->expiration->mutex);
+	if(req.size() != 3){
+		resp->push_back("client_error");
+	}else{
+		std::string val;
+		int ret = serv->ssdb->get(req[1], &val);
+		if(ret == 1){
+			ret = serv->expiration->set_ttl(req[1], req[2].Int());
+			if(ret != -1){
+				resp->push_back("ok");
+				resp->push_back("1");
+				return 0;
+			}
+		}
+		resp->push_back("ok");
+		resp->push_back("0");
+	}
+	return 0;
+}
+
+int proc_exists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -81,7 +115,7 @@ static int proc_exists(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_multi_exists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_exists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -103,7 +137,7 @@ static int proc_multi_exists(Server *serv, Link *link, const Request &req, Respo
 	return 0;
 }
 
-static int proc_multi_set(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_set(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3 || req.size() % 2 != 1){
 		resp->push_back("client_error");
 	}else{
@@ -113,7 +147,7 @@ static int proc_multi_set(Server *serv, Link *link, const Request &req, Response
 	return 0;
 }
 
-static int proc_multi_del(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_del(Server *serv, Link *link, const Request &req, Response *resp){
 	Locking l(&serv->expiration->mutex);
 	if(req.size() < 2){
 		resp->push_back("client_error");
@@ -132,7 +166,7 @@ static int proc_multi_del(Server *serv, Link *link, const Request &req, Response
 	return 0;
 }
 
-static int proc_multi_get(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_get(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -149,7 +183,7 @@ static int proc_multi_get(Server *serv, Link *link, const Request &req, Response
 	return 0;
 }
 
-static int proc_del(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_del(Server *serv, Link *link, const Request &req, Response *resp){
 	Locking l(&serv->expiration->mutex);
 	if(req.size() < 2){
 		resp->push_back("client_error");
@@ -167,7 +201,7 @@ static int proc_del(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-static int proc_scan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_scan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -183,7 +217,7 @@ static int proc_scan(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_rscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_rscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -199,7 +233,7 @@ static int proc_rscan(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_keys(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_keys(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -232,15 +266,15 @@ static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-static int proc_incr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_incr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _incr(serv->ssdb, req, resp, 1);
 }
 
-static int proc_decr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_decr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _incr(serv->ssdb, req, resp, -1);
 }
 
-static int proc_getbit(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_getbit(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -250,7 +284,7 @@ static int proc_getbit(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_setbit(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_setbit(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -268,7 +302,7 @@ static int proc_setbit(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_countbit(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_countbit(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -294,7 +328,7 @@ static int proc_countbit(Server *serv, Link *link, const Request &req, Response 
 	return 0;
 }
 
-static int proc_redis_bitcount(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_redis_bitcount(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -320,7 +354,7 @@ static int proc_redis_bitcount(Server *serv, Link *link, const Request &req, Res
 	return 0;
 }
 
-static int proc_substr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_substr(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -346,7 +380,7 @@ static int proc_substr(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_getrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_getrange(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -372,7 +406,7 @@ static int proc_getrange(Server *serv, Link *link, const Request &req, Response 
 	return 0;
 }
 
-static int proc_strlen(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_strlen(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{

@@ -1,6 +1,8 @@
 /* zset */
+#include "serv.h"
+#include "t_zset.h"
 
-static int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -13,7 +15,7 @@ static int proc_zexists(Server *serv, Link *link, const Request &req, Response *
 	return 0;
 }
 
-static int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -34,7 +36,7 @@ static int proc_multi_zexists(Server *serv, Link *link, const Request &req, Resp
 	return 0;
 }
 
-static int proc_multi_zsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -53,7 +55,7 @@ static int proc_multi_zsize(Server *serv, Link *link, const Request &req, Respon
 	return 0;
 }
 
-static int proc_multi_zset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
 	}else{
@@ -76,7 +78,7 @@ static int proc_multi_zset(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_multi_zdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -98,7 +100,7 @@ static int proc_multi_zdel(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_multi_zget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -119,7 +121,7 @@ static int proc_multi_zget(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_zset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -129,7 +131,7 @@ static int proc_zset(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_zsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -139,7 +141,7 @@ static int proc_zsize(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -150,7 +152,7 @@ static int proc_zget(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_zdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -160,7 +162,7 @@ static int proc_zdel(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_zrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrank(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -170,7 +172,7 @@ static int proc_zrank(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_zrrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrrank(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -180,7 +182,7 @@ static int proc_zrrank(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -197,7 +199,7 @@ static int proc_zrange(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -214,7 +216,7 @@ static int proc_zrrange(Server *serv, Link *link, const Request &req, Response *
 	return 0;
 }
 
-static int proc_zclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zclear(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -246,7 +248,7 @@ static int proc_zclear(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -270,7 +272,7 @@ static int proc_zscan(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_zrscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -294,7 +296,7 @@ static int proc_zrscan(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_zkeys(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zkeys(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -309,7 +311,7 @@ static int proc_zkeys(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_zlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -321,7 +323,7 @@ static int proc_zlist(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_zrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -349,15 +351,15 @@ static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-static int proc_zincr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zincr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _zincr(serv->ssdb, req, resp, 1);
 }
 
-static int proc_zdecr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zdecr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _zincr(serv->ssdb, req, resp, -1);
 }
 
-static int proc_zcount(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zcount(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -373,7 +375,7 @@ static int proc_zcount(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_zsum(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zsum(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -389,7 +391,7 @@ static int proc_zsum(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_zavg(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zavg(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -409,7 +411,7 @@ static int proc_zavg(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -431,7 +433,7 @@ static int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, R
 	return 0;
 }
 
-static int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;

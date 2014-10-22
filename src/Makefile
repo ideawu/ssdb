@@ -1,8 +1,10 @@
 include ../build_config.mk
 
-OBJS = ssdb.o t_kv.o t_hash.o t_zset.o t_queue.o link.o \
-	backend_dump.o backend_sync.o slave.o binlog.o serv.o \
-	resp.o iterator.o ttl.o
+OBJS = ssdb.o iterator.o link.o \
+	t_kv.o t_hash.o t_zset.o t_queue.o \
+	proc.o proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
+	backend_dump.o backend_sync.o slave.o binlog.o \
+	resp.o serv.o ttl.o
 UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o util/sorted_set.o
 EXES = ../ssdb-server
 
@@ -42,9 +44,6 @@ binlog.o: ssdb.h binlog.h binlog.cpp
 slave.o: ssdb.h slave.h slave.cpp
 	${CXX} ${CFLAGS} -c slave.cpp
 
-serv.o: ssdb.h serv.h serv.cpp proc_kv.cpp proc_hash.cpp proc_zset.cpp proc_queue.cpp
-	${CXX} ${CFLAGS} -c serv.cpp
-
 resp.o: ssdb.h resp.h resp.cpp
 	${CXX} ${CFLAGS} -c resp.cpp
 
@@ -56,6 +55,20 @@ backend_sync.o: ssdb.h backend_sync.h backend_sync.cpp
 
 ttl.o: ssdb.h ttl.h ttl.cpp
 	${CXX} ${CFLAGS} -c ttl.cpp
+
+proc.o: ssdb.h serv.h proc.cpp
+	${CXX} ${CFLAGS} -c proc.cpp
+proc_kv.o: ssdb.h serv.h proc_kv.cpp
+	${CXX} ${CFLAGS} -c proc_kv.cpp
+proc_hash.o: ssdb.h serv.h proc_hash.cpp
+	${CXX} ${CFLAGS} -c proc_hash.cpp
+proc_zset.o: ssdb.h serv.h proc_zset.cpp
+	${CXX} ${CFLAGS} -c proc_zset.cpp
+proc_queue.o: ssdb.h serv.h proc_queue.cpp
+	${CXX} ${CFLAGS} -c proc_queue.cpp
+
+serv.o: ssdb.h serv.h serv.cpp
+	${CXX} ${CFLAGS} -c serv.cpp
 
 clean:
 	rm -f ${EXES} *.o *.exe

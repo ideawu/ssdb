@@ -1,5 +1,8 @@
 /* hash */
-static int proc_hexists(Server *serv, Link *link, const Request &req, Response *resp){
+#include "serv.h"
+#include "t_hash.h"
+
+int proc_hexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -12,7 +15,7 @@ static int proc_hexists(Server *serv, Link *link, const Request &req, Response *
 	return 0;
 }
 
-static int proc_multi_hexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hexists(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -33,7 +36,7 @@ static int proc_multi_hexists(Server *serv, Link *link, const Request &req, Resp
 	return 0;
 }
 
-static int proc_multi_hsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -52,7 +55,7 @@ static int proc_multi_hsize(Server *serv, Link *link, const Request &req, Respon
 	return 0;
 }
 
-static int proc_multi_hset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
 	}else{
@@ -75,7 +78,7 @@ static int proc_multi_hset(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_multi_hdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -97,7 +100,7 @@ static int proc_multi_hdel(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_multi_hget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -118,7 +121,7 @@ static int proc_multi_hget(Server *serv, Link *link, const Request &req, Respons
 	return 0;
 }
 
-static int proc_hsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -128,7 +131,7 @@ static int proc_hsize(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_hset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -138,7 +141,7 @@ static int proc_hset(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_hget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -149,7 +152,7 @@ static int proc_hget(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_hdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hdel(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -159,7 +162,7 @@ static int proc_hdel(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_hclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hclear(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -191,7 +194,7 @@ static int proc_hclear(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_hgetall(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hgetall(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -206,7 +209,7 @@ static int proc_hgetall(Server *serv, Link *link, const Request &req, Response *
 	return 0;
 }
 
-static int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -222,7 +225,7 @@ static int proc_hscan(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_hrscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hrscan(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -238,7 +241,7 @@ static int proc_hrscan(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_hkeys(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hkeys(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -255,7 +258,7 @@ static int proc_hkeys(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_hvals(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hvals(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -271,7 +274,7 @@ static int proc_hvals(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_hlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -283,7 +286,7 @@ static int proc_hlist(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_hrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hrlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -311,11 +314,11 @@ static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-static int proc_hincr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hincr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _hincr(serv->ssdb, req, resp, 1);
 }
 
-static int proc_hdecr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hdecr(Server *serv, Link *link, const Request &req, Response *resp){
 	return _hincr(serv->ssdb, req, resp, -1);
 }
 

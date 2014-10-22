@@ -11,6 +11,7 @@
 #include "backend_sync.h"
 #include "ttl.h"
 #include "resp.h"
+#include "proc.h"
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
@@ -36,6 +37,9 @@ struct Command{
 	uint64_t calls;
 	double time_wait;
 	double time_proc;
+	// the position of key parameter in request
+	// 0 or -1 for none
+	int key_pos;
 };
 
 struct ProcJob{
@@ -63,6 +67,7 @@ class Server{
 	private:
 		static const int READER_THREADS = 10;
 		static const int WRITER_THREADS = 1;
+		ProcMap proc_map;
 	public:
 		int link_count;
 		SSDB *ssdb;
@@ -71,6 +76,8 @@ class Server{
 		ExpirationHandler *expiration;
 		bool need_auth;
 		std::string password;
+		std::string kv_range_s;
+		std::string kv_range_e;
 
 		Server(SSDB *ssdb);
 		~Server();
