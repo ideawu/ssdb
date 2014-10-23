@@ -130,6 +130,7 @@ struct BytesHash{
 	DEF_PROC(info);
 	DEF_PROC(compact);
 	DEF_PROC(key_range);
+	DEF_PROC(get_key_range);
 	DEF_PROC(set_key_range);
 	DEF_PROC(ttl);
 	DEF_PROC(expire);
@@ -145,19 +146,19 @@ struct BytesHash{
 static Command commands[] = {
 	PROC_KP1(get, "r"),
 	PROC_KP1(set, "wt"),
-	PROC(setx, "wt"),
-	PROC(setnx, "wt"),
-	PROC(getset, "wt"),
-	PROC(getbit, "r"),
-	PROC(setbit, "wt"),
-	PROC(countbit, "r"),
-	PROC(substr, "r"),
-	PROC(getrange, "r"),
-	PROC(strlen, "r"),
-	PROC(redis_bitcount, "r"),
-	PROC(del, "wt"),
-	PROC(incr, "wt"),
-	PROC(decr, "wt"),
+	PROC_KP1(del, "wt"),
+	PROC_KP1(setx, "wt"),
+	PROC_KP1(setnx, "wt"),
+	PROC_KP1(getset, "wt"),
+	PROC_KP1(getbit, "r"),
+	PROC_KP1(setbit, "wt"),
+	PROC_KP1(countbit, "r"),
+	PROC_KP1(substr, "r"),
+	PROC_KP1(getrange, "r"),
+	PROC_KP1(strlen, "r"),
+	PROC_KP1(redis_bitcount, "r"),
+	PROC_KP1(incr, "wt"),
+	PROC_KP1(decr, "wt"),
 	PROC(scan, "rt"),
 	PROC(rscan, "rt"),
 	PROC(keys, "rt"),
@@ -245,7 +246,9 @@ static Command commands[] = {
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason), we don't want to block writes
 	PROC(compact, "rt"),
-	PROC(key_range, "r"),
+	PROC(key_range, "r"), // deprecated
+	//
+	PROC(get_key_range, "r"),
 	// set_key_range must run in the main thread
 	PROC(set_key_range, "r"),
 

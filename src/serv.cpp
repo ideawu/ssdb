@@ -163,6 +163,13 @@ int proc_key_range(Server *serv, Link *link, const Request &req, Response *resp)
 	return 0;
 }
 
+int proc_get_key_range(Server *serv, Link *link, const Request &req, Response *resp){
+	resp->push_back("ok");
+	resp->push_back(serv->kv_range_s);
+	resp->push_back(serv->kv_range_e);
+	return 0;
+}
+
 int proc_set_key_range(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() != 3){
 		resp->push_back("client_error");
