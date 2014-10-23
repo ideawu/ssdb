@@ -328,6 +328,19 @@ int proc_info(Server *serv, Link *link, const Request &req, Response *resp){
 		}
 	}
 
+	{
+		std::string s = serv->ssdb->binlogs->stats();
+		resp->push_back("replication");
+		resp->push_back(s);
+	}
+	std::vector<Slave *>::iterator it;
+	for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
+		Slave *slave = *it;
+		std::string s = slave->stats();
+		resp->push_back("replication");
+		resp->push_back(s);
+	}
+
 	if(req.size() == 1 || req[1] == "range"){
 		std::vector<std::string> tmp;
 		int ret = serv->ssdb->key_range(&tmp);

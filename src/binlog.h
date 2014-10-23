@@ -90,6 +90,8 @@ class BinlogQueue{
 		 */
 		int find_next(uint64_t seq, Binlog *log) const;
 		int find_last(Binlog *log) const;
+		
+		std::string stats() const;
 };
 
 class Transaction{

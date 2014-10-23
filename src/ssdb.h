@@ -16,23 +16,21 @@
 class KIterator;
 class HIterator;
 class ZIterator;
-class Slave;
+//class Slave;
 
 
 class SSDB{
 private:
 	leveldb::DB* db;
-	leveldb::DB* meta_db;
 	leveldb::Options options;
 	int sync_speed_;
-
-	std::vector<Slave *> slaves;
 	
 	std::string kv_range_s;
 	std::string kv_range_e;
 	
 	SSDB();
 public:
+	leveldb::DB* meta_db;
 	BinlogQueue *binlogs;
 	
 	~SSDB();

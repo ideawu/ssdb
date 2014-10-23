@@ -188,6 +188,14 @@ BinlogQueue::~BinlogQueue(){
 	log_debug("BinlogQueue finalized");
 }
 
+std::string BinlogQueue::stats() const{
+	std::string s;
+	s.append("    capacity : " + int_to_str(capacity) + "\n");
+	s.append("    min_seq  : " + int_to_str(min_seq) + "\n");
+	s.append("    max_seq  : " + int_to_str(last_seq) + "");
+	return s;
+}
+
 void BinlogQueue::begin(){
 	tran_seq = last_seq;
 	batch.Clear();

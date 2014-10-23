@@ -3,7 +3,7 @@
 #include "util/strings.h"
 #include "serv.h"
 
-Server::Server(SSDB *ssdb){
+Server::Server(SSDB *ssdb, const Config &conf){
 	this->ssdb = ssdb;
 	this->link_count = 0;
 	this->need_auth = false;
@@ -15,9 +15,53 @@ Server::Server(SSDB *ssdb){
 	writer->start(WRITER_THREADS);
 	reader = new WorkerPool<ProcWorker, ProcJob>("reader");
 	reader->start(READER_THREADS);
+
+
+	{ // slaves
+		const Config *repl_conf = conf.get("replication");
+		if(repl_conf != NULL){
+			std::vector<Config *> children = repl_conf->children;
+			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
+				Config *c = *it;
+				if(c->key != "slaveof"){
+					continue;
+				}
+				std::string ip = c->get_str("ip");
+				int port = c->get_num("port");
+				if(ip == "" || port <= 0 || port > 65535){
+					continue;
+				}
+				bool is_mirror = false;
+				std::string type = c->get_str("type");
+				if(type == "mirror"){
+					is_mirror = true;
+				}else{
+					type = "sync";
+					is_mirror = false;
+				}
+				
+				std::string id = c->get_str("id");
+				
+				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
+				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port, is_mirror);
+				if(!id.empty()){
+					slave->set_id(id);
+				}
+				slave->start();
+				slaves.push_back(slave);
+			}
+		}
+	}
 }
 
 Server::~Server(){
+	std::vector<Slave *>::iterator it;
+	for(it = slaves.begin(); it != slaves.end(); it++){
+		Slave *slave = *it;
+		slave->stop();
+		delete slave;
+	}
+
 	delete backend_dump;
 	delete backend_sync;
 	

@@ -17,11 +17,6 @@ SSDB::SSDB(): sync_speed_(0){
 }
 
 SSDB::~SSDB(){
-	for(std::vector<Slave *>::iterator it = slaves.begin(); it != slaves.end(); it++){
-		Slave *slave = *it;
-		slave->stop();
-		delete slave;
-	}
 	if(binlogs){
 		delete binlogs;
 	}
@@ -90,7 +85,9 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("compression      : %s", compression.c_str());
 	log_info("binlog           : %s", binlog_onoff.c_str());
 	log_info("max_open_files   : %d", max_open_files);
+
 	SSDB *ssdb = new SSDB();
+	ssdb->sync_speed_ = sync_speed;
 	//
 	ssdb->options.max_open_files = max_open_files;
 	ssdb->options.create_if_missing = true;
@@ -137,43 +134,6 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	ssdb->binlogs = new BinlogQueue(ssdb->db);
 	if(binlog_onoff == "no"){
 		ssdb->binlogs->no_log();
-	}
-
-	{ // slaves
-		const Config *repl_conf = conf.get("replication");
-		if(repl_conf != NULL){
-			ssdb->sync_speed_ = sync_speed;
-			std::vector<Config *> children = repl_conf->children;
-			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
-				Config *c = *it;
-				if(c->key != "slaveof"){
-					continue;
-				}
-				std::string ip = c->get_str("ip");
-				int port = c->get_num("port");
-				if(ip == "" || port <= 0 || port > 65535){
-					continue;
-				}
-				bool is_mirror = false;
-				std::string type = c->get_str("type");
-				if(type == "mirror"){
-					is_mirror = true;
-				}else{
-					type = "sync";
-					is_mirror = false;
-				}
-				
-				std::string id = c->get_str("id");
-				
-				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
-				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port, is_mirror);
-				if(!id.empty()){
-					slave->set_id(id);
-				}
-				slave->start();
-				ssdb->slaves.push_back(slave);
-			}
-		}
 	}
 
 	return ssdb;

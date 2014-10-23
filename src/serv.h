@@ -12,6 +12,7 @@
 #include "ttl.h"
 #include "resp.h"
 #include "proc.h"
+#include "slave.h"
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
@@ -20,8 +21,8 @@
 
 typedef std::vector<Bytes> Request;
 
-
 class Server;
+
 typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *resp);
 
 struct Command{
@@ -74,10 +75,12 @@ class Server{
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 		ExpirationHandler *expiration;
+		std::vector<Slave *> slaves;
+
 		bool need_auth;
 		std::string password;
 
-		Server(SSDB *ssdb);
+		Server(SSDB *ssdb, const Config &conf);
 		~Server();
 		void proc(ProcJob *job);
 
