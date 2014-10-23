@@ -86,6 +86,7 @@ class Server{
 		};
 		WorkerPool<ProcWorker, ProcJob> *writer;
 		WorkerPool<ProcWorker, ProcJob> *reader;
+		void add_command(Command *cmd);
 };
 
 template<class T>
