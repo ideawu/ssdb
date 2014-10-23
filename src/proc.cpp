@@ -246,7 +246,8 @@ static Command commands[] = {
 	// writer thread(for performance reason), we don't want to block writes
 	PROC(compact, "rt"),
 	PROC(key_range, "r"),
-	PROC(set_key_range, "w"),
+	// set_key_range must run in the main thread
+	PROC(set_key_range, "r"),
 
 	PROC(ttl, "r"),
 	PROC(expire, "wt"),
