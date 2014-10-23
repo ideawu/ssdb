@@ -57,10 +57,8 @@ void Server::proc(ProcJob *job){
 		
 		// KEY RANGE
 		if(cmd->key_pos > 0){
-			const Bytes &key = req->at(cmd->key_pos);
-			if((this->kv_range_s.size() && this->kv_range_s >= key)
-				|| (this->kv_range_e.size() && this->kv_range_e < key))
-			{
+			std::string key = req->at(cmd->key_pos).String();
+			if(!this->ssdb->in_kv_range(key)){
 				resp.push_back("out_of_range");
 				break;
 			}
@@ -165,8 +163,14 @@ int proc_key_range(Server *serv, Link *link, const Request &req, Response *resp)
 
 int proc_get_key_range(Server *serv, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
-	resp->push_back(serv->kv_range_s);
-	resp->push_back(serv->kv_range_e);
+	std::string s, e;
+	int ret = serv->ssdb->get_kv_range(&s, &e);
+	if(ret == -1){
+		resp->push_back("ok");
+	}else{
+		resp->push_back(s);
+		resp->push_back(e);
+	}
 	return 0;
 }
 
@@ -174,8 +178,7 @@ int proc_set_key_range(Server *serv, Link *link, const Request &req, Response *r
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
-		serv->kv_range_s = req[1].String();
-		serv->kv_range_e = req[2].String();
+		serv->ssdb->set_kv_range(req[1].String(), req[2].String());
 		resp->push_back("ok");
 	}
 	return 0;

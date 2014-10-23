@@ -76,8 +76,6 @@ class Server{
 		ExpirationHandler *expiration;
 		bool need_auth;
 		std::string password;
-		std::string kv_range_s;
-		std::string kv_range_e;
 
 		Server(SSDB *ssdb);
 		~Server();

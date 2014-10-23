@@ -28,6 +28,9 @@ private:
 
 	std::vector<Slave *> slaves;
 	
+	std::string kv_range_s;
+	std::string kv_range_e;
+	
 	SSDB();
 public:
 	BinlogQueue *binlogs;
@@ -44,6 +47,10 @@ public:
 	void compact() const;
 	int key_range(std::vector<std::string> *keys) const;
 	int sync_speed() const { return sync_speed_; }
+	
+	int set_kv_range(const std::string &s, const std::string &e);
+	int get_kv_range(std::string *s, std::string *e);
+	bool in_kv_range(const std::string &key) const;
 
 	/* raw operates */
 
