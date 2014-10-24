@@ -211,6 +211,11 @@ static ZIterator* ziterator(
 }
 
 int64_t SSDB::zrank(const Bytes &name, const Bytes &key) const{
+	std::string old;
+	int found = this->zget(name, key, &old);
+	if(1 != found){
+		return -1;
+	}
 	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::FORWARD);
 	uint64_t ret = 0;
 	while(true){
@@ -228,6 +233,11 @@ int64_t SSDB::zrank(const Bytes &name, const Bytes &key) const{
 }
 
 int64_t SSDB::zrrank(const Bytes &name, const Bytes &key) const{
+	std::string old;
+	int found = this->zget(name, key, &old);
+	if(1 != found){
+		return -1;
+	}
 	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::BACKWARD);
 	uint64_t ret = 0;
 	while(true){
