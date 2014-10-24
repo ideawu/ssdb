@@ -309,7 +309,11 @@ static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 		}
 		int64_t new_val;
 		int ret = ssdb->hincr(req[1], req[2], dir * by, &new_val);
-		resp->reply_int(ret, new_val);
+		if(ret == 0){
+			resp->reply_status(-1, "value is not an integer or out of range");
+		}else{
+			resp->reply_int(ret, new_val);
+		}
 	}
 	return 0;
 }

@@ -247,29 +247,72 @@ std::string int_to_str(uint64_t v){
 #define int64_to_str int_to_str
 #define uint64_to_str int_to_str
 
-static inline
-int str_to_int(const char *p, int size){
-	return atoi(std::string(p, size).c_str());
-}
+// all str_to_xx methods set errno on error
 
 static inline
 int str_to_int(const std::string &str){
-	return atoi(str.c_str());
+	const char *start = str.c_str();
+	char *end;
+	int ret = (int)strtol(start, &end, 10);
+	// the WHOLE string must be string represented integer
+	if(*end == '\0' && (end - start) == str.size()){
+		errno = 0;
+	}else{
+		// strtoxx do not set errno all the time!
+		if(errno == 0){
+			errno = EINVAL;
+		}
+	}
+	return ret;
+}
+
+static inline
+int str_to_int(const char *p, int size){
+	return str_to_int(std::string(p, size));
 }
 
 static inline
 int64_t str_to_int64(const std::string &str){
-	return (int64_t)atoll(str.c_str());
+	const char *start = str.c_str();
+	char *end;
+	int64_t ret = (int64_t)strtoll(start, &end, 10);
+	// the WHOLE string must be string represented integer
+	if(*end == '\0' && (end - start) == str.size()){
+		errno = 0;
+	}else{
+		// strtoxx do not set errno all the time!
+		if(errno == 0){
+			errno = EINVAL;
+		}
+	}
+	return ret;
 }
 
 static inline
 int64_t str_to_int64(const char *p, int size){
-	return (int64_t)atoll(std::string(p, size).c_str());
+	return str_to_int64(std::string(p, size));
+}
+
+static inline
+uint64_t str_to_uint64(const std::string &str){
+	const char *start = str.c_str();
+	char *end;
+	uint64_t ret = (uint64_t)strtoull(start, &end, 10);
+	// the WHOLE string must be string represented integer
+	if(*end == '\0' && (end - start) == str.size()){
+		errno = 0;
+	}else{
+		// strtoxx do not set errno all the time!
+		if(errno == 0){
+			errno = EINVAL;
+		}
+	}
+	return ret;
 }
 
 static inline
 uint64_t str_to_uint64(const char *p, int size){
-	return (uint64_t)strtoull(std::string(p, size).c_str(), (char **)NULL, 10);
+	return str_to_uint64(std::string(p, size));
 }
 
 static inline

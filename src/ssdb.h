@@ -62,6 +62,7 @@ public:
 	int set(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int setnx(const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int del(const Bytes &key, char log_type=BinlogType::SYNC);
+	// -1: error, 1: ok, 0: value is not an integer or out of range
 	int incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	int multi_set(const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
@@ -78,6 +79,7 @@ public:
 
 	int hset(const Bytes &name, const Bytes &key, const Bytes &val, char log_type=BinlogType::SYNC);
 	int hdel(const Bytes &name, const Bytes &key, char log_type=BinlogType::SYNC);
+	// -1: error, 1: ok, 0: value is not an integer or out of range
 	int hincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	//int multi_hset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	//int multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
@@ -95,6 +97,7 @@ public:
 
 	int zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type=BinlogType::SYNC);
 	int zdel(const Bytes &name, const Bytes &key, char log_type=BinlogType::SYNC);
+	// -1: error, 1: ok, 0: value is not an integer or out of range
 	int zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC);
 	//int multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC);
 	//int multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
