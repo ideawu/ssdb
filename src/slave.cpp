@@ -45,6 +45,22 @@ Slave::~Slave(){
 	log_debug("Slave finalized");
 }
 
+std::string Slave::stats() const{
+	std::string s;
+	s.append("slaveof " + master_ip + ":" + int_to_str(master_port) + "\n");
+	s.append("    id         : " + id_ + "\n");
+	if(is_mirror){
+		s.append("    type       : mirror\n");
+	}else{
+		s.append("    type       : sync\n");
+	}
+	s.append("    last_seq   : " + int_to_str(last_seq) + "\n");
+	s.append("    last_key   : " + str_escape(last_key) + "\n");
+	s.append("    copy_count : " + int_to_str(copy_count) + "\n");
+	s.append("    sync_count : " + int_to_str(sync_count) + "");
+	return s;
+}
+
 void Slave::start(){
 	load_status();
 	log_debug("last_seq: %" PRIu64 ", last_key: %s",

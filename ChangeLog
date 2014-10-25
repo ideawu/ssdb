@@ -1,5 +1,8 @@
 * 1.7.0.1
 	* New features:
+		- *incr commands return error if value cannot be converted to integer(2014-10-24)
+		- Include replication/sync stats in info(2014-10-23)
+		- Add set_key_range, get_key_range(for KV) command(2014-10-22)
 		- Add qset/lset command, rewrite Response(2014-10-19)
 * 1.7.0.0
 	* New features:

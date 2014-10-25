@@ -11,6 +11,8 @@
 #include "backend_sync.h"
 #include "ttl.h"
 #include "resp.h"
+#include "proc.h"
+#include "slave.h"
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
@@ -19,8 +21,8 @@
 
 typedef std::vector<Bytes> Request;
 
-
 class Server;
+
 typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *resp);
 
 struct Command{
@@ -36,6 +38,9 @@ struct Command{
 	uint64_t calls;
 	double time_wait;
 	double time_proc;
+	// the position of key parameter in request
+	// 0 or -1 for none
+	int key_pos;
 };
 
 struct ProcJob{
@@ -63,16 +68,19 @@ class Server{
 	private:
 		static const int READER_THREADS = 10;
 		static const int WRITER_THREADS = 1;
+		ProcMap proc_map;
 	public:
 		int link_count;
 		SSDB *ssdb;
 		BackendDump *backend_dump;
 		BackendSync *backend_sync;
 		ExpirationHandler *expiration;
+		std::vector<Slave *> slaves;
+
 		bool need_auth;
 		std::string password;
 
-		Server(SSDB *ssdb);
+		Server(SSDB *ssdb, const Config &conf);
 		~Server();
 		void proc(ProcJob *job);
 

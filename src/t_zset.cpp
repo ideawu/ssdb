@@ -60,10 +60,13 @@ int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_va
 	}else if(ret == 0){
 		*new_val = by;
 	}else{
-		*new_val = str_to_int64(old.data(), old.size()) + by;
+		*new_val = str_to_int64(old) + by;
 	}
 
 	ret = zset_one(this, name, key, int_to_str(*new_val), log_type);
+	if(ret == -1){
+		return -1;
+	}
 	if(ret >= 0){
 		if(ret > 0){
 			if(incr_zsize(this, name, ret) == -1){
@@ -76,7 +79,7 @@ int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_va
 			return -1;
 		}
 	}
-	return ret;
+	return 1;
 }
 
 // multi_zset work incorrect when same key occurs in kvs more than once

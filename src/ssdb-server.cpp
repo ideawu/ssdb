@@ -33,6 +33,8 @@ IpFilter *ip_filter = NULL;
 Fdevents *fdes = NULL;
 Server *serv = NULL;
 
+std::string pidfile;
+
 typedef std::vector<Link *> ready_list_t;
 
 volatile bool quit = false;
@@ -59,8 +61,10 @@ int main(int argc, char **argv){
 	
 	fdes = new Fdevents();
 	run(argc, argv);
-	remove_pidfile();
 
+	if(serv){
+		delete serv;
+	}
 	if(serv_link){
 		log_info("shutdown network");
 		delete serv_link;
@@ -76,6 +80,9 @@ int main(int argc, char **argv){
 	if(fdes){
 		delete fdes;
 	}
+	
+	remove_pidfile();
+
 	log_info("ssdb server exit.");
 	return 0;
 }
@@ -360,6 +367,7 @@ void init(int argc, char **argv){
 			exit(1);
 		}
 	}
+	pidfile = conf->get_str("pidfile");
 
 	std::string work_dir;
 	{
@@ -467,7 +475,7 @@ void init(int argc, char **argv){
 	}
 
 	{
-		serv = new Server(ssdb);
+		serv = new Server(ssdb, *conf);
 		serv->need_auth = false;		
 		if(!password.empty()){
 			serv->need_auth = true;
@@ -480,37 +488,34 @@ void init(int argc, char **argv){
 }
 
 void write_pidfile(){
-	const char *pidfile = conf->get_str("pidfile");
-	if(strlen(pidfile)){
-		FILE *fp = fopen(pidfile, "w");
+	if(pidfile.size()){
+		FILE *fp = fopen(pidfile.c_str(), "w");
 		if(!fp){
-			log_error("Failed to open pidfile '%s': %s", pidfile, strerror(errno));
+			log_error("Failed to open pidfile '%s': %s", pidfile.c_str(), strerror(errno));
 			exit(1);
 		}
 		char buf[128];
 		pid_t pid = getpid();
 		snprintf(buf, sizeof(buf), "%d", pid);
-		log_info("pidfile: %s, pid: %d", pidfile, pid);
+		log_info("pidfile: %s, pid: %d", pidfile.c_str(), pid);
 		fwrite(buf, 1, strlen(buf), fp);
 		fclose(fp);
 	}
 }
 
 void check_pidfile(){
-	const char *pidfile = conf->get_str("pidfile");
-	if(strlen(pidfile)){
-		if(access(pidfile, F_OK) == 0){
+	if(pidfile.size()){
+		if(access(pidfile.c_str(), F_OK) == 0){
 			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
 				"You must kill the process and then "
-				"remove this file before starting ssdb-server.\n", pidfile);
+				"remove this file before starting ssdb-server.\n", pidfile.c_str());
 			exit(1);
 		}
 	}
 }
 
 void remove_pidfile(){
-	const char *pidfile = conf->get_str("pidfile");
-	if(strlen(pidfile)){
-		remove(pidfile);
+	if(pidfile.size()){
+		remove(pidfile.c_str());
 	}
 }

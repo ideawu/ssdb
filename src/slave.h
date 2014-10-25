@@ -50,6 +50,7 @@ class Slave{
 		void stop();
 		
 		void set_id(const std::string &id);
+		std::string stats() const;
 };
 
 #endif

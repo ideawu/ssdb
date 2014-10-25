@@ -134,7 +134,10 @@ int SSDB::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	}else if(ret == 0){
 		*new_val = by;
 	}else{
-		*new_val = str_to_int64(old.data(), old.size()) + by;
+		*new_val = str_to_int64(old) + by;
+		if(errno != 0){
+			return 0;
+		}
 	}
 
 	std::string buf = encode_kv_key(key);

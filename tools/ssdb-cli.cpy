@@ -469,30 +469,31 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
-			case 'key_range':
-				if(len(resp.data) != 6){
-					sys.stderr.write('error!\n');
-				}else{
-					for(i=0; i<len(resp.data); i++){
-						resp.data[i] = repr_data(resp.data[i]);
-						if(resp.data[i] == ''){
-							resp.data[i] = '""';
-						}
+			case 'get_accept_range':
+				for(i=0; i<len(resp.data); i++){
+					resp.data[i] = repr_data(resp.data[i]);
+					if(resp.data[i] == ''){
+						resp.data[i] = '""';
 					}
-					klen = 0;
-					vlen = 0;
-					for(i=0; i<len(resp.data); i+=2){
-						klen = max(len(resp.data[i]), klen);
-						vlen = max(len(resp.data[i+1]), vlen);
-					}
-					printf('	kv   :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
-					printf('	hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
-					printf('	zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
 				}
+				klen = 0;
+				vlen = 0;
+				for(i=0; i<len(resp.data); i+=2){
+					klen = max(len(resp.data[i]), klen);
+					vlen = max(len(resp.data[i+1]), vlen);
+				}
+				printf('    kv :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
+				#printf('  hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
+				#printf('  zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
+				#printf(' queue :  %-*s  -  %-*s\n', klen, resp.data[6], vlen, resp.data[7]);
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			default:
-				print repr_data(resp.code), repr_data(resp.data);
+				if(resp.data){
+					print repr_data(resp.code), repr_data(resp.data);
+				}else{
+					print repr_data(resp.code);
+				}
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 		}

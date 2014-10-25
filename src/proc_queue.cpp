@@ -1,6 +1,8 @@
 /* queue */
+#include "serv.h"
+#include "t_queue.h"
 
-static int proc_qsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qsize(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -10,7 +12,7 @@ static int proc_qsize(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_qfront(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qfront(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -21,7 +23,7 @@ static int proc_qfront(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_qback(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qback(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -61,15 +63,15 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-static int proc_qpush_front(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpush_front(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpush_func(serv, link, req, resp, QFRONT);
 }
 
-static int proc_qpush_back(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpush_back(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpush_func(serv, link, req, resp, QBACK);
 }
 
-static int proc_qpush(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpush(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpush_func(serv, link, req, resp, QBACK);
 }
 
@@ -115,15 +117,15 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 	return 0;
 }
 
-static int proc_qpop_front(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpop_front(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpop_func(serv, link, req, resp, QFRONT);
 }
 
-static int proc_qpop_back(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpop_back(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpop_func(serv, link, req, resp, QBACK);
 }
 
-static int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qpop_func(serv, link, req, resp, QFRONT);
 }
 
@@ -157,15 +159,15 @@ int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-static int proc_qtrim_front(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qtrim_front(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qtrim_func(serv, link, req, resp, QFRONT);
 }
 
-static int proc_qtrim_back(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qtrim_back(Server *serv, Link *link, const Request &req, Response *resp){
 	return proc_qtrim_func(serv, link, req, resp, QBACK);
 }
 
-static int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -177,7 +179,7 @@ static int proc_qlist(Server *serv, Link *link, const Request &req, Response *re
 	return 0;
 }
 
-static int proc_qrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qrlist(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -189,7 +191,7 @@ static int proc_qrlist(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_qfix(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qfix(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -203,7 +205,7 @@ static int proc_qfix(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_qclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qclear(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -224,7 +226,7 @@ static int proc_qclear(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_qslice(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qslice(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -237,7 +239,7 @@ static int proc_qslice(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_qrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qrange(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -256,7 +258,7 @@ static int proc_qrange(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-static int proc_qget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qget(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -268,7 +270,7 @@ static int proc_qget(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-static int proc_qset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qset(Server *serv, Link *link, const Request &req, Response *resp){
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
