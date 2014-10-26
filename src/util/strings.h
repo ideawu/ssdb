@@ -337,7 +337,7 @@ std::string substr(const std::string &str, int start, int size){
 		start = str.size() + start;
 	}
 	if(size < 0){
-		size = (str.size() + size) - start + 1;
+		size = (str.size() + size) - start;
 	}
 	if(start < 0 || start >= str.size() || size < 0){
 		return "";
