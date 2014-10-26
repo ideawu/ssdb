@@ -10,6 +10,7 @@
 #include "backend_sync.h"
 #include "ttl.h"
 #include "slave.h"
+#include "net/server.h"
 
 
 class SSDBServer{
@@ -22,6 +23,8 @@ public:
 
 	SSDBServer(SSDB *ssdb, const Config &conf);
 	~SSDBServer();
+	
+	void reg_procs(NetworkServer *net);
 };
 
 

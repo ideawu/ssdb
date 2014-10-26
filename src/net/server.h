@@ -21,17 +21,11 @@ class NetworkServer
 private:
 	int tick_interval;
 	int status_report_ticks;
-	
-	std::string pidfile;
 
 	Config *conf;
 	Link *serv_link;
 	IpFilter *ip_filter;
 	Fdevents *fdes;
-
-	void check_pidfile();
-	void write_pidfile();
-	void remove_pidfile();
 
 	Link* accept_link();
 	int proc_result(ProcJob *job, ready_list_t *ready_list);

@@ -72,9 +72,6 @@ NetworkServer::~NetworkServer(){
 	delete writer;
 	reader->stop();
 	delete reader;
-
-	remove_pidfile();
-	log_info("server exit.");
 }
 
 void NetworkServer::init(const char *conf_file){
@@ -99,9 +96,6 @@ void NetworkServer::init(const char *conf_file){
 }
 
 void NetworkServer::init(const Config &conf){
-	pidfile = conf.get_str("pidfile");
-	check_pidfile();
-	
 	// init ip_filter
 	{
 		Config *cc = (Config *)conf.get("server");
@@ -157,9 +151,6 @@ void NetworkServer::init(const Config &conf){
 }
 
 void NetworkServer::serve(){
-	write_pidfile();
-	log_info("server started.");
-
 	writer = new ProcWorkerPool("writer");
 	writer->start(WRITER_THREADS);
 	reader = new ProcWorkerPool("reader");
@@ -376,39 +367,6 @@ int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_lis
 		}
 	}
 	return 0;
-}
-
-void NetworkServer::check_pidfile(){
-	if(pidfile.size()){
-		if(access(pidfile.c_str(), F_OK) == 0){
-			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
-				"You must kill the process and then "
-				"remove this file before starting the server.\n", pidfile.c_str());
-			exit(1);
-		}
-	}
-}
-
-void NetworkServer::write_pidfile(){
-	if(pidfile.size()){
-		FILE *fp = fopen(pidfile.c_str(), "w");
-		if(!fp){
-			log_error("Failed to open pidfile '%s': %s", pidfile.c_str(), strerror(errno));
-			exit(1);
-		}
-		char buf[128];
-		pid_t pid = getpid();
-		snprintf(buf, sizeof(buf), "%d", pid);
-		log_info("pidfile: %s, pid: %d", pidfile.c_str(), pid);
-		fwrite(buf, 1, strlen(buf), fp);
-		fclose(fp);
-	}
-}
-
-void NetworkServer::remove_pidfile(){
-	if(pidfile.size()){
-		remove(pidfile.c_str());
-	}
 }
 
 void NetworkServer::proc(ProcJob *job){
