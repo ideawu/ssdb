@@ -13,7 +13,11 @@
 #include "net/server.h"
 
 
-class SSDBServer{
+class SSDBServer
+{
+private:
+	void reg_procs(NetworkServer *net);
+
 public:
 	SSDB *ssdb;
 	BackendDump *backend_dump;
@@ -21,10 +25,8 @@ public:
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
 
-	SSDBServer(SSDB *ssdb, const Config &conf);
+	SSDBServer(SSDB *ssdb, const Config &conf, NetworkServer *net);
 	~SSDBServer();
-	
-	void reg_procs(NetworkServer *net);
 };
 
 

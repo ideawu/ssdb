@@ -14,7 +14,10 @@ ProcMap::~ProcMap(){
 }
 
 void ProcMap::set_proc(const std::string &c, const char *sflags, proc_t proc){
-	Command *cmd = new Command();
+	Command *cmd = this->get_proc(c);
+	if(!cmd){
+		cmd = new Command();
+	}
 	cmd->name = c;
 	cmd->proc = proc;
 	for(const char *p=sflags; *p!='\0'; p++){

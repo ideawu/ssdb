@@ -226,7 +226,10 @@ void SSDBServer::reg_procs(NetworkServer *net){
 }
 
 
-SSDBServer::SSDBServer(SSDB *ssdb, const Config &conf){
+SSDBServer::SSDBServer(SSDB *ssdb, const Config &conf, NetworkServer *net){
+	net->data = this;
+	this->reg_procs(net);
+
 	this->ssdb = ssdb;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);

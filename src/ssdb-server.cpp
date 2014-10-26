@@ -46,9 +46,7 @@ int main(int argc, char **argv){
 		}
 	}
 	
-	SSDBServer *ss = new SSDBServer(ssdb, *conf);
-	net->data = ss;
-	ss->reg_procs(net);
+	SSDBServer *ss = new SSDBServer(ssdb, *conf, net);
 
 	write_pidfile();
 	log_info("ssdb server started.");
