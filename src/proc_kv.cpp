@@ -252,6 +252,7 @@ int proc_keys(NetworkServer *net, Link *link, const Request &req, Response *resp
 
 // dir := +1|-1
 static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
+	CHECK_NUM_PARAMS(2);
 	int64_t by = 1;
 	if(req.size() > 2){
 		by = req[2].Int64();
@@ -268,14 +269,12 @@ static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 
 int proc_incr(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_NUM_PARAMS(2);
 	CHECK_KEY_RANGE(1);
 	return _incr(serv->ssdb, req, resp, 1);
 }
 
 int proc_decr(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_NUM_PARAMS(2);
 	CHECK_KEY_RANGE(1);
 	return _incr(serv->ssdb, req, resp, -1);
 }
