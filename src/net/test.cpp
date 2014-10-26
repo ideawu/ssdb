@@ -22,7 +22,8 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	Server serv;
-	serv.run(conf_file, is_daemon);
+	NetworkServer serv;
+	serv.init(conf_file, is_daemon);
+	serv.serve();
 	return 0;
 }

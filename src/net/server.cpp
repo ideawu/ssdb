@@ -5,7 +5,7 @@
 #include "../util/config.h"
 #include "../util/log.h"
 #include "../util/ip_filter.h"
-#include "../link.h"
+#include "link.h"
 #include <vector>
 
 DEF_PROC(ping);
@@ -32,7 +32,7 @@ void signal_handler(int sig){
 	}
 }
 
-Server::Server(){
+NetworkServer::NetworkServer(){
 	tick_interval = TICK_INTERVAL;
 	status_report_ticks = STATUS_REPORT_TICKS;
 
@@ -63,7 +63,7 @@ Server::Server(){
 #endif
 }
 	
-Server::~Server(){
+NetworkServer::~NetworkServer(){
 	delete conf;
 	delete serv_link;
 	delete fdes;
@@ -78,7 +78,7 @@ Server::~Server(){
 	log_info("server exit.");
 }
 
-void Server::init(const char *conf_file, bool is_daemon){
+void NetworkServer::init(const char *conf_file, bool is_daemon){
 	if(!is_file(conf_file)){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
 		exit(1);
@@ -96,21 +96,25 @@ void Server::init(const char *conf_file, bool is_daemon){
 			exit(1);
 		}
 	}
+	log_info("conf_file        : %s", conf_file);
+	this->init(*conf, is_daemon);
+}
 
-	pidfile = conf->get_str("pidfile");
+void NetworkServer::init(const Config &conf, bool is_daemon){
+	pidfile = conf.get_str("pidfile");
 	check_pidfile();
 	
 	std::string log_output;
 	std::string log_level;
 	int log_rotate_size = 0;
 	{ // logger
-		log_level = conf->get_str("logger.level");
+		log_level = conf.get_str("logger.level");
 		if(log_level.empty()){
 			log_level = "debug";
 		}
 		int level = Logger::get_level(log_level.c_str());
-		log_rotate_size = conf->get_num("logger.rotate.size");
-		log_output = conf->get_str("logger.output");
+		log_rotate_size = conf.get_num("logger.rotate.size");
+		log_output = conf.get_str("logger.output");
 		if(log_output == ""){
 			log_output = "stdout";
 		}
@@ -120,14 +124,13 @@ void Server::init(const char *conf_file, bool is_daemon){
 		}
 	}
 
-	log_info("conf_file       : %s", conf_file);
 	log_info("log_level       : %s", log_level.c_str());
 	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 	
 	// init ip_filter
 	{
-		Config *cc = (Config *)conf->get("server");
+		Config *cc = (Config *)conf.get("server");
 		if(cc != NULL){
 			std::vector<Config *> *children = &cc->children;
 			std::vector<Config *>::iterator it;
@@ -148,7 +151,7 @@ void Server::init(const char *conf_file, bool is_daemon){
 	
 	{ // server
 		std::string password;
-		password = conf->get_str("server.auth");
+		password = conf.get_str("server.auth");
 		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
 			log_fatal("weak password is not allowed!");
 			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
@@ -166,8 +169,8 @@ void Server::init(const char *conf_file, bool is_daemon){
 			this->password = password;
 		}
 
-		const char *ip = conf->get_str("server.ip");
-		int port = conf->get_num("server.port");
+		const char *ip = conf.get_str("server.ip");
+		int port = conf.get_num("server.port");
 		
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){
@@ -177,136 +180,22 @@ void Server::init(const char *conf_file, bool is_daemon){
 		}
 		log_info("server listen on %s:%d", ip, port);
 	}
-
+	
 	// WARN!!!
-	// deamonize() MUST be called before any thread has been created!
+	// deamonize() MUST be called before any thread is created!
 	if(is_daemon){
 		daemonize();
 	}
+}
+
+void NetworkServer::serve(){
+	write_pidfile();
+	log_info("server started.");
 
 	writer = new ProcWorkerPool("writer");
 	writer->start(WRITER_THREADS);
 	reader = new ProcWorkerPool("reader");
 	reader->start(READER_THREADS);
-
-	write_pidfile();
-	log_info("server started.");
-}
-
-Link* Server::accept_link(){
-	Link *link = serv_link->accept();
-	if(link == NULL){
-		log_error("accept failed! %s", strerror(errno));
-		return NULL;
-	}
-	if(!ip_filter->check_pass(link->remote_ip)){
-		log_debug("ip_filter deny link from %s:%d", link->remote_ip, link->remote_port);
-		delete link;
-		return NULL;
-	}
-				
-	link->nodelay();
-	link->noblock();
-	link->create_time = millitime();
-	link->active_time = link->create_time;
-	return link;
-}
-
-int Server::proc_result(ProcJob *job, ready_list_t *ready_list){
-	Link *link = job->link;
-	int len;
-			
-	if(job->cmd){
-		job->cmd->calls += 1;
-		job->cmd->time_wait += job->time_wait;
-		job->cmd->time_proc += job->time_proc;
-	}
-	if(job->result == PROC_ERROR){
-		log_info("fd: %d, proc error, delete link", link->fd());
-		goto proc_err;
-	}
-	
-	len = link->write();
-	//log_debug("write: %d", len);
-	if(len < 0){
-		log_debug("fd: %d, write: %d, delete link", link->fd(), len);
-		goto proc_err;
-	}
-
-	if(!link->output->empty()){
-		fdes->set(link->fd(), FDEVENT_OUT, 1, link);
-	}
-	if(link->input->empty()){
-		fdes->set(link->fd(), FDEVENT_IN, 1, link);
-	}else{
-		fdes->clr(link->fd(), FDEVENT_IN);
-		ready_list->push_back(link);
-	}
-	return PROC_OK;
-
-proc_err:
-	fdes->del(link->fd());
-	delete link;
-	return PROC_ERROR;
-}
-
-/*
-event:
-	read => ready_list OR close
-	write => NONE
-proc =>
-	done: write & (read OR ready_list)
-	async: stop (read & write)
-	
-1. When writing to a link, it may happen to be in the ready_list,
-so we cannot close that link in write process, we could only
-just mark it as closed.
-
-2. When reading from a link, it is never in the ready_list, so it
-is safe to close it in read process, also safe to put it into
-ready_list.
-
-3. Ignore FDEVENT_ERR
-
-A link is in either one of these places:
-	1. ready list
-	2. async worker queue
-So it safe to delete link when processing ready list and async worker result.
-*/
-int Server::proc_client_event(const Fdevent *fde, ready_list_t *ready_list){
-	Link *link = (Link *)fde->data.ptr;
-	if(fde->events & FDEVENT_IN){
-		ready_list->push_back(link);
-		if(link->error()){
-			return 0;
-		}
-		int len = link->read();
-		//log_debug("fd: %d read: %d", link->fd(), len);
-		if(len <= 0){
-			log_debug("fd: %d, read: %d, delete link", link->fd(), len);
-			link->mark_error();
-			return 0;
-		}
-	}
-	if(fde->events & FDEVENT_OUT){
-		if(link->error()){
-			return 0;
-		}
-		int len = link->write();
-		if(len <= 0){
-			log_debug("fd: %d, write: %d, delete link", link->fd(), len);
-			link->mark_error();
-			return 0;
-		}
-		if(link->output->empty()){
-			fdes->clr(link->fd(), FDEVENT_OUT);
-		}
-	}
-	return 0;
-}
-
-void Server::run(const char *conf_file, bool is_daemon){
-	init(conf_file, is_daemon);
 
 	ready_list_t ready_list;
 	ready_list_t ready_list_2;
@@ -409,7 +298,119 @@ void Server::run(const char *conf_file, bool is_daemon){
 	}
 }
 
-void Server::check_pidfile(){
+Link* NetworkServer::accept_link(){
+	Link *link = serv_link->accept();
+	if(link == NULL){
+		log_error("accept failed! %s", strerror(errno));
+		return NULL;
+	}
+	if(!ip_filter->check_pass(link->remote_ip)){
+		log_debug("ip_filter deny link from %s:%d", link->remote_ip, link->remote_port);
+		delete link;
+		return NULL;
+	}
+				
+	link->nodelay();
+	link->noblock();
+	link->create_time = millitime();
+	link->active_time = link->create_time;
+	return link;
+}
+
+int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
+	Link *link = job->link;
+	int len;
+			
+	if(job->cmd){
+		job->cmd->calls += 1;
+		job->cmd->time_wait += job->time_wait;
+		job->cmd->time_proc += job->time_proc;
+	}
+	if(job->result == PROC_ERROR){
+		log_info("fd: %d, proc error, delete link", link->fd());
+		goto proc_err;
+	}
+	
+	len = link->write();
+	//log_debug("write: %d", len);
+	if(len < 0){
+		log_debug("fd: %d, write: %d, delete link", link->fd(), len);
+		goto proc_err;
+	}
+
+	if(!link->output->empty()){
+		fdes->set(link->fd(), FDEVENT_OUT, 1, link);
+	}
+	if(link->input->empty()){
+		fdes->set(link->fd(), FDEVENT_IN, 1, link);
+	}else{
+		fdes->clr(link->fd(), FDEVENT_IN);
+		ready_list->push_back(link);
+	}
+	return PROC_OK;
+
+proc_err:
+	fdes->del(link->fd());
+	delete link;
+	return PROC_ERROR;
+}
+
+/*
+event:
+	read => ready_list OR close
+	write => NONE
+proc =>
+	done: write & (read OR ready_list)
+	async: stop (read & write)
+	
+1. When writing to a link, it may happen to be in the ready_list,
+so we cannot close that link in write process, we could only
+just mark it as closed.
+
+2. When reading from a link, it is never in the ready_list, so it
+is safe to close it in read process, also safe to put it into
+ready_list.
+
+3. Ignore FDEVENT_ERR
+
+A link is in either one of these places:
+	1. ready list
+	2. async worker queue
+So it safe to delete link when processing ready list and async worker result.
+*/
+int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_list){
+	Link *link = (Link *)fde->data.ptr;
+	if(fde->events & FDEVENT_IN){
+		ready_list->push_back(link);
+		if(link->error()){
+			return 0;
+		}
+		int len = link->read();
+		//log_debug("fd: %d read: %d", link->fd(), len);
+		if(len <= 0){
+			log_debug("fd: %d, read: %d, delete link", link->fd(), len);
+			link->mark_error();
+			return 0;
+		}
+	}
+	if(fde->events & FDEVENT_OUT){
+		if(link->error()){
+			return 0;
+		}
+		int len = link->write();
+		if(len <= 0){
+			log_debug("fd: %d, write: %d, delete link", link->fd(), len);
+			link->mark_error();
+			return 0;
+		}
+		if(link->output->empty()){
+			fdes->clr(link->fd(), FDEVENT_OUT);
+		}
+	}
+	return 0;
+}
+
+void NetworkServer::check_pidfile(){
 	if(pidfile.size()){
 		if(access(pidfile.c_str(), F_OK) == 0){
 			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
@@ -420,7 +421,7 @@ void Server::check_pidfile(){
 	}
 }
 
-void Server::write_pidfile(){
+void NetworkServer::write_pidfile(){
 	if(pidfile.size()){
 		FILE *fp = fopen(pidfile.c_str(), "w");
 		if(!fp){
@@ -436,13 +437,13 @@ void Server::write_pidfile(){
 	}
 }
 
-void Server::remove_pidfile(){
+void NetworkServer::remove_pidfile(){
 	if(pidfile.size()){
 		remove(pidfile.c_str());
 	}
 }
 
-void Server::proc(ProcJob *job){
+void NetworkServer::proc(ProcJob *job){
 	job->serv = this;
 	job->result = PROC_OK;
 	job->stime = millitime();
@@ -498,22 +499,22 @@ void Server::proc(ProcJob *job){
 
 /* built-in procs */
 
-static int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_ping(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
 	return 0;
 }
 
-static int proc_info(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
 	resp->push_back("ideawu's network server framework");
 	resp->push_back("version");
 	resp->push_back("1.0");
 	resp->push_back("links");
-	resp->add(serv->link_count);
+	resp->add(net->link_count);
 	{
 		int64_t calls = 0;
 		proc_map_t::iterator it;
-		for(it=serv->proc_map.begin(); it!=serv->proc_map.end(); it++){
+		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
 			Command *cmd = it->second;
 			calls += cmd->calls;
 		}
@@ -523,11 +524,11 @@ static int proc_info(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-int proc_auth(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_auth(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	if(req.size() != 2){
 		resp->push_back("client_error");
 	}else{
-		if(!serv->need_auth || req[1] == serv->password){
+		if(!net->need_auth || req[1] == net->password){
 			link->auth = true;
 			resp->push_back("ok");
 			resp->push_back("1");

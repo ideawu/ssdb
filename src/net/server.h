@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "../util/fde.h"
-#include "resp.h"
 #include "proc.h"
 #include "worker.h"
 
@@ -33,7 +32,7 @@ class Fdevents;
 
 typedef std::vector<Link *> ready_list_t;
 
-class Server
+class NetworkServer
 {
 private:
 	int tick_interval;
@@ -61,21 +60,22 @@ private:
 	ProcWorkerPool *writer;
 	ProcWorkerPool *reader;
 
-	void init(const char *conf_file, bool is_daemon);
-
 protected:
 	void usage(int argc, char **argv);
 
 public:
+	void *data;
 	ProcMap proc_map;
 	int link_count;
 	bool need_auth;
 	std::string password;
 
-	Server();
-	~Server();
+	NetworkServer();
+	~NetworkServer();
 	
-	void run(const char *conf_file, bool is_daemon);
+	void init(const char *conf_file, bool is_daemon);
+	void init(const Config &conf, bool is_daemon);
+	void serve();
 };
 
 

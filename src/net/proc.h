@@ -2,21 +2,21 @@
 #define NET_PROC_H_
 
 #include <vector>
+#include "resp.h"
 #include "../util/bytes.h"
 
 class Link;
-class Server;
-class Response;
+class NetworkServer;
 
 #define PROC_OK			0
 #define PROC_ERROR		-1
 #define PROC_THREAD     1
 #define PROC_BACKEND	100
 
-#define DEF_PROC(f) static int proc_##f(Server *serv, Link *link, const Request &req, Response *resp)
+#define DEF_PROC(f) int proc_##f(NetworkServer *net, Link *link, const Request &req, Response *resp)
 
 typedef std::vector<Bytes> Request;
-typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *resp);
+typedef int (*proc_t)(NetworkServer *net, Link *link, const Request &req, Response *resp);
 
 struct Command{
 	static const int FLAG_READ		= (1 << 0);
@@ -42,7 +42,7 @@ struct Command{
 
 struct ProcJob{
 	int result;
-	Server *serv;
+	NetworkServer *serv;
 	Link *link;
 	Command *cmd;
 	double stime;

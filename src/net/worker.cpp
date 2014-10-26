@@ -1,7 +1,6 @@
 #include "worker.h"
 #include "link.h"
 #include "proc.h"
-#include "resp.h"
 #include "../util/log.h"
 
 ProcWorker::ProcWorker(const std::string &name){
