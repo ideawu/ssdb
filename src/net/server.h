@@ -57,8 +57,8 @@ public:
 	NetworkServer();
 	~NetworkServer();
 	
-	void init(const char *conf_file, bool is_daemon);
-	void init(const Config &conf, bool is_daemon);
+	void init(const char *conf_file);
+	void init(const Config &conf);
 	void serve();
 };
 

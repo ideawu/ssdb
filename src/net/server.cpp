@@ -1,5 +1,4 @@
 #include "server.h"
-#include "../util/daemon.h"
 #include "../util/strings.h"
 #include "../util/file.h"
 #include "../util/config.h"
@@ -78,7 +77,7 @@ NetworkServer::~NetworkServer(){
 	log_info("server exit.");
 }
 
-void NetworkServer::init(const char *conf_file, bool is_daemon){
+void NetworkServer::init(const char *conf_file){
 	if(!is_file(conf_file)){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
 		exit(1);
@@ -96,37 +95,12 @@ void NetworkServer::init(const char *conf_file, bool is_daemon){
 			exit(1);
 		}
 	}
-	log_info("conf_file        : %s", conf_file);
-	this->init(*conf, is_daemon);
+	this->init(*conf);
 }
 
-void NetworkServer::init(const Config &conf, bool is_daemon){
+void NetworkServer::init(const Config &conf){
 	pidfile = conf.get_str("pidfile");
 	check_pidfile();
-	
-	std::string log_output;
-	std::string log_level;
-	int log_rotate_size = 0;
-	{ // logger
-		log_level = conf.get_str("logger.level");
-		if(log_level.empty()){
-			log_level = "debug";
-		}
-		int level = Logger::get_level(log_level.c_str());
-		log_rotate_size = conf.get_num("logger.rotate.size");
-		log_output = conf.get_str("logger.output");
-		if(log_output == ""){
-			log_output = "stdout";
-		}
-		if(log_open(log_output.c_str(), level, true, log_rotate_size) == -1){
-			fprintf(stderr, "error opening log file: %s\n", log_output.c_str());
-			exit(1);
-		}
-	}
-
-	log_info("log_level       : %s", log_level.c_str());
-	log_info("log_output      : %s", log_output.c_str());
-	log_info("log_rotate_size : %d", log_rotate_size);
 	
 	// init ip_filter
 	{
@@ -179,12 +153,6 @@ void NetworkServer::init(const Config &conf, bool is_daemon){
 			exit(1);
 		}
 		log_info("server listen on %s:%d", ip, port);
-	}
-	
-	// WARN!!!
-	// deamonize() MUST be called before any thread is created!
-	if(is_daemon){
-		daemonize();
 	}
 }
 

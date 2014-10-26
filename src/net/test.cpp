@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 	}
 
 	NetworkServer serv;
-	serv.init(conf_file, is_daemon);
+	serv.init(conf_file);
 	serv.serve();
 	return 0;
 }
