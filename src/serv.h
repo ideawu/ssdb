@@ -29,7 +29,7 @@ public:
 
 
 #define CHECK_KEY_RANGE(n) do{ \
-		if(req.size() > 1){ \
+		if(req.size() > n){ \
 			if(!serv->ssdb->in_kv_range(req[n])){ \
 				resp->push_back("out_of_range"); \
 				return 0; \
