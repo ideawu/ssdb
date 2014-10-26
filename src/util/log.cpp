@@ -1,4 +1,11 @@
 #include "log.h"
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <sys/time.h>
 
 static Logger logger;
 

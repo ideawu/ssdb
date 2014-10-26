@@ -1,8 +1,6 @@
 #ifndef UTIL_DAEMON_H
 #define UTIL_DAEMON_H
 
-#include "../include.h"
-
 int daemonize(const char *dir=NULL){
 	switch(fork()){
 		case -1:

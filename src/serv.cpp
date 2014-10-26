@@ -62,17 +62,6 @@ SSDBServer::~SSDBServer(){
 
 	log_debug("SSDBServer finalized");
 }
-
-/*
-		// KEY RANGE
-		if(cmd->key_pos > 0){
-			std::string key = req->at(cmd->key_pos).String();
-			if(!this->ssdb->in_kv_range(key)){
-				resp.push_back("out_of_range");
-				break;
-			}
-		}
-*/
 		
 int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;

@@ -1,5 +1,4 @@
 #include "bytes.h"
-#include "log.h"
 
 Buffer::Buffer(int total){
 	size_ = 0;

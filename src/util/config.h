@@ -19,7 +19,6 @@
 	把配置项的值作为字符串(char *)返回
 */
 
-#include "../include.h"
 #include <string>
 #include <vector>
 

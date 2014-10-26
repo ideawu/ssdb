@@ -1,9 +1,16 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include "../include.h"
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
 #include <string>
 #include <algorithm>
+
 
 inline static
 int is_empty_str(const char *str){
