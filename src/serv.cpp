@@ -111,24 +111,23 @@ DEF_PROC(clear_binlog);
 
 
 #define PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
-#define PROC_KP1(c, f) net->proc_map.set_proc(#c, f, proc_##c)
 
 void SSDBServer::reg_procs(NetworkServer *net){
-	PROC_KP1(get, "r");
-	PROC_KP1(set, "wt");
-	PROC_KP1(del, "wt");
-	PROC_KP1(setx, "wt");
-	PROC_KP1(setnx, "wt");
-	PROC_KP1(getset, "wt");
-	PROC_KP1(getbit, "r");
-	PROC_KP1(setbit, "wt");
-	PROC_KP1(countbit, "r");
-	PROC_KP1(substr, "r");
-	PROC_KP1(getrange, "r");
-	PROC_KP1(strlen, "r");
-	PROC_KP1(redis_bitcount, "r");
-	PROC_KP1(incr, "wt");
-	PROC_KP1(decr, "wt");
+	PROC(get, "r");
+	PROC(set, "wt");
+	PROC(del, "wt");
+	PROC(setx, "wt");
+	PROC(setnx, "wt");
+	PROC(getset, "wt");
+	PROC(getbit, "r");
+	PROC(setbit, "wt");
+	PROC(countbit, "r");
+	PROC(substr, "r");
+	PROC(getrange, "r");
+	PROC(strlen, "r");
+	PROC(redis_bitcount, "r");
+	PROC(incr, "wt");
+	PROC(decr, "wt");
 	PROC(scan, "rt");
 	PROC(rscan, "rt");
 	PROC(keys, "rt");
