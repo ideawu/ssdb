@@ -8,7 +8,7 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 		int ret = serv->ssdb->get(req[1], &val);
 		if(ret == 1){
 			resp->push_back("ok");
-			resp->push_back(val);
+			resp->push_back(val);c
 		}else if(ret == 0){
 			resp->push_back("not_found");
 		}else{
@@ -306,15 +306,19 @@ static int proc_countbit(Server *serv, Link *link, const Request &req, Response 
 			start = req[2].Int();
 		}
 		int size = -1;
-		if(req.size() > 3){
-			size = req[3].Int();
-		}
 		std::string val;
 		int ret = serv->ssdb->get(key, &val);
 		if(ret == -1){
 			resp->push_back("error");
 		}else{
-			std::string str = substr(val, start, size);
+			std::string str;
+			int size = -1;
+			if(req.size() > 3){
+				size = req[3].Int();
+				str = substr(val, start, size);
+			}else{
+				str = substr(val, start, val.size());
+			}
 			int count = bitcount(str.data(), str.size());
 			serv->int_reply(resp, count);
 		}
