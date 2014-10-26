@@ -1,6 +1,5 @@
 #include "resp.h"
-#include <inttypes.h>
-#include <stdint.h>
+#include <stdio.h>
 
 int Response::size() const{
 	return (int)resp.size();
