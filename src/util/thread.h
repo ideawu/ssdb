@@ -1,10 +1,12 @@
 #ifndef UTIL_THREAD_H_
 #define UTIL_THREAD_H_
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <pthread.h>
 #include <queue>
 #include <vector>
-
 
 class Mutex{
 	private:

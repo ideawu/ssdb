@@ -11,6 +11,8 @@
 #include "util/log.h"
 #include "version.h"
 
+#include "../src/include.h"
+
 struct Data
 {
 	std::string key;
