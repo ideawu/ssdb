@@ -49,6 +49,7 @@ public:
 	int set_kv_range(const std::string &s, const std::string &e);
 	int get_kv_range(std::string *s, std::string *e);
 	bool in_kv_range(const std::string &key) const;
+	bool in_kv_range(const Bytes &key) const;
 
 	/* raw operates */
 

@@ -1,11 +1,12 @@
 include ../build_config.mk
 
-OBJS = ssdb.o iterator.o link.o \
+OBJS = ssdb.o iterator.o \
 	t_kv.o t_hash.o t_zset.o t_queue.o \
-	proc.o proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
+	proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
 	backend_dump.o backend_sync.o slave.o binlog.o \
-	resp.o serv.o ttl.o
-UTIL_OBJS = util/log.o util/fde.o util/config.o util/bytes.o util/sorted_set.o
+	serv.o ttl.o
+UTIL_OBJS = util/log.o util/config.o util/bytes.o util/sorted_set.o \
+	net/fde.o net/link.o net/resp.o net/proc.o net/worker.o net/server.o
 EXES = ../ssdb-server
 
 
@@ -35,17 +36,11 @@ t_zset.o: ssdb.h t_zset.h t_zset.cpp
 t_queue.o: ssdb.h t_queue.h t_queue.cpp
 	${CXX} ${CFLAGS} -c t_queue.cpp
 
-link.o: ssdb.h link.h link.cpp link_redis.h link_redis.cpp
-	${CXX} ${CFLAGS} -c link.cpp
-
 binlog.o: ssdb.h binlog.h binlog.cpp
 	${CXX} ${CFLAGS} -c binlog.cpp
 
 slave.o: ssdb.h slave.h slave.cpp
 	${CXX} ${CFLAGS} -c slave.cpp
-
-resp.o: ssdb.h resp.h resp.cpp
-	${CXX} ${CFLAGS} -c resp.cpp
 
 backend_dump.o: ssdb.h backend_dump.h backend_dump.cpp
 	${CXX} ${CFLAGS} -c backend_dump.cpp

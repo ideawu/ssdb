@@ -197,6 +197,15 @@ int SSDB::get_kv_range(std::string *start, std::string *end){
 	return 0;
 }
 
+bool SSDB::in_kv_range(const Bytes &key) const{
+	if((this->kv_range_s.size() && this->kv_range_s >= key)
+		|| (this->kv_range_e.size() && this->kv_range_e < key))
+	{
+		return false;
+	}
+	return true;
+}
+
 bool SSDB::in_kv_range(const std::string &key) const{
 	if((this->kv_range_s.size() && this->kv_range_s >= key)
 		|| (this->kv_range_e.size() && this->kv_range_e < key))

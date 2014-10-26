@@ -1,8 +1,11 @@
 /* zset */
 #include "serv.h"
 #include "t_zset.h"
+#include "net/proc.h"
+#include "net/server.h"
 
-int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -15,7 +18,8 @@ int proc_zexists(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -36,7 +40,8 @@ int proc_multi_zexists(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-int proc_multi_zsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -55,7 +60,8 @@ int proc_multi_zsize(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-int proc_multi_zset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
 	}else{
@@ -78,7 +84,8 @@ int proc_multi_zset(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_multi_zdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zdel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -100,7 +107,8 @@ int proc_multi_zdel(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_multi_zget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_zget(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -121,7 +129,8 @@ int proc_multi_zget(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_zset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -131,7 +140,8 @@ int proc_zset(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -141,7 +151,8 @@ int proc_zsize(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zget(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -152,7 +163,8 @@ int proc_zget(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zdel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -162,7 +174,8 @@ int proc_zdel(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrank(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -172,7 +185,8 @@ int proc_zrank(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrrank(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -182,7 +196,8 @@ int proc_zrrank(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -199,7 +214,8 @@ int proc_zrange(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -216,7 +232,8 @@ int proc_zrrange(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zclear(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -248,7 +265,8 @@ int proc_zclear(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -272,7 +290,8 @@ int proc_zscan(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -296,7 +315,8 @@ int proc_zrscan(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zkeys(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zkeys(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 6){
 		resp->push_back("client_error");
 	}else{
@@ -311,7 +331,8 @@ int proc_zkeys(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -323,7 +344,8 @@ int proc_zlist(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zrlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -351,15 +373,18 @@ static int _zincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-int proc_zincr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zincr(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	return _zincr(serv->ssdb, req, resp, 1);
 }
 
-int proc_zdecr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zdecr(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	return _zincr(serv->ssdb, req, resp, -1);
 }
 
-int proc_zcount(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zcount(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -375,7 +400,8 @@ int proc_zcount(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zsum(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zsum(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -391,7 +417,8 @@ int proc_zsum(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zavg(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zavg(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -411,7 +438,8 @@ int proc_zavg(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zremrangebyscore(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;
@@ -433,7 +461,8 @@ int proc_zremrangebyscore(Server *serv, Link *link, const Request &req, Response
 	return 0;
 }
 
-int proc_zremrangebyrank(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_zremrangebyrank(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 		return 0;

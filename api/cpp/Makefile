@@ -10,7 +10,7 @@ lib: SSDB.h SSDB_impl.h SSDB_impl.cpp
 		SSDB_impl.o\
 		../../src/util/bytes.o\
 		../../src/util/log.o\
-		../../src/link.o
+		../../src/net/link.o
 
 clean:
 	rm -f demo hello-ssdb libssdb.a SSDB_impl.o

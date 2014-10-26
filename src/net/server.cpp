@@ -8,9 +8,9 @@
 #include "link.h"
 #include <vector>
 
-DEF_PROC(ping);
-DEF_PROC(info);
-DEF_PROC(auth);
+static DEF_PROC(ping);
+static DEF_PROC(info);
+static DEF_PROC(auth);
 
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
@@ -499,12 +499,12 @@ void NetworkServer::proc(ProcJob *job){
 
 /* built-in procs */
 
-int proc_ping(NetworkServer *net, Link *link, const Request &req, Response *resp){
+static int proc_ping(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
 	return 0;
 }
 
-int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){
+static int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
 	resp->push_back("ideawu's network server framework");
 	resp->push_back("version");
@@ -524,7 +524,7 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_auth(NetworkServer *net, Link *link, const Request &req, Response *resp){
+static int proc_auth(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	if(req.size() != 2){
 		resp->push_back("client_error");
 	}else{

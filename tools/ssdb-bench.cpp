@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "link.h"
+#include "net/link.h"
 #include "util/fde.h"
 #include "util/log.h"
 #include "version.h"

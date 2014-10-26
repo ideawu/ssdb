@@ -469,7 +469,7 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
-			case 'get_accept_range':
+			case 'get_key_range':
 				for(i=0; i<len(resp.data); i++){
 					resp.data[i] = repr_data(resp.data[i]);
 					if(resp.data[i] == ''){

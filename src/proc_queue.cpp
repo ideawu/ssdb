@@ -1,8 +1,11 @@
 /* queue */
 #include "serv.h"
 #include "t_queue.h"
+#include "net/proc.h"
+#include "net/server.h"
 
-int proc_qsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -12,7 +15,8 @@ int proc_qsize(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qfront(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qfront(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -23,7 +27,8 @@ int proc_qfront(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qback(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qback(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -38,7 +43,8 @@ static int QFRONT = 2;
 static int QBACK  = 3;
 
 static inline
-int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
+int proc_qpush_func(NetworkServer *net, Link *link, const Request &req, Response *resp, int front_or_back){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -63,21 +69,22 @@ int proc_qpush_func(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_qpush_front(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpush_func(serv, link, req, resp, QFRONT);
+int proc_qpush_front(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(net, link, req, resp, QFRONT);
 }
 
-int proc_qpush_back(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpush_func(serv, link, req, resp, QBACK);
+int proc_qpush_back(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(net, link, req, resp, QBACK);
 }
 
-int proc_qpush(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpush_func(serv, link, req, resp, QBACK);
+int proc_qpush(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpush_func(net, link, req, resp, QBACK);
 }
 
 
 static inline
-int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
+int proc_qpop_func(NetworkServer *net, Link *link, const Request &req, Response *resp, int front_or_back){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -117,20 +124,21 @@ int proc_qpop_func(Server *serv, Link *link, const Request &req, Response *resp,
 	return 0;
 }
 
-int proc_qpop_front(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpop_func(serv, link, req, resp, QFRONT);
+int proc_qpop_front(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(net, link, req, resp, QFRONT);
 }
 
-int proc_qpop_back(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpop_func(serv, link, req, resp, QBACK);
+int proc_qpop_back(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(net, link, req, resp, QBACK);
 }
 
-int proc_qpop(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qpop_func(serv, link, req, resp, QFRONT);
+int proc_qpop(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qpop_func(net, link, req, resp, QFRONT);
 }
 
 static inline
-int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp, int front_or_back){
+int proc_qtrim_func(NetworkServer *net, Link *link, const Request &req, Response *resp, int front_or_back){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -159,15 +167,16 @@ int proc_qtrim_func(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_qtrim_front(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qtrim_func(serv, link, req, resp, QFRONT);
+int proc_qtrim_front(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qtrim_func(net, link, req, resp, QFRONT);
 }
 
-int proc_qtrim_back(Server *serv, Link *link, const Request &req, Response *resp){
-	return proc_qtrim_func(serv, link, req, resp, QBACK);
+int proc_qtrim_back(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	return proc_qtrim_func(net, link, req, resp, QBACK);
 }
 
-int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -179,7 +188,8 @@ int proc_qlist(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qrlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -191,7 +201,8 @@ int proc_qrlist(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qfix(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qfix(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -205,7 +216,8 @@ int proc_qfix(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qclear(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -226,7 +238,8 @@ int proc_qclear(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qslice(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qslice(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -239,7 +252,8 @@ int proc_qslice(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qrange(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -258,7 +272,8 @@ int proc_qrange(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qget(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -270,7 +285,8 @@ int proc_qget(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_qset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_qset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{

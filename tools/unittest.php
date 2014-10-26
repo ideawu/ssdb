@@ -160,6 +160,8 @@ class SSDBTest extends UnitTest{
 		$this->assert($ret === 0);
 		$ret = $ssdb->countbit($key, 0, 2);
 		$this->assert($ret === 1);
+		$ret = $ssdb->countbit($key, 0);
+		$this->assert($ret === 1);
 		$ret = $ssdb->strlen($key);
 		$this->assert($ret === 2);
 		$val = '0123456789';

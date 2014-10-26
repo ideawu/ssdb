@@ -1,8 +1,11 @@
 /* hash */
 #include "serv.h"
 #include "t_hash.h"
+#include "net/proc.h"
+#include "net/server.h"
 
-int proc_hexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -15,7 +18,8 @@ int proc_hexists(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_multi_hexists(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -36,7 +40,8 @@ int proc_multi_hexists(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-int proc_multi_hsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -55,7 +60,8 @@ int proc_multi_hsize(Server *serv, Link *link, const Request &req, Response *res
 	return 0;
 }
 
-int proc_multi_hset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
 	}else{
@@ -78,7 +84,8 @@ int proc_multi_hset(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_multi_hdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hdel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -100,7 +107,8 @@ int proc_multi_hdel(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_multi_hget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_multi_hget(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -121,7 +129,8 @@ int proc_multi_hget(Server *serv, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
-int proc_hsize(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -131,7 +140,8 @@ int proc_hsize(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hset(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -141,7 +151,8 @@ int proc_hset(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hget(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hget(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -152,7 +163,8 @@ int proc_hget(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hdel(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hdel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 3){
 		resp->push_back("client_error");
 	}else{
@@ -162,7 +174,8 @@ int proc_hdel(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hclear(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hclear(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 		return 0;
@@ -194,7 +207,8 @@ int proc_hclear(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hgetall(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hgetall(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 2){
 		resp->push_back("client_error");
 	}else{
@@ -209,7 +223,8 @@ int proc_hgetall(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -225,7 +240,8 @@ int proc_hscan(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hrscan(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hrscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -241,7 +257,8 @@ int proc_hrscan(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hkeys(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hkeys(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -258,7 +275,8 @@ int proc_hkeys(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hvals(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hvals(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 5){
 		resp->push_back("client_error");
 	}else{
@@ -274,7 +292,8 @@ int proc_hvals(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -286,7 +305,8 @@ int proc_hlist(Server *serv, Link *link, const Request &req, Response *resp){
 	return 0;
 }
 
-int proc_hrlist(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hrlist(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4){
 		resp->push_back("client_error");
 	}else{
@@ -318,11 +338,13 @@ static int _hincr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	return 0;
 }
 
-int proc_hincr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hincr(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	return _hincr(serv->ssdb, req, resp, 1);
 }
 
-int proc_hdecr(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_hdecr(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	return _hincr(serv->ssdb, req, resp, -1);
 }
 

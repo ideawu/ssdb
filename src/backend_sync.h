@@ -7,8 +7,8 @@
 #include <map>
 
 #include "ssdb.h"
-#include "link.h"
 #include "binlog.h"
+#include "net/link.h"
 #include "util/thread.h"
 
 class BackendSync{

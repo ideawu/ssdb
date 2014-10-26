@@ -2,7 +2,7 @@
 #define SSDB_API_IMPL_CPP
 
 #include "SSDB.h"
-#include "link.h"
+#include "net/link.h"
 
 namespace ssdb{
 

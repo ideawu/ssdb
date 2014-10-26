@@ -2,20 +2,14 @@
 #include "util/log.h"
 #include "util/strings.h"
 #include "serv.h"
+#include "net/proc.h"
+#include "net/server.h"
 
-Server::Server(SSDB *ssdb, const Config &conf){
+SSDBServer::SSDBServer(SSDB *ssdb, const Config &conf){
 	this->ssdb = ssdb;
-	this->link_count = 0;
-	this->need_auth = false;
 	backend_dump = new BackendDump(ssdb);
 	backend_sync = new BackendSync(ssdb);
 	expiration = new ExpirationHandler(ssdb);
-	
-	writer = new WorkerPool<ProcWorker, ProcJob>("writer");
-	writer->start(WRITER_THREADS);
-	reader = new WorkerPool<ProcWorker, ProcJob>("reader");
-	reader->start(READER_THREADS);
-
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
@@ -54,7 +48,7 @@ Server::Server(SSDB *ssdb, const Config &conf){
 	}
 }
 
-Server::~Server(){
+SSDBServer::~SSDBServer(){
 	std::vector<Slave *>::iterator it;
 	for(it = slaves.begin(); it != slaves.end(); it++){
 		Slave *slave = *it;
@@ -64,41 +58,12 @@ Server::~Server(){
 
 	delete backend_dump;
 	delete backend_sync;
-	
 	delete expiration;
-	
-	writer->stop();
-	delete writer;
-	reader->stop();
-	delete reader;
 
-	log_debug("Server finalized");
+	log_debug("SSDBServer finalized");
 }
 
-void Server::proc(ProcJob *job){
-	job->serv = this;
-	job->result = PROC_OK;
-	job->stime = millitime();
-
-	const Request *req = job->link->last_recv();
-	Response resp;
-
-	do{
-		// AUTH
-		if(this->need_auth && job->link->auth == false && req->at(0) != "auth"){
-			resp.push_back("noauth");
-			resp.push_back("authentication required");
-			break;
-		}
-		
-		Command *cmd = proc_map.find(req->at(0));
-		if(!cmd){
-			resp.push_back("client_error");
-			resp.push_back("Unknown Command: " + req->at(0).String());
-			break;
-		}
-		job->cmd = cmd;
-		
+/*
 		// KEY RANGE
 		if(cmd->key_pos > 0){
 			std::string key = req->at(cmd->key_pos).String();
@@ -107,88 +72,36 @@ void Server::proc(ProcJob *job){
 				break;
 			}
 		}
+*/
 		
-		if(cmd->flags & Command::FLAG_THREAD){
-			if(cmd->flags & Command::FLAG_WRITE){
-				job->result = PROC_THREAD;
-				writer->push(*job);
-			}else{
-				job->result = PROC_THREAD;
-				reader->push(*job);
-			}
-			return;
-		}
-
-		proc_t p = cmd->proc;
-		job->time_wait = 1000 * (millitime() - job->stime);
-		job->result = (*p)(this, job->link, *req, &resp);
-		job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
-	}while(0);
-	
-	if(job->link->send(resp.resp) == -1){
-		job->result = PROC_ERROR;
-	}else{
-		if(log_level() >= Logger::LEVEL_DEBUG){
-			log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-				job->time_wait, job->time_proc,
-				serialize_req(*req).c_str(),
-				serialize_req(resp.resp).c_str());
-		}
-	}
-}
-
-Server::ProcWorker::ProcWorker(const std::string &name){
-	this->name = name;
-}
-
-void Server::ProcWorker::init(){
-	log_debug("%s %d init", this->name.c_str(), this->id);
-}
-
-int Server::ProcWorker::proc(ProcJob *job){
-	const Request *req = job->link->last_recv();
-	Response resp;
-	
-	proc_t p = job->cmd->proc;
-	job->time_wait = 1000 * (millitime() - job->stime);
-	job->result = (*p)(job->serv, job->link, *req, &resp);
-	job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
-
-	if(job->link->send(resp.resp) == -1){
-		job->result = PROC_ERROR;
-	}else{
-		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-			job->time_wait, job->time_proc,
-			serialize_req(*req).c_str(),
-			serialize_req(resp.resp).c_str());
-	}
-	return 0;
-}
-
-
-int proc_clear_binlog(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->binlogs->flush();
 	resp->push_back("ok");
 	return 0;
 }
 
-int proc_dump(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_dump(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->backend_dump->proc(link);
 	return PROC_BACKEND;
 }
 
-int proc_sync140(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_sync140(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->backend_sync->proc(link);
 	return PROC_BACKEND;
 }
 
-int proc_compact(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_compact(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->compact();
 	resp->push_back("ok");
 	return 0;
 }
 
-int proc_key_range(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	std::vector<std::string> tmp;
 	int ret = serv->ssdb->key_range(&tmp);
 	if(ret == -1){
@@ -205,7 +118,8 @@ int proc_key_range(Server *serv, Link *link, const Request &req, Response *resp)
 	return 0;
 }
 
-int proc_get_key_range(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	resp->push_back("ok");
 	std::string s, e;
 	int ret = serv->ssdb->get_kv_range(&s, &e);
@@ -218,7 +132,8 @@ int proc_get_key_range(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-int proc_set_key_range(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -228,23 +143,95 @@ int proc_set_key_range(Server *serv, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
+int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	resp->push_back("ok");
-	return 0;
-}
+	resp->push_back("ssdb-server");
+	resp->push_back("version");
+	resp->push_back(SSDB_VERSION);
+	{
+		resp->push_back("links");
+		resp->add(net->link_count);
+	}
+	{
+		int64_t calls = 0;
+		proc_map_t::iterator it;
+		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
+			Command *cmd = it->second;
+			calls += cmd->calls;
+		}
+		resp->push_back("total_calls");
+		resp->add(calls);
+	}
 
-int proc_auth(Server *serv, Link *link, const Request &req, Response *resp){
-	if(req.size() != 2){
-		resp->push_back("client_error");
-	}else{
-		if(!serv->need_auth || req[1] == serv->password){
-			link->auth = true;
-			resp->push_back("ok");
-			resp->push_back("1");
-		}else{
-			resp->push_back("error");
-			resp->push_back("invalid password");
+	if(req.size() > 1 && req[1] == "cmd"){
+		proc_map_t::iterator it;
+		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
+			Command *cmd = it->second;
+			resp->push_back("cmd." + cmd->name);
+			char buf[128];
+			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
+				cmd->calls, cmd->time_wait, cmd->time_proc);
+			resp->push_back(buf);
 		}
 	}
+
+	{
+		std::string s = serv->ssdb->binlogs->stats();
+		resp->push_back("replication");
+		resp->push_back(s);
+	}
+	std::vector<Slave *>::iterator it;
+	for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
+		Slave *slave = *it;
+		std::string s = slave->stats();
+		resp->push_back("replication");
+		resp->push_back(s);
+	}
+
+	if(req.size() == 1 || req[1] == "range"){
+		std::vector<std::string> tmp;
+		int ret = serv->ssdb->key_range(&tmp);
+		if(ret == 0){
+			char buf[512];
+			
+			resp->push_back("key_range.kv");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[0].data(), tmp[0].size()).c_str(),
+				hexmem(tmp[1].data(), tmp[1].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.hash");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[2].data(), tmp[2].size()).c_str(),
+				hexmem(tmp[3].data(), tmp[3].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.zset");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
+				hexmem(tmp[5].data(), tmp[5].size()).c_str()
+				);
+			resp->push_back(buf);
+			
+			resp->push_back("key_range.list");
+			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
+				hexmem(tmp[7].data(), tmp[7].size()).c_str()
+				);
+			resp->push_back(buf);
+		}
+	}
+
+	if(req.size() == 1 || req[1] == "leveldb"){
+		std::vector<std::string> tmp = serv->ssdb->info();
+		for(int i=0; i<(int)tmp.size(); i++){
+			std::string block = tmp[i];
+			resp->push_back(block);
+		}
+	}
+	
 	return 0;
 }
