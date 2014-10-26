@@ -10,8 +10,9 @@
 #include "leveldb/slice.h"
 #include "leveldb/iterator.h"
 
-#include "net/link.h"
 #include "include.h"
+#include "const.h"
+#include "net/link.h"
 #include "util/log.h"
 #include "util/file.h"
 #include "util/strings.h"

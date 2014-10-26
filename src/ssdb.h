@@ -2,6 +2,7 @@
 #define SSDB_H_
 
 #include "include.h"
+#include "const.h"
 #include <vector>
 #include "leveldb/db.h"
 #include "leveldb/options.h"

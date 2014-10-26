@@ -1,7 +1,4 @@
 #include "fde.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 struct Fdevent* Fdevents::get_fde(int fd){
 	while((int)events.size() <= fd){

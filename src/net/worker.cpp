@@ -2,15 +2,7 @@
 #include "link.h"
 #include "proc.h"
 #include "../util/log.h"
-#include <time.h>
-#include <sys/time.h>
-
-static inline double millitime(){
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	double ret = now.tv_sec + now.tv_usec/1000.0/1000.0;
-	return ret;
-}
+#include "../include.h"
 
 ProcWorker::ProcWorker(const std::string &name){
 	this->name = name;

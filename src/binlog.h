@@ -2,6 +2,7 @@
 #define SSDB_BINLOG_H_
 
 #include "include.h"
+#include "const.h"
 #include <string>
 #include "leveldb/db.h"
 #include "leveldb/options.h"

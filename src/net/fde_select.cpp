@@ -1,6 +1,5 @@
 #ifndef UTIL_FDE_SELECT_H
 #define UTIL_FDE_SELECT_H
-#include <errno.h>
 
 Fdevents::Fdevents(){
 	maxfd = -1;

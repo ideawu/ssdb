@@ -1,6 +1,5 @@
 #ifndef UTIL_FDE_EPOLL_H
 #define UTIL_FDE_EPOLL_H
-#include <errno.h>
 
 Fdevents::Fdevents(){
 	ep_fd = epoll_create(1024);

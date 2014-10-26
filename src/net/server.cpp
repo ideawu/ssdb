@@ -8,13 +8,6 @@
 #include "link.h"
 #include <vector>
 
-static inline double millitime(){
-	struct timeval now;
-	gettimeofday(&now, NULL);
-	double ret = now.tv_sec + now.tv_usec/1000.0/1000.0;
-	return ret;
-}
-
 static DEF_PROC(ping);
 static DEF_PROC(info);
 static DEF_PROC(auth);
