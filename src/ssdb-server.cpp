@@ -10,11 +10,63 @@
 #include "ssdb.h"
 #include "serv.h"
 
+Config *conf = NULL;
+NetworkServer *net = NULL;
+
 void welcome();
 void usage(int argc, char **argv);
-void reg_procs(NetworkServer *net);
+void init(int argc, char **argv);
+void reg_procs();
 
 int main(int argc, char **argv){
+	init(argc, argv);
+	
+	SSDB *ssdb = NULL;
+	{ // ssdb
+		std::string work_dir;
+		work_dir = conf->get_str("work_dir");
+		if(work_dir.empty()){
+			work_dir = ".";
+		}
+		if(!is_dir(work_dir.c_str())){
+			fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
+			exit(1);
+		}
+
+		ssdb = SSDB::open(*conf, work_dir);
+		if(!ssdb){
+			log_fatal("could not open work_dir: %s", work_dir.c_str());
+			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
+			exit(1);
+		}
+	}
+	
+	SSDBServer *ss = new SSDBServer(ssdb, *conf);
+	net->data = ss;
+	net->serve();
+	
+	delete net;
+	delete ss;
+	delete ssdb;
+	delete conf;
+	return 0;
+}
+
+
+void welcome(){
+	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
+	fprintf(stderr, "Copyright (c) 2012-2014 ssdb.io\n");
+	fprintf(stderr, "\n");
+}
+
+void usage(int argc, char **argv){
+	printf("Usage:\n");
+	printf("    %s [-d] /path/to/ssdb.conf\n", argv[0]);
+	printf("Options:\n");
+	printf("    -d    run as daemon\n");
+}
+
+void init(int argc, char **argv){
 	bool is_daemon = false;
 	const char *conf_file = NULL;
 	for(int i=1; i<argc; i++){
@@ -34,7 +86,7 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	Config *conf = Config::load(conf_file);
+	conf = Config::load(conf_file);
 	if(!conf){
 		fprintf(stderr, "error loading conf file: '%s'\n", conf_file);
 		exit(1);
@@ -72,60 +124,17 @@ int main(int argc, char **argv){
 	log_info("log_output      : %s", log_output.c_str());
 	log_info("log_rotate_size : %d", log_rotate_size);
 
-	NetworkServer net;
-	net.init(*conf);
-	
+	net = new NetworkServer();
+	net->init(*conf);
+
 	// WARN!!!
 	// deamonize() MUST be called before any thread is created!
 	if(is_daemon){
 		daemonize();
 	}
-
-	SSDB *ssdb = NULL;
-	{ // ssdb
-		std::string work_dir;
-		work_dir = conf->get_str("work_dir");
-		if(work_dir.empty()){
-			work_dir = ".";
-		}
-		if(!is_dir(work_dir.c_str())){
-			fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
-			exit(1);
-		}
-
-		ssdb = SSDB::open(*conf, work_dir);
-		if(!ssdb){
-			log_fatal("could not open work_dir: %s", work_dir.c_str());
-			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
-			exit(1);
-		}
-	}
 	
-	reg_procs(&net);
-	SSDBServer *ss = new SSDBServer(ssdb, *conf);
-	net.data = ss;
-	net.serve();
-	
-	delete conf;
-	delete ss;
-	delete ssdb;
-	return 0;
+	reg_procs();
 }
-
-
-void welcome(){
-	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
-	fprintf(stderr, "Copyright (c) 2012-2014 ssdb.io\n");
-	fprintf(stderr, "\n");
-}
-
-void usage(int argc, char **argv){
-	printf("Usage:\n");
-	printf("    %s [-d] /path/to/ssdb.conf\n", argv[0]);
-	printf("Options:\n");
-	printf("    -d    run as daemon\n");
-}
-
 
 DEF_PROC(get);
 DEF_PROC(set);
@@ -235,7 +244,7 @@ DEF_PROC(clear_binlog);
 #define PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
 #define PROC_KP1(c, f) net->proc_map.set_proc(#c, f, proc_##c)
 
-void reg_procs(NetworkServer *net){
+void reg_procs(){
 	PROC_KP1(get, "r");
 	PROC_KP1(set, "wt");
 	PROC_KP1(del, "wt");

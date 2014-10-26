@@ -124,19 +124,6 @@ void NetworkServer::init(const Config &conf){
 	}
 	
 	{ // server
-		std::string password;
-		password = conf.get_str("server.auth");
-		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
-			log_fatal("weak password is not allowed!");
-			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
-			exit(1);
-		}
-		if(password.empty()){
-			log_info("auth            : off");
-		}else{
-			log_info("auth            : on");
-		}
-		
 		this->need_auth = false;		
 		if(!password.empty()){
 			this->need_auth = true;
@@ -153,6 +140,19 @@ void NetworkServer::init(const Config &conf){
 			exit(1);
 		}
 		log_info("server listen on %s:%d", ip, port);
+
+		std::string password;
+		password = conf.get_str("server.auth");
+		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
+			log_fatal("weak password is not allowed!");
+			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
+			exit(1);
+		}
+		if(password.empty()){
+			log_info("auth: off");
+		}else{
+			log_info("auth: on");
+		}
 	}
 }
 
