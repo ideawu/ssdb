@@ -1,6 +1,8 @@
 #ifndef NET_RESP_H_
 #define NET_RESP_H_
 
+#include <unistd.h>
+#include <inttypes.h>
 #include <string>
 #include <vector>
 
