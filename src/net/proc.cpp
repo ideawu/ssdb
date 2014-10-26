@@ -2,14 +2,7 @@
 #include "server.h"
 #include "../util/log.h"
 
-static int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
-	resp->push_back("ok");
-	resp->push_back("pong");
-	return 0;
-}
-
 ProcMap::ProcMap(){
-	set_proc("ping", "r", proc_ping);
 }
 
 ProcMap::~ProcMap(){

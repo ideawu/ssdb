@@ -8,6 +8,10 @@
 #include "../link.h"
 #include <vector>
 
+DEF_PROC(ping);
+DEF_PROC(info);
+DEF_PROC(auth);
+
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
 
@@ -28,7 +32,6 @@ void signal_handler(int sig){
 	}
 }
 
-
 Server::Server(){
 	tick_interval = TICK_INTERVAL;
 	status_report_ticks = STATUS_REPORT_TICKS;
@@ -38,6 +41,11 @@ Server::Server(){
 
 	fdes = new Fdevents();
 	ip_filter = new IpFilter();
+
+	// add built-in procs, can be overridden
+	proc_map.set_proc("ping", "r", proc_ping);
+	proc_map.set_proc("info", "r", proc_info);
+	proc_map.set_proc("auth", "r", proc_auth);
 
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGINT, signal_handler);
@@ -147,9 +155,9 @@ void Server::init(const char *conf_file, bool is_daemon){
 			exit(1);
 		}
 		if(password.empty()){
-			log_info("server.auth: off");
+			log_info("auth            : off");
 		}else{
-			log_info("server.auth: on");
+			log_info("auth            : on");
 		}
 		
 		this->need_auth = false;		
@@ -485,4 +493,48 @@ void Server::proc(ProcJob *job){
 				serialize_req(resp.resp).c_str());
 		}
 	}
+}
+
+
+/* built-in procs */
+
+static int proc_ping(Server *serv, Link *link, const Request &req, Response *resp){
+	resp->push_back("ok");
+	return 0;
+}
+
+static int proc_info(Server *serv, Link *link, const Request &req, Response *resp){
+	resp->push_back("ok");
+	resp->push_back("ideawu's network server framework");
+	resp->push_back("version");
+	resp->push_back("1.0");
+	resp->push_back("links");
+	resp->add(serv->link_count);
+	{
+		int64_t calls = 0;
+		proc_map_t::iterator it;
+		for(it=serv->proc_map.begin(); it!=serv->proc_map.end(); it++){
+			Command *cmd = it->second;
+			calls += cmd->calls;
+		}
+		resp->push_back("total_calls");
+		resp->add(calls);
+	}
+	return 0;
+}
+
+int proc_auth(Server *serv, Link *link, const Request &req, Response *resp){
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		if(!serv->need_auth || req[1] == serv->password){
+			link->auth = true;
+			resp->push_back("ok");
+			resp->push_back("1");
+		}else{
+			resp->push_back("error");
+			resp->push_back("invalid password");
+		}
+	}
+	return 0;
 }

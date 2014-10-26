@@ -13,6 +13,8 @@ class Response;
 #define PROC_THREAD     1
 #define PROC_BACKEND	100
 
+#define DEF_PROC(f) static int proc_##f(Server *serv, Link *link, const Request &req, Response *resp)
+
 typedef std::vector<Bytes> Request;
 typedef int (*proc_t)(Server *serv, Link *link, const Request &req, Response *resp);
 
@@ -94,11 +96,19 @@ class ProcMap
 {
 private:
 	proc_map_t proc_map;
+
 public:
 	ProcMap();
 	~ProcMap();
 	void set_proc(const std::string &cmd, const char *sflags, proc_t proc);
 	Command* get_proc(const Bytes &str);
+	
+	proc_map_t::iterator begin(){
+		return proc_map.begin();
+	}
+	proc_map_t::iterator end(){
+		return proc_map.end();
+	}
 };
 
 

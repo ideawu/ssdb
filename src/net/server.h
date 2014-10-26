@@ -39,9 +39,6 @@ private:
 	int tick_interval;
 	int status_report_ticks;
 	
-	int link_count;
-	bool need_auth;
-	std::string password;
 	std::string pidfile;
 
 	Config *conf;
@@ -58,7 +55,6 @@ private:
 	int proc_client_event(const Fdevent *fde, ready_list_t *ready_list);
 
 	void proc(ProcJob *job);
-	ProcMap proc_map;
 
 	static const int READER_THREADS = 10;
 	static const int WRITER_THREADS = 1;
@@ -71,6 +67,11 @@ protected:
 	void usage(int argc, char **argv);
 
 public:
+	ProcMap proc_map;
+	int link_count;
+	bool need_auth;
+	std::string password;
+
 	Server();
 	~Server();
 	

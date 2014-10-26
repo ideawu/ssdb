@@ -224,9 +224,9 @@ while(true){
 	if(cmd == 'auth'){
 		if(len(args) == 0){
 			sys.stderr.write('Usage: auth password\n');
+			continue;
 		}
 		password = args[0];
-		continue;
 	}
 	if(cmd == 'export'){
 		exporter.run(link, args);
