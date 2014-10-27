@@ -228,6 +228,10 @@ while(true){
 		}
 		password = args[0];
 	}
+	if(cmd == 'dbsize'){
+		printf("  %d MB\n", util.dbsize(link));
+		continue;
+	}
 	if(cmd == 'export'){
 		exporter.run(link, args);
 		continue;

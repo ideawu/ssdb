@@ -15,6 +15,7 @@ function dbsize(link){
 		}
 		return size;
 	}
+	return 0;
 }
 
 class SSDB_iterator_base
