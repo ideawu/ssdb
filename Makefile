@@ -27,7 +27,7 @@ install:
 		tools/ssdb-cli tools/ssdb_cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
-		tools/ssdb-ins.sh tools/unittest.php \
+		tools/ssdb-ins.sh \
 		${PREFIX}
 	cp -r deps/cpy ${PREFIX}/deps
 	chmod 755 ${PREFIX}
