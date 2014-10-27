@@ -8,7 +8,7 @@ static int proc_get(Server *serv, Link *link, const Request &req, Response *resp
 		int ret = serv->ssdb->get(req[1], &val);
 		if(ret == 1){
 			resp->push_back("ok");
-			resp->push_back(val);c
+			resp->push_back(val);
 		}else if(ret == 0){
 			resp->push_back("not_found");
 		}else{
