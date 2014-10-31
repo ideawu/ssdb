@@ -391,7 +391,7 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 
 	{
 		std::string s = serv->ssdb->binlogs->stats();
-		resp->push_back("replication");
+		resp->push_back("binlogs");
 		resp->push_back(s);
 	}
 	std::vector<Slave *>::iterator it;
