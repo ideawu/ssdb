@@ -315,7 +315,6 @@ int proc_countbit(Server *serv, Link *link, const Request &req, Response *resp){
 		if(req.size() > 2){
 			start = req[2].Int();
 		}
-		int size = -1;
 		std::string val;
 		int ret = serv->ssdb->get(key, &val);
 		if(ret == -1){
