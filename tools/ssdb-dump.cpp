@@ -11,7 +11,7 @@
 #include "leveldb/iterator.h"
 
 #include "include.h"
-#include "const.h"
+#include "ssdb/const.h"
 #include "net/link.h"
 #include "util/log.h"
 #include "util/file.h"
