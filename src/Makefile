@@ -3,7 +3,7 @@ include ../build_config.mk
 OBJS = proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
 	backend_dump.o backend_sync.o slave.o \
 	serv.o
-LIBS = ./util/libutil.a ./net/libnet.a ./ssdb/libssdb.a
+LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
 
