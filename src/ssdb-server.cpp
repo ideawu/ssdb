@@ -7,7 +7,7 @@
 #include "util/config.h"
 #include "util/daemon.h"
 #include "net/server.h"
-#include "ssdb.h"
+#include "ssdb/ssdb_impl.h"
 #include "serv.h"
 
 Config *conf = NULL;
@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 	welcome();
 	init(argc, argv);
 	
-	SSDB *ssdb = NULL;
+	SSDBImpl *ssdb = NULL;
 	{ // ssdb
 		std::string work_dir;
 		work_dir = conf->get_str("work_dir");
@@ -38,7 +38,7 @@ int main(int argc, char **argv){
 			exit(1);
 		}
 
-		ssdb = SSDB::open(*conf, work_dir);
+		ssdb = (SSDBImpl *)SSDB::open(*conf, work_dir);
 		if(!ssdb){
 			log_fatal("could not open work_dir: %s", work_dir.c_str());
 			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());

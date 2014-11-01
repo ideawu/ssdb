@@ -5,7 +5,8 @@
 #include <string>
 #include <pthread.h>
 #include <vector>
-#include "ssdb.h"
+#include "ssdb/ssdb_impl.h"
+#include "ssdb/binlog.h"
 #include "net/link.h"
 
 class Slave{

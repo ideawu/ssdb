@@ -1,6 +1,5 @@
 /* zset */
 #include "serv.h"
-#include "t_zset.h"
 #include "net/proc.h"
 #include "net/server.h"
 

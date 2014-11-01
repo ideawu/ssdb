@@ -3,9 +3,10 @@
 #include <errno.h>
 #include <string>
 #include "backend_sync.h"
+#include "util/log.h"
 #include "util/strings.h"
 
-BackendSync::BackendSync(const SSDB *ssdb){
+BackendSync::BackendSync(SSDBImpl *ssdb){
 	thread_quit = false;
 	this->ssdb = ssdb;
 }
@@ -56,7 +57,7 @@ void* BackendSync::_run_thread(void *arg){
 	//
 	link->noblock(false);
 
-	SSDB *ssdb = (SSDB *)backend->ssdb;
+	SSDBImpl *ssdb = (SSDBImpl *)backend->ssdb;
 	BinlogQueue *logs = ssdb->binlogs;
 
 	Client client(backend);
@@ -253,7 +254,7 @@ int BackendSync::Client::copy(){
 		
 		ret = 1;
 		
-		Binlog log(this->last_seq, BinlogType::COPY, cmd, key.Slice());
+		Binlog log(this->last_seq, BinlogType::COPY, cmd, slice(key));
 		log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 		link->send(log.repr(), val);
 	}

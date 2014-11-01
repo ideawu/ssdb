@@ -1,6 +1,6 @@
 #include <pthread.h>
 #include <time.h>
-#include "t_zset.h"
+#include "../util/log.h"
 #include "ttl.h"
 
 #define EXPIRATION_LIST_KEY "\xff\xff\xff\xff\xff|EXPIRE_LIST|KV"

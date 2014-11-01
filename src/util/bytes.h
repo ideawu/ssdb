@@ -1,7 +1,6 @@
 #ifndef UTIL_BYTES_H_
 #define UTIL_BYTES_H_
 
-#include "leveldb/slice.h"
 #include "strings.h"
 
 // readonly
@@ -31,11 +30,6 @@ class Bytes{
 			size_ = str.size();
 		}
 
-		Bytes(const leveldb::Slice &slice){
-			data_ = slice.data();
-			size_ = slice.size();
-		}
-
 		Bytes(const char *str){
 			data_ = str;
 			size_ = strlen(str);
@@ -61,10 +55,6 @@ class Bytes{
 				else if (size_ > b.size_) r = +1;
 			}
 			return r;
-		}
-
-		leveldb::Slice Slice() const{
-			return leveldb::Slice(data_, size_);
 		}
 
 		std::string String() const{

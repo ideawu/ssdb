@@ -1,6 +1,5 @@
 /* hash */
 #include "serv.h"
-#include "t_hash.h"
 #include "net/proc.h"
 #include "net/server.h"
 

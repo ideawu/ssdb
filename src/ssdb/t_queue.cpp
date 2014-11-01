@@ -1,6 +1,4 @@
 #include "t_queue.h"
-#include "ssdb.h"
-#include "leveldb/write_batch.h"
 
 static int qget_by_seq(leveldb::DB* db, const Bytes &name, uint64_t seq, std::string *val){
 	std::string key = encode_qitem_key(name, seq);
@@ -30,7 +28,7 @@ static int qget_uint64(leveldb::DB* db, const Bytes &name, uint64_t seq, uint64_
 	return s;
 }
 
-static int qdel_one(SSDB *ssdb, const Bytes &name, uint64_t seq){
+static int qdel_one(SSDBImpl *ssdb, const Bytes &name, uint64_t seq){
 	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
@@ -38,15 +36,15 @@ static int qdel_one(SSDB *ssdb, const Bytes &name, uint64_t seq){
 	return 0;
 }
 
-static int qset_one(SSDB *ssdb, const Bytes &name, uint64_t seq, const Bytes &item){
+static int qset_one(SSDBImpl *ssdb, const Bytes &name, uint64_t seq, const Bytes &item){
 	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
-	ssdb->binlogs->Put(key, item.Slice());
+	ssdb->binlogs->Put(key, slice(item));
 	return 0;
 }
 
-static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
+static int64_t incr_qsize(SSDBImpl *ssdb, const Bytes &name, int64_t incr){
 	int64_t size = ssdb->qsize(name);
 	if(size == -1){
 		return -1;
@@ -64,7 +62,7 @@ static int64_t incr_qsize(SSDB *ssdb, const Bytes &name, int64_t incr){
 
 /****************/
 
-int64_t SSDB::qsize(const Bytes &name){
+int64_t SSDBImpl::qsize(const Bytes &name){
 	std::string key = encode_qsize_key(name);
 	std::string val;
 
@@ -84,7 +82,7 @@ int64_t SSDB::qsize(const Bytes &name){
 }
 
 // @return 0: empty queue, 1: item peeked, -1: error
-int SSDB::qfront(const Bytes &name, std::string *item){
+int SSDBImpl::qfront(const Bytes &name, std::string *item){
 	int ret = 0;
 	uint64_t seq;
 	ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
@@ -99,7 +97,7 @@ int SSDB::qfront(const Bytes &name, std::string *item){
 }
 
 // @return 0: empty queue, 1: item peeked, -1: error
-int SSDB::qback(const Bytes &name, std::string *item){
+int SSDBImpl::qback(const Bytes &name, std::string *item){
 	int ret = 0;
 	uint64_t seq;
 	ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
@@ -114,7 +112,7 @@ int SSDB::qback(const Bytes &name, std::string *item){
 }
 
 // return: 0: index out of range, -1: error, 1: ok
-int SSDB::qset(const Bytes &name, int64_t index, const Bytes &item){
+int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item){
 	Transaction trans(binlogs);
 	int64_t size = this->qsize(name);
 	if(size == -1){
@@ -152,7 +150,7 @@ int SSDB::qset(const Bytes &name, int64_t index, const Bytes &item){
 	return 1;
 }
 
-int64_t SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
+int64_t SSDBImpl::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 
 	int ret;
@@ -209,15 +207,15 @@ int64_t SSDB::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or_bac
 	return size;
 }
 
-int64_t SSDB::qpush_front(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDBImpl::qpush_front(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QFRONT_SEQ, log_type);
 }
 
-int64_t SSDB::qpush_back(const Bytes &name, const Bytes &item, char log_type){
+int64_t SSDBImpl::qpush_back(const Bytes &name, const Bytes &item, char log_type){
 	return _qpush(name, item, QBACK_SEQ, log_type);
 }
 
-int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type){
+int SSDBImpl::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type){
 	Transaction trans(binlogs);
 	
 	int ret;
@@ -275,11 +273,11 @@ int SSDB::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq
 }
 
 // @return 0: empty queue, 1: item popped, -1: error
-int SSDB::qpop_front(const Bytes &name, std::string *item, char log_type){
+int SSDBImpl::qpop_front(const Bytes &name, std::string *item, char log_type){
 	return _qpop(name, item, QFRONT_SEQ, log_type);
 }
 
-int SSDB::qpop_back(const Bytes &name, std::string *item, char log_type){
+int SSDBImpl::qpop_back(const Bytes &name, std::string *item, char log_type){
 	return _qpop(name, item, QBACK_SEQ, log_type);
 }
 
@@ -298,7 +296,7 @@ static void get_qnames(Iterator *it, std::vector<std::string> *list){
 	}
 }
 
-int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+int SSDBImpl::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		std::vector<std::string> *list){
 	std::string start;
 	std::string end;
@@ -314,7 +312,7 @@ int SSDB::qlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 	return 0;
 }
 
-int SSDB::qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+int SSDBImpl::qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 		std::vector<std::string> *list){
 	std::string start;
 	std::string end;
@@ -333,7 +331,7 @@ int SSDB::qrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 	return 0;
 }
 
-int SSDB::qfix(const Bytes &name){
+int SSDBImpl::qfix(const Bytes &name){
 	Transaction trans(binlogs);
 	std::string key_s = encode_qitem_key(name, QITEM_MIN_SEQ - 1);
 	std::string key_e = encode_qitem_key(name, QITEM_MAX_SEQ);
@@ -381,7 +379,7 @@ int SSDB::qfix(const Bytes &name){
 	return 0;
 }
 
-int SSDB::qslice(const Bytes &name, int64_t begin, int64_t end,
+int SSDBImpl::qslice(const Bytes &name, int64_t begin, int64_t end,
 		std::vector<std::string> *list)
 {
 	int ret;
@@ -438,7 +436,7 @@ int SSDB::qslice(const Bytes &name, int64_t begin, int64_t end,
 	return 0;
 }
 
-int SSDB::qget(const Bytes &name, int64_t index, std::string *item){
+int SSDBImpl::qget(const Bytes &name, int64_t index, std::string *item){
 	int ret;
 	uint64_t seq;
 	if(index >= 0){

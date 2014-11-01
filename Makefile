@@ -10,6 +10,7 @@ all:
 	chmod u+x tools/ssdb-cli
 	cd "${LEVELDB_PATH}"; ${MAKE}
 	cd src/util; ${MAKE}
+	cd src/ssdb; ${MAKE}
 	cd src/net; ${MAKE}
 	cd src; ${MAKE}
 	cd tools; ${MAKE}
@@ -41,6 +42,7 @@ clean:
 	rm -rf db_test
 	cd deps/cpy; ${MAKE} clean
 	cd src/util; ${MAKE} clean
+	cd src/ssdb; ${MAKE} clean
 	cd src/net; ${MAKE} clean
 	cd src; ${MAKE} clean
 	cd tools; ${MAKE} clean

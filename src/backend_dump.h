@@ -2,21 +2,21 @@
 #define SSDB_BACKEND_DUMP_H_
 
 #include "include.h"
-#include "ssdb.h"
+#include "ssdb/ssdb.h"
 #include "net/link.h"
 
 class BackendDump{
-	private:
-		struct run_arg{
-			const Link *link;
-			const BackendDump *backend;
-		};
-		static void* _run_thread(void *arg);
-		const SSDB *ssdb;
-	public:
-		BackendDump(const SSDB *ssdb);
-		~BackendDump();
-		void proc(const Link *link);
+private:
+	struct run_arg{
+		const Link *link;
+		const BackendDump *backend;
+	};
+	static void* _run_thread(void *arg);
+	SSDB *ssdb;
+public:
+	BackendDump(SSDB *ssdb);
+	~BackendDump();
+	void proc(const Link *link);
 };
 
 #endif

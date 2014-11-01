@@ -1,6 +1,8 @@
 *.o
 *.a
+*.out
 *.class
+tmp
 .DS_Store
 *.pyc
 var/*

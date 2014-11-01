@@ -19,5 +19,5 @@ sorted_set.o: sorted_set.h sorted_set.cpp
 	${CXX} ${CFLAGS} -c sorted_set.cpp
 
 clean:
-	rm -f ${EXES} ${OBJS} *.o *.exe
+	rm -f ${EXES} ${OBJS} *.o *.exe *.a
 

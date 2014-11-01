@@ -5,10 +5,10 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "ssdb.h"
+#include "ssdb/ssdb_impl.h"
+#include "ssdb/ttl.h"
 #include "backend_dump.h"
 #include "backend_sync.h"
-#include "ttl.h"
 #include "slave.h"
 #include "net/server.h"
 
@@ -19,13 +19,13 @@ private:
 	void reg_procs(NetworkServer *net);
 
 public:
-	SSDB *ssdb;
+	SSDBImpl *ssdb;
 	BackendDump *backend_dump;
 	BackendSync *backend_sync;
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
 
-	SSDBServer(SSDB *ssdb, const Config &conf, NetworkServer *net);
+	SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net);
 	~SSDBServer();
 };
 

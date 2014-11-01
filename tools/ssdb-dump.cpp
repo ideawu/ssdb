@@ -213,8 +213,8 @@ int main(int argc, char **argv){
 					continue;
 				}
 				
-				leveldb::Slice k = key.Slice();
-				leveldb::Slice v = val.Slice();
+				leveldb::Slice k(key.data(), key.size());
+				leveldb::Slice v(val.data(), key.size());
 				status = db->Put(leveldb::WriteOptions(), k, v);
 				if(!status.ok()){
 					fprintf(stderr, "put leveldb error!\n");

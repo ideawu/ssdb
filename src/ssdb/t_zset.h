@@ -1,9 +1,7 @@
 #ifndef SSDB_ZSET_H_
 #define SSDB_ZSET_H_
 
-#include "include.h"
-#include "ssdb.h"
-#include "util/strings.h"
+#include "ssdb_impl.h"
 
 #define encode_score(s) big_endian((uint64_t)(s))
 #define decode_score(s) big_endian((uint64_t)(s))
@@ -105,51 +103,5 @@ int decode_zscore_key(const Bytes &slice, std::string *name, std::string *key, s
 	}
 	return 0;
 }
-
-
-class ZIterator{
-	private:
-		Iterator *it;
-	public:
-		std::string name;
-		std::string key;
-		std::string score;
-
-		ZIterator(Iterator *it, const Bytes &name){
-			this->it = it;
-			this->name.assign(name.data(), name.size());
-		}
-
-		~ZIterator(){
-			delete it;
-		}
-		
-		bool skip(uint64_t offset){
-			while(offset-- > 0){
-				if(this->next() == false){
-					return false;
-				}
-			}
-			return true;
-		}
-
-		bool next(){
-			while(it->next()){
-				Bytes ks = it->key();
-				//Bytes vs = it->val();
-				//dump(ks.data(), ks.size(), "z.next");
-				//dump(vs.data(), vs.size(), "z.next");
-				if(ks.data()[0] != DataType::ZSCORE){
-					return false;
-				}
-				if(decode_zscore_key(ks, NULL, &key, &score) == -1){
-					continue;
-				}
-				return true;
-			}
-			return false;
-		}
-};
-
 
 #endif

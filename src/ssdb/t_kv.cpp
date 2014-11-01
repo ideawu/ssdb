@@ -1,7 +1,6 @@
 #include "t_kv.h"
-#include "leveldb/write_batch.h"
 
-int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
+int SSDBImpl::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
 	Transaction trans(binlogs);
 
 	std::vector<Bytes>::const_iterator it;
@@ -15,7 +14,7 @@ int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
 		}
 		const Bytes &val = *(it + 1);
 		std::string buf = encode_kv_key(key);
-		binlogs->Put(buf, val.Slice());
+		binlogs->Put(buf, slice(val));
 		binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 	}
 	leveldb::Status s = binlogs->commit();
@@ -26,7 +25,7 @@ int SSDB::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type){
 	return (kvs.size() - offset)/2;
 }
 
-int SSDB::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
+int SSDBImpl::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
 	Transaction trans(binlogs);
 
 	std::vector<Bytes>::const_iterator it;
@@ -45,7 +44,7 @@ int SSDB::multi_del(const std::vector<Bytes> &keys, int offset, char log_type){
 	return keys.size() - offset;
 }
 
-int SSDB::set(const Bytes &key, const Bytes &val, char log_type){
+int SSDBImpl::set(const Bytes &key, const Bytes &val, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
 		//return -1;
@@ -54,7 +53,7 @@ int SSDB::set(const Bytes &key, const Bytes &val, char log_type){
 	Transaction trans(binlogs);
 
 	std::string buf = encode_kv_key(key);
-	binlogs->Put(buf, val.Slice());
+	binlogs->Put(buf, slice(val));
 	binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
@@ -64,7 +63,7 @@ int SSDB::set(const Bytes &key, const Bytes &val, char log_type){
 	return 1;
 }
 
-int SSDB::setnx(const Bytes &key, const Bytes &val, char log_type){
+int SSDBImpl::setnx(const Bytes &key, const Bytes &val, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
 		//return -1;
@@ -78,7 +77,7 @@ int SSDB::setnx(const Bytes &key, const Bytes &val, char log_type){
 		return 0;
 	}
 	std::string buf = encode_kv_key(key);
-	binlogs->Put(buf, val.Slice());
+	binlogs->Put(buf, slice(val));
 	binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
@@ -88,7 +87,7 @@ int SSDB::setnx(const Bytes &key, const Bytes &val, char log_type){
 	return 1;
 }
 
-int SSDB::getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type){
+int SSDBImpl::getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
 		//return -1;
@@ -98,7 +97,7 @@ int SSDB::getset(const Bytes &key, std::string *val, const Bytes &newval, char l
 
 	int found = this->get(key, val);
 	std::string buf = encode_kv_key(key);
-	binlogs->Put(buf, newval.Slice());
+	binlogs->Put(buf, slice(newval));
 	binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
@@ -109,7 +108,7 @@ int SSDB::getset(const Bytes &key, std::string *val, const Bytes &newval, char l
 }
 
 
-int SSDB::del(const Bytes &key, char log_type){
+int SSDBImpl::del(const Bytes &key, char log_type){
 	Transaction trans(binlogs);
 
 	std::string buf = encode_kv_key(key);
@@ -124,7 +123,7 @@ int SSDB::del(const Bytes &key, char log_type){
 	return 1;
 }
 
-int SSDB::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
+int SSDBImpl::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	Transaction trans(binlogs);
 
 	std::string old;
@@ -152,7 +151,7 @@ int SSDB::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	return 1;
 }
 
-int SSDB::get(const Bytes &key, std::string *val) const{
+int SSDBImpl::get(const Bytes &key, std::string *val){
 	std::string buf = encode_kv_key(key);
 
 	leveldb::Status s = db->Get(leveldb::ReadOptions(), buf, val);
@@ -166,7 +165,7 @@ int SSDB::get(const Bytes &key, std::string *val) const{
 	return 1;
 }
 
-KIterator* SSDB::scan(const Bytes &start, const Bytes &end, uint64_t limit) const{
+KIterator* SSDBImpl::scan(const Bytes &start, const Bytes &end, uint64_t limit){
 	std::string key_start, key_end;
 	key_start = encode_kv_key(start);
 	if(end.empty()){
@@ -180,7 +179,7 @@ KIterator* SSDB::scan(const Bytes &start, const Bytes &end, uint64_t limit) cons
 	return new KIterator(this->iterator(key_start, key_end, limit));
 }
 
-KIterator* SSDB::rscan(const Bytes &start, const Bytes &end, uint64_t limit) const{
+KIterator* SSDBImpl::rscan(const Bytes &start, const Bytes &end, uint64_t limit){
 	std::string key_start, key_end;
 
 	key_start = encode_kv_key(start);
@@ -196,7 +195,7 @@ KIterator* SSDB::rscan(const Bytes &start, const Bytes &end, uint64_t limit) con
 	return new KIterator(this->rev_iterator(key_start, key_end, limit));
 }
 
-int SSDB::setbit(const Bytes &key, int bitoffset, int on, char log_type){
+int SSDBImpl::setbit(const Bytes &key, int bitoffset, int on, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
 		return 0;
@@ -232,7 +231,7 @@ int SSDB::setbit(const Bytes &key, int bitoffset, int on, char log_type){
 	return orig;
 }
 
-int SSDB::getbit(const Bytes &key, int bitoffset){
+int SSDBImpl::getbit(const Bytes &key, int bitoffset){
 	std::string val;
 	int ret = this->get(key, &val);
 	if(ret == -1){

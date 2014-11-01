@@ -1,10 +1,9 @@
 #ifndef SSDB_TTL_H_
 #define SSDB_TTL_H_
 
-#include "include.h"
 #include "ssdb.h"
-#include "util/thread.h"
-#include "util/sorted_set.h"
+#include "../util/thread.h"
+#include "../util/sorted_set.h"
 #include <string>
 
 class ExpirationHandler

@@ -6,31 +6,31 @@
 #include <string>
 #include <map>
 
-#include "ssdb.h"
-#include "binlog.h"
+#include "ssdb/ssdb_impl.h"
+#include "ssdb/binlog.h"
 #include "net/link.h"
 #include "util/thread.h"
 
 class BackendSync{
-	private:
-		struct Client;
-	private:
-		std::vector<Client *> clients;
-		std::vector<Client *> clients_tmp;
+private:
+	struct Client;
+private:
+	std::vector<Client *> clients;
+	std::vector<Client *> clients_tmp;
 
-		struct run_arg{
-			const Link *link;
-			const BackendSync *backend;
-		};
-		volatile bool thread_quit;
-		static void* _run_thread(void *arg);
-		Mutex mutex;
-		std::map<pthread_t, pthread_t> workers;
-		const SSDB *ssdb;
-	public:
-		BackendSync(const SSDB *ssdb);
-		~BackendSync();
-		void proc(const Link *link);
+	struct run_arg{
+		const Link *link;
+		const BackendSync *backend;
+	};
+	volatile bool thread_quit;
+	static void* _run_thread(void *arg);
+	Mutex mutex;
+	std::map<pthread_t, pthread_t> workers;
+	SSDBImpl *ssdb;
+public:
+	BackendSync(SSDBImpl *ssdb);
+	~BackendSync();
+	void proc(const Link *link);
 };
 
 struct BackendSync::Client{

@@ -1,18 +1,17 @@
 #include <limits.h>
 #include "t_zset.h"
-#include "leveldb/write_batch.h"
 
 static const char *SSDB_SCORE_MIN		= "-9223372036854775808";
 static const char *SSDB_SCORE_MAX		= "+9223372036854775807";
 
-static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type);
-static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type);
-static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr);
+static int zset_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type);
+static int zdel_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &key, char log_type);
+static int incr_zsize(SSDBImpl *ssdb, const Bytes &name, int64_t incr);
 
 /**
  * @return -1: error, 0: item updated, 1: new item inserted
  */
-int SSDB::zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
+int SSDBImpl::zset(const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	Transaction trans(binlogs);
 
 	int ret = zset_one(this, name, key, score, log_type);
@@ -31,7 +30,7 @@ int SSDB::zset(const Bytes &name, const Bytes &key, const Bytes &score, char log
 	return ret;
 }
 
-int SSDB::zdel(const Bytes &name, const Bytes &key, char log_type){
+int SSDBImpl::zdel(const Bytes &name, const Bytes &key, char log_type){
 	Transaction trans(binlogs);
 
 	int ret = zdel_one(this, name, key, log_type);
@@ -50,7 +49,7 @@ int SSDB::zdel(const Bytes &name, const Bytes &key, char log_type){
 	return ret;
 }
 
-int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type){
+int SSDBImpl::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_val, char log_type){
 	Transaction trans(binlogs);
 
 	std::string old;
@@ -82,67 +81,7 @@ int SSDB::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *new_va
 	return 1;
 }
 
-// multi_zset work incorrect when same key occurs in kvs more than once
-//int SSDB::multi_zset(const Bytes &name, const std::vector<Bytes> &kvs, int offset, char log_type){
-//	Transaction trans(binlogs);
-//
-//	int ret = 0;
-//	std::vector<Bytes>::const_iterator it;
-//	it = kvs.begin() + offset;
-//	for(; it != kvs.end(); it += 2){
-//		const Bytes &key = *it;
-//		const Bytes &score = *(it + 1);
-//		int tmp = zset_one(this, name, key, score, log_type);
-//		if(tmp == -1){
-//			return -1;
-//		}
-//		ret += tmp;
-//	}
-//	if(ret >= 0){
-//		if(ret > 0){
-//			if(incr_zsize(this, name, ret) == -1){
-//				return -1;
-//			}
-//		}
-//		leveldb::Status s = binlogs->commit();
-//		if(!s.ok()){
-//			log_error("zdel error: %s", s.ToString().c_str());
-//			return -1;
-//		}
-//	}
-//	return ret;
-//}
-//
-//int SSDB::multi_zdel(const Bytes &name, const std::vector<Bytes> &keys, int offset, char log_type){
-//	Transaction trans(binlogs);
-//
-//	int ret = 0;
-//	std::vector<Bytes>::const_iterator it;
-//	it = keys.begin() + offset;
-//	for(; it != keys.end(); it++){
-//		const Bytes &key = *it;
-//		int tmp = zdel_one(this, name, key, log_type);
-//		if(tmp == -1){
-//			return -1;
-//		}
-//		ret += tmp;
-//	}
-//	if(ret >= 0){
-//		if(ret > 0){
-//			if(incr_zsize(this, name, -ret) == -1){
-//				return -1;
-//			}
-//		}
-//		leveldb::Status s = binlogs->commit();
-//		if(!s.ok()){
-//			log_error("zdel error: %s", s.ToString().c_str());
-//			return -1;
-//		}
-//	}
-//	return ret;
-//}
-
-int64_t SSDB::zsize(const Bytes &name) const{
+int64_t SSDBImpl::zsize(const Bytes &name){
 	std::string size_key = encode_zsize_key(name);
 	std::string val;
 	leveldb::Status s;
@@ -161,7 +100,7 @@ int64_t SSDB::zsize(const Bytes &name) const{
 	}
 }
 
-int SSDB::zget(const Bytes &name, const Bytes &key, std::string *score) const{
+int SSDBImpl::zget(const Bytes &name, const Bytes &key, std::string *score){
 	std::string buf = encode_zset_key(name, key);
 	leveldb::Status s = db->Get(leveldb::ReadOptions(), buf, score);
 	if(s.IsNotFound()){
@@ -175,7 +114,7 @@ int SSDB::zget(const Bytes &name, const Bytes &key, std::string *score) const{
 }
 
 static ZIterator* ziterator(
-	const SSDB *ssdb,
+	SSDBImpl *ssdb,
 	const Bytes &name, const Bytes &key_start,
 	const Bytes &score_start, const Bytes &score_end,
 	uint64_t limit, Iterator::Direction direction)
@@ -213,7 +152,7 @@ static ZIterator* ziterator(
 	}
 }
 
-int64_t SSDB::zrank(const Bytes &name, const Bytes &key) const{
+int64_t SSDBImpl::zrank(const Bytes &name, const Bytes &key){
 	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::FORWARD);
 	uint64_t ret = 0;
 	while(true){
@@ -230,7 +169,7 @@ int64_t SSDB::zrank(const Bytes &name, const Bytes &key) const{
 	return ret;
 }
 
-int64_t SSDB::zrrank(const Bytes &name, const Bytes &key) const{
+int64_t SSDBImpl::zrrank(const Bytes &name, const Bytes &key){
 	ZIterator *it = ziterator(this, name, "", "", "", INT_MAX, Iterator::BACKWARD);
 	uint64_t ret = 0;
 	while(true){
@@ -247,7 +186,7 @@ int64_t SSDB::zrrank(const Bytes &name, const Bytes &key) const{
 	return ret;
 }
 
-ZIterator* SSDB::zrange(const Bytes &name, uint64_t offset, uint64_t limit){
+ZIterator* SSDBImpl::zrange(const Bytes &name, uint64_t offset, uint64_t limit){
 	if(offset + limit > limit){
 		limit = offset + limit;
 	}
@@ -256,7 +195,7 @@ ZIterator* SSDB::zrange(const Bytes &name, uint64_t offset, uint64_t limit){
 	return it;
 }
 
-ZIterator* SSDB::zrrange(const Bytes &name, uint64_t offset, uint64_t limit){
+ZIterator* SSDBImpl::zrrange(const Bytes &name, uint64_t offset, uint64_t limit){
 	if(offset + limit > limit){
 		limit = offset + limit;
 	}
@@ -265,8 +204,8 @@ ZIterator* SSDB::zrrange(const Bytes &name, uint64_t offset, uint64_t limit){
 	return it;
 }
 
-ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
-		const Bytes &score_start, const Bytes &score_end, uint64_t limit) const
+ZIterator* SSDBImpl::zscan(const Bytes &name, const Bytes &key,
+		const Bytes &score_start, const Bytes &score_end, uint64_t limit)
 {
 	std::string score;
 	// if only key is specified, load its value
@@ -276,39 +215,10 @@ ZIterator* SSDB::zscan(const Bytes &name, const Bytes &key,
 		score = score_start.String();
 	}
 	return ziterator(this, name, key, score, score_end, limit, Iterator::FORWARD);
-
-	/*
-	std::string key_start, key_end;
-
-	if(score_start.empty()){
-		if(!key.empty()){
-			std::string score;
-			if(this->zget(name, key, &score) == 1){
-				key_start = encode_zscore_key(name, key, score);
-			}else{
-				key_start = encode_zscore_key(name, key, SSDB_SCORE_MIN);
-			}
-		}else{
-			key_start = encode_zscore_key(name, key, SSDB_SCORE_MIN);
-		}
-	}else{
-		key_start = encode_zscore_key(name, key, score_start);
-	}
-	if(score_end.empty()){
-		key_end = encode_zscore_key(name, "\xff", SSDB_SCORE_MAX);
-	}else{
-		key_end = encode_zscore_key(name, "\xff", score_end);
-	}
-
-	//dump(key_start.data(), key_start.size(), "zscan.start");
-	//dump(key_end.data(), key_end.size(), "zscan.end");
-
-	return new ZIterator(this->iterator(key_start, key_end, limit), name);
-	*/
 }
 
-ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
-		const Bytes &score_start, const Bytes &score_end, uint64_t limit) const
+ZIterator* SSDBImpl::zrscan(const Bytes &name, const Bytes &key,
+		const Bytes &score_start, const Bytes &score_end, uint64_t limit)
 {
 	std::string score;
 	// if only key is specified, load its value
@@ -318,35 +228,6 @@ ZIterator* SSDB::zrscan(const Bytes &name, const Bytes &key,
 		score = score_start.String();
 	}
 	return ziterator(this, name, key, score, score_end, limit, Iterator::BACKWARD);
-
-	/*
-	std::string key_start, key_end;
-
-	if(score_start.empty()){
-		if(!key.empty()){
-			std::string score;
-			if(this->zget(name, key, &score) == 1){
-				key_start = encode_zscore_key(name, key, score);
-			}else{
-				key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
-			}
-		}else{
-			key_start = encode_zscore_key(name, key, SSDB_SCORE_MAX);
-		}
-	}else{
-		key_start = encode_zscore_key(name, key, score_start);
-	}
-	if(score_end.empty()){
-		key_end = encode_zscore_key(name, "", SSDB_SCORE_MIN);
-	}else{
-		key_end = encode_zscore_key(name, "", score_end);
-	}
-
-	//dump(key_start.data(), key_start.size(), "zscan.start");
-	//dump(key_end.data(), key_end.size(), "zscan.end");
-
-	return new ZIterator(this->rev_iterator(key_start, key_end, limit), name);
-	*/
 }
 
 static void get_znames(Iterator *it, std::vector<std::string> *list){
@@ -364,8 +245,8 @@ static void get_znames(Iterator *it, std::vector<std::string> *list){
 	}
 }
 
-int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
-		std::vector<std::string> *list) const{
+int SSDBImpl::zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
 	std::string start;
 	std::string end;
 	
@@ -380,8 +261,8 @@ int SSDB::zlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 	return 0;
 }
 
-int SSDB::zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
-		std::vector<std::string> *list) const{
+int SSDBImpl::zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+		std::vector<std::string> *list){
 	std::string start;
 	std::string end;
 
@@ -405,7 +286,7 @@ static std::string filter_score(const Bytes &score){
 }
 
 // returns the number of newly added items
-static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
+static int zset_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &key, const Bytes &score, char log_type){
 	if(name.empty() || key.empty()){
 		log_error("empty name or key!");
 		return 0;
@@ -445,7 +326,7 @@ static int zset_one(SSDB *ssdb, const Bytes &name, const Bytes &key, const Bytes
 	return 0;
 }
 
-static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_type){
+static int zdel_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &key, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
 		return -1;
@@ -473,7 +354,7 @@ static int zdel_one(SSDB *ssdb, const Bytes &name, const Bytes &key, char log_ty
 	return 1;
 }
 
-static int incr_zsize(SSDB *ssdb, const Bytes &name, int64_t incr){
+static int incr_zsize(SSDBImpl *ssdb, const Bytes &name, int64_t incr){
 	int64_t size = ssdb->zsize(name);
 	size += incr;
 	std::string size_key = encode_zsize_key(name);

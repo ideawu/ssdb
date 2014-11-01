@@ -226,7 +226,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 }
 
 
-SSDBServer::SSDBServer(SSDB *ssdb, const Config &conf, NetworkServer *net){
+SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
 	net->data = this;
 	this->reg_procs(net);
 

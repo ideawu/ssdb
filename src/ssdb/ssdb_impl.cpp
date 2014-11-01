@@ -1,22 +1,23 @@
-#include "ssdb.h"
-#include "slave.h"
+#include "ssdb_impl.h"
 #include "leveldb/env.h"
 #include "leveldb/iterator.h"
 #include "leveldb/cache.h"
 #include "leveldb/filter_policy.h"
 
+#include "iterator.h"
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
 #include "t_queue.h"
 
-SSDB::SSDB(): sync_speed_(0){
+SSDBImpl::SSDBImpl(){
 	db = NULL;
 	meta_db = NULL;
 	binlogs = NULL;
+	sync_speed_ = 0;
 }
 
-SSDB::~SSDB(){
+SSDBImpl::~SSDBImpl(){
 	if(binlogs){
 		delete binlogs;
 	}
@@ -86,7 +87,7 @@ SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
 	log_info("binlog           : %s", binlog_onoff.c_str());
 	log_info("max_open_files   : %d", max_open_files);
 
-	SSDB *ssdb = new SSDB();
+	SSDBImpl *ssdb = new SSDBImpl();
 	ssdb->sync_speed_ = sync_speed;
 	//
 	ssdb->options.max_open_files = max_open_files;
@@ -144,7 +145,11 @@ err:
 	return NULL;
 }
 
-Iterator* SSDB::iterator(const std::string &start, const std::string &end, uint64_t limit) const{
+int SSDBImpl::sync_speed(){
+	return sync_speed_;
+}
+
+Iterator* SSDBImpl::iterator(const std::string &start, const std::string &end, uint64_t limit){
 	leveldb::Iterator *it;
 	leveldb::ReadOptions iterate_options;
 	iterate_options.fill_cache = false;
@@ -156,7 +161,7 @@ Iterator* SSDB::iterator(const std::string &start, const std::string &end, uint6
 	return new Iterator(it, end, limit);
 }
 
-Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, uint64_t limit) const{
+Iterator* SSDBImpl::rev_iterator(const std::string &start, const std::string &end, uint64_t limit){
 	leveldb::Iterator *it;
 	leveldb::ReadOptions iterate_options;
 	iterate_options.fill_cache = false;
@@ -171,7 +176,7 @@ Iterator* SSDB::rev_iterator(const std::string &start, const std::string &end, u
 }
 
 	
-int SSDB::set_kv_range(const std::string &start, const std::string &end){
+int SSDBImpl::set_kv_range(const std::string &start, const std::string &end){
 	leveldb::WriteBatch batch;
 	batch.Put("kv_range_s", start);
 	batch.Put("kv_range_e", end);
@@ -184,7 +189,7 @@ int SSDB::set_kv_range(const std::string &start, const std::string &end){
 	return 0;
 }
 
-int SSDB::get_kv_range(std::string *start, std::string *end){
+int SSDBImpl::get_kv_range(std::string *start, std::string *end){
 	leveldb::Status s;
 	s = meta_db->Get(leveldb::ReadOptions(), "kv_range_s", start);
 	if(!s.ok() && !s.IsNotFound()){
@@ -197,7 +202,7 @@ int SSDB::get_kv_range(std::string *start, std::string *end){
 	return 0;
 }
 
-bool SSDB::in_kv_range(const Bytes &key) const{
+bool SSDBImpl::in_kv_range(const Bytes &key){
 	if((this->kv_range_s.size() && this->kv_range_s >= key)
 		|| (this->kv_range_e.size() && this->kv_range_e < key))
 	{
@@ -206,7 +211,7 @@ bool SSDB::in_kv_range(const Bytes &key) const{
 	return true;
 }
 
-bool SSDB::in_kv_range(const std::string &key) const{
+bool SSDBImpl::in_kv_range(const std::string &key){
 	if((this->kv_range_s.size() && this->kv_range_s >= key)
 		|| (this->kv_range_e.size() && this->kv_range_e < key))
 	{
@@ -218,9 +223,9 @@ bool SSDB::in_kv_range(const std::string &key) const{
 
 /* raw operates */
 
-int SSDB::raw_set(const Bytes &key, const Bytes &val) const{
+int SSDBImpl::raw_set(const Bytes &key, const Bytes &val){
 	leveldb::WriteOptions write_opts;
-	leveldb::Status s = db->Put(write_opts, key.Slice(), val.Slice());
+	leveldb::Status s = db->Put(write_opts, slice(key), slice(val));
 	if(!s.ok()){
 		log_error("set error: %s", s.ToString().c_str());
 		return -1;
@@ -228,9 +233,9 @@ int SSDB::raw_set(const Bytes &key, const Bytes &val) const{
 	return 1;
 }
 
-int SSDB::raw_del(const Bytes &key) const{
+int SSDBImpl::raw_del(const Bytes &key){
 	leveldb::WriteOptions write_opts;
-	leveldb::Status s = db->Delete(write_opts, key.Slice());
+	leveldb::Status s = db->Delete(write_opts, slice(key));
 	if(!s.ok()){
 		log_error("del error: %s", s.ToString().c_str());
 		return -1;
@@ -238,10 +243,10 @@ int SSDB::raw_del(const Bytes &key) const{
 	return 1;
 }
 
-int SSDB::raw_get(const Bytes &key, std::string *val) const{
+int SSDBImpl::raw_get(const Bytes &key, std::string *val){
 	leveldb::ReadOptions opts;
 	opts.fill_cache = false;
-	leveldb::Status s = db->Get(opts, key.Slice(), val);
+	leveldb::Status s = db->Get(opts, slice(key), val);
 	if(s.IsNotFound()){
 		return 0;
 	}
@@ -252,7 +257,7 @@ int SSDB::raw_get(const Bytes &key, std::string *val) const{
 	return 1;
 }
 
-std::vector<std::string> SSDB::info() const{
+std::vector<std::string> SSDBImpl::info(){
 	//  "leveldb.num-files-at-level<N>" - return the number of files at level <N>,
 	//     where <N> is an ASCII representation of a level number (e.g. "0").
 	//  "leveldb.stats" - returns a multi-line string that describes statistics
@@ -283,11 +288,11 @@ std::vector<std::string> SSDB::info() const{
 	return info;
 }
 
-void SSDB::compact() const{
+void SSDBImpl::compact(){
 	db->CompactRange(NULL, NULL);
 }
 
-int SSDB::key_range(std::vector<std::string> *keys) const{
+int SSDBImpl::key_range(std::vector<std::string> *keys){
 	int ret = 0;
 	std::string kstart, kend;
 	std::string hstart, hend;

@@ -38,7 +38,7 @@ Config* Config::load(const char *filename){
 		char *key = buf + indent;
 
 		if(*key == '#'){
-			cfg->add("#", key + 1, lineno);
+			cfg->add_child("#", key + 1, lineno);
 			continue;
 		}
 		if(indent <= last_indent){
@@ -76,7 +76,7 @@ Config* Config::load(const char *filename){
 		key = trim(key);
 		val = trim(val);
 
-		cfg = cfg->add(key, val, lineno);
+		cfg = cfg->add_child(key, val, lineno);
 		if(cfg == NULL){
 			goto err;
 		}
@@ -99,6 +99,17 @@ err:
 	return NULL;
 }
 
+Config::Config(const char *key, const char *val){
+	this->parent = NULL;
+	this->depth = 0;
+	if(key){
+		this->key = key;
+	}
+	if(val){
+		this->val = val;
+	}
+};
+
 Config::~Config(){
 	//log_trace("%*sfree %s(%d)", depth*4, "", this->key.c_str(), this->children.size());
 	for(int i = 0; i < (int)children.size(); i++){
@@ -106,23 +117,58 @@ Config::~Config(){
 	}
 }
 
-Config* Config::add(const char *key, const char *val, int lineno){
-	if(key[0] != '#' && this->find_child(key)){
-		//log_error("line: %d, duplicated '%s'", lineno, key);
-		//return NULL;
+Config* Config::build_key_path(const char *key){
+	char path[CONFIG_MAX_LINE];
+	Config *conf = this;
+	Config *c;
+
+	snprintf(path, CONFIG_MAX_LINE, "%s", key);
+
+	char *f, *fs; /* field, field seperator */
+	f = fs = path;
+	while(1){
+		switch(*fs++){
+			case '.':
+			case '/':
+				*(fs - 1) = '\0';
+				c = (Config *)conf->find_child(f);
+				if(c == NULL){
+					c = conf->add_child(f);
+				}
+				conf = c;
+				f = fs;
+				break;
+			case '\0':
+				c = (Config *)conf->find_child(f);
+				if(c == NULL){
+					c = conf->add_child(f);
+				}
+				return c;
+			default:
+				break;
+		}
 	}
+}
 
-	Config *child = new Config(key, val);
-	child->parent = this;
-	child->depth = this->depth + 1;
-	children.push_back(child);
-
+Config* Config::set(const char *key, const char *val){
+	Config *c = this->build_key_path(key);
+	c->val = val;
 	log_trace("%*s'%s' : '%s'", depth*4, "", this->key.c_str(), key);
-	return child;
+	return c;
+}
+
+Config* Config::add_child(const char *key, const char *val, int lineno){
+	log_trace("add_child: %s", key);
+	Config *c = new Config(key, val);
+	c->parent = this;
+	c->depth  = this->depth + 1;
+	children.push_back(c);
+	return c;
 }
 
 const Config* Config::find_child(const char *key) const{
-	for(int i = 0; i < (int)children.size(); i++){
+	int i = (int)children.size()-1;
+	for(; i >= 0; i--){
 		if(children[i]->key == key){
 			return children[i];
 		}
@@ -132,9 +178,9 @@ const Config* Config::find_child(const char *key) const{
 
 const Config* Config::get(const char *key) const{
 	char path[CONFIG_MAX_LINE];
-
 	const Config *conf = this;
-	strcpy(path, key);
+
+	snprintf(path, CONFIG_MAX_LINE, "%s", key);
 
 	char *f, *fs; /* field, field seperator */
 	f = fs = path;

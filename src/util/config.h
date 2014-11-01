@@ -30,17 +30,13 @@ class Config{
 		Config *parent;
 		int depth;
 
-		Config(const std::string &key="", const std::string &val=""){
-			this->parent = NULL;
-			this->depth = 0;
-			this->key = key;
-			this->val = val;
-		};
-
-		Config* add(const char *key, const char *val, int lineno);
+		Config* build_key_path(const char *key);
+		Config* add_child(const char *key, const char *val="", int lineno=0);
 		const Config* find_child(const char *key) const;
 	public:
+		Config(const char *key=NULL, const char *val=NULL);
 		~Config();
+
 		static Config* load(const char *filename);
 		int save(FILE *fp) const;
 		int save(const char *filename) const;
@@ -49,6 +45,7 @@ class Config{
 		std::string key;
 		std::string val;
 
+		Config* set(const char *key, const char *val);
 		const Config* get(const char *key) const;
 		int num() const;
 		int get_num(const char *key) const;

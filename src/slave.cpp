@@ -1,9 +1,6 @@
 #include "net/fde.h"
+#include "util/log.h"
 #include "slave.h"
-#include "t_kv.h"
-#include "t_hash.h"
-#include "t_zset.h"
-#include "t_queue.h"
 #include "include.h"
 
 Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
@@ -226,7 +223,7 @@ err:
 
 int Slave::proc(const std::vector<Bytes> &req){
 	Binlog log;
-	if(log.load(req[0].Slice()) == -1){
+	if(log.load(req[0]) == -1){
 		log_error("invalid binlog!");
 		return 0;
 	}

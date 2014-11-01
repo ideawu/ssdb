@@ -1,6 +1,5 @@
 /* kv */
 #include "serv.h"
-#include "t_kv.h"
 #include "net/proc.h"
 #include "net/server.h"
 

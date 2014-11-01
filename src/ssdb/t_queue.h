@@ -1,7 +1,7 @@
 #ifndef SSDB_QUEUE_H_
 #define SSDB_QUEUE_H_
 
-#include "ssdb.h"
+#include "ssdb_impl.h"
 
 const uint64_t QFRONT_SEQ = 2;
 const uint64_t QBACK_SEQ  = 3;

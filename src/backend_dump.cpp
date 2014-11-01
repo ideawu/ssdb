@@ -1,7 +1,8 @@
 #include <pthread.h>
 #include "backend_dump.h"
+#include "util/log.h"
 
-BackendDump::BackendDump(const SSDB *ssdb){
+BackendDump::BackendDump(SSDB *ssdb){
 	this->ssdb = ssdb;
 }
 

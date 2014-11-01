@@ -1,6 +1,6 @@
 #include "binlog.h"
-#include "util/log.h"
-#include "util/strings.h"
+#include "../util/log.h"
+#include "../util/strings.h"
 #include <map>
 
 /* Binlog */
@@ -28,7 +28,23 @@ const Bytes Binlog::key() const{
 	return Bytes(buf.data() + HEADER_LEN, buf.size() - HEADER_LEN);
 }
 
+int Binlog::load(const Bytes &s){
+	if(s.size() < HEADER_LEN){
+		return -1;
+	}
+	buf.assign(s.data(), s.size());
+	return 0;
+}
+
 int Binlog::load(const leveldb::Slice &s){
+	if(s.size() < HEADER_LEN){
+		return -1;
+	}
+	buf.assign(s.data(), s.size());
+	return 0;
+}
+
+int Binlog::load(const std::string &s){
 	if(s.size() < HEADER_LEN){
 		return -1;
 	}

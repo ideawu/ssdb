@@ -1,6 +1,5 @@
 /* queue */
 #include "serv.h"
-#include "t_queue.h"
 #include "net/proc.h"
 #include "net/server.h"
 
