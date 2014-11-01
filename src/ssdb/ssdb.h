@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <string>
-#include "../const.h"
-#include "../util/bytes.h"
+#include "const.h"
 #include "iterator.h"
 
+class Bytes;
 class Config;
 
 class SSDB{

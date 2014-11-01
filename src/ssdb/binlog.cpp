@@ -1,4 +1,5 @@
 #include "binlog.h"
+#include "const.h"
 #include "../util/log.h"
 #include "../util/strings.h"
 #include <map>
