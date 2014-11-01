@@ -17,9 +17,11 @@ void ProcMap::set_proc(const std::string &c, const char *sflags, proc_t proc){
 	Command *cmd = this->get_proc(c);
 	if(!cmd){
 		cmd = new Command();
+		cmd->name = c;
+		proc_map[cmd->name] = cmd;
 	}
-	cmd->name = c;
 	cmd->proc = proc;
+	cmd->flags = 0;
 	for(const char *p=sflags; *p!='\0'; p++){
 		switch(*p){
 			case 'r':
@@ -36,7 +38,6 @@ void ProcMap::set_proc(const std::string &c, const char *sflags, proc_t proc){
 				break;
 		}
 	}
-	proc_map[cmd->name] = cmd;
 }
 
 Command* ProcMap::get_proc(const Bytes &str){
