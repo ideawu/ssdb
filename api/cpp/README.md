@@ -3,7 +3,7 @@ SSDB C++ API Documentation {#mainpage}
 
 @author: [ideawu](http://www.ideawu.com/)
 
-## Build the static library(libssdb.a)
+## Build the static library(libssdb-client.a)
 
 Download the SSDB source code from [github](https://github.com/ideawu/ssdb).
 
@@ -11,7 +11,7 @@ Download the SSDB source code from [github](https://github.com/ideawu/ssdb).
     cd api/cpp
     make
 
-The shell commands above will compile the C++ API codes, and generate a `libssdb.a` file.
+The shell commands above will compile the C++ API codes, and generate a `libssdb-client.a` file.
 
 ## Sample code
 
@@ -49,7 +49,7 @@ Save the codes above into a file named `hello-ssdb.cpp`.
 
 If you are under the directory `api/cpp`, compile it like this
 
-	g++ -o hello-ssdb hello-ssdb.cpp libssdb.a
+	g++ -o hello-ssdb hello-ssdb.cpp libssdb-client.a
 	./hello-ssdb
 
 Before you run `hello-ssdb`, you have to start ssdb-server with the default configuration. The output would be like
@@ -60,5 +60,5 @@ Connect to ssdb-server with `ssdb-cli`, to verify the key `k` is stored with the
 
 If your `hello-ssdb.cpp` file is not under the directory `api/cpp`, you will compile it like this
 
-	g++ -o hello-ssdb -I<path of api/cpp> hello-ssdb.cpp <path of api/cpp>/libssdb.a
+	g++ -o hello-ssdb -I<path of api/cpp> hello-ssdb.cpp <path of api/cpp>/libssdb-client.a
 
