@@ -5,6 +5,7 @@ UTIL_OBJS = ../util/log.o ../util/config.o ../util/bytes.o
 EXES = test
 
 all: ${OBJS}
+	ar -cru ./libnet.a ${OBJS}
 
 fde.o: fde.h fde.cpp fde_select.cpp fde_epoll.cpp
 	${CXX} ${CFLAGS} -c fde.cpp

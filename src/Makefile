@@ -5,13 +5,12 @@ OBJS = ssdb.o iterator.o \
 	proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
 	backend_dump.o backend_sync.o slave.o binlog.o \
 	serv.o ttl.o
-UTIL_OBJS = util/log.o util/config.o util/bytes.o util/sorted_set.o \
-	net/fde.o net/link.o net/resp.o net/proc.o net/worker.o net/server.o
+LIBS = ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
 
 all: ssdb.h ${OBJS} ssdb-server.o
-	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS}
 
 ssdb-server.o: ssdb-server.cpp
 	${CXX} ${CFLAGS} -c ssdb-server.cpp

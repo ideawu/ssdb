@@ -1,3 +1,7 @@
+* 1.8.0
+	* New features:
+		- Refactor codes, separate into: libutil, libnet, libssdb(TODO)
+		- ssdb-cli add dbsize command(2014-10-26)
 * 1.7.0.1
 	* New features:
 		- *incr commands return error if value cannot be converted to integer(2014-10-24)
