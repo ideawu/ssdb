@@ -26,9 +26,6 @@ private:
 	leveldb::DB* db;
 	leveldb::Options options;
 	
-	//std::string kv_range_s;
-	//std::string kv_range_e;
-	
 	SSDBImpl();
 public:
 	BinlogQueue *binlogs;
@@ -43,13 +40,6 @@ public:
 	virtual std::vector<std::string> info();
 	virtual void compact();
 	virtual int key_range(std::vector<std::string> *keys);
-	
-	/*
-	virtual int set_kv_range(const std::string &s, const std::string &e);
-	virtual int get_kv_range(std::string *s, std::string *e);
-	virtual bool in_kv_range(const std::string &key);
-	virtual bool in_kv_range(const Bytes &key);
-	*/
 	
 	/* raw operates */
 

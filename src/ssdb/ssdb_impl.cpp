@@ -47,22 +47,6 @@ SSDB* SSDB::open(const Option &opt, const std::string &dir){
 
 	leveldb::Status status;
 
-	// TODO:
-	// load kv_range
-	/*
-	{
-		int ret = ssdb->get_kv_range(&ssdb->kv_range_s, &ssdb->kv_range_e);
-		if(ret == -1){
-			log_error("load key_range failed!");
-			goto err;
-		}
-		log_info("key_range.kv    : \"%s\", \"%s\"",
-			str_escape(ssdb->kv_range_s).c_str(),
-			str_escape(ssdb->kv_range_e).c_str()
-			);
-	}
-	*/
-
 	status = leveldb::DB::Open(ssdb->options, dir, &ssdb->db);
 	if(!status.ok()){
 		log_error("open db failed");
@@ -103,52 +87,6 @@ Iterator* SSDBImpl::rev_iterator(const std::string &start, const std::string &en
 	}
 	return new Iterator(it, end, limit, Iterator::BACKWARD);
 }
-
-/*
-int SSDBImpl::set_kv_range(const std::string &start, const std::string &end){
-	leveldb::WriteBatch batch;
-	batch.Put("kv_range_s", start);
-	batch.Put("kv_range_e", end);
-	leveldb::Status s = meta_db->Write(leveldb::WriteOptions(), &batch);
-	if(!s.ok()){
-		return -1;
-	}
-	kv_range_s = start;
-	kv_range_e = end;
-	return 0;
-}
-
-int SSDBImpl::get_kv_range(std::string *start, std::string *end){
-	leveldb::Status s;
-	s = meta_db->Get(leveldb::ReadOptions(), "kv_range_s", start);
-	if(!s.ok() && !s.IsNotFound()){
-		return -1;
-	}
-	s = meta_db->Get(leveldb::ReadOptions(), "kv_range_e", end);
-	if(!s.ok() && !s.IsNotFound()){
-		return -1;
-	}
-	return 0;
-}
-
-bool SSDBImpl::in_kv_range(const Bytes &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
-	{
-		return false;
-	}
-	return true;
-}
-
-bool SSDBImpl::in_kv_range(const std::string &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
-	{
-		return false;
-	}
-	return true;
-}
-*/
 
 /* raw operates */
 

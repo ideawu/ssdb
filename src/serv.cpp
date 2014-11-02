@@ -228,6 +228,8 @@ void SSDBServer::reg_procs(NetworkServer *net){
 
 SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net){
 	this->ssdb = (SSDBImpl *)ssdb;
+	this->meta = meta;
+
 	net->data = this;
 	this->reg_procs(net);
 
@@ -272,6 +274,17 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 			}
 		}
 	}
+
+	// load kv_range
+	int ret = this->get_kv_range(&this->kv_range_s, &this->kv_range_e);
+	if(ret == -1){
+		log_fatal("load key_range failed!");
+		exit(1);
+	}
+	log_info("key_range.kv: \"%s\", \"%s\"",
+		str_escape(this->kv_range_s).c_str(),
+		str_escape(this->kv_range_e).c_str()
+		);
 }
 
 SSDBServer::~SSDBServer(){
@@ -288,7 +301,50 @@ SSDBServer::~SSDBServer(){
 
 	log_debug("SSDBServer finalized");
 }
-		
+
+int SSDBServer::set_kv_range(const std::string &start, const std::string &end){
+	if(meta->hset("key_range", "kv_s", start) == -1){
+		return -1;
+	}
+	if(meta->hset("key_range", "kv_e", end) == -1){
+		return -1;
+	}
+
+	kv_range_s = start;
+	kv_range_e = end;
+	return 0;
+}
+
+int SSDBServer::get_kv_range(std::string *start, std::string *end){
+	if(meta->hget("key_range", "kv_s", start) == -1){
+		return -1;
+	}
+	if(meta->hget("key_range", "kv_e", end) == -1){
+		return -1;
+	}
+	return 0;
+}
+
+bool SSDBServer::in_kv_range(const Bytes &key){
+	if((this->kv_range_s.size() && this->kv_range_s >= key)
+		|| (this->kv_range_e.size() && this->kv_range_e < key))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool SSDBServer::in_kv_range(const std::string &key){
+	if((this->kv_range_s.size() && this->kv_range_s >= key)
+		|| (this->kv_range_e.size() && this->kv_range_e < key))
+	{
+		return false;
+	}
+	return true;
+}
+
+/*********************/
+
 int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->binlogs->flush();
@@ -334,10 +390,9 @@ int proc_key_range(NetworkServer *net, Link *link, const Request &req, Response 
 }
 
 int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	/*
-	SSDBServer *serv = (SSDBServer *)net->data;
+SSDBServer *serv = (SSDBServer *)net->data;
 	std::string s, e;
-	int ret = serv->ssdb->get_kv_range(&s, &e);
+	int ret = serv->get_kv_range(&s, &e);
 	if(ret == -1){
 		resp->push_back("error");
 	}else{
@@ -345,20 +400,17 @@ int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Respo
 		resp->push_back(s);
 		resp->push_back(e);
 	}
-	*/
 	return 0;
 }
 
 int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	/*
-	SSDBServer *serv = (SSDBServer *)net->data;
+SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
-		serv->ssdb->set_kv_range(req[1].String(), req[2].String());
+		serv->set_kv_range(req[1].String(), req[2].String());
 		resp->push_back("ok");
 	}
-	*/
 	return 0;
 }
 

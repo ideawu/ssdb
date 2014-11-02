@@ -37,6 +37,7 @@ NetworkServer::NetworkServer(){
 
 	conf = NULL;
 	serv_link = NULL;
+	link_count = 0;
 
 	fdes = new Fdevents();
 	ip_filter = new IpFilter();
@@ -206,7 +207,7 @@ void NetworkServer::serve(){
 					exit(0);
 				}
 				if(proc_result(&job, &ready_list) == PROC_ERROR){
-					this->link_count --;
+					//
 				}
 			}else{
 				proc_client_event(fde, &ready_list);
@@ -251,7 +252,7 @@ void NetworkServer::serve(){
 			}
 			
 			if(proc_result(&job, &ready_list_2) == PROC_ERROR){
-				this->link_count --;
+				//
 			}
 		} // end foreach ready link
 	}
@@ -309,6 +310,7 @@ int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
 	return PROC_OK;
 
 proc_err:
+	this->link_count --;
 	fdes->del(link->fd());
 	delete link;
 	return PROC_ERROR;
