@@ -17,6 +17,11 @@ class SSDBServer
 {
 private:
 	void reg_procs(NetworkServer *net);
+	
+	std::string kv_range_s;
+	std::string kv_range_e;
+	
+	SSDB *meta;
 
 public:
 	SSDBImpl *ssdb;
@@ -25,14 +30,19 @@ public:
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
 
-	SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net);
+	SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net);
 	~SSDBServer();
+
+	int set_kv_range(const std::string &s, const std::string &e);
+	int get_kv_range(std::string *s, std::string *e);
+	bool in_kv_range(const std::string &key);
+	bool in_kv_range(const Bytes &key);
 };
 
 
 #define CHECK_KEY_RANGE(n) do{ \
 		if(req.size() > n){ \
-			if(!serv->ssdb->in_kv_range(req[n])){ \
+			if(!serv->in_kv_range(req[n])){ \
 				resp->push_back("out_of_range"); \
 				return 0; \
 			} \

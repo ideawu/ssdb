@@ -3,10 +3,11 @@
 #include "slave.h"
 #include "include.h"
 
-Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
+Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
 	this->ssdb = ssdb;
-	this->meta_db = meta_db;
+	this->meta = meta;
+	this->status = DISCONNECTED;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
 	this->is_mirror = is_mirror;
@@ -44,21 +45,38 @@ Slave::~Slave(){
 
 std::string Slave::stats() const{
 	std::string s;
-	s.append("slaveof " + master_ip + ":" + int_to_str(master_port) + "\n");
+	s.append("slaveof " + master_ip + ":" + str(master_port) + "\n");
 	s.append("    id         : " + id_ + "\n");
 	if(is_mirror){
 		s.append("    type       : mirror\n");
 	}else{
 		s.append("    type       : sync\n");
 	}
-	s.append("    last_seq   : " + int_to_str(last_seq) + "\n");
-	s.append("    last_key   : " + str_escape(last_key) + "\n");
-	s.append("    copy_count : " + int_to_str(copy_count) + "\n");
-	s.append("    sync_count : " + int_to_str(sync_count) + "");
+
+	s.append("    status     : ");
+	switch(status){
+	case DISCONNECTED:
+		s.append("DISCONNECTED\n");
+		break;
+	case INIT:
+		s.append("INIT\n");
+		break;
+	case COPY:
+		s.append("COPY\n");
+		break;
+	case SYNC:
+		s.append("SYNC\n");
+		break;
+	}
+
+	s.append("    last_seq   : " + str(last_seq) + "\n");
+	s.append("    copy_count : " + str(copy_count) + "\n");
+	s.append("    sync_count : " + str(sync_count) + "");
 	return s;
 }
 
 void Slave::start(){
+	migrate_old_status();
 	load_status();
 	log_debug("last_seq: %" PRIu64 ", last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
@@ -83,34 +101,55 @@ void Slave::set_id(const std::string &id){
 	this->id_ = id;
 }
 
+void Slave::migrate_old_status(){
+	std::string old_key = "new.slave.status|" + this->id_;
+	std::string val;
+	int old_found = meta->raw_get(old_key, &val);
+	if(!old_found){
+		return;
+	}
+	if(val.size() < sizeof(uint64_t)){
+		log_error("invalid format of status");
+		return;
+	}
+	last_seq = *((uint64_t *)(val.data()));
+	last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
+	// migrate old status
+	log_info("migrate old version slave status to new format, last_seq: %" PRIu64 ", last_key: %s",
+		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+	
+	save_status();
+	if(meta->raw_del(old_key) == -1){
+		log_fatal("meta db error!");
+		exit(1);
+	}
+}
+
 std::string Slave::status_key(){
 	static std::string key;
 	if(key.empty()){
-		key = "new.slave.status|" + this->id_;
+		key = "slave.status." + this->id_;
 	}
 	return key;
 }
 
 void Slave::load_status(){
-	std::string key = status_key();
-	std::string val;
-	leveldb::Status s = meta_db->Get(leveldb::ReadOptions(), key, &val);
-	if(s.ok()){
-		if(val.size() < sizeof(uint64_t)){
-			log_error("invalid format of status");
-		}else{
-			last_seq = *((uint64_t *)(val.data()));
-			last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
-		}
+	std::string key;
+	std::string seq;
+	meta->hget(status_key(), "last_key", &key);
+	meta->hget(status_key(), "last_seq", &seq);
+	if(!key.empty()){
+		this->last_key = key;
+	}
+	if(!seq.empty()){
+		this->last_seq = str_to_uint64(seq);
 	}
 }
 
 void Slave::save_status(){
-	std::string key = status_key();
-	std::string val;
-	val.append((char *)&this->last_seq, sizeof(uint64_t));
-	val.append(this->last_key);
-	meta_db->Put(leveldb::WriteOptions(), key, val);
+	std::string seq = str(this->last_seq);
+	meta->hset(status_key(), "last_key", this->last_key);
+	meta->hset(status_key(), "last_seq", seq);
 }
 
 int Slave::connect(){
@@ -118,12 +157,14 @@ int Slave::connect(){
 	int port = this->master_port;
 	
 	if(++connect_retry % 50 == 1){
-		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), connect_retry-1, ip, port);
+		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), (connect_retry-1)/50, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
 			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
 			goto err;
 		}else{
+			status = INIT;
+			
 			connect_retry = 0;
 			char seq_buf[20];
 			sprintf(seq_buf, "%" PRIu64 "", this->last_seq);
@@ -132,12 +173,12 @@ int Slave::connect(){
 			
 			link->send("sync140", seq_buf, this->last_key, type);
 			if(link->flush() == -1){
-				log_error("[%s]network error", this->id_.c_str());
+				log_error("[%s] network error", this->id_.c_str());
 				delete link;
 				link = NULL;
 				goto err;
 			}
-			log_info("[%s]ready to receive binlogs", this->id_.c_str());
+			log_info("[%s] ready to receive binlogs", this->id_.c_str());
 			return 1;
 		}
 	}
@@ -160,10 +201,12 @@ void* Slave::_run_thread(void *arg){
 
 	while(!slave->thread_quit){
 		if(reconnect){
+			slave->status = DISCONNECTED;
 			reconnect = false;
 			select.del(slave->link->fd());
 			delete slave->link;
 			slave->link = NULL;
+			sleep(1);
 		}
 		if(!slave->connected()){
 			if(slave->connect() != 1){
@@ -192,7 +235,6 @@ void* Slave::_run_thread(void *arg){
 		if(slave->link->read() <= 0){
 			log_error("link.read error: %s, reconnecting to master", strerror(errno));
 			reconnect = true;
-			sleep(1);
 			continue;
 		}
 
@@ -201,7 +243,6 @@ void* Slave::_run_thread(void *arg){
 			if(req == NULL){
 				log_error("link.recv error: %s, reconnecting to master", strerror(errno));
 				reconnect = true;
-				sleep(1);
 				break;
 			}else if(req->empty()){
 				break;
@@ -233,6 +274,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 			return this->proc_noop(log, req);
 			break;
 		case BinlogType::COPY:{
+			status = COPY;
 			if(++copy_count % 1000 == 1){
 				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					copy_count, this->last_seq, log.seq());
@@ -247,6 +289,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 		}
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:{
+			status = SYNC;
 			if(++sync_count % 1000 == 1){
 				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					sync_count, this->last_seq, log.seq());

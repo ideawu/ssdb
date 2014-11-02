@@ -101,6 +101,7 @@ DEF_PROC(qset);
 DEF_PROC(dump);
 DEF_PROC(sync140);
 DEF_PROC(info);
+DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(key_range);
 DEF_PROC(get_key_range);
@@ -212,6 +213,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(dump, "b");
 	PROC(sync140, "b");
 	PROC(info, "r");
+	PROC(dbsize, "r");
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
 	PROC(compact, "rt");
@@ -226,14 +228,18 @@ void SSDBServer::reg_procs(NetworkServer *net){
 }
 
 
-SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
+SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net){
+	this->ssdb = (SSDBImpl *)ssdb;
+	this->meta = meta;
+
 	net->data = this;
 	this->reg_procs(net);
 
-	this->ssdb = ssdb;
-	backend_dump = new BackendDump(ssdb);
-	backend_sync = new BackendSync(ssdb);
-	expiration = new ExpirationHandler(ssdb);
+	int sync_speed = conf.get_num("replication.sync_speed");
+
+	backend_dump = new BackendDump(this->ssdb);
+	backend_sync = new BackendSync(this->ssdb, sync_speed);
+	expiration = new ExpirationHandler(this->ssdb);
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
@@ -261,7 +267,7 @@ SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
 				std::string id = c->get_str("id");
 				
 				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
-				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port, is_mirror);
+				Slave *slave = new Slave(ssdb, meta, ip.c_str(), port, is_mirror);
 				if(!id.empty()){
 					slave->set_id(id);
 				}
@@ -270,6 +276,17 @@ SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
 			}
 		}
 	}
+
+	// load kv_range
+	int ret = this->get_kv_range(&this->kv_range_s, &this->kv_range_e);
+	if(ret == -1){
+		log_fatal("load key_range failed!");
+		exit(1);
+	}
+	log_info("key_range.kv: \"%s\", \"%s\"",
+		str_escape(this->kv_range_s).c_str(),
+		str_escape(this->kv_range_e).c_str()
+		);
 }
 
 SSDBServer::~SSDBServer(){
@@ -286,7 +303,50 @@ SSDBServer::~SSDBServer(){
 
 	log_debug("SSDBServer finalized");
 }
-		
+
+int SSDBServer::set_kv_range(const std::string &start, const std::string &end){
+	if(meta->hset("key_range", "kv_s", start) == -1){
+		return -1;
+	}
+	if(meta->hset("key_range", "kv_e", end) == -1){
+		return -1;
+	}
+
+	kv_range_s = start;
+	kv_range_e = end;
+	return 0;
+}
+
+int SSDBServer::get_kv_range(std::string *start, std::string *end){
+	if(meta->hget("key_range", "kv_s", start) == -1){
+		return -1;
+	}
+	if(meta->hget("key_range", "kv_e", end) == -1){
+		return -1;
+	}
+	return 0;
+}
+
+bool SSDBServer::in_kv_range(const Bytes &key){
+	if((this->kv_range_s.size() && this->kv_range_s >= key)
+		|| (this->kv_range_e.size() && this->kv_range_e < key))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool SSDBServer::in_kv_range(const std::string &key){
+	if((this->kv_range_s.size() && this->kv_range_s >= key)
+		|| (this->kv_range_e.size() && this->kv_range_e < key))
+	{
+		return false;
+	}
+	return true;
+}
+
+/*********************/
+
 int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->binlogs->flush();
@@ -332,13 +392,13 @@ int proc_key_range(NetworkServer *net, Link *link, const Request &req, Response 
 }
 
 int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
-	resp->push_back("ok");
+SSDBServer *serv = (SSDBServer *)net->data;
 	std::string s, e;
-	int ret = serv->ssdb->get_kv_range(&s, &e);
+	int ret = serv->get_kv_range(&s, &e);
 	if(ret == -1){
-		resp->push_back("ok");
+		resp->push_back("error");
 	}else{
+		resp->push_back("ok");
 		resp->push_back(s);
 		resp->push_back(e);
 	}
@@ -346,13 +406,21 @@ int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Respo
 }
 
 int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
+SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
-		serv->ssdb->set_kv_range(req[1].String(), req[2].String());
+		serv->set_kv_range(req[1].String(), req[2].String());
 		resp->push_back("ok");
 	}
+	return 0;
+}
+
+int proc_dbsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	uint64_t size = serv->ssdb->size();
+	resp->push_back("ok");
+	resp->push_back(str(size));
 	return 0;
 }
 
@@ -376,17 +444,11 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		resp->push_back("total_calls");
 		resp->add(calls);
 	}
-
-	if(req.size() > 1 && req[1] == "cmd"){
-		proc_map_t::iterator it;
-		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
-			Command *cmd = it->second;
-			resp->push_back("cmd." + cmd->name);
-			char buf[128];
-			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
-				cmd->calls, cmd->time_wait, cmd->time_proc);
-			resp->push_back(buf);
-		}
+	
+	{
+		uint64_t size = serv->ssdb->size();
+		resp->push_back("dbsize");
+		resp->push_back(str(size));
 	}
 
 	{
@@ -394,12 +456,23 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		resp->push_back("binlogs");
 		resp->push_back(s);
 	}
-	std::vector<Slave *>::iterator it;
-	for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
-		Slave *slave = *it;
-		std::string s = slave->stats();
-		resp->push_back("replication");
-		resp->push_back(s);
+	{
+		std::vector<std::string> syncs = serv->backend_sync->stats();
+		std::vector<std::string>::iterator it;
+		for(it = syncs.begin(); it != syncs.end(); it++){
+			std::string s = *it;
+			resp->push_back("replication");
+			resp->push_back(s);
+		}
+	}
+	{
+		std::vector<Slave *>::iterator it;
+		for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
+			Slave *slave = *it;
+			std::string s = slave->stats();
+			resp->push_back("replication");
+			resp->push_back(s);
+		}
 	}
 
 	if(req.size() == 1 || req[1] == "range"){
@@ -443,6 +516,18 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		for(int i=0; i<(int)tmp.size(); i++){
 			std::string block = tmp[i];
 			resp->push_back(block);
+		}
+	}
+
+	if(req.size() > 1 && req[1] == "cmd"){
+		proc_map_t::iterator it;
+		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
+			Command *cmd = it->second;
+			resp->push_back("cmd." + cmd->name);
+			char buf[128];
+			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
+				cmd->calls, cmd->time_wait, cmd->time_proc);
+			resp->push_back(buf);
 		}
 	}
 	

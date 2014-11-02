@@ -7,12 +7,16 @@
 #include "util/config.h"
 #include "util/daemon.h"
 #include "net/server.h"
-#include "ssdb/ssdb_impl.h"
+#include "ssdb/ssdb.h"
 #include "serv.h"
 
 Config *conf = NULL;
 NetworkServer *net = NULL;	
 std::string pidfile;
+std::string work_dir;
+Option option;
+std::string data_db_dir;
+std::string meta_db_dir;
 
 void welcome();
 void usage(int argc, char **argv);
@@ -25,28 +29,30 @@ void remove_pidfile();
 int main(int argc, char **argv){
 	welcome();
 	init(argc, argv);
-	
-	SSDBImpl *ssdb = NULL;
+
+	SSDB *ssdb = NULL;
+	SSDB *meta = NULL;
 	{ // ssdb
-		std::string work_dir;
-		work_dir = conf->get_str("work_dir");
-		if(work_dir.empty()){
-			work_dir = ".";
-		}
-		if(!is_dir(work_dir.c_str())){
-			fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
+
+		ssdb = SSDB::open(option, data_db_dir);
+		if(!ssdb){
+			log_fatal("could not open data db: %s", data_db_dir.c_str());
+			fprintf(stderr, "could not open data db: %s\n", data_db_dir.c_str());
 			exit(1);
 		}
 
-		ssdb = (SSDBImpl *)SSDB::open(*conf, work_dir);
-		if(!ssdb){
-			log_fatal("could not open work_dir: %s", work_dir.c_str());
-			fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
+		meta = SSDB::open(Option(), meta_db_dir);
+		if(!meta){
+			log_fatal("could not open meta db: %s", meta_db_dir.c_str());
+			fprintf(stderr, "could not open meta db: %s\n", meta_db_dir.c_str());
 			exit(1);
 		}
 	}
+
+	net = new NetworkServer();
+	net->init(*conf);
 	
-	SSDBServer *ss = new SSDBServer(ssdb, *conf, net);
+	SSDBServer *ss = new SSDBServer(ssdb, meta, *conf, net);
 
 	write_pidfile();
 	log_info("ssdb server started.");
@@ -55,6 +61,7 @@ int main(int argc, char **argv){
 	
 	delete net;
 	delete ss;
+	delete meta;
 	delete ssdb;
 	delete conf;
 	log_info("ssdb server exit.");
@@ -131,14 +138,35 @@ void init(int argc, char **argv){
 		}
 	}
 
-	log_info("ssdb-server %s", SSDB_VERSION);
-	log_info("conf_file       : %s", conf_file);
-	log_info("log_level       : %s", log_level.c_str());
-	log_info("log_output      : %s", log_output.c_str());
-	log_info("log_rotate_size : %d", log_rotate_size);
+	work_dir = conf->get_str("work_dir");
+	if(work_dir.empty()){
+		work_dir = ".";
+	}
+	if(!is_dir(work_dir.c_str())){
+		fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
+		exit(1);
+	}
+	data_db_dir = work_dir + "/data";
+	meta_db_dir = work_dir + "/meta";
 
-	net = new NetworkServer();
-	net->init(*conf);
+	option.load(*conf);
+
+	log_info("ssdb-server %s", SSDB_VERSION);
+	log_info("conf_file        : %s", conf_file);
+	log_info("log_level        : %s", log_level.c_str());
+	log_info("log_output       : %s", log_output.c_str());
+	log_info("log_rotate_size  : %d", log_rotate_size);
+
+	log_info("main_db          : %s", data_db_dir.c_str());
+	log_info("meta_db          : %s", meta_db_dir.c_str());
+	log_info("cache_size       : %d MB", option.cache_size);
+	log_info("block_size       : %d KB", option.block_size);
+	log_info("write_buffer     : %d MB", option.write_buffer_size);
+	log_info("max_open_files   : %d", option.max_open_files);
+	log_info("compaction_speed : %d MB/s", option.compaction_speed);
+	log_info("compression      : %s", option.compression.c_str());
+	log_info("binlog           : %s", option.binlog? "yes" : "no");
+	log_info("sync_speed       : %d MB/s", conf->get_num("replication.sync_speed"));
 
 	// WARN!!!
 	// deamonize() MUST be called before any thread is created!

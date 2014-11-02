@@ -142,13 +142,13 @@ static inline uint64_t decode_seq_key(const leveldb::Slice &key){
 	return seq;
 }
 
-BinlogQueue::BinlogQueue(leveldb::DB *db){
+BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled){
 	this->db = db;
 	this->min_seq = 0;
 	this->last_seq = 0;
 	this->tran_seq = 0;
 	this->capacity = LOG_QUEUE_SIZE;
-	this->no_log_ = false;
+	this->enabled = enabled;
 	
 	Binlog log;
 	if(this->find_last(&log) == 1){
@@ -163,53 +163,40 @@ BinlogQueue::BinlogQueue(leveldb::DB *db){
 	if(this->find_next(this->min_seq, &log) == 1){
 		this->min_seq = log.seq();
 	}
-	log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",", capacity, min_seq, last_seq);
-
-	//this->merge();
-		/*
-	int noops = 0;
-	int total = 0;
-	uint64_t seq = this->min_seq;
-	while(this->find_next(seq, &log) == 1){
-		total ++;
-		seq = log.seq() + 1;
-		if(log.type() != BinlogType::NOOP){
-			std::string s = log.dumps();
-			//log_trace("%s", s.c_str());
-			noops ++;
-		}
+	if(this->enabled){
+		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",", capacity, min_seq, last_seq);
 	}
-	log_debug("capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ", noops: %d, total: %d",
-		capacity, min_seq, last_seq, noops, total);
-		*/
 
 	// start cleaning thread
-	thread_quit = false;
-	pthread_t tid;
-	int err = pthread_create(&tid, NULL, &BinlogQueue::log_clean_thread_func, this);
-	if(err != 0){
-		log_fatal("can't create thread: %s", strerror(err));
-		exit(0);
+	if(this->enabled){
+		thread_quit = false;
+		pthread_t tid;
+		int err = pthread_create(&tid, NULL, &BinlogQueue::log_clean_thread_func, this);
+		if(err != 0){
+			log_fatal("can't create thread: %s", strerror(err));
+			exit(0);
+		}
 	}
 }
 
 BinlogQueue::~BinlogQueue(){
-	thread_quit = true;
-	for(int i=0; i<100; i++){
-		if(thread_quit == false){
-			break;
+	if(this->enabled){
+		thread_quit = true;
+		for(int i=0; i<100; i++){
+			if(thread_quit == false){
+				break;
+			}
+			usleep(10 * 1000);
 		}
-		usleep(10 * 1000);
 	}
 	db = NULL;
-	log_debug("BinlogQueue finalized");
 }
 
 std::string BinlogQueue::stats() const{
 	std::string s;
-	s.append("    capacity : " + int_to_str(capacity) + "\n");
-	s.append("    min_seq  : " + int_to_str(min_seq) + "\n");
-	s.append("    max_seq  : " + int_to_str(last_seq) + "");
+	s.append("    capacity : " + str(capacity) + "\n");
+	s.append("    min_seq  : " + str(min_seq) + "\n");
+	s.append("    max_seq  : " + str(last_seq) + "");
 	return s;
 }
 
@@ -232,12 +219,8 @@ leveldb::Status BinlogQueue::commit(){
 	return s;
 }
 
-void BinlogQueue::no_log(){
-	no_log_ = true;
-}
-
 void BinlogQueue::add_log(char type, char cmd, const leveldb::Slice &key){
-	if(no_log_){
+	if(!enabled){
 		return;
 	}
 	tran_seq ++;
@@ -246,7 +229,7 @@ void BinlogQueue::add_log(char type, char cmd, const leveldb::Slice &key){
 }
 
 void BinlogQueue::add_log(char type, char cmd, const std::string &key){
-	if(no_log_){
+	if(!enabled){
 		return;
 	}
 	leveldb::Slice s(key);
@@ -382,7 +365,7 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		log_info("clean %d logs[%" PRIu64 " ~ %" PRIu64 "], %d left, max: %" PRIu64 "",
 			end-start+1, start, end, logs->last_seq - logs->min_seq + 1, logs->last_seq);
 	}
-	log_debug("clean_thread quit");
+	log_debug("binlog clean_thread quit");
 	
 	logs->thread_quit = false;
 	return (void *)NULL;

@@ -25,12 +25,15 @@ private:
 	volatile bool thread_quit;
 	static void* _run_thread(void *arg);
 	Mutex mutex;
-	std::map<pthread_t, pthread_t> workers;
+	std::map<pthread_t, Client *> workers;
 	SSDBImpl *ssdb;
+	int sync_speed;
 public:
-	BackendSync(SSDBImpl *ssdb);
+	BackendSync(SSDBImpl *ssdb, int sync_speed);
 	~BackendSync();
 	void proc(const Link *link);
+	
+	std::vector<std::string> stats();
 };
 
 struct BackendSync::Client{
@@ -56,6 +59,8 @@ struct BackendSync::Client{
 	void noop();
 	int copy();
 	int sync(BinlogQueue *logs);
+
+	std::string stats();
 };
 
 #endif

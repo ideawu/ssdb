@@ -107,6 +107,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO,		"lset",		    "qset", 			REPLY_STATUS},
 	{STRATEGY_AUTO,		"lrange",		"qslice",			REPLY_MULTI_BULK},
 
+	{STRATEGY_AUTO, 	"dbsize",		"dbsize",			REPLY_INT},
 	{STRATEGY_AUTO, 	NULL,			NULL,			0}
 };
 
@@ -212,7 +213,7 @@ int RedisLink::convert_req(){
 				}
 				recv_string.push_back(recv_bytes[1].String());
 				recv_string.push_back(recv_bytes[2].String());
-				recv_string.push_back(int_to_str(size));
+				recv_string.push_back(str(size));
 			}
 		}
 		if(recv_bytes.size() > 4){

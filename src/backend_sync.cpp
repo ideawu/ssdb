@@ -6,9 +6,10 @@
 #include "util/log.h"
 #include "util/strings.h"
 
-BackendSync::BackendSync(SSDBImpl *ssdb){
+BackendSync::BackendSync(SSDBImpl *ssdb, int sync_speed){
 	thread_quit = false;
 	this->ssdb = ssdb;
+	this->sync_speed = sync_speed;
 }
 
 BackendSync::~BackendSync(){
@@ -32,6 +33,18 @@ BackendSync::~BackendSync(){
 	log_debug("BackendSync finalized");
 }
 
+std::vector<std::string> BackendSync::stats(){
+	std::vector<std::string> ret;
+	std::map<pthread_t, Client *>::iterator it;
+
+	Locking l(&mutex);
+	for(it = workers.begin(); it != workers.end(); it++){
+		Client *client = it->second;
+		ret.push_back(client->stats());
+	}
+	return ret;
+}
+
 void BackendSync::proc(const Link *link){
 	log_info("fd: %d, accept sync client", link->fd());
 	struct run_arg *arg = new run_arg();
@@ -44,8 +57,6 @@ void BackendSync::proc(const Link *link){
 		log_error("can't create thread: %s", strerror(err));
 		delete link;
 	}
-	Locking l(&mutex);
-	workers[tid] = tid;
 }
 
 void* BackendSync::_run_thread(void *arg){
@@ -54,7 +65,7 @@ void* BackendSync::_run_thread(void *arg){
 	Link *link = (Link *)p->link;
 	delete p;
 
-	//
+	// set Link non block
 	link->noblock(false);
 
 	SSDBImpl *ssdb = (SSDBImpl *)backend->ssdb;
@@ -63,6 +74,12 @@ void* BackendSync::_run_thread(void *arg){
 	Client client(backend);
 	client.link = link;
 	client.init();
+
+	{
+		pthread_t tid = pthread_self();
+		Locking l(&backend->mutex);
+		backend->workers[tid] = &client;
+	}
 
 // sleep longer to reduce logs.find
 #define TICK_INTERVAL_MS	300
@@ -106,8 +123,8 @@ void* BackendSync::_run_thread(void *arg){
 			log_info("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
 			break;
 		}
-		if(ssdb->sync_speed() > 0){
-			usleep((data_size_mb / ssdb->sync_speed()) * 1000 * 1000);
+		if(backend->sync_speed > 0){
+			usleep((data_size_mb / backend->sync_speed) * 1000 * 1000);
 		}
 	}
 
@@ -138,6 +155,36 @@ BackendSync::Client::~Client(){
 		delete iter;
 		iter = NULL;
 	}
+}
+
+std::string BackendSync::Client::stats(){
+	std::string s;
+	s.append("client " + str(link->remote_ip) + ":" + str(link->remote_port) + "\n");
+	s.append("    type     : ");
+	if(is_mirror){
+		s.append("mirror\n");
+	}else{
+		s.append("sync\n");
+	}
+	
+	s.append("    status   : ");
+	switch(status){
+	case INIT:
+		s.append("INIT\n");
+		break;
+	case OUT_OF_SYNC:
+		s.append("OUT_OF_SYNC\n");
+		break;
+	case COPY:
+		s.append("COPY\n");
+		break;
+	case SYNC:
+		s.append("SYNC\n");
+		break;
+	}
+	
+	s.append("    last_seq : " + str(last_seq) + "");
+	return s;
 }
 
 void BackendSync::Client::init(){

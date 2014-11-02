@@ -104,7 +104,6 @@ void ExpirationHandler::load_expiration_keys_from_db(int num){
 }
 
 void* ExpirationHandler::thread_func(void *arg){
-	log_debug("ExpirationHandler started");
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
 	
 	while(!handler->thread_quit){
@@ -139,7 +138,7 @@ void* ExpirationHandler::thread_func(void *arg){
 		}
 	}
 	
-	log_debug("ExpirationHandler thread_func quit");
+	log_debug("ExpirationHandler thread quit");
 	handler->thread_quit = false;
 	return (void *)NULL;
 }

@@ -25,14 +25,9 @@ private:
 	friend class SSDB;
 	leveldb::DB* db;
 	leveldb::Options options;
-	int sync_speed_;
-	
-	std::string kv_range_s;
-	std::string kv_range_e;
 	
 	SSDBImpl();
 public:
-	leveldb::DB* meta_db;
 	BinlogQueue *binlogs;
 	
 	virtual ~SSDBImpl();
@@ -42,16 +37,11 @@ public:
 	virtual Iterator* rev_iterator(const std::string &start, const std::string &end, uint64_t limit);
 
 	//void flushdb();
+	virtual uint64_t size();
 	virtual std::vector<std::string> info();
 	virtual void compact();
 	virtual int key_range(std::vector<std::string> *keys);
-	virtual int sync_speed();
 	
-	virtual int set_kv_range(const std::string &s, const std::string &e);
-	virtual int get_kv_range(std::string *s, std::string *e);
-	virtual bool in_kv_range(const std::string &key);
-	virtual bool in_kv_range(const Bytes &key);
-
 	/* raw operates */
 
 	// repl: whether to sync this operation to slaves

@@ -12,9 +12,7 @@
 
 SSDBImpl::SSDBImpl(){
 	db = NULL;
-	meta_db = NULL;
 	binlogs = NULL;
-	sync_speed_ = 0;
 }
 
 SSDBImpl::~SSDBImpl(){
@@ -30,112 +28,31 @@ SSDBImpl::~SSDBImpl(){
 	if(options.filter_policy){
 		delete options.filter_policy;
 	}
-	if(meta_db){
-		delete meta_db;
-	}
-	log_debug("SSDB finalized");
 }
 
-SSDB* SSDB::open(const Config &conf, const std::string &base_dir){
-	std::string main_db_path = base_dir + "/data";
-	std::string meta_db_path = base_dir + "/meta";
-	size_t cache_size = (size_t)conf.get_num("leveldb.cache_size");
-	int max_open_files = conf.get_num("leveldb.max_open_files");
-	int write_buffer_size = conf.get_num("leveldb.write_buffer_size");
-	int block_size = conf.get_num("leveldb.block_size");
-	int compaction_speed = conf.get_num("leveldb.compaction_speed");
-	std::string compression = conf.get_str("leveldb.compression");
-	std::string binlog_onoff = conf.get_str("replication.binlog");
-	int sync_speed = conf.get_num("replication.sync_speed");
-
-	strtolower(&compression);
-	if(compression != "yes"){
-		compression = "no";
-	}
-	strtolower(&binlog_onoff);
-	if(binlog_onoff != "no"){
-		binlog_onoff = "yes";
-	}
-
-	if(cache_size <= 0){
-		cache_size = 8;
-	}
-	if(write_buffer_size <= 0){
-		write_buffer_size = 4;
-	}
-	if(block_size <= 0){
-		block_size = 4;
-	}
-	if(max_open_files <= 0){
-		max_open_files = cache_size / 1024 * 30;
-		if(max_open_files < 100){
-			max_open_files = 100;
-		}
-		if(max_open_files > 1000){
-			max_open_files = 1000;
-		}
-	}
-
-	log_info("main_db          : %s", main_db_path.c_str());
-	log_info("meta_db          : %s", meta_db_path.c_str());
-	log_info("cache_size       : %d MB", cache_size);
-	log_info("block_size       : %d KB", block_size);
-	log_info("write_buffer     : %d MB", write_buffer_size);
-	log_info("compaction_speed : %d MB/s", compaction_speed);
-	log_info("sync_speed       : %d MB/s", sync_speed);
-	log_info("compression      : %s", compression.c_str());
-	log_info("binlog           : %s", binlog_onoff.c_str());
-	log_info("max_open_files   : %d", max_open_files);
-
+SSDB* SSDB::open(const Option &opt, const std::string &dir){
 	SSDBImpl *ssdb = new SSDBImpl();
-	ssdb->sync_speed_ = sync_speed;
-	//
-	ssdb->options.max_open_files = max_open_files;
 	ssdb->options.create_if_missing = true;
+	ssdb->options.max_open_files = opt.max_open_files;
 	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-	ssdb->options.block_cache = leveldb::NewLRUCache(cache_size * 1048576);
-	ssdb->options.block_size = block_size * 1024;
-	ssdb->options.write_buffer_size = write_buffer_size * 1024 * 1024;
-	ssdb->options.compaction_speed = compaction_speed;
-	if(compression == "yes"){
+	ssdb->options.block_cache = leveldb::NewLRUCache(opt.cache_size * 1048576);
+	ssdb->options.block_size = opt.block_size * 1024;
+	ssdb->options.write_buffer_size = opt.write_buffer_size * 1024 * 1024;
+	ssdb->options.compaction_speed = opt.compaction_speed;
+	if(opt.compression == "yes"){
 		ssdb->options.compression = leveldb::kSnappyCompression;
 	}else{
 		ssdb->options.compression = leveldb::kNoCompression;
 	}
 
 	leveldb::Status status;
-	{
-		leveldb::Options options;
-		options.create_if_missing = true;
-		status = leveldb::DB::Open(options, meta_db_path, &ssdb->meta_db);
-		if(!status.ok()){
-			log_error("open meta_db failed!");
-			goto err;
-		}
-	}
-	
-	// load kv_range
-	{
-		int ret = ssdb->get_kv_range(&ssdb->kv_range_s, &ssdb->kv_range_e);
-		if(ret == -1){
-			log_error("load key_range failed!");
-			goto err;
-		}
-		log_info("key_range.kv    : \"%s\", \"%s\"",
-			str_escape(ssdb->kv_range_s).c_str(),
-			str_escape(ssdb->kv_range_e).c_str()
-			);
-	}
 
-	status = leveldb::DB::Open(ssdb->options, main_db_path, &ssdb->db);
+	status = leveldb::DB::Open(ssdb->options, dir, &ssdb->db);
 	if(!status.ok()){
-		log_error("open main_db failed");
+		log_error("open db failed");
 		goto err;
 	}
-	ssdb->binlogs = new BinlogQueue(ssdb->db);
-	if(binlog_onoff == "no"){
-		ssdb->binlogs->no_log();
-	}
+	ssdb->binlogs = new BinlogQueue(ssdb->db, opt.binlog);
 
 	return ssdb;
 err:
@@ -143,10 +60,6 @@ err:
 		delete ssdb;
 	}
 	return NULL;
-}
-
-int SSDBImpl::sync_speed(){
-	return sync_speed_;
 }
 
 Iterator* SSDBImpl::iterator(const std::string &start, const std::string &end, uint64_t limit){
@@ -174,52 +87,6 @@ Iterator* SSDBImpl::rev_iterator(const std::string &start, const std::string &en
 	}
 	return new Iterator(it, end, limit, Iterator::BACKWARD);
 }
-
-	
-int SSDBImpl::set_kv_range(const std::string &start, const std::string &end){
-	leveldb::WriteBatch batch;
-	batch.Put("kv_range_s", start);
-	batch.Put("kv_range_e", end);
-	leveldb::Status s = meta_db->Write(leveldb::WriteOptions(), &batch);
-	if(!s.ok()){
-		return -1;
-	}
-	kv_range_s = start;
-	kv_range_e = end;
-	return 0;
-}
-
-int SSDBImpl::get_kv_range(std::string *start, std::string *end){
-	leveldb::Status s;
-	s = meta_db->Get(leveldb::ReadOptions(), "kv_range_s", start);
-	if(!s.ok() && !s.IsNotFound()){
-		return -1;
-	}
-	s = meta_db->Get(leveldb::ReadOptions(), "kv_range_e", end);
-	if(!s.ok() && !s.IsNotFound()){
-		return -1;
-	}
-	return 0;
-}
-
-bool SSDBImpl::in_kv_range(const Bytes &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
-	{
-		return false;
-	}
-	return true;
-}
-
-bool SSDBImpl::in_kv_range(const std::string &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
-	{
-		return false;
-	}
-	return true;
-}
-
 
 /* raw operates */
 
@@ -255,6 +122,16 @@ int SSDBImpl::raw_get(const Bytes &key, std::string *val){
 		return -1;
 	}
 	return 1;
+}
+
+uint64_t SSDBImpl::size(){
+	std::string s = "A";
+	std::string e(1, 'z' + 1);
+	leveldb::Range ranges[1];
+	ranges[0] = leveldb::Range(s, e);
+	uint64_t sizes[1];
+	db->GetApproximateSizes(ranges, 1, sizes);
+	return sizes[0];
 }
 
 std::vector<std::string> SSDBImpl::info(){
