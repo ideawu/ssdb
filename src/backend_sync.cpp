@@ -6,9 +6,10 @@
 #include "util/log.h"
 #include "util/strings.h"
 
-BackendSync::BackendSync(SSDBImpl *ssdb){
+BackendSync::BackendSync(SSDBImpl *ssdb, int sync_speed){
 	thread_quit = false;
 	this->ssdb = ssdb;
+	this->sync_speed = sync_speed;
 }
 
 BackendSync::~BackendSync(){
@@ -106,8 +107,8 @@ void* BackendSync::_run_thread(void *arg){
 			log_info("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
 			break;
 		}
-		if(ssdb->sync_speed() > 0){
-			usleep((data_size_mb / ssdb->sync_speed()) * 1000 * 1000);
+		if(backend->sync_speed > 0){
+			usleep((data_size_mb / backend->sync_speed) * 1000 * 1000);
 		}
 	}
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "const.h"
+#include "option.h"
 #include "iterator.h"
 
 class Bytes;
@@ -13,7 +14,7 @@ class SSDB{
 public:
 	SSDB(){}
 	virtual ~SSDB(){};
-	static SSDB* open(const Config &conf, const std::string &base_dir);
+	static SSDB* open(const Option &opt, const std::string &base_dir);
 
 	// return (start, end], not include start
 	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit) = 0;
@@ -23,12 +24,13 @@ public:
 	virtual std::vector<std::string> info() = 0;
 	virtual void compact() = 0;
 	virtual int key_range(std::vector<std::string> *keys) = 0;
-	virtual int sync_speed() = 0;
 	
+	/*
 	virtual int set_kv_range(const std::string &s, const std::string &e) = 0;
 	virtual int get_kv_range(std::string *s, std::string *e) = 0;
 	virtual bool in_kv_range(const std::string &key) = 0;
 	virtual bool in_kv_range(const Bytes &key) = 0;
+	*/
 
 	/* raw operates */
 

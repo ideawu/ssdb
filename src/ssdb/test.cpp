@@ -6,13 +6,10 @@
 int main(int argc, char **argv){
 	set_log_level(Logger::LEVEL_TRACE);
 	std::string work_dir = "./tmp";
+	Option opt;
+
 	SSDB *ssdb = NULL;
-	Config conf;
-
-	conf.set("leveldb.compression", "yes");
-	conf.set("replication.binlog", "no");
-
-	ssdb = SSDB::open(conf, work_dir);
+	ssdb = SSDB::open(opt, work_dir);
 	if(!ssdb){
 		log_fatal("could not open work_dir: %s", work_dir.c_str());
 		fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
@@ -28,4 +25,5 @@ int main(int argc, char **argv){
 	ssdb->get(key, &val);
 	
 	log_debug("%s", val.c_str());
+	delete ssdb;
 }

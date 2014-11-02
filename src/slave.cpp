@@ -3,10 +3,10 @@
 #include "slave.h"
 #include "include.h"
 
-Slave::Slave(SSDB *ssdb, leveldb::DB* meta_db, const char *ip, int port, bool is_mirror){
+Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
 	this->ssdb = ssdb;
-	this->meta_db = meta_db;
+	this->meta = meta;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
 	this->is_mirror = is_mirror;
@@ -59,6 +59,7 @@ std::string Slave::stats() const{
 }
 
 void Slave::start(){
+	migrate_old_status();
 	load_status();
 	log_debug("last_seq: %" PRIu64 ", last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
@@ -83,34 +84,55 @@ void Slave::set_id(const std::string &id){
 	this->id_ = id;
 }
 
+void Slave::migrate_old_status(){
+	std::string old_key = "new.slave.status|" + this->id_;
+	std::string val;
+	int old_found = meta->raw_get(old_key, &val);
+	if(!old_found){
+		return;
+	}
+	if(val.size() < sizeof(uint64_t)){
+		log_error("invalid format of status");
+		return;
+	}
+	last_seq = *((uint64_t *)(val.data()));
+	last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
+	// migrate old status
+	log_info("migrate old version slave status to new format, last_seq: %" PRIu64 ", last_key: %s",
+		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
+	
+	save_status();
+	if(meta->raw_del(old_key) == -1){
+		log_fatal("meta db error!");
+		exit(1);
+	}
+}
+
 std::string Slave::status_key(){
 	static std::string key;
 	if(key.empty()){
-		key = "new.slave.status|" + this->id_;
+		key = "slave.status." + this->id_;
 	}
 	return key;
 }
 
 void Slave::load_status(){
-	std::string key = status_key();
-	std::string val;
-	leveldb::Status s = meta_db->Get(leveldb::ReadOptions(), key, &val);
-	if(s.ok()){
-		if(val.size() < sizeof(uint64_t)){
-			log_error("invalid format of status");
-		}else{
-			last_seq = *((uint64_t *)(val.data()));
-			last_key.assign(val.data() + sizeof(uint64_t), val.size() - sizeof(uint64_t));
-		}
+	std::string key;
+	std::string seq;
+	meta->hget(status_key(), "last_key", &key);
+	meta->hget(status_key(), "last_seq", &seq);
+	if(!key.empty()){
+		this->last_key = key;
+	}
+	if(!seq.empty()){
+		this->last_seq = str_to_uint64(seq);
 	}
 }
 
 void Slave::save_status(){
-	std::string key = status_key();
-	std::string val;
-	val.append((char *)&this->last_seq, sizeof(uint64_t));
-	val.append(this->last_key);
-	meta_db->Put(leveldb::WriteOptions(), key, val);
+	std::string seq = int_to_str(this->last_seq);
+	meta->hset(status_key(), "last_key", this->last_key);
+	meta->hset(status_key(), "last_seq", seq);
 }
 
 int Slave::connect(){
@@ -118,7 +140,7 @@ int Slave::connect(){
 	int port = this->master_port;
 	
 	if(++connect_retry % 50 == 1){
-		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), connect_retry-1, ip, port);
+		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), (connect_retry-1)/50, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
 			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
@@ -132,12 +154,12 @@ int Slave::connect(){
 			
 			link->send("sync140", seq_buf, this->last_key, type);
 			if(link->flush() == -1){
-				log_error("[%s]network error", this->id_.c_str());
+				log_error("[%s] network error", this->id_.c_str());
 				delete link;
 				link = NULL;
 				goto err;
 			}
-			log_info("[%s]ready to receive binlogs", this->id_.c_str());
+			log_info("[%s] ready to receive binlogs", this->id_.c_str());
 			return 1;
 		}
 	}

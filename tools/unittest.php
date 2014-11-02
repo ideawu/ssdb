@@ -176,8 +176,8 @@ class SSDBTest extends UnitTest{
 	
 	function test_queue(){
 		$ssdb = $this->ssdb;
-		$name = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
-		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
+		$name = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 3));
+		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 3));
 		$val = str_repeat(mt_rand(), mt_rand(1, 30));
 				
 		for($i=0; $i<7; $i++){
@@ -254,8 +254,8 @@ class SSDBTest extends UnitTest{
 
 	function test_hash(){
 		$ssdb = $this->ssdb;
-		$name = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
-		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
+		$name = "TEST_" . mt_rand();
+		$key = "TEST_" . mt_rand();
 		$val = str_repeat(mt_rand(), mt_rand(1, 30));
 
 		$ret = $ssdb->hsize($name);
@@ -344,8 +344,8 @@ class SSDBTest extends UnitTest{
 
 	function test_zset(){
 		$ssdb = $this->ssdb;
-		$name = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
-		$key = "TEST_" . str_repeat(mt_rand(), mt_rand(1, 6));
+		$name = "TEST_" . mt_rand();
+		$key = "TEST_" . mt_rand();
 		$val = mt_rand();
 
 		$ret = $ssdb->zsize($name);

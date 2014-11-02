@@ -27,8 +27,9 @@ private:
 	Mutex mutex;
 	std::map<pthread_t, pthread_t> workers;
 	SSDBImpl *ssdb;
+	int sync_speed;
 public:
-	BackendSync(SSDBImpl *ssdb);
+	BackendSync(SSDBImpl *ssdb, int sync_speed);
 	~BackendSync();
 	void proc(const Link *link);
 };

@@ -25,11 +25,12 @@ public:
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
 
-	SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net);
+	SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net);
 	~SSDBServer();
 };
 
 
+/*
 #define CHECK_KEY_RANGE(n) do{ \
 		if(req.size() > n){ \
 			if(!serv->ssdb->in_kv_range(req[n])){ \
@@ -38,6 +39,9 @@ public:
 			} \
 		} \
 	}while(0)
+*/
+
+#define CHECK_KEY_RANGE(n) do{}while(0)
 
 #define CHECK_NUM_PARAMS(n) do{ \
 		if(req.size() < n){ \

@@ -1,7 +1,7 @@
 include ../../build_config.mk
 
-OBJS = ssdb_impl.o iterator.o binlog.o ttl.o \
-	t_kv.o t_hash.o t_zset.o t_queue.o
+OBJS = ssdb_impl.o iterator.o option.o \
+	t_kv.o t_hash.o t_zset.o t_queue.o binlog.o ttl.o
 LIBS = ../util/libutil.a
 
 
@@ -12,6 +12,8 @@ ssdb_impl.o: ssdb.h ssdb_impl.h ssdb_impl.cpp
 	${CXX} ${CFLAGS} -c ssdb_impl.cpp
 iterator.o: ssdb.h iterator.h iterator.cpp
 	${CXX} ${CFLAGS} -c iterator.cpp
+option.o: ssdb.h option.h option.cpp
+	${CXX} ${CFLAGS} -c option.cpp
 t_kv.o: ssdb.h t_kv.h t_kv.cpp
 	${CXX} ${CFLAGS} -c t_kv.cpp
 t_hash.o: ssdb.h t_hash.h t_hash.cpp

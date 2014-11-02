@@ -226,14 +226,16 @@ void SSDBServer::reg_procs(NetworkServer *net){
 }
 
 
-SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
+SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net){
+	this->ssdb = (SSDBImpl *)ssdb;
 	net->data = this;
 	this->reg_procs(net);
 
-	this->ssdb = ssdb;
-	backend_dump = new BackendDump(ssdb);
-	backend_sync = new BackendSync(ssdb);
-	expiration = new ExpirationHandler(ssdb);
+	int sync_speed = conf.get_num("replication.sync_speed");
+
+	backend_dump = new BackendDump(this->ssdb);
+	backend_sync = new BackendSync(this->ssdb, sync_speed);
+	expiration = new ExpirationHandler(this->ssdb);
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
@@ -261,7 +263,7 @@ SSDBServer::SSDBServer(SSDBImpl *ssdb, const Config &conf, NetworkServer *net){
 				std::string id = c->get_str("id");
 				
 				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
-				Slave *slave = new Slave(ssdb, ssdb->meta_db, ip.c_str(), port, is_mirror);
+				Slave *slave = new Slave(ssdb, meta, ip.c_str(), port, is_mirror);
 				if(!id.empty()){
 					slave->set_id(id);
 				}
@@ -332,20 +334,23 @@ int proc_key_range(NetworkServer *net, Link *link, const Request &req, Response 
 }
 
 int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	/*
 	SSDBServer *serv = (SSDBServer *)net->data;
-	resp->push_back("ok");
 	std::string s, e;
 	int ret = serv->ssdb->get_kv_range(&s, &e);
 	if(ret == -1){
-		resp->push_back("ok");
+		resp->push_back("error");
 	}else{
+		resp->push_back("ok");
 		resp->push_back(s);
 		resp->push_back(e);
 	}
+	*/
 	return 0;
 }
 
 int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	/*
 	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
@@ -353,6 +358,7 @@ int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Respo
 		serv->ssdb->set_kv_range(req[1].String(), req[2].String());
 		resp->push_back("ok");
 	}
+	*/
 	return 0;
 }
 
