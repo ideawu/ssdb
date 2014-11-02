@@ -26,6 +26,12 @@ private:
 	bool is_mirror;
 	char log_type;
 
+	static const int DISCONNECTED = 0;
+	static const int INIT = 1;
+	static const int COPY = 2;
+	static const int SYNC = 4;
+	int status;
+
 	void migrate_old_status();
 
 	std::string status_key();

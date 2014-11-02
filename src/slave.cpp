@@ -7,6 +7,7 @@ Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta = meta;
+	this->status = DISCONNECTED;
 	this->master_ip = std::string(ip);
 	this->master_port = port;
 	this->is_mirror = is_mirror;
@@ -51,8 +52,24 @@ std::string Slave::stats() const{
 	}else{
 		s.append("    type       : sync\n");
 	}
+
+	s.append("    status     : ");
+	switch(status){
+	case DISCONNECTED:
+		s.append("DISCONNECTED\n");
+		break;
+	case INIT:
+		s.append("INIT\n");
+		break;
+	case COPY:
+		s.append("COPY\n");
+		break;
+	case SYNC:
+		s.append("SYNC\n");
+		break;
+	}
+
 	s.append("    last_seq   : " + int_to_str(last_seq) + "\n");
-	s.append("    last_key   : " + str_escape(last_key) + "\n");
 	s.append("    copy_count : " + int_to_str(copy_count) + "\n");
 	s.append("    sync_count : " + int_to_str(sync_count) + "");
 	return s;
@@ -146,6 +163,8 @@ int Slave::connect(){
 			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
 			goto err;
 		}else{
+			status = INIT;
+			
 			connect_retry = 0;
 			char seq_buf[20];
 			sprintf(seq_buf, "%" PRIu64 "", this->last_seq);
@@ -182,10 +201,12 @@ void* Slave::_run_thread(void *arg){
 
 	while(!slave->thread_quit){
 		if(reconnect){
+			slave->status = DISCONNECTED;
 			reconnect = false;
 			select.del(slave->link->fd());
 			delete slave->link;
 			slave->link = NULL;
+			sleep(1);
 		}
 		if(!slave->connected()){
 			if(slave->connect() != 1){
@@ -214,7 +235,6 @@ void* Slave::_run_thread(void *arg){
 		if(slave->link->read() <= 0){
 			log_error("link.read error: %s, reconnecting to master", strerror(errno));
 			reconnect = true;
-			sleep(1);
 			continue;
 		}
 
@@ -223,7 +243,6 @@ void* Slave::_run_thread(void *arg){
 			if(req == NULL){
 				log_error("link.recv error: %s, reconnecting to master", strerror(errno));
 				reconnect = true;
-				sleep(1);
 				break;
 			}else if(req->empty()){
 				break;
@@ -255,6 +274,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 			return this->proc_noop(log, req);
 			break;
 		case BinlogType::COPY:{
+			status = COPY;
 			if(++copy_count % 1000 == 1){
 				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					copy_count, this->last_seq, log.seq());
@@ -269,6 +289,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 		}
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:{
+			status = SYNC;
 			if(++sync_count % 1000 == 1){
 				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					sync_count, this->last_seq, log.seq());

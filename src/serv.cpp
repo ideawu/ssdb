@@ -452,12 +452,23 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		resp->push_back("binlogs");
 		resp->push_back(s);
 	}
-	std::vector<Slave *>::iterator it;
-	for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
-		Slave *slave = *it;
-		std::string s = slave->stats();
-		resp->push_back("replication");
-		resp->push_back(s);
+	{
+		std::vector<std::string> syncs = serv->backend_sync->stats();
+		std::vector<std::string>::iterator it;
+		for(it = syncs.begin(); it != syncs.end(); it++){
+			std::string s = *it;
+			resp->push_back("replication");
+			resp->push_back(s);
+		}
+	}
+	{
+		std::vector<Slave *>::iterator it;
+		for(it = serv->slaves.begin(); it != serv->slaves.end(); it++){
+			Slave *slave = *it;
+			std::string s = slave->stats();
+			resp->push_back("replication");
+			resp->push_back(s);
+		}
 	}
 
 	if(req.size() == 1 || req[1] == "range"){

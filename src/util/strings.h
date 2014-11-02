@@ -230,6 +230,12 @@ void dump(const void *p, int size, const char *msg = NULL){
 	printf("%s>\n", s.c_str());
 }
 
+/*
+static inline
+std::string str(int v){
+}
+*/
+
 static inline
 std::string int_to_str(int v){
 	char buf[21] = {0};
