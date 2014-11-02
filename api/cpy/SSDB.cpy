@@ -141,6 +141,7 @@ class SSDB{
 					return new SSDB_Response(resp[0], resp[1 .. ]);
 				}
 				break;
+			case 'dbsize':
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':

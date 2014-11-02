@@ -183,7 +183,7 @@ std::string BackendSync::Client::stats(){
 		break;
 	}
 	
-	s.append("    last_seq : " + str(last_seq) + "\n");
+	s.append("    last_seq : " + str(last_seq) + "");
 	return s;
 }
 

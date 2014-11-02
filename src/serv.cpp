@@ -101,6 +101,7 @@ DEF_PROC(qset);
 DEF_PROC(dump);
 DEF_PROC(sync140);
 DEF_PROC(info);
+DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(key_range);
 DEF_PROC(get_key_range);
@@ -212,6 +213,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(dump, "b");
 	PROC(sync140, "b");
 	PROC(info, "r");
+	PROC(dbsize, "r");
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
 	PROC(compact, "rt");
@@ -414,6 +416,14 @@ SSDBServer *serv = (SSDBServer *)net->data;
 	return 0;
 }
 
+int proc_dbsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	uint64_t size = serv->ssdb->size();
+	resp->push_back("ok");
+	resp->push_back(str(size));
+	return 0;
+}
+
 int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	resp->push_back("ok");
@@ -434,17 +444,11 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		resp->push_back("total_calls");
 		resp->add(calls);
 	}
-
-	if(req.size() > 1 && req[1] == "cmd"){
-		proc_map_t::iterator it;
-		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
-			Command *cmd = it->second;
-			resp->push_back("cmd." + cmd->name);
-			char buf[128];
-			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
-				cmd->calls, cmd->time_wait, cmd->time_proc);
-			resp->push_back(buf);
-		}
+	
+	{
+		uint64_t size = serv->ssdb->size();
+		resp->push_back("dbsize");
+		resp->push_back(str(size));
 	}
 
 	{
@@ -512,6 +516,18 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		for(int i=0; i<(int)tmp.size(); i++){
 			std::string block = tmp[i];
 			resp->push_back(block);
+		}
+	}
+
+	if(req.size() > 1 && req[1] == "cmd"){
+		proc_map_t::iterator it;
+		for(it=net->proc_map.begin(); it!=net->proc_map.end(); it++){
+			Command *cmd = it->second;
+			resp->push_back("cmd." + cmd->name);
+			char buf[128];
+			snprintf(buf, sizeof(buf), "calls: %" PRIu64 "\ttime_wait: %.0f\ttime_proc: %.0f",
+				cmd->calls, cmd->time_wait, cmd->time_proc);
+			resp->push_back(buf);
 		}
 	}
 	

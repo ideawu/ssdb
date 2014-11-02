@@ -228,10 +228,6 @@ while(true){
 		}
 		password = args[0];
 	}
-	if(cmd == 'dbsize'){
-		printf("  %d MB\n", util.dbsize(link));
-		continue;
-	}
 	if(cmd == 'export'){
 		exporter.run(link, args);
 		continue;
@@ -332,6 +328,7 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
+			case 'dbsize':
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':

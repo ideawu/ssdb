@@ -37,6 +37,7 @@ public:
 	virtual Iterator* rev_iterator(const std::string &start, const std::string &end, uint64_t limit);
 
 	//void flushdb();
+	virtual uint64_t size();
 	virtual std::vector<std::string> info();
 	virtual void compact();
 	virtual int key_range(std::vector<std::string> *keys);

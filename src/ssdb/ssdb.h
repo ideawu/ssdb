@@ -21,6 +21,7 @@ public:
 	virtual Iterator* rev_iterator(const std::string &start, const std::string &end, uint64_t limit) = 0;
 
 	//void flushdb();
+	virtual uint64_t size() = 0;
 	virtual std::vector<std::string> info() = 0;
 	virtual void compact() = 0;
 	virtual int key_range(std::vector<std::string> *keys) = 0;

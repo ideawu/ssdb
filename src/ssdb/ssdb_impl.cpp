@@ -124,6 +124,16 @@ int SSDBImpl::raw_get(const Bytes &key, std::string *val){
 	return 1;
 }
 
+uint64_t SSDBImpl::size(){
+	std::string s = "A";
+	std::string e(1, 'z' + 1);
+	leveldb::Range ranges[1];
+	ranges[0] = leveldb::Range(s, e);
+	uint64_t sizes[1];
+	db->GetApproximateSizes(ranges, 1, sizes);
+	return sizes[0];
+}
+
 std::vector<std::string> SSDBImpl::info(){
 	//  "leveldb.num-files-at-level<N>" - return the number of files at level <N>,
 	//     where <N> is an ASCII representation of a level number (e.g. "0").

@@ -5,8 +5,9 @@
 
 int main(int argc, char **argv){
 	set_log_level(Logger::LEVEL_TRACE);
-	std::string work_dir = "./tmp";
+	std::string work_dir = "./tmp/a";
 	Option opt;
+	opt.compression = "no";
 
 	SSDB *ssdb = NULL;
 	ssdb = SSDB::open(opt, work_dir);
@@ -15,9 +16,17 @@ int main(int argc, char **argv){
 		fprintf(stderr, "could not open work_dir: %s\n", work_dir.c_str());
 		exit(1);
 	}
-
 	std::string key, val;
 	key = "a";
+	
+	val.append(1024 * 1024, 'a');
+	ssdb->raw_set("tmp", val);
+	ssdb->compact();
+
+	uint64_t size;
+	size = ssdb->size();
+	log_debug("dbsize: %d", size);
+
 
 	ssdb->get(key, &val);
 	int num = str_to_int(val) + 1;

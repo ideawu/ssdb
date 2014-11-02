@@ -297,6 +297,7 @@ class SSDB
 			return new SSDB_Response($resp[0], $errmsg);
 		}
 		switch($cmd){
+			case 'dbsize':
 			case 'ping':
 			case 'qset':
 			case 'getbit':
