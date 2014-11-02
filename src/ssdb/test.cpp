@@ -21,7 +21,7 @@ int main(int argc, char **argv){
 
 	ssdb->get(key, &val);
 	int num = str_to_int(val) + 1;
-	ssdb->set(key, int_to_str(num));
+	ssdb->set(key, str(num));
 	ssdb->get(key, &val);
 	
 	log_debug("%s", val.c_str());

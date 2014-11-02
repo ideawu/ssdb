@@ -140,7 +140,7 @@ int SSDBImpl::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type
 	}
 
 	std::string buf = encode_kv_key(key);
-	binlogs->Put(buf, int_to_str(*new_val));
+	binlogs->Put(buf, str(*new_val));
 	binlogs->add_log(log_type, BinlogCommand::KSET, buf);
 
 	leveldb::Status s = binlogs->commit();

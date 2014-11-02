@@ -230,35 +230,48 @@ void dump(const void *p, int size, const char *msg = NULL){
 	printf("%s>\n", s.c_str());
 }
 
-/*
-static inline
-std::string str(int v){
-}
-*/
 
 static inline
-std::string int_to_str(int v){
+std::string str(const char *s){
+	return std::string(s);
+}
+
+static inline
+std::string str(int v){
 	char buf[21] = {0};
 	snprintf(buf, sizeof(buf), "%d", v);
 	return std::string(buf);
 }
 
 static inline
-std::string int_to_str(int64_t v){
+std::string str(int64_t v){
 	char buf[21] = {0};
 	snprintf(buf, sizeof(buf), "%" PRId64 "", v);
 	return std::string(buf);
 }
 
 static inline
-std::string int_to_str(uint64_t v){
+std::string str(uint64_t v){
 	char buf[21] = {0};
 	snprintf(buf, sizeof(buf), "%" PRIu64 "", v);
 	return std::string(buf);
 }
 
-#define int64_to_str int_to_str
-#define uint64_to_str int_to_str
+static inline
+std::string str(double v){
+	char buf[21] = {0};
+	if(v - floor(v) == 0){
+		snprintf(buf, sizeof(buf), "%.0f", v);
+	}else{
+		snprintf(buf, sizeof(buf), "%f", v);
+	}
+	return std::string(buf);
+}
+
+static inline
+std::string str(float v){
+	return str((double)v);
+}
 
 // all str_to_xx methods set errno on error
 
@@ -331,17 +344,6 @@ uint64_t str_to_uint64(const char *p, int size){
 static inline
 double str_to_double(const char *p, int size){
 	return atof(std::string(p, size).c_str());
-}
-
-static inline
-std::string double_to_str(double v){
-	char buf[21] = {0};
-	if(v - floor(v) == 0){
-		snprintf(buf, sizeof(buf), "%.0f", v);
-	}else{
-		snprintf(buf, sizeof(buf), "%f", v);
-	}
-	return std::string(buf);
 }
 
 static inline

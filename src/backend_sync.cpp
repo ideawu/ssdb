@@ -159,7 +159,7 @@ BackendSync::Client::~Client(){
 
 std::string BackendSync::Client::stats(){
 	std::string s;
-	s.append("client " + std::string(link->remote_ip) + ":" + int_to_str(link->remote_port) + "\n");
+	s.append("client " + str(link->remote_ip) + ":" + str(link->remote_port) + "\n");
 	s.append("    type     : ");
 	if(is_mirror){
 		s.append("mirror\n");
@@ -183,7 +183,7 @@ std::string BackendSync::Client::stats(){
 		break;
 	}
 	
-	s.append("    last_seq : " + int_to_str(last_seq) + "\n");
+	s.append("    last_seq : " + str(last_seq) + "\n");
 	return s;
 }
 

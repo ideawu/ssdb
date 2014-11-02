@@ -194,9 +194,9 @@ BinlogQueue::~BinlogQueue(){
 
 std::string BinlogQueue::stats() const{
 	std::string s;
-	s.append("    capacity : " + int_to_str(capacity) + "\n");
-	s.append("    min_seq  : " + int_to_str(min_seq) + "\n");
-	s.append("    max_seq  : " + int_to_str(last_seq) + "");
+	s.append("    capacity : " + str(capacity) + "\n");
+	s.append("    min_seq  : " + str(min_seq) + "\n");
+	s.append("    max_seq  : " + str(last_seq) + "");
 	return s;
 }
 

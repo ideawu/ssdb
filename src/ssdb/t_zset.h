@@ -92,7 +92,7 @@ int decode_zscore_key(const Bytes &slice, std::string *name, std::string *key, s
 	}else{
 		if(score != NULL){
 			s = decode_score(s);
-			score->assign(int_to_str(s));
+			score->assign(str(s));
 		}
 	}
 	if(decoder.skip(1) == -1){

@@ -59,7 +59,7 @@ int SSDBImpl::hincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *ne
 		}
 	}
 
-	ret = hset_one(this, name, key, int_to_str(*new_val), log_type);
+	ret = hset_one(this, name, key, str(*new_val), log_type);
 	if(ret == -1){
 		return -1;
 	}

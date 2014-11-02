@@ -79,7 +79,7 @@ int proc_ttl(NetworkServer *net, Link *link, const Request &req, Response *resp)
 
 	int64_t ttl = serv->expiration->get_ttl(req[1]);
 	resp->push_back("ok");
-	resp->push_back(int_to_str(ttl));
+	resp->push_back(str(ttl));
 	return 0;
 }
 

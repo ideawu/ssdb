@@ -45,7 +45,7 @@ Slave::~Slave(){
 
 std::string Slave::stats() const{
 	std::string s;
-	s.append("slaveof " + master_ip + ":" + int_to_str(master_port) + "\n");
+	s.append("slaveof " + master_ip + ":" + str(master_port) + "\n");
 	s.append("    id         : " + id_ + "\n");
 	if(is_mirror){
 		s.append("    type       : mirror\n");
@@ -69,9 +69,9 @@ std::string Slave::stats() const{
 		break;
 	}
 
-	s.append("    last_seq   : " + int_to_str(last_seq) + "\n");
-	s.append("    copy_count : " + int_to_str(copy_count) + "\n");
-	s.append("    sync_count : " + int_to_str(sync_count) + "");
+	s.append("    last_seq   : " + str(last_seq) + "\n");
+	s.append("    copy_count : " + str(copy_count) + "\n");
+	s.append("    sync_count : " + str(sync_count) + "");
 	return s;
 }
 
@@ -147,7 +147,7 @@ void Slave::load_status(){
 }
 
 void Slave::save_status(){
-	std::string seq = int_to_str(this->last_seq);
+	std::string seq = str(this->last_seq);
 	meta->hset(status_key(), "last_key", this->last_key);
 	meta->hset(status_key(), "last_seq", seq);
 }

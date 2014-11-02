@@ -212,7 +212,7 @@ int RedisLink::convert_req(){
 				}
 				recv_string.push_back(recv_bytes[1].String());
 				recv_string.push_back(recv_bytes[2].String());
-				recv_string.push_back(int_to_str(size));
+				recv_string.push_back(str(size));
 			}
 		}
 		if(recv_bytes.size() > 4){

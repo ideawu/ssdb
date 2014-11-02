@@ -62,7 +62,7 @@ int SSDBImpl::zincr(const Bytes &name, const Bytes &key, int64_t by, int64_t *ne
 		*new_val = str_to_int64(old) + by;
 	}
 
-	ret = zset_one(this, name, key, int_to_str(*new_val), log_type);
+	ret = zset_one(this, name, key, str(*new_val), log_type);
 	if(ret == -1){
 		return -1;
 	}
@@ -282,7 +282,7 @@ int SSDBImpl::zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 
 static std::string filter_score(const Bytes &score){
 	int64_t s = score.Int64();
-	return int_to_str(s);
+	return str(s);
 }
 
 // returns the number of newly added items
