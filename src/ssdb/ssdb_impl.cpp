@@ -30,7 +30,7 @@ SSDBImpl::~SSDBImpl(){
 	}
 }
 
-SSDB* SSDB::open(const Option &opt, const std::string &dir){
+SSDB* SSDB::open(const Options &opt, const std::string &dir){
 	SSDBImpl *ssdb = new SSDBImpl();
 	ssdb->options.create_if_missing = true;
 	ssdb->options.max_open_files = opt.max_open_files;
