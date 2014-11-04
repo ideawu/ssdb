@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include "const.h"
-#include "option.h"
+#include "options.h"
 #include "iterator.h"
 
 class Bytes;
@@ -14,7 +14,7 @@ class SSDB{
 public:
 	SSDB(){}
 	virtual ~SSDB(){};
-	static SSDB* open(const Option &opt, const std::string &base_dir);
+	static SSDB* open(const Options &opt, const std::string &base_dir);
 
 	// return (start, end], not include start
 	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit) = 0;

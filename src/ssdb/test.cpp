@@ -6,7 +6,7 @@
 int main(int argc, char **argv){
 	set_log_level(Logger::LEVEL_TRACE);
 	std::string work_dir = "./tmp/a";
-	Option opt;
+	Options opt;
 	opt.compression = "no";
 
 	SSDB *ssdb = NULL;

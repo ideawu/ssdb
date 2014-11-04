@@ -3,11 +3,11 @@
 
 #include "../util/config.h"
 
-class Option
+class Options
 {
 public:
-	Option();
-	~Option(){}
+	Options();
+	~Options(){}
 	
 	void load(const Config &conf);
 

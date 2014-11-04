@@ -14,7 +14,7 @@ Config *conf = NULL;
 NetworkServer *net = NULL;	
 std::string pidfile;
 std::string work_dir;
-Option option;
+Options option;
 std::string data_db_dir;
 std::string meta_db_dir;
 
@@ -41,7 +41,7 @@ int main(int argc, char **argv){
 			exit(1);
 		}
 
-		meta = SSDB::open(Option(), meta_db_dir);
+		meta = SSDB::open(Options(), meta_db_dir);
 		if(!meta){
 			log_fatal("could not open meta db: %s", meta_db_dir.c_str());
 			fprintf(stderr, "could not open meta db: %s\n", meta_db_dir.c_str());

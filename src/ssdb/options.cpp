@@ -1,12 +1,12 @@
-#include "option.h"
+#include "options.h"
 #include "../util/strings.h"
 
-Option::Option(){
+Options::Options(){
 	Config c;
 	this->load(c);
 }
 
-void Option::load(const Config &conf){
+void Options::load(const Config &conf){
 	cache_size = (size_t)conf.get_num("leveldb.cache_size");
 	max_open_files = (size_t)conf.get_num("leveldb.max_open_files");
 	write_buffer_size = (size_t)conf.get_num("leveldb.write_buffer_size");
