@@ -427,6 +427,7 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 				}
 			}
 			break;
+		case BinlogCommand::QSET:
 		case BinlogCommand::QPUSH_BACK:
 		case BinlogCommand::QPUSH_FRONT:
 			{
@@ -442,7 +443,10 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 					break;
 				}
 				int ret;
-				if(log.cmd() == BinlogCommand::QPUSH_BACK){
+				if(log.cmd() == BinlogCommand::QSET){
+					log_trace("qset %s %" PRIu64 "", hexmem(name.data(), name.size()).c_str(), seq);
+					ret = ssdb->qset_by_seq(name, seq, req[1], log_type);
+				}else if(log.cmd() == BinlogCommand::QPUSH_BACK){
 					log_trace("qpush_back %s", hexmem(name.data(), name.size()).c_str());
 					ret = ssdb->qpush_back(name, req[1], log_type);
 				}else{
