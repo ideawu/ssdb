@@ -381,6 +381,7 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 		case BinlogCommand::KSET:
 		case BinlogCommand::HSET:
 		case BinlogCommand::ZSET:
+		case BinlogCommand::QSET:
 		case BinlogCommand::QPUSH_BACK:
 		case BinlogCommand::QPUSH_FRONT:
 			ret = backend->ssdb->raw_get(log.key(), &val);

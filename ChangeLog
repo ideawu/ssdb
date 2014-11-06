@@ -1,5 +1,6 @@
 * 1.8.0
 	* New features:
+		- Sync qset operations(2014-11-05)
 		- Add dbsize command(2014-11-02)
 		- Include sync clients' stats in info(2014-11-02)
 		- Refactor codes, separate into: libutil, libnet, libssdb(2014-11-02)
@@ -8,7 +9,7 @@
 		- *incr commands return error if value cannot be converted to integer(2014-10-24)
 		- Include replication/sync stats in info(2014-10-23)
 		- Add set_key_range, get_key_range(for KV) command(2014-10-22)
-		- Add qset/lset command, rewrite Response(2014-10-19)
+		- Add qset/lset command(sync won't work), rewrite Response(2014-10-19)
 * 1.7.0.0
 	* New features:
 		- export(ssdb-cli) command supports -i(interactive) option(2014-10-16)

@@ -41,6 +41,7 @@ public:
 	static const char QPUSH_FRONT	= 11;
 	static const char QPOP_BACK		= 12;
 	static const char QPOP_FRONT	= 13;
+	static const char QSET			= 14;
 	
 	static const char BEGIN  = 7;
 	static const char END    = 8;

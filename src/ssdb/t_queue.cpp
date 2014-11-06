@@ -111,8 +111,41 @@ int SSDBImpl::qback(const Bytes &name, std::string *item){
 	return ret;
 }
 
+int SSDBImpl::qset_by_seq(const Bytes &name, uint64_t seq, const Bytes &item, char log_type){
+	Transaction trans(binlogs);
+	uint64_t min_seq, max_seq;
+	int ret;
+	int64_t size = this->qsize(name);
+	if(size == -1){
+		return -1;
+	}
+	ret = qget_uint64(this->db, name, QFRONT_SEQ, &min_seq);
+	if(ret == -1){
+		return -1;
+	}
+	max_seq = min_seq + size;
+	if(seq < min_seq || seq > max_seq){
+		return -1;
+	}
+
+	ret = qset_one(this, name, seq, item);
+	if(ret == -1){
+		return -1;
+	}
+
+	std::string buf = encode_qitem_key(name, seq);
+	binlogs->add_log(log_type, BinlogCommand::QSET, buf);
+
+	leveldb::Status s = binlogs->commit();
+	if(!s.ok()){
+		log_error("Write error!");
+		return -1;
+	}
+	return 1;
+}
+
 // return: 0: index out of range, -1: error, 1: ok
-int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item){
+int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item, char log_type){
 	Transaction trans(binlogs);
 	int64_t size = this->qsize(name);
 	if(size == -1){
@@ -142,6 +175,11 @@ int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item){
 	if(ret == -1){
 		return -1;
 	}
+
+	//log_info("qset %s %" PRIu64 "", hexmem(name.data(), name.size()).c_str(), seq);
+	std::string buf = encode_qitem_key(name, seq);
+	binlogs->add_log(log_type, BinlogCommand::QSET, buf);
+	
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
 		log_error("Write error!");
