@@ -119,12 +119,6 @@ void NetworkServer::init(const Config &conf){
 	}
 	
 	{ // server
-		this->need_auth = false;		
-		if(!password.empty()){
-			this->need_auth = true;
-			this->password = password;
-		}
-
 		const char *ip = conf.get_str("server.ip");
 		int port = conf.get_num("server.port");
 		
@@ -147,6 +141,11 @@ void NetworkServer::init(const Config &conf){
 			log_info("auth: off");
 		}else{
 			log_info("auth: on");
+		}
+		this->need_auth = false;		
+		if(!password.empty()){
+			this->need_auth = true;
+			this->password = password;
 		}
 	}
 }
