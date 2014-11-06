@@ -125,7 +125,7 @@ int SSDBImpl::qset_by_seq(const Bytes &name, uint64_t seq, const Bytes &item, ch
 	}
 	max_seq = min_seq + size;
 	if(seq < min_seq || seq > max_seq){
-		return -1;
+		return 0;
 	}
 
 	ret = qset_one(this, name, seq, item);
@@ -151,7 +151,7 @@ int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item, char log
 	if(size == -1){
 		return -1;
 	}
-	if(index > size || index < -size){
+	if(index >= size || index < -size){
 		return 0;
 	}
 	
