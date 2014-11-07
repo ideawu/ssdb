@@ -13,6 +13,10 @@ ProcMap::~ProcMap(){
 	proc_map.clear();
 }
 
+void ProcMap::set_proc(const std::string &c, proc_t proc){
+	this->set_proc(c, "t", proc);
+}
+
 void ProcMap::set_proc(const std::string &c, const char *sflags, proc_t proc){
 	Command *cmd = this->get_proc(c);
 	if(!cmd){

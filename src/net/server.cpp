@@ -121,6 +121,9 @@ void NetworkServer::init(const Config &conf){
 	{ // server
 		const char *ip = conf.get_str("server.ip");
 		int port = conf.get_num("server.port");
+		if(ip == NULL || ip[0] == '\0'){
+			ip = "127.0.0.1";
+		}
 		
 		serv_link = Link::listen(ip, port);
 		if(serv_link == NULL){

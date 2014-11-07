@@ -101,6 +101,7 @@ public:
 	ProcMap();
 	~ProcMap();
 	void set_proc(const std::string &cmd, const char *sflags, proc_t proc);
+	void set_proc(const std::string &cmd, proc_t proc);
 	Command* get_proc(const Bytes &str);
 	
 	proc_map_t::iterator begin(){

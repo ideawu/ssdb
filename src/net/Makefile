@@ -21,7 +21,8 @@ server.o: server.h server.cpp
 	${CXX} ${CFLAGS} -c server.cpp
 
 test:
-	${CXX} -o test test.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	${CXX} -o test.out test.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
+	${CXX} -o test2.out test2.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
 
 clean:
 	rm -f ${EXES} *.a *.o *.exe
