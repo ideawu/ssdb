@@ -1,31 +1,13 @@
 #include "server.h"
-
-void usage(int argc, char **argv){
-	printf("Usage:\n");
-	printf("    %s [-d] /path/to/server.conf\n", argv[0]);
-	printf("Options:\n");
-	printf("    -d    run as daemon\n");
-}
+#include "../util/config.h"
 
 DEF_PROC(hello);
 
 int main(int argc, char **argv){
-	bool is_daemon = false;
-	const char *conf_file = NULL;
-	for(int i=1; i<argc; i++){
-		if(strcmp(argv[i], "-d") == 0){
-			is_daemon = true;
-		}else{
-			conf_file = argv[i];
-		}
-	}
-	if(conf_file == NULL){
-		usage(argc, argv);
-		exit(1);
-	}
-
+	Config conf;
+	conf.set("server.port", "9000");
 	NetworkServer serv;
-	serv.init(conf_file);
+	serv.init(conf);
 	// register command procedure
 	serv.proc_map.set_proc("hello", proc_hello);
 	serv.serve();

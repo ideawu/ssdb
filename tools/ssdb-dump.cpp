@@ -214,8 +214,9 @@ int main(int argc, char **argv){
 				}
 				
 				leveldb::Slice k(key.data(), key.size());
-				leveldb::Slice v(val.data(), key.size());
+				leveldb::Slice v(val.data(), val.size());
 				status = db->Put(leveldb::WriteOptions(), k, v);
+				//printf("set %s %s\n", str_escape(key.data(), key.size()).c_str(), str_escape(val.data(), val.size()).c_str());
 				if(!status.ok()){
 					fprintf(stderr, "put leveldb error!\n");
 					fprintf(stderr, "ERROR: failed to dump data!\n");
