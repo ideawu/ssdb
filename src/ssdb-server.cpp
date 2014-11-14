@@ -3,6 +3,8 @@ Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
+#include <sys/types.h>
+#include <signal.h>
 #include "include.h"
 #include <vector>
 #include <string>
@@ -15,10 +17,22 @@ found in the LICENSE file.
 #include "ssdb/ssdb.h"
 #include "serv.h"
 
+struct AppArgs{
+	bool is_daemon;
+	std::string pidfile;
+	std::string conf_file;
+	std::string work_dir;
+	std::string start_opt;
+
+	AppArgs(){
+		is_daemon = false;
+		start_opt = "start";
+	}
+};
+
+AppArgs app_args;
 Config *conf = NULL;
 NetworkServer *net = NULL;	
-std::string pidfile;
-std::string work_dir;
 Options option;
 std::string data_db_dir;
 std::string meta_db_dir;
@@ -27,9 +41,11 @@ void welcome();
 void usage(int argc, char **argv);
 void init(int argc, char **argv);
 
+int read_pid();
+void write_pid();
 void check_pidfile();
-void write_pidfile();
 void remove_pidfile();
+void kill_process();
 
 int main(int argc, char **argv){
 	welcome();
@@ -59,7 +75,7 @@ int main(int argc, char **argv){
 	
 	SSDBServer *ss = new SSDBServer(ssdb, meta, *conf, net);
 
-	write_pidfile();
+	write_pid();
 	log_info("ssdb server started.");
 	net->serve();
 	remove_pidfile();
@@ -82,45 +98,77 @@ void welcome(){
 
 void usage(int argc, char **argv){
 	printf("Usage:\n");
-	printf("    %s [-d] /path/to/ssdb.conf\n", argv[0]);
+	printf("    %s [-d] /path/to/ssdb.conf [-s start|stop|restart]\n", argv[0]);
 	printf("Options:\n");
 	printf("    -d    run as daemon\n");
+	printf("    -s    option to start|stop|restart the server\n");
+	printf("    -h    show this message\n");
 }
 
-void init(int argc, char **argv){
-	bool is_daemon = false;
-	const char *conf_file = NULL;
+void parse_args(int argc, char **argv){
 	for(int i=1; i<argc; i++){
-		if(strcmp(argv[i], "-d") == 0){
-			is_daemon = true;
+		std::string arg = argv[i];
+		if(arg == "-d"){
+			app_args.is_daemon = true;
+		}else if(arg == "-v"){
+			exit(0);
+		}else if(arg == "-h"){
+			usage(argc, argv);
+			exit(0);
+		}else if(arg == "-s"){
+			if(argc > i + 1){
+				i ++;
+				app_args.start_opt = argv[i];
+			}else{
+				usage(argc, argv);
+				exit(1);
+			}
+			if(app_args.start_opt != "start" && app_args.start_opt != "stop" && app_args.start_opt != "restart"){
+				usage(argc, argv);
+				fprintf(stderr, "Error: bad argument: '%s'\n", app_args.start_opt.c_str());
+				exit(1);
+			}
 		}else{
-			conf_file = argv[i];
+			app_args.conf_file = argv[i];
 		}
 	}
-	if(conf_file == NULL){
+
+	if(app_args.conf_file.empty()){
 		usage(argc, argv);
 		exit(1);
 	}
+}
 
-	if(!is_file(conf_file)){
-		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
+void init(int argc, char **argv){
+	parse_args(argc, argv);
+
+	if(!is_file(app_args.conf_file.c_str())){
+		fprintf(stderr, "'%s' is not a file or not exists!\n", app_args.conf_file.c_str());
 		exit(1);
 	}
-
-	conf = Config::load(conf_file);
+	conf = Config::load(app_args.conf_file.c_str());
 	if(!conf){
-		fprintf(stderr, "error loading conf file: '%s'\n", conf_file);
+		fprintf(stderr, "error loading conf file: '%s'\n", app_args.conf_file.c_str());
 		exit(1);
 	}
 	{
-		std::string conf_dir = real_dirname(conf_file);
+		std::string conf_dir = real_dirname(app_args.conf_file.c_str());
 		if(chdir(conf_dir.c_str()) == -1){
 			fprintf(stderr, "error chdir: %s\n", conf_dir.c_str());
 			exit(1);
 		}
 	}
 
-	pidfile = conf->get_str("pidfile");
+	app_args.pidfile = conf->get_str("pidfile");
+
+	if(app_args.start_opt == "stop"){
+		kill_process();
+		exit(0);
+	}
+	if(app_args.start_opt == "restart"){
+		kill_process();
+	}
+	
 	check_pidfile();
 	
 	std::string log_output;
@@ -143,21 +191,21 @@ void init(int argc, char **argv){
 		}
 	}
 
-	work_dir = conf->get_str("work_dir");
-	if(work_dir.empty()){
-		work_dir = ".";
+	app_args.work_dir = conf->get_str("work_dir");
+	if(app_args.work_dir.empty()){
+		app_args.work_dir = ".";
 	}
-	if(!is_dir(work_dir.c_str())){
-		fprintf(stderr, "'%s' is not a directory or not exists!\n", work_dir.c_str());
+	if(!is_dir(app_args.work_dir.c_str())){
+		fprintf(stderr, "'%s' is not a directory or not exists!\n", app_args.work_dir.c_str());
 		exit(1);
 	}
-	data_db_dir = work_dir + "/data";
-	meta_db_dir = work_dir + "/meta";
+	data_db_dir = app_args.work_dir + "/data";
+	meta_db_dir = app_args.work_dir + "/meta";
 
 	option.load(*conf);
 
 	log_info("ssdb-server %s", SSDB_VERSION);
-	log_info("conf_file        : %s", conf_file);
+	log_info("conf_file        : %s", app_args.conf_file.c_str());
 	log_info("log_level        : %s", log_level.c_str());
 	log_info("log_output       : %s", log_output.c_str());
 	log_info("log_rotate_size  : %d", log_rotate_size);
@@ -175,40 +223,68 @@ void init(int argc, char **argv){
 
 	// WARN!!!
 	// deamonize() MUST be called before any thread is created!
-	if(is_daemon){
+	if(app_args.is_daemon){
 		daemonize();
 	}
 }
 
 void check_pidfile(){
-	if(pidfile.size()){
-		if(access(pidfile.c_str(), F_OK) == 0){
+	if(app_args.pidfile.size()){
+		if(access(app_args.pidfile.c_str(), F_OK) == 0){
 			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
-				"You must kill the process and then "
-				"remove this file before starting the server.\n", pidfile.c_str());
+				"Kill the running process before you run this command,\n"
+				"or use '-s restart' option to restart the server.\n",
+				app_args.pidfile.c_str());
 			exit(1);
 		}
 	}
 }
 
-void write_pidfile(){
-	if(pidfile.size()){
-		FILE *fp = fopen(pidfile.c_str(), "w");
-		if(!fp){
-			log_error("Failed to open pidfile '%s': %s", pidfile.c_str(), strerror(errno));
-			exit(1);
-		}
-		char buf[128];
-		pid_t pid = getpid();
-		snprintf(buf, sizeof(buf), "%d", pid);
-		log_info("pidfile: %s, pid: %d", pidfile.c_str(), pid);
-		fwrite(buf, 1, strlen(buf), fp);
-		fclose(fp);
+int read_pid(){
+	if(app_args.pidfile.empty()){
+		return -1;
+	}
+	std::string s;
+	file_get_contents(app_args.pidfile, &s);
+	if(s.empty()){
+		return -1;
+	}
+	return str_to_int(s);
+}
+
+void write_pid(){
+	if(app_args.pidfile.empty()){
+		return;
+	}
+	int pid = (int)getpid();
+	std::string s = str(pid);
+	log_info("pidfile: %s, pid: %d", app_args.pidfile.c_str(), pid);
+	int ret = file_put_contents(app_args.pidfile, s);
+	if(ret == -1){
+		log_error("Failed to write pidfile '%s'(%s)", app_args.pidfile.c_str(), strerror(errno));
+		exit(1);
 	}
 }
 
 void remove_pidfile(){
-	if(pidfile.size()){
-		remove(pidfile.c_str());
+	if(app_args.pidfile.size()){
+		remove(app_args.pidfile.c_str());
+	}
+}
+
+void kill_process(){
+	int pid = read_pid();
+	if(pid == -1){
+		fprintf(stderr, "could not read pidfile: %s(%s)\n", app_args.pidfile.c_str(), strerror(errno));
+		exit(1);
+	}
+	int ret = kill(pid, SIGTERM);
+	if(ret == -1){
+		fprintf(stderr, "could not kill process: %d(%s)\n", pid, strerror(errno));
+		exit(1);
+	}
+	
+	while(file_exists(app_args.pidfile)){
+		usleep(100 * 1000);
 	}
 }
