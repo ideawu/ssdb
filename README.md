@@ -53,6 +53,8 @@ $ ./ssdb-server -d ssdb.conf
 $ ./tools/ssdb-cli -p 8888
 
 # stop ssdb-server
+$ ./ssdb-server ssdb.conf -s stop
+ # for older version
 $ kill `cat ./var/ssdb.pid`
 ```
 
