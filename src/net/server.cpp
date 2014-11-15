@@ -40,7 +40,7 @@ NetworkServer::NetworkServer(){
 	tick_interval = TICK_INTERVAL;
 	status_report_ticks = STATUS_REPORT_TICKS;
 
-	conf = NULL;
+	//conf = NULL;
 	serv_link = NULL;
 	link_count = 0;
 
@@ -69,7 +69,7 @@ NetworkServer::NetworkServer(){
 }
 	
 NetworkServer::~NetworkServer(){
-	delete conf;
+	//delete conf;
 	delete serv_link;
 	delete fdes;
 	delete ip_filter;
@@ -80,13 +80,13 @@ NetworkServer::~NetworkServer(){
 	delete reader;
 }
 
-void NetworkServer::init(const char *conf_file){
+NetworkServer* NetworkServer::init(const char *conf_file){
 	if(!is_file(conf_file)){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
 		exit(1);
 	}
 
-	conf = Config::load(conf_file);
+	Config *conf = Config::load(conf_file);
 	if(!conf){
 		fprintf(stderr, "error loading conf file: '%s'\n", conf_file);
 		exit(1);
@@ -98,10 +98,19 @@ void NetworkServer::init(const char *conf_file){
 			exit(1);
 		}
 	}
-	this->init(*conf);
+	NetworkServer* serv = init(*conf);
+	delete conf;
+	return serv;
 }
 
-void NetworkServer::init(const Config &conf){
+NetworkServer* NetworkServer::init(const Config &conf){
+	static bool inited = false;
+	if(inited){
+		return NULL;
+	}
+	inited = true;
+	
+	NetworkServer *serv = new NetworkServer();
 	// init ip_filter
 	{
 		Config *cc = (Config *)conf.get("server");
@@ -112,12 +121,12 @@ void NetworkServer::init(const Config &conf){
 				if((*it)->key == "allow"){
 					const char *ip = (*it)->str();
 					log_info("    allow %s", ip);
-					ip_filter->add_allow(ip);
+					serv->ip_filter->add_allow(ip);
 				}
 				if((*it)->key == "deny"){
 					const char *ip = (*it)->str();
 					log_info("    deny %s", ip);
-					ip_filter->add_deny(ip);
+					serv->ip_filter->add_deny(ip);
 				}
 			}
 		}
@@ -130,8 +139,8 @@ void NetworkServer::init(const Config &conf){
 			ip = "127.0.0.1";
 		}
 		
-		serv_link = Link::listen(ip, port);
-		if(serv_link == NULL){
+		serv->serv_link = Link::listen(ip, port);
+		if(serv->serv_link == NULL){
 			log_fatal("error opening server socket! %s", strerror(errno));
 			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
 			exit(1);
@@ -150,12 +159,13 @@ void NetworkServer::init(const Config &conf){
 		}else{
 			log_info("auth: on");
 		}
-		this->need_auth = false;		
+		serv->need_auth = false;		
 		if(!password.empty()){
-			this->need_auth = true;
-			this->password = password;
+			serv->need_auth = true;
+			serv->password = password;
 		}
 	}
+	return serv;
 }
 
 void NetworkServer::serve(){
