@@ -87,6 +87,29 @@ int main(int argc, char **argv){
 			}
 		}
 		printf("\n");
+
+		std::map<std::string, std::string> kvs;
+		kvs.insert(std::make_pair("k1", "v1"));
+		kvs.insert(std::make_pair("k2", "v2"));
+		s = client->multi_set(kvs);
+		assert(s.ok());
+
+		list.clear();
+		std::vector<std::string> keys;
+		keys.push_back("k1");
+		keys.push_back("k2");
+		s = client->multi_get(keys, &list);
+		assert(s.ok());
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		s = client->multi_del(keys);
+		assert(s.ok());
+		printf("\n");
 	}
 	
 	printf("\n");
@@ -139,6 +162,29 @@ int main(int argc, char **argv){
 				printf("%s, ", list[i].c_str());
 			}
 		}
+		printf("\n");
+
+		std::map<std::string, std::string> kvs;
+		kvs.insert(std::make_pair("k1", "v1"));
+		kvs.insert(std::make_pair("k2", "v2"));
+		s = client->multi_hset(hash, kvs);
+		assert(s.ok());
+		
+		list.clear();
+		std::vector<std::string> keys;
+		keys.push_back("k1");
+		keys.push_back("k2");
+		s = client->multi_hget(hash, keys, &list);
+		assert(s.ok());
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		s = client->multi_hdel(hash, keys);
+		assert(s.ok());
 		printf("\n");
 
 		ret = -1;
@@ -211,6 +257,29 @@ int main(int argc, char **argv){
 				printf("%s, ", list[i].c_str());
 			}
 		}
+		printf("\n");
+
+		std::map<std::string, int64_t> kss;
+		kss.insert(std::make_pair("k1", 123));
+		kss.insert(std::make_pair("k2", 124));
+		s = client->multi_zset(zset, kss);
+		assert(s.ok());
+		
+		list.clear();
+		std::vector<std::string> keys;
+		keys.push_back("k1");
+		keys.push_back("k2");
+		s = client->multi_zget(zset, keys, &list);
+		assert(s.ok());
+		for(int i=0; i<list.size(); i++){
+			if(i%2 == 0){
+				printf("%s=", list[i].c_str());
+			}else{
+				printf("%s, ", list[i].c_str());
+			}
+		}
+		s = client->multi_zdel(zset, keys);
+		assert(s.ok());
 		printf("\n");
 
 		int64_t rank = -1;
