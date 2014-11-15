@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace ssdb{
 
@@ -78,6 +79,8 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::string &s3, const std::string &s4, const std::string &s5, const std::string &s6) = 0;
+	virtual const std::vector<std::string>* request(const std::string &cmd, const std::vector<std::string> &s2) = 0;
+	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::vector<std::string> &s3) = 0;
 	/// @}
 
 	/// @name KV methods
@@ -108,6 +111,13 @@ public:
 	 */
 	virtual Status rscan(const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status multi_get(const std::vector<std::string> &keys, std::vector<std::string> *vals) = 0;
+	virtual Status multi_set(const std::map<std::string, std::string> &kvs) = 0;
+	virtual Status multi_del(const std::vector<std::string> &keys) = 0;
 	/// @}
 
 
@@ -143,6 +153,14 @@ public:
 	virtual Status hrscan(const std::string &name, 
 		const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status multi_hget(const std::string &name, const std::vector<std::string> &keys,
+		std::vector<std::string> *ret) = 0;
+	virtual Status multi_hset(const std::string &name, const std::map<std::string, std::string> &kvs) = 0;
+	virtual Status multi_hdel(const std::string &name, const std::vector<std::string> &keys) = 0;
 	/// @}
 
 
@@ -198,6 +216,14 @@ public:
 	virtual Status zrscan(const std::string &name, const std::string &key_start,
 		int64_t *score_start, int64_t *score_end,
 		uint64_t limit, std::vector<std::string> *ret) = 0;
+	/**
+	 * Return key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status multi_zget(const std::string &name, const std::vector<std::string> &keys,
+		std::vector<std::string> *scores) = 0;
+	virtual Status multi_zset(const std::string &name, const std::map<std::string, int64_t> &kss) = 0;
+	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys) = 0;
 	/// @}
 
 private:

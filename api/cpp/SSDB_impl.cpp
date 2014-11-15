@@ -131,6 +131,25 @@ const std::vector<std::string>* ClientImpl::request(const std::string &cmd, cons
 	return request(req);
 }
 
+const std::vector<std::string>* ClientImpl::request(const std::string &cmd, const std::vector<std::string> &s2){
+	std::vector<std::string> req;
+	req.push_back(cmd);
+	for(std::vector<std::string>::const_iterator it = s2.begin(); it != s2.end(); ++it){
+		req.push_back(*it);
+	}
+	return request(req);
+}
+
+const std::vector<std::string>* ClientImpl::request(const std::string &cmd, const std::string &s2, const std::vector<std::string> &s3){
+	std::vector<std::string> req;
+	req.push_back(cmd);
+	req.push_back(s2);
+	for(std::vector<std::string>::const_iterator it = s3.begin(); it != s3.end(); ++it){
+		req.push_back(*it);
+	}
+	return request(req);
+}
+
 /******************** KV *************************/
 
 Status ClientImpl::get(const std::string &key, std::string *val){
@@ -192,6 +211,33 @@ Status ClientImpl::rscan(const std::string &key_start, const std::string &key_en
 	const std::vector<std::string> *resp;
 	resp = this->request("rscan", key_start, key_end, s_limit);
 	return _read_list(resp, ret);
+}
+
+Status ClientImpl::multi_get(const std::vector<std::string> &keys, std::vector<std::string> *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_get", keys);
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::multi_set(const std::map<std::string, std::string> &kvs){
+	const std::vector<std::string> *resp;
+	std::vector<std::string> list;
+	for(std::map<std::string, std::string>::const_iterator it = kvs.begin();
+		it != kvs.end(); ++it)
+	{
+		list.push_back(it->first);
+		list.push_back(it->second);
+	}
+	resp = this->request("multi_set", list);
+	Status s(resp);
+	return s;
+}
+
+Status ClientImpl::multi_del(const std::vector<std::string> &keys){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_del", keys);
+	Status s(resp);
+	return s;
 }
 
 
@@ -267,6 +313,33 @@ Status ClientImpl::hrscan(const std::string &name,
 	return _read_list(resp, ret);
 }
 
+Status ClientImpl::multi_hget(const std::string &name, const std::vector<std::string> &keys,
+	std::vector<std::string> *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_hget", name, keys);
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::multi_hset(const std::string &name, const std::map<std::string, std::string> &kvs){
+	const std::vector<std::string> *resp;
+	std::vector<std::string> list;
+	for(std::map<std::string, std::string>::const_iterator it = kvs.begin();
+		it != kvs.end(); ++it)
+	{
+		list.push_back(it->first);
+		list.push_back(it->second);
+	}
+	resp = this->request("multi_hset", name, list);
+	Status s(resp);
+	return s;
+}
+
+Status ClientImpl::multi_hdel(const std::string &name, const std::vector<std::string> &keys){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_hdel", name, keys);
+	Status s(resp);
+	return s;
+}
 
 /******************** zset *************************/
 
@@ -380,6 +453,34 @@ Status ClientImpl::zrscan(const std::string &name, const std::string &key_start,
 	const std::vector<std::string> *resp;
 	resp = this->request("zrscan", name, key_start, s_score_start, s_score_end, s_limit);
 	return _read_list(resp, ret);
+}
+
+Status ClientImpl::multi_zget(const std::string &name, const std::vector<std::string> &keys,
+	std::vector<std::string> *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_zget", name, keys);
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::multi_zset(const std::string &name, const std::map<std::string, int64_t> &kss){
+	const std::vector<std::string> *resp;
+	std::vector<std::string> s_kss;
+	for(std::map<std::string, int64_t>::const_iterator it = kss.begin();
+		it != kss.end(); ++it)
+	{
+		s_kss.push_back(it->first);
+		s_kss.push_back(str(it->second));
+	}
+	resp = this->request("multi_zset", name, s_kss);
+	Status s(resp);
+	return s;
+}
+
+Status ClientImpl::multi_zdel(const std::string &name, const std::vector<std::string> &keys){
+	const std::vector<std::string> *resp;
+	resp = this->request("multi_zdel", name, keys);
+	Status s(resp);
+	return s;
 }
 
 }; // namespace ssdb
