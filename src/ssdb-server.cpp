@@ -39,7 +39,8 @@ std::string meta_db_dir;
 
 void welcome();
 void usage(int argc, char **argv);
-void init(int argc, char **argv);
+void parse_args(int argc, char **argv);
+void init();
 
 int read_pid();
 void write_pid();
@@ -49,31 +50,31 @@ void kill_process();
 
 int main(int argc, char **argv){
 	welcome();
-	init(argc, argv);
+	parse_args(argc, argv);
+	init();
 
-	SSDB *ssdb = NULL;
-	SSDB *meta = NULL;
-	{ // ssdb
+	SSDB *data_db = NULL;
+	SSDB *meta_db = NULL;
+	{
 
-		ssdb = SSDB::open(option, data_db_dir);
-		if(!ssdb){
+		data_db = SSDB::open(option, data_db_dir);
+		if(!data_db){
 			log_fatal("could not open data db: %s", data_db_dir.c_str());
 			fprintf(stderr, "could not open data db: %s\n", data_db_dir.c_str());
 			exit(1);
 		}
 
-		meta = SSDB::open(Options(), meta_db_dir);
-		if(!meta){
+		meta_db = SSDB::open(Options(), meta_db_dir);
+		if(!meta_db){
 			log_fatal("could not open meta db: %s", meta_db_dir.c_str());
 			fprintf(stderr, "could not open meta db: %s\n", meta_db_dir.c_str());
 			exit(1);
 		}
 	}
 
-	net = new NetworkServer();
-	net->init(*conf);
-	
-	SSDBServer *ss = new SSDBServer(ssdb, meta, *conf, net);
+	net = NetworkServer::init(*conf);
+
+	SSDBServer *ss = new SSDBServer(data_db, meta_db, *conf, net);
 
 	write_pid();
 	log_info("ssdb server started.");
@@ -82,8 +83,8 @@ int main(int argc, char **argv){
 	
 	delete net;
 	delete ss;
-	delete meta;
-	delete ssdb;
+	delete meta_db;
+	delete data_db;
 	delete conf;
 	log_info("ssdb server exit.");
 	return 0;
@@ -139,9 +140,7 @@ void parse_args(int argc, char **argv){
 	}
 }
 
-void init(int argc, char **argv){
-	parse_args(argc, argv);
-
+void init(){
 	if(!is_file(app_args.conf_file.c_str())){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", app_args.conf_file.c_str());
 		exit(1);

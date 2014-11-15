@@ -27,7 +27,7 @@ private:
 	int tick_interval;
 	int status_report_ticks;
 
-	Config *conf;
+	//Config *conf;
 	Link *serv_link;
 	IpFilter *ip_filter;
 	Fdevents *fdes;
@@ -43,6 +43,8 @@ private:
 	ProcWorkerPool *writer;
 	ProcWorkerPool *reader;
 
+	NetworkServer();
+
 protected:
 	void usage(int argc, char **argv);
 
@@ -53,11 +55,11 @@ public:
 	bool need_auth;
 	std::string password;
 
-	NetworkServer();
 	~NetworkServer();
 	
-	void init(const char *conf_file);
-	void init(const Config &conf);
+	// could be called only once
+	static NetworkServer* init(const char *conf_file);
+	static NetworkServer* init(const Config &conf);
 	void serve();
 };
 

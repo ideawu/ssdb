@@ -29,11 +29,14 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	NetworkServer serv;
-	serv.init(conf_file);
+	NetworkServer *serv = NetworkServer::init(conf_file);
+	if(!serv){
+		exit(1);
+	}
 	// register command procedure
-	serv.proc_map.set_proc("hello", proc_hello);
-	serv.serve();
+	serv->proc_map.set_proc("hello", proc_hello);
+	serv->serve();
+	delete serv;
 	return 0;
 }
 
