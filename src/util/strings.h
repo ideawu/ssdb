@@ -286,7 +286,7 @@ int str_to_int(const std::string &str){
 	char *end;
 	int ret = (int)strtol(start, &end, 10);
 	// the WHOLE string must be string represented integer
-	if(*end == '\0' && (end - start) == str.size()){
+	if(*end == '\0' && size_t(end - start) == str.size()){
 		errno = 0;
 	}else{
 		// strtoxx do not set errno all the time!
@@ -308,7 +308,7 @@ int64_t str_to_int64(const std::string &str){
 	char *end;
 	int64_t ret = (int64_t)strtoll(start, &end, 10);
 	// the WHOLE string must be string represented integer
-	if(*end == '\0' && (end - start) == str.size()){
+	if(*end == '\0' && size_t(end - start) == str.size()){
 		errno = 0;
 	}else{
 		// strtoxx do not set errno all the time!
@@ -330,7 +330,7 @@ uint64_t str_to_uint64(const std::string &str){
 	char *end;
 	uint64_t ret = (uint64_t)strtoull(start, &end, 10);
 	// the WHOLE string must be string represented integer
-	if(*end == '\0' && (end - start) == str.size()){
+	if(*end == '\0' && size_t(end - start) == str.size()){
 		errno = 0;
 	}else{
 		// strtoxx do not set errno all the time!
@@ -360,7 +360,7 @@ std::string substr(const std::string &str, int start, int size){
 		// 忽略掉 abs(size) 个字节
 		size = (str.size() + size) - start;
 	}
-	if(start < 0 || start >= str.size() || size < 0){
+	if(start < 0 || size_t(start) >= str.size() || size < 0){
 		return "";
 	}
 	return str.substr(start, size);
@@ -377,7 +377,7 @@ std::string str_slice(const std::string &str, int start, int end){
 	}else{
 		size = end - start + 1;
 	}
-	if(start < 0 || start >= str.size() || size < 0){
+	if(start < 0 || size_t(start) >= str.size() || size < 0){
 		return "";
 	}
 	return str.substr(start, size);
