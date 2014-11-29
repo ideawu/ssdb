@@ -197,7 +197,7 @@ public:
 		return n;
 	}
 	int read_int64(int64_t *ret){
-		if(size < sizeof(int64_t)){
+		if(size_t(size) < sizeof(int64_t)){
 			return -1;
 		}
 		if(ret){
@@ -208,7 +208,7 @@ public:
 		return sizeof(int64_t);
 	}
 	int read_uint64(uint64_t *ret){
-		if(size < sizeof(uint64_t)){
+		if(size_t(size) < sizeof(uint64_t)){
 			return -1;
 		}
 		if(ret){
