@@ -1,5 +1,6 @@
 * 1.8.0
 	* New features:
+		- Replication supports AUTH(2014-12-01)
 		- Sync qset operations(2014-11-05)
 		- Add dbsize command(2014-11-02)
 		- Include sync clients' stats in info(2014-11-02)

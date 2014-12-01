@@ -165,7 +165,9 @@ void init(){
 		exit(0);
 	}
 	if(app_args.start_opt == "restart"){
-		kill_process();
+		if(file_exists(app_args.pidfile)){
+			kill_process();
+		}
 	}
 	
 	check_pidfile();
@@ -276,6 +278,11 @@ void kill_process(){
 	if(pid == -1){
 		fprintf(stderr, "could not read pidfile: %s(%s)\n", app_args.pidfile.c_str(), strerror(errno));
 		exit(1);
+	}
+	if(kill(pid, 0) == -1 && errno == ESRCH){
+		fprintf(stderr, "process: %d not running\n", pid);
+		remove_pidfile();
+		return;
 	}
 	int ret = kill(pid, SIGTERM);
 	if(ret == -1){
