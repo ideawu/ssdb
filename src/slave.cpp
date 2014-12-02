@@ -169,14 +169,22 @@ int Slave::connect(){
 			goto err;
 		}else{
 			status = INIT;
-			
 			connect_retry = 0;
-			char seq_buf[20];
-			sprintf(seq_buf, "%" PRIu64 "", this->last_seq);
-			
 			const char *type = is_mirror? "mirror" : "sync";
 			
-			link->send("sync140", seq_buf, this->last_key, type);
+			if(!this->auth.empty()){
+				const std::vector<Bytes> *resp;
+				resp = link->request("auth", this->auth);
+				if(resp->empty() || resp->at(0) != "ok"){
+					log_error("auth error");
+					delete link;
+					link = NULL;
+					sleep(1);
+					return -1;
+				}
+			}
+			
+			link->send("sync140", str(this->last_seq), this->last_key, type);
 			if(link->flush() == -1){
 				log_error("[%s] network error", this->id_.c_str());
 				delete link;
@@ -250,6 +258,11 @@ void* Slave::_run_thread(void *arg){
 				reconnect = true;
 				break;
 			}else if(req->empty()){
+				break;
+			}else if(req->at(0) == "noauth"){
+				log_error("authentication required");
+				reconnect = true;
+				sleep(1);
 				break;
 			}else{
 				if(slave->proc(*req) == -1){

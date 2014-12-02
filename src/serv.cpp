@@ -276,6 +276,7 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 				if(!id.empty()){
 					slave->set_id(id);
 				}
+				slave->auth = c->get_str("auth");
 				slave->start();
 				slaves.push_back(slave);
 			}

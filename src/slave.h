@@ -58,6 +58,7 @@ private:
 		return link != NULL;
 	}
 public:
+	std::string auth;
 	Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror=false);
 	~Slave();
 	void start();
