@@ -50,14 +50,18 @@ if len(base_dir) == 0:
 	base_dir = '.'
 
 dstfile = cpy.compile(srcfile, base_dir, base_dir + '/_cpy_')
-sys.path.append(os.path.dirname(dstfile))
 
 #print ('-----')
 #print (''.join(open(dstfile, 'r').readlines()))
 #print ('-----')
 
 dstfile = os.path.abspath(dstfile)
-#os.chdir(base_dir);
+sys.path.append(os.path.dirname(os.path.abspath(srcfile)));
+sys.path.append(os.path.dirname(os.path.abspath(dstfile)));
+
+os.chdir(os.path.dirname(os.path.abspath(srcfile)));
+#print os.getcwd();
+
 if not is_compile:
 	sys.argv = sys.argv[1 :]
 	sys.path.insert(0, os.path.dirname(dstfile))
