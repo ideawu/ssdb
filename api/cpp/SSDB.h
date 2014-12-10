@@ -226,6 +226,9 @@ public:
 	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys) = 0;
 	/// @}
 
+	virtual Status qpush(const std::string &key, const std::string &val) = 0;
+	virtual Status qpop(const std::string &key, std::string *val) = 0;
+	virtual Status qslice(const std::string &name, uint64_t left, uint64_t right, std::vector<std::string> *ret) = 0;
 private:
 	// No copying allowed
 	Client(const Client&);
