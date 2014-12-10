@@ -21,7 +21,7 @@ int main(int argc, char **argv){
 	// set and get
 	s = client->set("k", "hello ssdb!");
 	if(s.ok()){
-		printf("k = hello ssdb!");
+		printf("k = hello ssdb!\n");
 	}else{
 		printf("error!\n");
 	}

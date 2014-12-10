@@ -497,7 +497,7 @@ Status ClientImpl::qpop(const std::string &key, std::string *val){
 }
 
 Status ClientImpl::qslice(const std::string &name,
-		uint64_t left, uint64_t right,
+		int64_t left, int64_t right,
 		std::vector<std::string> *ret)
 {
 	std::string s_left = str(left);
