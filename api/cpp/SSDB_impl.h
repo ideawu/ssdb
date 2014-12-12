@@ -85,6 +85,10 @@ public:
 		std::vector<std::string> *scores);
 	virtual Status multi_zset(const std::string &name, const std::map<std::string, int64_t> &kss);
 	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys);
+
+	virtual Status qpush(const std::string &key, const std::string &val);
+	virtual Status qpop(const std::string &key, std::string *val);
+	virtual Status qslice(const std::string &name, int64_t left, int64_t right, std::vector<std::string> *ret);
 };
 
 }; // namespace ssdb
