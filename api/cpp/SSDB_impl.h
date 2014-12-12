@@ -88,7 +88,7 @@ public:
 
 	virtual Status qpush(const std::string &key, const std::string &val);
 	virtual Status qpop(const std::string &key, std::string *val);
-	virtual Status qslice(const std::string &name, int64_t left, int64_t right, std::vector<std::string> *ret);
+	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret);
 };
 
 }; // namespace ssdb

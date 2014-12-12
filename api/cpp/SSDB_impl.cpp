@@ -497,13 +497,13 @@ Status ClientImpl::qpop(const std::string &key, std::string *val){
 }
 
 Status ClientImpl::qslice(const std::string &name,
-		int64_t left, int64_t right,
+		int64_t begin, int64_t end,
 		std::vector<std::string> *ret)
 {
-	std::string s_left = str(left);
-	std::string s_right = str(right);
+	std::string s_begin = str(begin);
+	std::string s_end = str(end);
 	const std::vector<std::string> *resp;
-	resp = this->request("qslice", name, s_left, s_right);
+	resp = this->request("qslice", name, s_begin, s_end);
 	return _read_list(resp, ret);
 }
 

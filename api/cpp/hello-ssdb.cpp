@@ -43,8 +43,9 @@ int main(int argc, char **argv){
 	}
 	s = client->qslice("k", 0, 1, &vals);
 	if(s.ok()){
-		for(size_t i = 0; i < vals.size(); i++){
-			printf("qslice %u %s\n", i, vals[i].c_str());
+		printf("qslice 0 1\n");
+		for(int i = 0; i < (int)vals.size(); i++){
+			printf("    %d %s\n", i, vals[i].c_str());
 		}
 	}else{
 		printf("error!\n");
