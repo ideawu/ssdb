@@ -483,4 +483,28 @@ Status ClientImpl::multi_zdel(const std::string &name, const std::vector<std::st
 	return s;
 }
 
+Status ClientImpl::qpush(const std::string &key, const std::string &val){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpush", key, val);
+	Status s(resp);
+	return s;
+}
+
+Status ClientImpl::qpop(const std::string &key, std::string *val){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpop", key);
+	return _read_str(resp, val);
+}
+
+Status ClientImpl::qslice(const std::string &name,
+		int64_t begin, int64_t end,
+		std::vector<std::string> *ret)
+{
+	std::string s_begin = str(begin);
+	std::string s_end = str(end);
+	const std::vector<std::string> *resp;
+	resp = this->request("qslice", name, s_begin, s_end);
+	return _read_list(resp, ret);
+}
+
 }; // namespace ssdb
