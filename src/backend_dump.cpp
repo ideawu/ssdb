@@ -101,5 +101,6 @@ void* BackendDump::_run_thread(void *arg){
 
 	log_info("fd: %d, delete link", link->fd());
 	delete link;
+	delete it;
 	return (void *)NULL;
 }
