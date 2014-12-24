@@ -72,13 +72,13 @@ void Response::reply_get(int status, const std::string *val, const char *errmsg)
 		resp.push_back("not_found");
 	}else{
 		resp.push_back("ok");
-	}
-	if(val){
-		resp.push_back(*val);
-	}else{
-		if(errmsg){
-			resp.push_back(errmsg);
+		if(val){
+			resp.push_back(*val);
 		}
+		return;
+	}
+	if(errmsg){
+		resp.push_back(errmsg);
 	}
 } 
 
