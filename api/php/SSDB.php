@@ -12,6 +12,10 @@ class SSDBException extends Exception
 {
 }
 
+class SSDBTimeoutException extends SSDBException
+{
+}
+
 /**
  * All methods(except *exists) returns false on error,
  * so one should use Identical(if($ret === false)) to test the return value.
@@ -530,8 +534,12 @@ class SSDB
 					$data = '';
 				}
 				if($data === false || $data === ''){
-					$this->close();
-					throw new SSDBException('Connection lost');
+					if(feof($this->sock)){
+						$this->close();
+						throw new SSDBException('Connection lost');
+					}else{
+						throw new SSDBTimeoutException('Connection timeout');
+					}
 				}
 				$this->recv_buf .= $data;
 #				echo "read " . strlen($data) . " total: " . strlen($this->recv_buf) . "\n";
