@@ -367,6 +367,9 @@ const std::vector<Bytes>* Link::recv(){
 }
 
 int Link::send(const std::vector<std::string> &resp){
+	if(resp.empty()){
+		return 0;
+	}
 	// Redis protocol supports
 	if(this->redis){
 		return this->redis->send_resp(this->output, resp);
