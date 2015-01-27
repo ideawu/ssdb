@@ -354,6 +354,9 @@ const std::vector<Bytes>* RedisLink::recv_req(Buffer *input){
 }
 
 int RedisLink::send_resp(Buffer *output, const std::vector<std::string> &resp){
+	if(resp.empty()){
+		return 0;
+	}
 	if(resp[0] == "error" || resp[0] == "fail" || resp[0] == "client_error"){
 		output->append("-ERR ");
 		if(resp.size() >= 2){
