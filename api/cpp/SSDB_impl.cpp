@@ -1,5 +1,6 @@
 #include "SSDB_impl.h"
 #include "util/strings.h"
+#include <signal.h>
 
 namespace ssdb{
 
@@ -52,6 +53,11 @@ ClientImpl::~ClientImpl(){
 }
 
 Client* Client::connect(const char *ip, int port){
+	static bool inited = false;
+	if(!inited){
+		inited = true;
+		signal(SIGPIPE, SIG_IGN);
+	}
 	ClientImpl *client = new ClientImpl();
 	client->link = Link::connect(ip, port);
 	if(client->link == NULL){
