@@ -7,9 +7,7 @@ found in the LICENSE file.
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#include "../util/log.h"
-#include "../util/strings.h"
-#include "SSDB.h"
+#include "split.h"
 
 void welcome(){
 	printf("ssdb-split - Split ssdb-server\n");
@@ -25,132 +23,28 @@ void usage(int argc, char **argv){
 	printf("    xx - \n");
 }
 
-ssdb::Client *src_client;
-ssdb::Client *dst_client;
-const int COPY_BATCH_SIZE = 2;
-
-int find_kv_end_key(const std::string &start_key, std::string *end_key);
-int copy_kv_data(const std::string &start_key, const std::string &end_key);
-
-
 int main(int argc, char **argv){
 	welcome();
 	
-	const char *src_ip = "127.0.0.1";
-	int src_port = 8888;
-	const char *dst_ip = "127.0.0.1";
-	int dst_port = 8889;
-
-	src_client = ssdb::Client::connect(src_ip, src_port);
-	if(src_client == NULL){
-		printf("fail to connect to src server!\n");
-		return 0;
-	}
-
-	dst_client = ssdb::Client::connect(dst_ip, dst_port);
-	if(dst_client == NULL){
-		printf("fail to connect to dst server!\n");
-		return 0;
-	}
+	Split split;
+	split.init("127.0.0.1", 9000, "127.0.0.1", 8888, "127.0.0.1", 8889);
 	
-	int ret;
-	std::string start_key;
-	std::string end_key;
+	std::string min_key;
+	std::string max_key;
 	while(1){
-		// 0: SOURCE: find range to shrink
-		start_key = end_key;
-		ret = find_kv_end_key(start_key, &end_key);
-		if(ret == -1){
+		int64_t size = split.move_some();
+		if(size == -1){
+			fprintf(stderr, "error!\n");
+			exit(1);
+		}
+		if(size == 0){
+			fprintf(stderr, "end.\n");
+			split.finish();
 			break;
 		}
-		if(ret == 0){
-			// end splitting
-			break;
-		}
-		
-		// 1. CLUSTER: log source shrink range
-		log_debug("lock (\"\", \"%s\"] for read", str_escape(end_key).c_str());
-		
-		// 2. SOURCE: lock key range ("", end_key] for read
-		
-		// 3. CLUSTER: copy keys in range (start_key, end_key]
-		log_debug("copy (\"%s\", \"%s\"] begin", str_escape(start_key).c_str(), str_escape(end_key).c_str());
-		ret = copy_kv_data(start_key, end_key);
-		if(ret == -1){
-			log_error("copy error!");
-			break;
-		}
-		log_debug("copy (\"%s\", \"%s\"] end", str_escape(start_key).c_str(), str_escape(end_key).c_str());
-		
-		// 4. CLUSTER: log destination expand range
-		
-		// 5. DESTINATION: expand range
-
-		// 6. SOURCE: delete depricated keys
+		printf("move %d bytes\n", (int)size);
 	}
 	
-	// end. CLUSTER: end splitting
-
-	delete src_client;
-	delete dst_client;
 	return 0;
 }
 
-int find_kv_end_key(const std::string &start_key, std::string *end_key){
-	std::vector<std::string> keys;
-	ssdb::Status s;
-	s = src_client->keys(start_key, "", COPY_BATCH_SIZE, &keys);
-	if(!s.ok()){
-		log_error("response error: %s", s.code().c_str());
-		return -1;
-	}
-	if(keys.empty()){
-		return 0;
-	}
-	*end_key = keys[keys.size() - 1];
-	return 1;
-}
-
-int copy_kv_data(const std::string &start_key, const std::string &end_key){
-	int ret = 0;
-	ssdb::Status s;
-	std::string iterate_key_start = start_key;
-	while(1){
-		std::vector<std::string> keys;
-		ssdb::Status s;
-		s = src_client->keys(iterate_key_start, end_key, COPY_BATCH_SIZE + 100, &keys);
-		if(!s.ok()){
-			log_error("response error: %s", s.code().c_str());
-			return -1;
-		}
-		if(keys.empty()){
-			break;
-		}
-		ret += (int)keys.size();
-		
-		// copy keys one by one, because scan() may exceed max_packet_size
-		for(int i=0; i<keys.size(); i++){
-			const std::string &key = keys[i];
-			std::string val;
-			s = src_client->get(key, &val);
-			if(!s.ok()){
-				log_error("read from src error: %s", s.code().c_str());
-				return -1;
-			}
-			
-			//log_debug("copy %s = %s", key.c_str(), val.c_str());
-			
-			s = dst_client->set(key, val);
-			if(!s.ok()){
-				log_error("write to dst error: %s", s.code().c_str());
-				return -1;
-			}
-		}
-		
-		iterate_key_start = keys[keys.size() - 1];
-		if(iterate_key_start == end_key){
-			break;
-		}
-	}
-	return ret;
-}

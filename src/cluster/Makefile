@@ -1,12 +1,16 @@
-LIBSSDB_PATH = ../../api/cpp
-#CFLAGS = -DNDEBUG -O2 -D__STDC_FORMAT_MACROS -Wall -Wno-sign-compare
-CFLAGS = -g -D__STDC_FORMAT_MACROS -Wall -Wno-sign-compare
-CFLAGS += -I${LIBSSDB_PATH}
-CLIBS = ${LIBSSDB_PATH}/libssdb-client.a ../util/libutil.a
+include ../../build_config.mk
 
-all:
+LIBSSDB_PATH = ../../api/cpp
+CFLAGS = -g -D__STDC_FORMAT_MACROS -Wall -Wno-sign-compare
+CFLAGS += -I${LIBSSDB_PATH} -I../ssdb
+CLIBS += ${LIBSSDB_PATH}/libssdb-client.a ../util/libutil.a ../ssdb/libssdb.a
+
+all: split.o
 	g++ ${CFLAGS} -c ssdb-split.cpp
-	g++ -o ssdb-split ssdb-split.o ${CLIBS}
+	g++ -o ssdb-split ssdb-split.o split.o ${CLIBS}
+
+split.o: split.h split.cpp
+	g++ ${CFLAGS} -c split.cpp
 
 clean:
 	rm -f ssdb-split *.a *.o
