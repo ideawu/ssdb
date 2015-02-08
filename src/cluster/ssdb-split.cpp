@@ -53,9 +53,11 @@ int main(int argc, char **argv){
 	}
 	
 	std::string start_key;
+	std::string end_key;
 	while(1){
 		std::vector<std::string> keys;
 		ssdb::Status s;
+		start_key = end_key;
 		s = src_client->keys(start_key, "", COPY_BATCH_SIZE, &keys);
 		if(!s.ok()){
 			log_error("response error: %s", s.code().c_str());
@@ -64,13 +66,14 @@ int main(int argc, char **argv){
 		if(keys.empty()){
 			break;
 		}
+		end_key = keys[keys.size() - 1];
 		
-		std::string end_key = keys[keys.size() - 1];
-		
-		// 1. lock key range in ("", end_key]
+		// 0. CLUSTER: log source shrink range
 		log_debug("lock (\"\", \"%s\"] for read", str_escape(end_key).c_str());
 		
-		// 2. copy keys in range (start_key, end_key]
+		// 1. SOURCE: lock key range ("", end_key] for read
+		
+		// 2. CLUSTER: copy keys in range (start_key, end_key]
 		log_debug("copy (\"%s\", \"%s\"] begin", str_escape(start_key).c_str(), str_escape(end_key).c_str());
 		int ret = copy_kv_data(start_key, end_key);
 		if(ret == -1){
@@ -79,9 +82,14 @@ int main(int argc, char **argv){
 		}
 		log_debug("copy (\"%s\", \"%s\"] end", str_escape(start_key).c_str(), str_escape(end_key).c_str());
 		
-		start_key = end_key;
-	}
+		// 3. CLUSTER: log destination expand range
+		
+		// 4. DESTINATION: expand range
 
+		// 5. SOURCE: delete depricated keys
+	}
+	
+	// end. CLUSTER: end splitting
 
 	delete src_client;
 	delete dst_client;
