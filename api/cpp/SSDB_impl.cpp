@@ -20,7 +20,7 @@ inline static
 Status _read_int64(const std::vector<std::string> *resp, int64_t *ret){
 	Status s(resp);
 	if(s.ok()){
-		if(resp->size() >= 2){
+		if(resp->size() >= 2 && ret){
 			*ret = str_to_int64(resp->at(1));
 		}else{
 			return Status("server_error");
@@ -489,17 +489,17 @@ Status ClientImpl::multi_zdel(const std::string &name, const std::vector<std::st
 	return s;
 }
 
-Status ClientImpl::qpush(const std::string &key, const std::string &val){
+Status ClientImpl::qpush(const std::string &name, const std::string &item){
 	const std::vector<std::string> *resp;
-	resp = this->request("qpush", key, val);
+	resp = this->request("qpush", name, item);
 	Status s(resp);
 	return s;
 }
 
-Status ClientImpl::qpop(const std::string &key, std::string *val){
+Status ClientImpl::qpop(const std::string &name, std::string *item){
 	const std::vector<std::string> *resp;
-	resp = this->request("qpop", key);
-	return _read_str(resp, val);
+	resp = this->request("qpop", name);
+	return _read_str(resp, item);
 }
 
 Status ClientImpl::qslice(const std::string &name,
@@ -511,6 +511,12 @@ Status ClientImpl::qslice(const std::string &name,
 	const std::vector<std::string> *resp;
 	resp = this->request("qslice", name, s_begin, s_end);
 	return _read_list(resp, ret);
+}
+
+Status ClientImpl::qclear(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qclear", name);
+	return _read_int64(resp, ret);
 }
 
 }; // namespace ssdb

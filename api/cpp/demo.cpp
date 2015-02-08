@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
-#include "SSDB.h"
+#include "SSDB_client.h"
 
 char* readline(char *buf, int num){
 	char *ret = fgets(buf, num , stdin);
