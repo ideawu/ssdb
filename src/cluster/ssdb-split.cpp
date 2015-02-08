@@ -29,6 +29,7 @@ ssdb::Client *src_client;
 ssdb::Client *dst_client;
 const int COPY_BATCH_SIZE = 2;
 
+int find_kv_end_key(const std::string &start_key, std::string *end_key);
 int copy_kv_data(const std::string &start_key, const std::string &end_key);
 
 
@@ -52,41 +53,40 @@ int main(int argc, char **argv){
 		return 0;
 	}
 	
+	int ret;
 	std::string start_key;
 	std::string end_key;
 	while(1){
-		std::vector<std::string> keys;
-		ssdb::Status s;
+		// 0: SOURCE: find range to shrink
 		start_key = end_key;
-		s = src_client->keys(start_key, "", COPY_BATCH_SIZE, &keys);
-		if(!s.ok()){
-			log_error("response error: %s", s.code().c_str());
+		ret = find_kv_end_key(start_key, &end_key);
+		if(ret == -1){
 			break;
 		}
-		if(keys.empty()){
+		if(ret == 0){
+			// end splitting
 			break;
 		}
-		end_key = keys[keys.size() - 1];
 		
-		// 0. CLUSTER: log source shrink range
+		// 1. CLUSTER: log source shrink range
 		log_debug("lock (\"\", \"%s\"] for read", str_escape(end_key).c_str());
 		
-		// 1. SOURCE: lock key range ("", end_key] for read
+		// 2. SOURCE: lock key range ("", end_key] for read
 		
-		// 2. CLUSTER: copy keys in range (start_key, end_key]
+		// 3. CLUSTER: copy keys in range (start_key, end_key]
 		log_debug("copy (\"%s\", \"%s\"] begin", str_escape(start_key).c_str(), str_escape(end_key).c_str());
-		int ret = copy_kv_data(start_key, end_key);
+		ret = copy_kv_data(start_key, end_key);
 		if(ret == -1){
 			log_error("copy error!");
 			break;
 		}
 		log_debug("copy (\"%s\", \"%s\"] end", str_escape(start_key).c_str(), str_escape(end_key).c_str());
 		
-		// 3. CLUSTER: log destination expand range
+		// 4. CLUSTER: log destination expand range
 		
-		// 4. DESTINATION: expand range
+		// 5. DESTINATION: expand range
 
-		// 5. SOURCE: delete depricated keys
+		// 6. SOURCE: delete depricated keys
 	}
 	
 	// end. CLUSTER: end splitting
@@ -94,6 +94,21 @@ int main(int argc, char **argv){
 	delete src_client;
 	delete dst_client;
 	return 0;
+}
+
+int find_kv_end_key(const std::string &start_key, std::string *end_key){
+	std::vector<std::string> keys;
+	ssdb::Status s;
+	s = src_client->keys(start_key, "", COPY_BATCH_SIZE, &keys);
+	if(!s.ok()){
+		log_error("response error: %s", s.code().c_str());
+		return -1;
+	}
+	if(keys.empty()){
+		return 0;
+	}
+	*end_key = keys[keys.size() - 1];
+	return 1;
 }
 
 int copy_kv_data(const std::string &start_key, const std::string &end_key){
