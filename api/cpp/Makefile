@@ -9,7 +9,6 @@ lib: SSDB.h SSDB_impl.h SSDB_impl.cpp
 	ar -cru libssdb-client.a\
 		SSDB_impl.o\
 		../../src/util/bytes.o\
-		../../src/util/log.o\
 		../../src/net/link.o
 
 clean:
