@@ -1,8 +1,9 @@
 #ifndef SSDB_CLUSTER_SPLIT_H
 #define SSDB_CLUSTER_SPLIT_H
 
+#include <stdint.h>
 #include <string>
-#include "ssdb_client.h"
+#include "SSDB_client.h"
 
 class Split{
 public:

@@ -1,7 +1,6 @@
 #include "split.h"
 #include <stdlib.h>
 #include <vector>
-#include "ssdb_client.h"
 #include "../util/log.h"
 #include "../util/strings.h"
 
@@ -28,25 +27,25 @@ int Split::init(const std::string &cluster_ip, int cluster_port, const std::stri
 
 	cluster = ssdb::Client::connect(cluster_ip.c_str(), cluster_port);
 	if(cluster == NULL){
-		log_error("fail to connect to cluster server!");
+		log_error("failed to connect to cluster server!");
 		return -1;
 	}
 
 	src_client = ssdb::Client::connect(src_ip.c_str(), src_port);
 	if(src_client == NULL){
-		log_error("fail to connect to src server!");
+		log_error("failed to connect to src server!");
 		return -1;
 	}
 
 	dst_client = ssdb::Client::connect(dst_ip.c_str(), dst_port);
 	if(dst_client == NULL){
-		log_error("fail to connect to dst server!");
+		log_error("failed to connect to dst server!");
 		return -1;
 	}
 	
 	ssdb::Status s;
 	s = cluster->hget(status_key, "src_key", &last_move_key);
-	if(!s.ok()){
+	if(!s.ok() && !s.not_found()){
 		return -1;
 	}
 	if(!last_move_key.empty()){

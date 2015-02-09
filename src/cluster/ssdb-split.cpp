@@ -26,14 +26,19 @@ void usage(int argc, char **argv){
 int main(int argc, char **argv){
 	welcome();
 	
+	int ret;
 	Split split;
-	split.init("127.0.0.1", 9000, "127.0.0.1", 8888, "127.0.0.1", 8889);
+	ret = split.init("127.0.0.1", 9000, "127.0.0.1", 8888, "127.0.0.1", 8889);
+	if(ret == -1){
+		fprintf(stderr, "%d error!\n", __LINE__);
+		exit(1);
+	}
 	
 	int64_t src_dbsize;
 	ssdb::Status s;
 	s = split.src_client->dbsize(&src_dbsize);
 	if(!s.ok()){
-		fprintf(stderr, "error!\n");
+		fprintf(stderr, "%d error!\n", __LINE__);
 		exit(1);
 	}
 	
@@ -49,7 +54,7 @@ int main(int argc, char **argv){
 			exit(1);
 		}
 		if(size == 0){
-			fprintf(stderr, "end.\n");
+			fprintf(stderr, "no data to move, end.\n");
 			split.finish();
 			break;
 		}
@@ -61,6 +66,12 @@ int main(int argc, char **argv){
 		if(!s.ok()){
 			fprintf(stderr, "error!\n");
 			exit(1);
+		}
+		
+		if(total_moved > src_dbsize/2 || src_dbsize_new > src_dbsize/10){
+			fprintf(stderr, "split end.\n");
+			split.finish();
+			break;
 		}
 		
 		printf("src_dbsize_old: %lld, src_dbsize_new: %lld\n", src_dbsize, src_dbsize_new);
