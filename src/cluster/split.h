@@ -13,7 +13,11 @@ public:
 	// 返回迁移的数据的字节数(估计), -1 表示出错; 0 表示已迁移完毕.
 	int64_t move_some();
 	int finish();
-	
+
+public:	
+	ssdb::Client *src_client;
+	ssdb::Client *dst_client;
+
 private:
 	int find_src_key_range_to_move(std::string *min_key, std::string *max_key);
 	int64_t move_key_range(const std::string &min_key, const std::string &max_key);
@@ -27,12 +31,8 @@ private:
 	int set_dst_key(const std::string &key);
 	int del_src_key(const std::string &key);
 
-	std::string status_key;
-	
 	ssdb::Client *cluster;
-	ssdb::Client *src_client;
-	ssdb::Client *dst_client;
-	
+	std::string status_key;
 	std::string last_move_key;
 };
 

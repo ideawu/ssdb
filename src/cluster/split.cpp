@@ -170,7 +170,7 @@ int Split::move_key(const std::string &key){
 }
 
 int Split::log_src_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	ssdb::Status s;
 	s = cluster->hset(this->status_key, "src_key", key);
 	if(!s.ok()){
@@ -181,7 +181,7 @@ int Split::log_src_key(const std::string &key){
 }
 	
 int Split::log_dst_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	ssdb::Status s;
 	s = cluster->hset(this->status_key, "dst_key", key);
 	if(!s.ok()){
@@ -192,7 +192,7 @@ int Split::log_dst_key(const std::string &key){
 }
 
 int Split::copy_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	std::string val;
 	ssdb::Status s;
 	s = src_client->get(key, &val);
@@ -203,7 +203,7 @@ int Split::copy_key(const std::string &key){
 		log_error("read from src error: %s", s.code().c_str());
 		return -1;
 	}
-	log_debug("copy %s = %s", key.c_str(), val.c_str());
+	//log_debug("copy %s = [%d]", key.c_str(), (int)val.size());
 			
 	s = dst_client->set(key, val);
 	if(!s.ok()){
@@ -214,19 +214,19 @@ int Split::copy_key(const std::string &key){
 }
 
 int Split::set_src_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	// TODO:
 	return 0;
 }
 
 int Split::set_dst_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	// TODO:
 	return 0;
 }
 
 int Split::del_src_key(const std::string &key){
-	log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
+	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
 	ssdb::Status s;
 	s = src_client->del(key);
 	if(!s.ok()){

@@ -156,6 +156,14 @@ const std::vector<std::string>* ClientImpl::request(const std::string &cmd, cons
 	return request(req);
 }
 
+/******************** misc *************************/
+
+Status ClientImpl::dbsize(int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("dbsize");
+	return _read_int64(resp, ret);
+}
+
 /******************** KV *************************/
 
 Status ClientImpl::get(const std::string &key, std::string *val){

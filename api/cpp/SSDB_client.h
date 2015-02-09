@@ -82,6 +82,8 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::vector<std::string> &s2) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::vector<std::string> &s3) = 0;
 	/// @}
+	
+	virtual Status dbsize(int64_t *ret) = 0;
 
 	/// @name KV methods
 	/// @{
