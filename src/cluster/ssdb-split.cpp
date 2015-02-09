@@ -68,9 +68,9 @@ int main(int argc, char **argv){
 			exit(1);
 		}
 
-		printf("moved: %lld, src_dbsize_old: %lld, src_dbsize_new: %lld\n", total_moved, src_dbsize, src_dbsize_new);
+		printf("moved: %lld, src_dbsize_old: %lld, src_dbsize_new: %lld\n", total_moved/1024, src_dbsize/1024, src_dbsize_new/1024);
 		
-		if(total_moved > src_dbsize/2 || src_dbsize_new > src_dbsize/10){
+		if(total_moved > src_dbsize/2 || (src_dbsize_new - src_dbsize) > src_dbsize/10){
 			fprintf(stderr, "split end.\n");
 			split.finish();
 			break;
