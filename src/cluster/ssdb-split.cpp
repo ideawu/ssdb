@@ -34,8 +34,8 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 	
-	int64_t src_dbsize;
 	ssdb::Status s;
+	int64_t src_dbsize;
 	s = split.src_client->dbsize(&src_dbsize);
 	if(!s.ok()){
 		fprintf(stderr, "%d error!\n", __LINE__);
@@ -61,16 +61,23 @@ int main(int argc, char **argv){
 		total_moved += size;
 		
 		int64_t src_dbsize_new;
-		ssdb::Status s;
 		s = split.src_client->dbsize(&src_dbsize_new);
 		if(!s.ok()){
 			fprintf(stderr, "error!\n");
 			exit(1);
 		}
-
-		printf("moved: %lld, src_dbsize_old: %lld, src_dbsize_new: %lld\n", total_moved/1024, src_dbsize/1024, src_dbsize_new/1024);
 		
-		if(total_moved > src_dbsize/2 || (src_dbsize_new - src_dbsize) > src_dbsize/10){
+		int64_t dst_dbsize_new;
+		s = split.dst_client->dbsize(&dst_dbsize_new);
+		if(!s.ok()){
+			fprintf(stderr, "error!\n");
+			exit(1);
+		}
+
+		printf("moved: %lld, src_dbsize_old: %lld, src_dbsize_new: %lld, dst_dbsize_new: %lld\n",
+			total_moved/1024, src_dbsize/1024, src_dbsize_new/1024, dst_dbsize_new/1024);
+		
+		if(total_moved > src_dbsize/2 || dst_dbsize_new > src_dbsize/2 || (src_dbsize_new - src_dbsize) > src_dbsize/10){
 			fprintf(stderr, "split end.\n");
 			split.finish();
 			break;
