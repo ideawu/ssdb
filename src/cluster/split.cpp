@@ -78,12 +78,12 @@ int Split::init(const std::string &cluster_ip, int cluster_port, const std::stri
 		return -1;
 	}
 	if(ret == 0){ // not found
-		log_info("new split");
+		log_info("new split %s", status_key.c_str());
 		last_move_key = src_kv_range_s;
 		dst_kv_range_s = src_kv_range_s;
 		dst_kv_range_e = src_kv_range_s;
 	}else{
-		log_info("recover split, last_move_key: \"%s\"", str_escape(last_move_key).c_str());
+		log_info("recover split, %s, last_move_key: \"%s\"", status_key.c_str(), str_escape(last_move_key).c_str());
 	}
 	log_info("dst_kv_range: \"%s\" - \"%s\"", str_escape(dst_kv_range_s).c_str(), str_escape(dst_kv_range_e).c_str());
 	log_info("src_kv_range: \"%s\" - \"%s\"", str_escape(src_kv_range_s).c_str(), str_escape(src_kv_range_e).c_str());
@@ -204,6 +204,11 @@ int64_t Split::move_key_range(const std::string &min_key, const std::string &max
 	}
 
 	res = set_dst_kv_range(dst_kv_range_s, max_key);
+	if(res == -1){
+		return -1;
+	}
+	
+	res = save_last_move_key(max_key);
 	if(res == -1){
 		return -1;
 	}
