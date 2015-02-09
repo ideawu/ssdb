@@ -67,6 +67,8 @@ int main(int argc, char **argv){
 			fprintf(stderr, "error!\n");
 			exit(1);
 		}
+
+		printf("moved: %lld, src_dbsize_old: %lld, src_dbsize_new: %lld\n", total_moved, src_dbsize, src_dbsize_new);
 		
 		if(total_moved > src_dbsize/2 || src_dbsize_new > src_dbsize/10){
 			fprintf(stderr, "split end.\n");
@@ -74,7 +76,6 @@ int main(int argc, char **argv){
 			break;
 		}
 		
-		printf("src_dbsize_old: %lld, src_dbsize_new: %lld\n", src_dbsize, src_dbsize_new);
 		getchar();
 	}
 	
