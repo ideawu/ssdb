@@ -23,18 +23,20 @@ private:
 	int find_src_key_range_to_move(std::string *min_key, std::string *max_key);
 	int64_t move_key_range(const std::string &min_key, const std::string &max_key);
 	
-	int move_key(const std::string &key);
 	int copy_key(const std::string &key);
 	
-	int log_src_key(const std::string &key);
-	int log_dst_key(const std::string &key);
-	int set_src_key(const std::string &key);
-	int set_dst_key(const std::string &key);
+	int load_last_move_key();
+	int save_last_move_key(const std::string &key);
+	
+	int set_src_kv_range(const std::string &min_key, const std::string &max_key);
+	int set_dst_kv_range(const std::string &min_key, const std::string &max_key);
 	int del_src_key(const std::string &key);
 
 	ssdb::Client *cluster;
 	std::string status_key;
 	std::string last_move_key;
+	std::string src_kv_range_s, src_kv_range_e;
+	std::string dst_kv_range_s, dst_kv_range_e;
 };
 
 #endif
