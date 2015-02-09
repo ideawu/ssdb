@@ -485,41 +485,67 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 			resp->push_back(s);
 		}
 	}
+	{
+		std::string val;
+		std::string s, e;
+		serv->get_kv_range(&s, &e);
+		char buf[512];
+		{
+			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
+				str_escape(s).c_str(),
+				str_escape(e).c_str()
+				);
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\thash: \"\" - \"\"");
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\tzset: \"\" - \"\"");
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\tlist: \"\" - \"\"");
+			val.append(buf);
+		}
+		resp->push_back("serv_key_range");
+		resp->push_back(val);
+	}
 
 	if(req.size() == 1 || req[1] == "range"){
+		std::string val;
 		std::vector<std::string> tmp;
 		int ret = serv->ssdb->key_range(&tmp);
 		if(ret == 0){
 			char buf[512];
 			
-			resp->push_back("key_range.kv");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
 				hexmem(tmp[0].data(), tmp[0].size()).c_str(),
 				hexmem(tmp[1].data(), tmp[1].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.hash");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n\thash: \"%s\" - \"%s\"",
 				hexmem(tmp[2].data(), tmp[2].size()).c_str(),
 				hexmem(tmp[3].data(), tmp[3].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.zset");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n\tzset: \"%s\" - \"%s\"",
 				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
 				hexmem(tmp[5].data(), tmp[5].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.list");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			val.append(buf);
+			snprintf(buf, sizeof(buf), "\n\tlist: \"%s\" - \"%s\"",
 				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
 				hexmem(tmp[7].data(), tmp[7].size()).c_str()
 				);
-			resp->push_back(buf);
 		}
+		resp->push_back("data_key_range");
+		resp->push_back(val);
 	}
 
 	if(req.size() == 1 || req[1] == "leveldb"){
