@@ -11,7 +11,7 @@ found in the LICENSE file.
 int proc_get(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	std::string val;
 	int ret = serv->ssdb->get(req[1], &val);
@@ -22,7 +22,7 @@ int proc_get(NetworkServer *net, Link *link, const Request &req, Response *resp)
 int proc_getset(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	std::string val;
 	int ret = serv->ssdb->getset(req[1], &val, req[2]);
@@ -33,7 +33,7 @@ int proc_getset(NetworkServer *net, Link *link, const Request &req, Response *re
 int proc_set(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	int ret = serv->ssdb->set(req[1], req[2]);
 	if(ret == -1){
@@ -48,7 +48,7 @@ int proc_set(NetworkServer *net, Link *link, const Request &req, Response *resp)
 int proc_setnx(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	int ret = serv->ssdb->setnx(req[1], req[2]);
 	resp->reply_bool(ret);
@@ -58,7 +58,7 @@ int proc_setnx(NetworkServer *net, Link *link, const Request &req, Response *res
 int proc_setx(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	Locking l(&serv->expiration->mutex);
 	int ret;
@@ -80,7 +80,7 @@ int proc_setx(NetworkServer *net, Link *link, const Request &req, Response *resp
 int proc_ttl(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	int64_t ttl = serv->expiration->get_ttl(req[1]);
 	resp->push_back("ok");
@@ -91,7 +91,7 @@ int proc_ttl(NetworkServer *net, Link *link, const Request &req, Response *resp)
 int proc_expire(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	Locking l(&serv->expiration->mutex);
 	std::string val;
@@ -112,7 +112,7 @@ int proc_expire(NetworkServer *net, Link *link, const Request &req, Response *re
 int proc_exists(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes key = req[1];
 	std::string val;
@@ -190,7 +190,7 @@ int proc_multi_get(NetworkServer *net, Link *link, const Request &req, Response 
 int proc_del(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	Locking l(&serv->expiration->mutex);
 	int ret = serv->ssdb->del(req[1]);
@@ -208,7 +208,7 @@ int proc_del(NetworkServer *net, Link *link, const Request &req, Response *resp)
 int proc_scan(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
@@ -224,7 +224,7 @@ int proc_scan(NetworkServer *net, Link *link, const Request &req, Response *resp
 int proc_rscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->rscan(req[1], req[2], limit);
@@ -240,7 +240,7 @@ int proc_rscan(NetworkServer *net, Link *link, const Request &req, Response *res
 int proc_keys(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
@@ -273,20 +273,20 @@ static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 
 int proc_incr(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 	return _incr(serv->ssdb, req, resp, 1);
 }
 
 int proc_decr(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 	return _incr(serv->ssdb, req, resp, -1);
 }
 
 int proc_getbit(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	int ret = serv->ssdb->getbit(req[1], req[2].Int());
 	resp->reply_bool(ret);
@@ -296,7 +296,7 @@ int proc_getbit(NetworkServer *net, Link *link, const Request &req, Response *re
 int proc_setbit(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	int offset = req[2].Int();
@@ -314,7 +314,7 @@ int proc_setbit(NetworkServer *net, Link *link, const Request &req, Response *re
 int proc_countbit(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	int start = 0;
@@ -343,7 +343,7 @@ int proc_countbit(NetworkServer *net, Link *link, const Request &req, Response *
 int proc_redis_bitcount(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	int start = 0;
@@ -369,7 +369,7 @@ int proc_redis_bitcount(NetworkServer *net, Link *link, const Request &req, Resp
 int proc_substr(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	int start = 0;
@@ -395,7 +395,7 @@ int proc_substr(NetworkServer *net, Link *link, const Request &req, Response *re
 int proc_getrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	int start = 0;
@@ -421,7 +421,7 @@ int proc_getrange(NetworkServer *net, Link *link, const Request &req, Response *
 int proc_strlen(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	CHECK_KEY_RANGE(1);
+	CHECK_KV_KEY_RANGE(1);
 
 	const Bytes &key = req[1];
 	std::string val;

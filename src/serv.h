@@ -45,7 +45,7 @@ public:
 };
 
 
-#define CHECK_KEY_RANGE(n) do{ \
+#define CHECK_KV_KEY_RANGE(n) do{ \
 		if(req.size() > n){ \
 			if(!serv->in_kv_range(req[n])){ \
 				resp->push_back("out_of_range"); \
