@@ -24,13 +24,15 @@ class Link{
 		std::vector<Bytes> recv_data;
 
 		RedisLink *redis;
-	public:
-		char remote_ip[INET_ADDRSTRLEN];
-		int remote_port;
-		bool auth;
 
 		static int min_recv_buf;
 		static int min_send_buf;
+	public:
+		char remote_ip[INET_ADDRSTRLEN];
+		int remote_port;
+
+		bool auth;
+		bool ignore_key_range;
 
 		Buffer *input;
 		Buffer *output;

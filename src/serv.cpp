@@ -109,6 +109,8 @@ DEF_PROC(info);
 DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(key_range);
+DEF_PROC(ignore_key_range);
+// TODO: set_kv_key_range
 DEF_PROC(get_key_range);
 DEF_PROC(set_key_range);
 DEF_PROC(ttl);
@@ -224,6 +226,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(compact, "rt");
 	PROC(key_range, "r"); // deprecated
 	//
+	PROC(ignore_key_range, "r");
 	PROC(get_key_range, "r");
 	// set_key_range must run in the main thread
 	PROC(set_key_range, "r");
@@ -375,6 +378,12 @@ int proc_sync140(NetworkServer *net, Link *link, const Request &req, Response *r
 int proc_compact(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->compact();
+	resp->push_back("ok");
+	return 0;
+}
+
+int proc_ignore_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	link->ignore_key_range = true;
 	resp->push_back("ok");
 	return 0;
 }
