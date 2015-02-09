@@ -208,7 +208,6 @@ int proc_del(NetworkServer *net, Link *link, const Request &req, Response *resp)
 int proc_scan(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
@@ -224,7 +223,6 @@ int proc_scan(NetworkServer *net, Link *link, const Request &req, Response *resp
 int proc_rscan(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->rscan(req[1], req[2], limit);
@@ -240,7 +238,6 @@ int proc_rscan(NetworkServer *net, Link *link, const Request &req, Response *res
 int proc_keys(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
-	CHECK_KV_KEY_RANGE(1);
 
 	uint64_t limit = req[3].Uint64();
 	KIterator *it = serv->ssdb->scan(req[1], req[2], limit);
