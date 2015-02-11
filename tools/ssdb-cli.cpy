@@ -105,7 +105,7 @@ foreach(sys.argv[1 ..] as arg){
 if(host == ''){
 	host = '127.0.0.1';
 	foreach(args as arg){
-		if(!re.match('^[0-9]+$', args[0])){
+		if(!re.match('^[0-9]+$', arg)){
 			host = arg;
 			break;
 		}
@@ -114,7 +114,7 @@ if(host == ''){
 if(port == ''){
 	port = '8888';
 	foreach(args as arg){
-		if(re.match('^[0-9]+$', args[0])){
+		if(re.match('^[0-9]+$', arg)){
 			port = arg;
 			break;
 		}
