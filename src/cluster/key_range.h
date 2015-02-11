@@ -1,6 +1,8 @@
 #ifndef SSDB_CLUSTER_KEY_RANGE_H
 #define SSDB_CLUSTER_KEY_RANGE_H
 
+#include <string>
+
 /**
  * (start, end], start is exclusive, end is inclusive
  */

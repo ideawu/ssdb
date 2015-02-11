@@ -53,13 +53,17 @@ ClientImpl::~ClientImpl(){
 }
 
 Client* Client::connect(const char *ip, int port){
+	return Client::connect(ip, port);
+}
+
+Client* Client::connect(const std::string &ip, int port){
 	static bool inited = false;
 	if(!inited){
 		inited = true;
 		signal(SIGPIPE, SIG_IGN);
 	}
 	ClientImpl *client = new ClientImpl();
-	client->link = Link::connect(ip, port);
+	client->link = Link::connect(ip.c_str(), port);
 	if(client->link == NULL){
 		delete client;
 		return NULL;
