@@ -1,6 +1,7 @@
 #include "cluster.h"
 #include "key_range.h"
 #include "node.h"
+#include "spliter.h"
 #include "../util/log.h"
 #include "../util/strings.h"
 
@@ -46,7 +47,7 @@ int Cluster::add_kv_node(Node *node){
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
-		log_debug("(\"%s\" - \"%s\"]", n->kv_range.start.c_str(), n->kv_range.end.c_str());
+		log_debug("%4d: (\"%s\" - \"%s\"]", n->id, n->kv_range.start.c_str(), n->kv_range.end.c_str());
 		if(node->kv_range.check_overlapped(n->kv_range)){
 			log_error("overlapped");
 			return -1;
@@ -64,24 +65,18 @@ int Cluster::del_kv_node(Node *node){
 }
 
 int Cluster::split_kv_node(Node *src, Node *dst){
-	// TEST
-	dst->kv_range = src->kv_range;
-	if(src->kv_range.start.empty()){
-		if(src->kv_range.end.empty()){
-			src->kv_range.start = "p";
-			dst->kv_range.end = "p";
-		}else{
-			char c = src->kv_range.end[0] - 5;
-			std::string s(1, c);
-			src->kv_range.start = s;
-			dst->kv_range.end = s;
-		}
-	}else{
-		char c = src->kv_range.start[0] + 5;
-		std::string s(1, c);
-		src->kv_range.start = s;
-		dst->kv_range.end = s;
+	Spliter spliter(this->db, src, dst);
+	int64_t size = spliter.move_some();
+	if(size == -1){
+		fprintf(stderr, "error!\n");
+		return -1;
 	}
+	if(size == 0){
+		fprintf(stderr, "no data to move, end.\n");
+		return -1;
+	}
+	log_debug("moved: %d", (int)size);
+	spliter.finish();
 	
 	del_kv_node(src);
 	add_kv_node(dst);

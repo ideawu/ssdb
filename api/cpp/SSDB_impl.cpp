@@ -20,8 +20,10 @@ inline static
 Status _read_int64(const std::vector<std::string> *resp, int64_t *ret){
 	Status s(resp);
 	if(s.ok()){
-		if(resp->size() >= 2 && ret){
-			*ret = str_to_int64(resp->at(1));
+		if(resp->size() >= 2){
+			if(ret){
+				*ret = str_to_int64(resp->at(1));
+			}
 		}else{
 			return Status("server_error");
 		}
