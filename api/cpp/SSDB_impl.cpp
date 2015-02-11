@@ -53,7 +53,7 @@ ClientImpl::~ClientImpl(){
 }
 
 Client* Client::connect(const char *ip, int port){
-	return Client::connect(ip, port);
+	return Client::connect(std::string(ip), port);
 }
 
 Client* Client::connect(const std::string &ip, int port){

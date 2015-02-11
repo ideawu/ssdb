@@ -7,36 +7,28 @@ found in the LICENSE file.
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#include "split.h"
-
-void welcome(){
-	printf("ssdb-split - Split ssdb-server\n");
-	printf("Copyright (c) 2012-2015 ssdb.io\n");
-	printf("\n");
-}
-
-void usage(int argc, char **argv){
-	printf("Usage:\n");
-	printf("    %sr\n", argv[0]);
-	printf("\n");
-	printf("Options:\n");
-	printf("    xx - \n");
-}
+#include "spliter.h"
+#include "node.h"
+#include "SSDB_client.h"
+#include "../util/log.h"
 
 int main(int argc, char **argv){
-	welcome();
+	Node node1, node2;
 	
-	int ret;
-	Split split;
-	ret = split.init("127.0.0.1", 9000, "127.0.0.1", 8888, "127.0.0.1", 8889);
-	if(ret == -1){
-		fprintf(stderr, "%d error!\n", __LINE__);
-		exit(1);
+	node1.init("127.0.0.1", 8888);
+	node2.init("127.0.0.1", 8889);
+	
+	ssdb::Client *db = ssdb::Client::connect("127.0.0.1", 8887);
+	if(db == NULL){
+		log_error("failed to connect to cluster server!");
+		return -1;
 	}
+
+	Spliter spliter(db, &node1, &node2);
 	
 	ssdb::Status s;
 	int64_t src_dbsize;
-	s = split.src_client->dbsize(&src_dbsize);
+	s = spliter.src_node->db->dbsize(&src_dbsize);
 	if(!s.ok()){
 		fprintf(stderr, "%d error!\n", __LINE__);
 		exit(1);
@@ -48,27 +40,27 @@ int main(int argc, char **argv){
 	std::string min_key;
 	std::string max_key;
 	while(1){
-		int64_t size = split.move_some();
+		int64_t size = spliter.move_some();
 		if(size == -1){
 			fprintf(stderr, "error!\n");
 			exit(1);
 		}
 		if(size == 0){
 			fprintf(stderr, "no data to move, end.\n");
-			split.finish();
+			spliter.finish();
 			break;
 		}
 		total_moved += size;
 		
 		int64_t src_dbsize_new;
-		s = split.src_client->dbsize(&src_dbsize_new);
+		s = spliter.src_node->db->dbsize(&src_dbsize_new);
 		if(!s.ok()){
 			fprintf(stderr, "error!\n");
 			exit(1);
 		}
 		
 		int64_t dst_dbsize_new;
-		s = split.dst_client->dbsize(&dst_dbsize_new);
+		s = spliter.dst_node->db->dbsize(&dst_dbsize_new);
 		if(!s.ok()){
 			fprintf(stderr, "error!\n");
 			exit(1);
@@ -79,7 +71,7 @@ int main(int argc, char **argv){
 		
 		if(total_moved > src_dbsize/2 || dst_dbsize_new > src_dbsize/2 || (src_dbsize_new - src_dbsize) > src_dbsize/10){
 			fprintf(stderr, "split end.\n");
-			split.finish();
+			spliter.finish();
 			break;
 		}
 		
