@@ -1,5 +1,6 @@
 #include "node.h"
 #include "../util/log.h"
+#include "../util/strings.h"
 
 Node::Node(){
 	this->id = 0;
@@ -8,6 +9,13 @@ Node::Node(){
 
 Node::~Node(){
 	delete db;
+}
+
+std::string Node::str(){
+	char buf[512];
+	snprintf(buf, sizeof(buf), "%4d: (\"%s\" - \"%s\"]",
+		id, str_escape(kv_range.start).c_str(), str_escape(kv_range.end).c_str());
+	return std::string(buf);
 }
 
 int Node::init(const std::string &ip, int port){

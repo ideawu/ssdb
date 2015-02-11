@@ -3,7 +3,6 @@
 #include "node.h"
 #include "spliter.h"
 #include "../util/log.h"
-#include "../util/strings.h"
 
 Cluster::Cluster(){
 	last_node_id = 1;
@@ -30,8 +29,7 @@ Node* Cluster::connect_node(const std::string &ip, int port){
 		return NULL;
 	}
 	node->id = last_node_id ++;
-	log_info("node#%d kv_range: (\"%s\", \"%s\"]", node->id,
-			str_escape(node->kv_range.start).c_str(), str_escape(node->kv_range.end).c_str());
+	log_info("connected to %s", node->str().c_str());
 	return node;
 }
 
@@ -39,15 +37,16 @@ void Cluster::print_node_list(){
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
-		printf("%4d: (\"%s\" - \"%s\"]\n", n->id, n->kv_range.start.c_str(), n->kv_range.end.c_str());
+		printf("%s\n", n->str().c_str());
 	}
 }
 
 int Cluster::add_kv_node(Node *node){
+	log_debug("add kv node: %s", node->str().c_str());
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
-		log_debug("%4d: (\"%s\" - \"%s\"]", n->id, n->kv_range.start.c_str(), n->kv_range.end.c_str());
+		log_debug("%s", n->str().c_str());
 		if(node->kv_range.check_overlapped(n->kv_range)){
 			log_error("overlapped");
 			return -1;
