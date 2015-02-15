@@ -14,11 +14,14 @@ Cluster::~Cluster(){
 }
 
 int Cluster::init(const std::string &ip, int port){
-	this->db = ssdb::Client::connect(ip, port);
+	std::string work_dir = "./tmp";
+	Options opt;
+	db = SSDB::open(opt, work_dir);
 	if(this->db == NULL){
-		log_error("failed to connect to cluster server!");
+		log_error("failed to open cluster db!");
 		return -1;
 	}
+
 	return 0;
 }
 

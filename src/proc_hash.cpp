@@ -165,26 +165,7 @@ int proc_hclear(NetworkServer *net, Link *link, const Request &req, Response *re
 	SSDBServer *serv = (SSDBServer *)net->data;
 	
 	const Bytes &name = req[1];
-	int64_t count = 0;
-	while(1){
-		HIterator *it = serv->ssdb->hscan(name, "", "", 1000);
-		int num = 0;
-		while(it->next()){
-			int ret = serv->ssdb->hdel(name, it->key);
-			if(ret == -1){
-				delete it;
-				resp->push_back("error");
-				return 0;
-			}
-			num ++;
-		};
-		delete it;
-
-		if(num == 0){
-			break;
-		}
-		count += num;
-	}
+	int64_t count = serv->ssdb->hclear(name);
 	resp->reply_int(0, count);
 
 	return 0;

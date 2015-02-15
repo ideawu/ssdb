@@ -18,11 +18,9 @@ int main(int argc, char **argv){
 	node1.init("127.0.0.1", 8888);
 	node2.init("127.0.0.1", 8889);
 	
-	ssdb::Client *db = ssdb::Client::connect("127.0.0.1", 8887);
-	if(db == NULL){
-		log_error("failed to connect to cluster server!");
-		return -1;
-	}
+	std::string work_dir = "./tmp";
+	Options opt;
+	SSDB *db = SSDB::open(opt, work_dir);
 
 	Spliter spliter(db, &node1, &node2);
 	

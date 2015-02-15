@@ -6,6 +6,7 @@
 #include "key_range.h"
 #include "node.h"
 #include "SSDB_client.h"
+#include "../ssdb/ssdb.h"
 
 class Cluster{
 public:
@@ -26,7 +27,7 @@ public:
 	void print_node_list();
 private:
 	int last_node_id;
-	ssdb::Client *db;
+	SSDB *db;
 
 	int _migrate_kv_data(Node *src, Node *dst);
 

@@ -5,19 +5,20 @@
 #include <string>
 #include "SSDB_client.h"
 #include "key_range.h"
+#include "../ssdb/ssdb.h"
 
 class Node;
 
 class Spliter{
 public:
-	Spliter(ssdb::Client *cluster, Node *src_node, Node *dst_node);
+	Spliter(SSDB *cluster, Node *src_node, Node *dst_node);
 	~Spliter();
 	
 	// 返回迁移的数据的字节数(估计), -1 表示出错; 0 表示已迁移完毕.
 	int64_t move_some();
 	int finish();
 
-	ssdb::Client *cluster;
+	SSDB *cluster;
 	Node *src_node;
 	Node *dst_node;
 

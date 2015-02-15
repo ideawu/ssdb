@@ -7,7 +7,7 @@
 
 static const int COPY_BATCH_SIZE = 2;
 
-Spliter::Spliter(ssdb::Client *cluster, Node *src_node, Node *dst_node){
+Spliter::Spliter(SSDB *cluster, Node *src_node, Node *dst_node){
 	this->cluster = cluster;
 	this->src_node = src_node;
 	this->dst_node = dst_node;
@@ -42,10 +42,9 @@ int Spliter::init(){
 }
 
 int Spliter::finish(){
-	ssdb::Status s;
-	s = cluster->hclear(status_key);
-	if(!s.ok()){
-		log_error("error: %s", s.code().c_str());
+	int64_t ret = cluster->hclear(status_key);
+	if(ret == -1){
+		log_error("error");
 		return -1;
 	}
 	src_node->kv_range = src_kv_range;
@@ -54,22 +53,14 @@ int Spliter::finish(){
 }
 
 int Spliter::load_last_move_key(){
-	ssdb::Status s;
-	s = cluster->hget(this->status_key, "last_move_key", &last_move_key);
-	if(s.not_found()){
-		return 0;
-	}
-	if(!s.ok()){
-		return -1;
-	}
-	return 1;
+	int ret = cluster->hget(this->status_key, "last_move_key", &last_move_key);
+	return ret;
 }
 
 int Spliter::save_last_move_key(const std::string &key){
 	last_move_key = key;
-	ssdb::Status s;
-	s = cluster->hset(this->status_key, "last_move_key", last_move_key);
-	if(!s.ok()){
+	int ret = cluster->hset(this->status_key, "last_move_key", last_move_key);
+	if(ret == -1){
 		log_error("write status error!");
 		return -1;
 	}
