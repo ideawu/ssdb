@@ -4,16 +4,21 @@ LIBSSDB_PATH = ../../api/cpp
 CFLAGS = -g -D__STDC_FORMAT_MACROS -Wall -Wno-sign-compare
 CFLAGS += -I${LIBSSDB_PATH} -I../ssdb
 CLIBS += ${LIBSSDB_PATH}/libssdb-client.a ../util/libutil.a ../ssdb/libssdb.a
+OBJS = spliter.o cluster.o node.o key_range.o
 
-all: spliter.o cluster.o node.o
-	g++ ${CFLAGS} -o test-spliter test-spliter.cpp spliter.o node.o ${CLIBS}
-	g++ ${CFLAGS} -o test-cluster test-cluster.cpp spliter.o node.o cluster.o ${CLIBS}
+
+all: ${OBJS}
+	g++ ${CFLAGS} -o test-spliter test-spliter.cpp ${OBJS} ${CLIBS}
+	g++ ${CFLAGS} -o test-cluster test-cluster.cpp ${OBJS} ${CLIBS}
 
 cluster.o: cluster.h cluster.cpp
 	g++ ${CFLAGS} -c cluster.cpp
 
 node.o: node.h node.cpp
 	g++ ${CFLAGS} -c node.cpp
+
+key_range.o: key_range.h key_range.cpp
+	g++ ${CFLAGS} -c key_range.cpp
 
 spliter.o: spliter.h spliter.cpp
 	g++ ${CFLAGS} -c spliter.cpp

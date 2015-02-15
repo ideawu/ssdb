@@ -22,10 +22,8 @@ int Spliter::init(){
 	snprintf(buf, sizeof(buf), "split|%d|%d", src_node->id, dst_node->id);
 	this->status_key = buf;
 
-	src_kv_range_s = src_node->kv_range.start;
-	src_kv_range_e = src_node->kv_range.end;
-	dst_kv_range_s = dst_node->kv_range.start;
-	dst_kv_range_e = dst_node->kv_range.end;
+	src_kv_range = src_node->kv_range;
+	dst_kv_range = dst_node->kv_range;
 	
 	int ret = load_last_move_key();
 	if(ret == -1){
@@ -33,13 +31,13 @@ int Spliter::init(){
 	}
 	if(ret == 0){ // not found
 		log_info("new split %s", status_key.c_str());
-		last_move_key = src_kv_range_s;
+		last_move_key = src_kv_range.start;
 	}else{
 		log_info("recover split, %s, last_move_key: \"%s\"", status_key.c_str(), str_escape(last_move_key).c_str());
 	}
 	
-	log_info("src_kv_range: \"%s\" - \"%s\"", str_escape(src_kv_range_s).c_str(), str_escape(src_kv_range_e).c_str());
-	log_info("dst_kv_range: \"%s\" - \"%s\"", str_escape(dst_kv_range_s).c_str(), str_escape(dst_kv_range_e).c_str());
+	log_info("src_kv_range: %s", src_kv_range.str().c_str());
+	log_info("dst_kv_range: %s", dst_kv_range.str().c_str());
 	return 0;
 }
 
@@ -50,10 +48,8 @@ int Spliter::finish(){
 		log_error("error: %s", s.code().c_str());
 		return -1;
 	}
-	src_node->kv_range.start = src_kv_range_s;
-	src_node->kv_range.end = src_kv_range_e;
-	dst_node->kv_range.start = dst_kv_range_s;
-	dst_node->kv_range.end = dst_kv_range_e;
+	src_node->kv_range = src_kv_range;
+	dst_node->kv_range = dst_kv_range;
 	return 0;
 }
 
@@ -119,7 +115,7 @@ int64_t Spliter::move_key_range(const std::string &min_key, const std::string &m
 	if(res == -1){
 		return -1;
 	}
-	res = set_src_kv_range(max_key, src_kv_range_e);
+	res = set_src_kv_range(max_key, src_kv_range.end);
 	if(res == -1){
 		return -1;
 	}
@@ -160,7 +156,7 @@ int64_t Spliter::move_key_range(const std::string &min_key, const std::string &m
 		}
 	}
 
-	res = set_dst_kv_range(dst_kv_range_s, max_key);
+	res = set_dst_kv_range(dst_kv_range.start, max_key);
 	if(res == -1){
 		return -1;
 	}
@@ -197,8 +193,8 @@ int Spliter::copy_key(const std::string &key){
 
 int Spliter::set_src_kv_range(const std::string &min_key, const std::string &max_key){
 	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(key).c_str());
-	src_kv_range_s = min_key;
-	src_kv_range_e = max_key;
+	src_kv_range.start = min_key;
+	src_kv_range.end = max_key;
 	
 	const std::vector<std::string>* resp;
 	resp = src_node->db->request("set_kv_range", min_key, max_key);
@@ -211,8 +207,8 @@ int Spliter::set_src_kv_range(const std::string &min_key, const std::string &max
 
 int Spliter::set_dst_kv_range(const std::string &min_key, const std::string &max_key){
 	//log_debug("%s \"%s\"", __FUNCTION__, str_escape(max_key).c_str());
-	dst_kv_range_s = min_key;
-	dst_kv_range_e = max_key;
+	dst_kv_range.start = min_key;
+	dst_kv_range.end = max_key;
 
 	const std::vector<std::string>* resp;
 	resp = dst_node->db->request("set_kv_range", min_key, max_key);

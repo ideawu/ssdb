@@ -11,23 +11,11 @@ public:
 	std::string start;
 	std::string end;
 
-	KeyRange(){
-	}
+	KeyRange();
+	KeyRange(const std::string &start, const std::string &end);
+	bool check_overlapped(const KeyRange &range);
 	
-	KeyRange(const std::string &start, const std::string &end){
-		this->start = start;
-		this->end = end;
-	}
-	
-	bool check_overlapped(const KeyRange &range){
-		if(!this->start.empty() && !range.end.empty() && this->start >= range.end){
-			return false;
-		}
-		if(!this->end.empty() && !range.start.empty() && this->end <= range.start){
-			return false;
-		}
-		return true;
-	}
+	std::string str();
 private:
 };
 

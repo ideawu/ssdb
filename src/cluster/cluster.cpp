@@ -52,9 +52,8 @@ int Cluster::add_kv_node(Node *node){
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
-		log_debug("%s", n->str().c_str());
 		if(node->kv_range.check_overlapped(n->kv_range)){
-			log_error("overlapped!");
+			log_error("overlapped with %s!", n->str().c_str());
 			return -1;
 		}
 	}
@@ -91,7 +90,7 @@ int Cluster::_migrate_kv_data(Node *src, Node *dst){
 		log_info("no data to move, end.");
 		return 0;
 	}
-	log_debug("moved: %d bytes", (int)size);
+	log_debug("moved: %" PRId64 " bytes", size);
 	
 	del_kv_node(src);
 	if(dst->id){

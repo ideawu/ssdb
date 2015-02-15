@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string>
 #include "SSDB_client.h"
+#include "key_range.h"
 
 class Node;
 
@@ -37,8 +38,8 @@ private:
 
 	std::string status_key;
 	std::string last_move_key;
-	std::string src_kv_range_s, src_kv_range_e;
-	std::string dst_kv_range_s, dst_kv_range_e;
+	KeyRange src_kv_range;
+	KeyRange dst_kv_range;
 };
 
 #endif
