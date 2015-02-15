@@ -414,6 +414,7 @@ while(true){
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;
 			case 'keys':
+			case 'rkeys':
 			case 'list':
 			case 'zkeys':
 			case 'hkeys':

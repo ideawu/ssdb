@@ -28,6 +28,7 @@ DEF_PROC(decr);
 DEF_PROC(scan);
 DEF_PROC(rscan);
 DEF_PROC(keys);
+DEF_PROC(rkeys);
 DEF_PROC(exists);
 DEF_PROC(multi_exists);
 DEF_PROC(multi_get);
@@ -139,6 +140,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(scan, "rt");
 	PROC(rscan, "rt");
 	PROC(keys, "rt");
+	PROC(rkeys, "rt");
 	PROC(exists, "r");
 	PROC(multi_exists, "r");
 	PROC(multi_get, "rt");

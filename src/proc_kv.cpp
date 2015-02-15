@@ -251,6 +251,22 @@ int proc_keys(NetworkServer *net, Link *link, const Request &req, Response *resp
 	return 0;
 }
 
+int proc_rkeys(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(4);
+
+	uint64_t limit = req[3].Uint64();
+	KIterator *it = serv->ssdb->rscan(req[1], req[2], limit);
+	it->return_val(false);
+
+	resp->push_back("ok");
+	while(it->next()){
+		resp->push_back(it->key);
+	}
+	delete it;
+	return 0;
+}
+
 // dir := +1|-1
 static int _incr(SSDB *ssdb, const Request &req, Response *resp, int dir){
 	CHECK_NUM_PARAMS(2);

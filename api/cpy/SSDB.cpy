@@ -194,11 +194,16 @@ class SSDB{
 				}
 				break;
 			case 'keys':
+			case 'rkeys':
 			case 'zkeys':
+			case 'zrkeys':
 			case 'hkeys':
+			case 'hrkeys':
 			case 'list':
 			case 'hlist':
+			case 'hrlist':
 			case 'zlist':
+			case 'zrlist':
 				return new SSDB_Response(resp[0], resp[1 .. ]);
 				break;
 			case 'scan':
