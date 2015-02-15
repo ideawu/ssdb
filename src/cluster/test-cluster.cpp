@@ -24,6 +24,14 @@ int main(int argc, char **argv){
 	printf("node_list:\n");
 	cluster.print_node_list();
 
+	while(1){
+		printf("Press Enter to migrate_kv_data: ");
+		getchar();
+		cluster.migrate_kv_data(node1, node2);
+		printf("node_list:\n");
+		cluster.print_node_list();
+	}
+
 	delete node1;
 	delete node2;
 	

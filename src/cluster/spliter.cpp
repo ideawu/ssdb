@@ -34,8 +34,6 @@ int Spliter::init(){
 	if(ret == 0){ // not found
 		log_info("new split %s", status_key.c_str());
 		last_move_key = src_kv_range_s;
-		dst_kv_range_s = src_kv_range_s;
-		dst_kv_range_e = src_kv_range_s;
 	}else{
 		log_info("recover split, %s, last_move_key: \"%s\"", status_key.c_str(), str_escape(last_move_key).c_str());
 	}

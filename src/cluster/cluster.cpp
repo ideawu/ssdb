@@ -28,8 +28,10 @@ Node* Cluster::connect_node(const std::string &ip, int port){
 		delete node;
 		return NULL;
 	}
-	node->id = last_node_id ++;
 	log_info("connected to %s", node->str().c_str());
+	// TODO: 从 binlog 中, 获取 node.kv_range, 因为从 cluster 的角度看,
+	// 节点在 cluster 中登记的 kv_range 可能和节点自身所认为的不一致, 以在
+	// cluster 中登记的为准.
 	return node;
 }
 
@@ -42,13 +44,17 @@ void Cluster::print_node_list(){
 }
 
 int Cluster::add_kv_node(Node *node){
+	if(!node->id){
+		// TODO: 在别的地方分配 id
+		node->id = last_node_id ++;
+	}
 	log_debug("add kv node: %s", node->str().c_str());
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
 		log_debug("%s", n->str().c_str());
 		if(node->kv_range.check_overlapped(n->kv_range)){
-			log_error("overlapped");
+			log_error("overlapped!");
 			return -1;
 		}
 	}
@@ -64,22 +70,38 @@ int Cluster::del_kv_node(Node *node){
 }
 
 int Cluster::split_kv_node(Node *src, Node *dst){
+	//log_debug("%s", __FUNCTION__);
+	dst->kv_range = KeyRange();
+	return _migrate_kv_data(src, dst);
+}
+
+int Cluster::migrate_kv_data(Node *src, Node *dst){
+	//log_debug("%s", __FUNCTION__);
+	return _migrate_kv_data(src, dst);
+}
+
+int Cluster::_migrate_kv_data(Node *src, Node *dst){
 	Spliter spliter(this->db, src, dst);
 	int64_t size = spliter.move_some();
 	if(size == -1){
-		fprintf(stderr, "error!\n");
+		log_error("error!");
 		return -1;
 	}
 	if(size == 0){
-		fprintf(stderr, "no data to move, end.\n");
-		return -1;
+		log_info("no data to move, end.");
+		return 0;
 	}
-	log_debug("moved: %d", (int)size);
-	spliter.finish();
+	log_debug("moved: %d bytes", (int)size);
 	
 	del_kv_node(src);
-	add_kv_node(dst);
+	if(dst->id){
+		del_kv_node(dst);
+	}
+
+	spliter.finish();
+
 	add_kv_node(src);
+	add_kv_node(dst);
 	
 	return 0;
 }

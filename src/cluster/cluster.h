@@ -28,6 +28,8 @@ private:
 	int last_node_id;
 	ssdb::Client *db;
 
+	int _migrate_kv_data(Node *src, Node *dst);
+
 	// 保存 node.kv_range.min_key 对应 node 的关系, 利用 map 的有序性.
 	std::map<std::string, Node *> kv_node_list;
 	std::map<int, Node *> kv_nodes_by_id;
