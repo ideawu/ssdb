@@ -1,9 +1,11 @@
 #include "spliter.h"
 #include <stdlib.h>
 #include <vector>
+#include "node.h"
+#include "SSDB_client.h"
 #include "../util/log.h"
 #include "../util/strings.h"
-#include "node.h"
+#include "../ssdb/ssdb.h"
 
 static const int COPY_BATCH_SIZE = 2;
 

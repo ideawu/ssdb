@@ -9,6 +9,8 @@ class Node{
 public:
 	int id;
 	KeyRange kv_range;
+	std::string ip;
+	int port;
 	ssdb::Client *db;
 
 	Node();

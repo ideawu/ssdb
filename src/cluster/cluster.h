@@ -4,17 +4,18 @@
 #include <map>
 #include <string>
 #include "key_range.h"
-#include "node.h"
-#include "SSDB_client.h"
-#include "../ssdb/ssdb.h"
+
+class SSDB;
+class Node;
+class ClusterStore;
 
 class Cluster{
 public:
 	Cluster();
 	~Cluster();
 	
-	int init(const std::string &ip, int port);
-	Node* connect_node();
+	int init();
+	Node* connect_node(const std::string &ip, int port);
 	
 	int add_kv_node(Node *node);
 	int del_kv_node(Node *node);
@@ -26,8 +27,11 @@ public:
 
 	void print_node_list();
 private:
+	friend class ClusterStore;
+
 	int last_node_id;
 	SSDB *db;
+	ClusterStore *store;
 
 	int _migrate_kv_data(Node *src, Node *dst);
 
