@@ -11,7 +11,7 @@ found in the LICENSE file.
 
 int main(int argc, char **argv){
 	Cluster cluster;
-	cluster.init("127.0.0.1", 8887);
+	cluster.init();
 	
 	Node *node1 = cluster.connect_node("127.0.0.1", 8888);
 	Node *node2 = cluster.connect_node("127.0.0.1", 8889);

@@ -14,7 +14,7 @@ public:
 	~Cluster();
 	
 	int init(const std::string &ip, int port);
-	Node* connect_node(const std::string &ip, int port);
+	Node* connect_node();
 	
 	int add_kv_node(Node *node);
 	int del_kv_node(Node *node);

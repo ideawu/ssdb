@@ -13,7 +13,7 @@ Cluster::~Cluster(){
 	delete db;
 }
 
-int Cluster::init(const std::string &ip, int port){
+int Cluster::init(){
 	std::string work_dir = "./tmp";
 	Options opt;
 	db = SSDB::open(opt, work_dir);
