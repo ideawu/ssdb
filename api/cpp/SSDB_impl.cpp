@@ -289,34 +289,38 @@ Status ClientImpl::hclear(const std::string &name, int64_t *ret){
 	return _read_int64(resp, ret);
 }
 
+Status ClientImpl::hstatus(const std::string &name,
+	const std::string &key_start, const std::string &key_end,
+	uint64_t limit, std::vector<std::string> *ret, std::string status)
+{
+	std::string s_limit = str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request(status, name, key_start, key_end, s_limit);
+	return _read_list(resp, ret);
+}
+
 Status ClientImpl::hkeys(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("hkeys", name, key_start, key_end, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::hstatus(name, key_start, key_end,
+	limit, ret, "hkeys");
 }
 
 Status ClientImpl::hscan(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("hscan", name, key_start, key_end, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::hstatus(name, key_start, key_end,
+	limit, ret, "hscan");
 }
 
 Status ClientImpl::hrscan(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("hrscan", name, key_start, key_end, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::hstatus(name, key_start, key_end,
+	limit, ret, "hrscan");
 }
 
 Status ClientImpl::multi_hget(const std::string &name, const std::vector<std::string> &keys,
@@ -403,39 +407,53 @@ Status ClientImpl::zrrank(const std::string &name, const std::string &key, int64
 	return _read_int64(resp, ret);
 }
 
-Status ClientImpl::zrange(const std::string &name,
+Status ClientImpl::zstatus(const std::string &name,
 		uint64_t offset, uint64_t limit,
-		std::vector<std::string> *ret)
+		std::vector<std::string> *ret, std::string status)
 {
 	std::string s_offset = str(offset);
 	std::string s_limit = str(limit);
 	const std::vector<std::string> *resp;
-	resp = this->request("zrange", name, s_offset, s_limit);
+	resp = this->request(status, name, s_offset, s_limit);
 	return _read_list(resp, ret);
+}
+
+Status ClientImpl::zrange(const std::string &name,
+		uint64_t offset, uint64_t limit,
+		std::vector<std::string> *ret)
+{
+	return ClientImpl::zstatus(name, offset, limit,
+		ret, "zrange");
 }
 
 Status ClientImpl::zrrange(const std::string &name,
 		uint64_t offset, uint64_t limit,
 		std::vector<std::string> *ret)
 {
-	std::string s_offset = str(offset);
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("zrrange", name, s_offset, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::zstatus(name, offset, limit,
+		ret, "zrrange");
 }
 
 Status ClientImpl::zkeys(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
+	return ClientImpl::zstatus(name, offset, limit,
+		ret, "zkeys");
+}
+
+Status ClientImpl::zstatus(const std::string &name, const std::string &key_start,
+	int64_t *score_start, int64_t *score_end,
+	uint64_t limit, std::vector<std::string> *ret, string status)
+{
 	std::string s_score_start = score_start? str(*score_start) : "";
 	std::string s_score_end = score_end? str(*score_end) : "";
 	std::string s_limit = str(limit);
 	const std::vector<std::string> *resp;
-	resp = this->request("zkeys", name, key_start, s_score_start, s_score_end, s_limit);
+	resp = this->request(status, name, key_start, s_score_start, s_score_end, s_limit);
 	return _read_list(resp, ret);
 }
+
 
 Status ClientImpl::zscan(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
