@@ -407,44 +407,31 @@ Status ClientImpl::zrrank(const std::string &name, const std::string &key, int64
 	return _read_int64(resp, ret);
 }
 
-Status ClientImpl::zstatus(const std::string &name,
-		uint64_t offset, uint64_t limit,
-		std::vector<std::string> *ret, std::string status)
-{
-	std::string s_offset = str(offset);
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request(status, name, s_offset, s_limit);
-	return _read_list(resp, ret);
-}
-
 Status ClientImpl::zrange(const std::string &name,
 		uint64_t offset, uint64_t limit,
 		std::vector<std::string> *ret)
 {
-	return ClientImpl::zstatus(name, offset, limit,
-		ret, "zrange");
+	std::string s_offset = str(offset);
+	std::string s_limit = str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request("zrange", name, s_offset, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::zrrange(const std::string &name,
 		uint64_t offset, uint64_t limit,
 		std::vector<std::string> *ret)
 {
-	return ClientImpl::zstatus(name, offset, limit,
-		ret, "zrrange");
-}
-
-Status ClientImpl::zkeys(const std::string &name, const std::string &key_start,
-	int64_t *score_start, int64_t *score_end,
-	uint64_t limit, std::vector<std::string> *ret)
-{
-	return ClientImpl::zstatus(name, offset, limit,
-		ret, "zkeys");
+	std::string s_offset = str(offset);
+	std::string s_limit = str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request("zrrange", name, s_offset, s_limit);
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::zstatus(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
-	uint64_t limit, std::vector<std::string> *ret, string status)
+	uint64_t limit, std::vector<std::string> *ret, std::string status)
 {
 	std::string s_score_start = score_start? str(*score_start) : "";
 	std::string s_score_end = score_end? str(*score_end) : "";
@@ -454,29 +441,25 @@ Status ClientImpl::zstatus(const std::string &name, const std::string &key_start
 	return _read_list(resp, ret);
 }
 
+Status ClientImpl::zkeys(const std::string &name, const std::string &key_start,
+	int64_t *score_start, int64_t *score_end,
+	uint64_t limit, std::vector<std::string> *ret)
+{
+	return ClientImpl::zstatus(name, key_start, score_start, score_end, limit, ret, "zkeys");
+}
 
 Status ClientImpl::zscan(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_score_start = score_start? str(*score_start) : "";
-	std::string s_score_end = score_end? str(*score_end) : "";
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("zscan", name, key_start, s_score_start, s_score_end, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::zstatus(name, key_start, score_start, score_end, limit, ret, "zscan");
 }
 
 Status ClientImpl::zrscan(const std::string &name, const std::string &key_start,
 	int64_t *score_start, int64_t *score_end,
 	uint64_t limit, std::vector<std::string> *ret)
 {
-	std::string s_score_start = score_start? str(*score_start) : "";
-	std::string s_score_end = score_end? str(*score_end) : "";
-	std::string s_limit = str(limit);
-	const std::vector<std::string> *resp;
-	resp = this->request("zrscan", name, key_start, s_score_start, s_score_end, s_limit);
-	return _read_list(resp, ret);
+	return ClientImpl::zstatus(name, key_start, score_start, score_end, limit, ret, "zrscan");
 }
 
 Status ClientImpl::multi_zget(const std::string &name, const std::vector<std::string> &keys,
