@@ -65,6 +65,7 @@ private:
 class Client{
 public:
 	static Client* connect(const char *ip, int port);
+	static Client* connect(const std::string &ip, int port);
 	Client(){};
 	virtual ~Client(){};
 
@@ -82,6 +83,8 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::vector<std::string> &s2) = 0;
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::vector<std::string> &s3) = 0;
 	/// @}
+	
+	virtual Status dbsize(int64_t *ret) = 0;
 
 	/// @name KV methods
 	/// @{
@@ -131,7 +134,7 @@ public:
 	/**
 	 * Delete all of the keys in a hashmap, return the number of keys deleted.
 	 */
-	virtual Status hclear(const std::string &name, int64_t *ret) = 0;
+	virtual Status hclear(const std::string &name, int64_t *ret=NULL) = 0;
 	/**
 	 * @param key_start Empty string means no limit.
 	 * @param key_end Empty string means no limit.
@@ -174,7 +177,7 @@ public:
 	/**
 	 * Delete all of the keys in a zset, return the number of keys deleted.
 	 */
-	virtual Status zclear(const std::string &name, int64_t *ret) = 0;
+	virtual Status zclear(const std::string &name, int64_t *ret=NULL) = 0;
 	/**
 	 * <b>Important! This method may be extremly SLOW!</b>
 	 */
@@ -226,9 +229,10 @@ public:
 	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys) = 0;
 	/// @}
 
-	virtual Status qpush(const std::string &key, const std::string &val) = 0;
-	virtual Status qpop(const std::string &key, std::string *val) = 0;
+	virtual Status qpush(const std::string &name, const std::string &item) = 0;
+	virtual Status qpop(const std::string &name, std::string *item) = 0;
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret) = 0;
+	virtual Status qclear(const std::string &name, int64_t *ret=NULL) = 0;
 private:
 	// No copying allowed
 	Client(const Client&);

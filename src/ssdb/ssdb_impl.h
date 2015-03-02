@@ -82,6 +82,7 @@ public:
 	//int multi_hdel(const Bytes &name, const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC);
 
 	virtual int64_t hsize(const Bytes &name);
+	virtual int64_t hclear(const Bytes &name);
 	virtual int hget(const Bytes &name, const Bytes &key, std::string *val);
 	virtual int hlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list);

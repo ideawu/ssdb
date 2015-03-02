@@ -1,3 +1,6 @@
+* 1.9.0
+	* New features:
+		- Add rkeys command(2015-02-15)
 * 1.8.0
 	* New features:
 		- Support SSDB style keys command through redis-cli(2014-12-08)

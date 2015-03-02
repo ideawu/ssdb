@@ -28,11 +28,14 @@ DEF_PROC(decr);
 DEF_PROC(scan);
 DEF_PROC(rscan);
 DEF_PROC(keys);
+DEF_PROC(rkeys);
 DEF_PROC(exists);
 DEF_PROC(multi_exists);
 DEF_PROC(multi_get);
 DEF_PROC(multi_set);
 DEF_PROC(multi_del);
+DEF_PROC(ttl);
+DEF_PROC(expire);
 
 DEF_PROC(hsize);
 DEF_PROC(hget);
@@ -108,12 +111,12 @@ DEF_PROC(sync140);
 DEF_PROC(info);
 DEF_PROC(dbsize);
 DEF_PROC(compact);
-DEF_PROC(key_range);
-DEF_PROC(get_key_range);
-DEF_PROC(set_key_range);
-DEF_PROC(ttl);
-DEF_PROC(expire);
 DEF_PROC(clear_binlog);
+
+DEF_PROC(get_key_range);
+DEF_PROC(ignore_key_range);
+DEF_PROC(get_kv_range);
+DEF_PROC(set_kv_range);
 
 
 #define PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
@@ -137,11 +140,14 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(scan, "rt");
 	PROC(rscan, "rt");
 	PROC(keys, "rt");
+	PROC(rkeys, "rt");
 	PROC(exists, "r");
 	PROC(multi_exists, "r");
 	PROC(multi_get, "rt");
 	PROC(multi_set, "wt");
 	PROC(multi_del, "wt");
+	PROC(ttl, "r");
+	PROC(expire, "wt");
 
 	PROC(hsize, "r");
 	PROC(hget, "r");
@@ -222,14 +228,11 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
 	PROC(compact, "rt");
-	PROC(key_range, "r"); // deprecated
-	//
-	PROC(get_key_range, "r");
-	// set_key_range must run in the main thread
-	PROC(set_key_range, "r");
 
-	PROC(ttl, "r");
-	PROC(expire, "wt");
+	PROC(ignore_key_range, "r");
+	PROC(get_key_range, "r");
+	PROC(get_kv_range, "r");
+	PROC(set_kv_range, "r");
 }
 
 
@@ -379,26 +382,30 @@ int proc_compact(NetworkServer *net, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-int proc_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
-	std::vector<std::string> tmp;
-	int ret = serv->ssdb->key_range(&tmp);
-	if(ret == -1){
-		resp->push_back("error");
-		return -1;
-	}
-	
+int proc_ignore_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	link->ignore_key_range = true;
 	resp->push_back("ok");
-	for(int i=0; i<(int)tmp.size(); i++){
-		std::string block = tmp[i];
-		resp->push_back(block);
-	}
-	
 	return 0;
 }
 
+// get kv_range, hash_range, zset_range, list_range
 int proc_get_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-SSDBServer *serv = (SSDBServer *)net->data;
+	SSDBServer *serv = (SSDBServer *)net->data;
+	std::string s, e;
+	int ret = serv->get_kv_range(&s, &e);
+	if(ret == -1){
+		resp->push_back("error");
+	}else{
+		resp->push_back("ok");
+		resp->push_back(s);
+		resp->push_back(e);
+		// TODO: hash_range, zset_range, list_range
+	}
+	return 0;
+}
+
+int proc_get_kv_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	std::string s, e;
 	int ret = serv->get_kv_range(&s, &e);
 	if(ret == -1){
@@ -411,8 +418,8 @@ SSDBServer *serv = (SSDBServer *)net->data;
 	return 0;
 }
 
-int proc_set_key_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
-SSDBServer *serv = (SSDBServer *)net->data;
+int proc_set_kv_range(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() != 3){
 		resp->push_back("client_error");
 	}else{
@@ -480,41 +487,67 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 			resp->push_back(s);
 		}
 	}
+	{
+		std::string val;
+		std::string s, e;
+		serv->get_kv_range(&s, &e);
+		char buf[512];
+		{
+			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
+				str_escape(s).c_str(),
+				str_escape(e).c_str()
+				);
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\thash: \"\" - \"\"");
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\tzset: \"\" - \"\"");
+			val.append(buf);
+		}
+		{
+			snprintf(buf, sizeof(buf), "\n\tlist: \"\" - \"\"");
+			val.append(buf);
+		}
+		resp->push_back("serv_key_range");
+		resp->push_back(val);
+	}
 
 	if(req.size() == 1 || req[1] == "range"){
+		std::string val;
 		std::vector<std::string> tmp;
 		int ret = serv->ssdb->key_range(&tmp);
 		if(ret == 0){
 			char buf[512];
 			
-			resp->push_back("key_range.kv");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
 				hexmem(tmp[0].data(), tmp[0].size()).c_str(),
 				hexmem(tmp[1].data(), tmp[1].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.hash");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n\thash: \"%s\" - \"%s\"",
 				hexmem(tmp[2].data(), tmp[2].size()).c_str(),
 				hexmem(tmp[3].data(), tmp[3].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.zset");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n\tzset: \"%s\" - \"%s\"",
 				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
 				hexmem(tmp[5].data(), tmp[5].size()).c_str()
 				);
-			resp->push_back(buf);
+			val.append(buf);
 			
-			resp->push_back("key_range.list");
-			snprintf(buf, sizeof(buf), "\"%s\" - \"%s\"",
+			val.append(buf);
+			snprintf(buf, sizeof(buf), "\n\tlist: \"%s\" - \"%s\"",
 				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
 				hexmem(tmp[7].data(), tmp[7].size()).c_str()
 				);
-			resp->push_back(buf);
 		}
+		resp->push_back("data_key_range");
+		resp->push_back(val);
 	}
 
 	if(req.size() == 1 || req[1] == "leveldb"){
