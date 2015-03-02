@@ -3,10 +3,9 @@
 
 #include <stdint.h>
 #include <string>
-#include "SSDB_client.h"
 #include "key_range.h"
-#include "../ssdb/ssdb.h"
 
+class SSDB;
 class Node;
 
 class Spliter{

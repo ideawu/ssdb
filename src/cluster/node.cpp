@@ -19,6 +19,9 @@ std::string Node::str(){
 }
 
 int Node::init(const std::string &ip, int port){
+	this->ip = ip;
+	this->port = port;
+	
 	this->db = ssdb::Client::connect(ip, port);
 	if(this->db == NULL){
 		log_error("failed to connect to cluster server!");

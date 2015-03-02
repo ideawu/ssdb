@@ -7,12 +7,17 @@ found in the LICENSE file.
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include "node.h"
 #include "cluster.h"
 
 int main(int argc, char **argv){
 	Cluster cluster;
 	cluster.init();
 	
+	printf("init node_list:\n");
+	cluster.print_node_list();
+	getchar();
+
 	Node *node1 = cluster.connect_node("127.0.0.1", 8888);
 	Node *node2 = cluster.connect_node("127.0.0.1", 8889);
 	

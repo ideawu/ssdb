@@ -1,27 +1,35 @@
 #include "cluster.h"
+#include "cluster_store.h"
 #include "key_range.h"
 #include "node.h"
 #include "spliter.h"
+#include "node.h"
+#include "../ssdb/ssdb.h"
 #include "../util/log.h"
 
 Cluster::Cluster(){
 	last_node_id = 1;
 	this->db = NULL;
+	this->store = NULL;
 }
 
 Cluster::~Cluster(){
 	delete db;
+	delete store;
 }
 
 int Cluster::init(){
 	std::string work_dir = "./tmp";
 	Options opt;
-	db = SSDB::open(opt, work_dir);
+	this->db = SSDB::open(opt, work_dir);
 	if(this->db == NULL){
 		log_error("failed to open cluster db!");
 		return -1;
 	}
-
+	
+	this->store = new ClusterStore(this);
+	this->store->load_node_list();
+	
 	return 0;
 }
 
@@ -60,6 +68,12 @@ int Cluster::add_kv_node(Node *node){
 			return -1;
 		}
 	}
+	
+	// log
+	if(store->save_node(node) == -1){
+		return -1;
+	}
+	
 	kv_node_list[node->kv_range.start] = node;
 	kv_nodes_by_id[node->id] = node;
 	return 0;
