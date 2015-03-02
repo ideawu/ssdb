@@ -56,6 +56,7 @@ int ClusterStore::load_node_list(){
 	dec.read(&kv_end);
 	
 	log_debug("%s:%d %s %s", ip.c_str(), port, kv_start.c_str(), kv_end.c_str());
+	// TODO:
 
 	return 0;
 }
