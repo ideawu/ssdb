@@ -179,7 +179,7 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
-	int dump_count = 0;
+	int64_t dump_count = 0;
 	while(1){
 		const std::vector<Bytes> *req = link->recv();
 		if(req == NULL){
@@ -198,7 +198,7 @@ int main(int argc, char **argv){
 			if(cmd == "begin"){
 				printf("recv begin...\n");
 			}else if(cmd == "end"){
-				printf("received %d entry(s)\n", dump_count);
+				printf("received %" PRId64 " entry(s)\n", dump_count);
 				printf("recv end\n\n");
 				break;
 			}else if(cmd == "set"){
@@ -229,8 +229,8 @@ int main(int argc, char **argv){
 				}
 
 				dump_count ++;
-				if((int)log10(dump_count - 1) != (int)log10(dump_count) || (dump_count > 0 && dump_count % 50000 == 0)){
-					printf("received %d entry(s)\n", dump_count);
+				if((int)log10(dump_count - 1) != (int)log10(dump_count) || (dump_count > 0 && dump_count % 100000 == 0)){
+					printf("received %" PRId64 " entry(s)\n", dump_count);
 				}
 			}else{
 				fprintf(stderr, "error: unknown command %s\n", std::string(cmd.data(), cmd.size()).c_str());
@@ -239,26 +239,7 @@ int main(int argc, char **argv){
 			}
 		}
 	}
-	printf("total dumped %d entry(s)\n", dump_count);
-
-	/*
-	printf("checking data...\n");
-	leveldb::Iterator *it;
-	it = db->NewIterator(leveldb::ReadOptions());
-	int save_count = 0;
-	for(it->SeekToFirst(); it->Valid(); it->Next()){
-		save_count ++;
-		//std::string k = hexmem(it->key().data(), it->key().size());
-		//std::string v = hexmem(it->value().data(), it->value().size());
-		//printf("%d %s : %s", save_count, k.c_str(), v.c_str());
-	}
-	if(dump_count != save_count){
-		printf("checking failed! dumped: %d, saved: %d\n", dump_count, save_count);
-	}else{
-		printf("checking OK.\n");
-		printf("\n");
-	}
-	*/
+	printf("total dumped %" PRId64 " entry(s)\n", dump_count);
 
 	{
 		std::string val;

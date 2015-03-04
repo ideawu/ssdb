@@ -540,11 +540,11 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 				);
 			val.append(buf);
 			
-			val.append(buf);
 			snprintf(buf, sizeof(buf), "\n\tlist: \"%s\" - \"%s\"",
 				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
 				hexmem(tmp[7].data(), tmp[7].size()).c_str()
 				);
+			val.append(buf);
 		}
 		resp->push_back("data_key_range");
 		resp->push_back(val);
