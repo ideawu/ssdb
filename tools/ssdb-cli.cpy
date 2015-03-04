@@ -12,7 +12,7 @@ escape_data = false;
 
 function welcome(){
 	sys.stderr.write('ssdb (cli) - ssdb command line tool.\n');
-	sys.stderr.write('Copyright (c) 2012-2014 ssdb.io\n');
+	sys.stderr.write('Copyright (c) 2012-2015 ssdb.io\n');
 	sys.stderr.write('\n');
 	sys.stderr.write("'h' or 'help' for help, 'q' to quit.\n");
 	sys.stderr.write('\n');

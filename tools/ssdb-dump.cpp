@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
+Copyright (c) 2012-2015 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
@@ -56,7 +56,7 @@ static std::string serialize_req(T &req){
 
 void welcome(){
 	printf("ssdb-dump - SSDB backup command\n");
-	printf("Copyright (c) 2012-2014 ssdb.io\n");
+	printf("Copyright (c) 2012-2015 ssdb.io\n");
 	printf("\n");
 }
 

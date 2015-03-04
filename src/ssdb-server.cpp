@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
+Copyright (c) 2012-2015 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
@@ -93,7 +93,7 @@ int main(int argc, char **argv){
 
 void welcome(){
 	fprintf(stderr, "ssdb %s\n", SSDB_VERSION);
-	fprintf(stderr, "Copyright (c) 2012-2014 ssdb.io\n");
+	fprintf(stderr, "Copyright (c) 2012-2015 ssdb.io\n");
 	fprintf(stderr, "\n");
 }
 
