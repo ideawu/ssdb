@@ -39,10 +39,7 @@ Node* Cluster::connect_node(const std::string &ip, int port){
 		delete node;
 		return NULL;
 	}
-	log_info("connected to %s", node->str().c_str());
-	// TODO: 从 binlog 中, 获取 node.kv_range, 因为从 cluster 的角度看,
-	// 节点在 cluster 中登记的 kv_range 可能和节点自身所认为的不一致, 以在
-	// cluster 中登记的为准.
+	log_info("connected to [%s:%d]", node->ip.c_str(), node->port);
 	return node;
 }
 
@@ -59,7 +56,7 @@ int Cluster::add_kv_node(Node *node){
 		// TODO: 在别的地方分配 id
 		node->id = last_node_id ++;
 	}
-	log_debug("add kv node: %s", node->str().c_str());
+	log_debug("%s: %s", __FUNCTION__, node->str().c_str());
 	std::map<std::string, Node *>::iterator it;
 	for(it = kv_node_list.begin(); it != kv_node_list.end(); it++){
 		Node *n = it->second;
@@ -80,19 +77,20 @@ int Cluster::add_kv_node(Node *node){
 }
 
 int Cluster::del_kv_node(Node *node){
+	log_debug("%s: %s", __FUNCTION__, node->str().c_str());
 	kv_node_list.erase(node->kv_range.start);
 	kv_nodes_by_id.erase(node->id);
 	return 0;
 }
 
 int Cluster::split_kv_node(Node *src, Node *dst){
-	//log_debug("%s", __FUNCTION__);
+	log_debug("%s: %s => %s", __FUNCTION__, src->str().c_str(), dst->str().c_str());
 	dst->kv_range = KeyRange();
 	return _migrate_kv_data(src, dst);
 }
 
 int Cluster::migrate_kv_data(Node *src, Node *dst){
-	//log_debug("%s", __FUNCTION__);
+	log_debug("%s: %s => %s", __FUNCTION__, src->str().c_str(), dst->str().c_str());
 	return _migrate_kv_data(src, dst);
 }
 

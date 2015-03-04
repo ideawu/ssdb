@@ -16,6 +16,7 @@ public:
 	Node();
 	~Node();
 	int init(const std::string &ip, int port);
+	int set_kv_range(const KeyRange &kv_range);
 	
 	std::string str();
 private:

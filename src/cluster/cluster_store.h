@@ -17,6 +17,8 @@ public:
 private:
 	Cluster *cluster;
 	std::string node_list_key;
+
+	int load_node(const std::string &id, const std::string &data);
 };
 
 #endif

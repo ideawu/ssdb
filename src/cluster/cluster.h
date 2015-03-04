@@ -4,9 +4,9 @@
 #include <map>
 #include <string>
 #include "key_range.h"
+#include "node.h"
 
 class SSDB;
-class Node;
 class ClusterStore;
 
 class Cluster{
@@ -25,7 +25,16 @@ public:
 	// 将 src 的一部分数据移动到 dst, src 和 dst 的 key_range 必须是相连的.
 	int migrate_kv_data(Node *src, Node *dst);
 
+	// TODO: for testing
 	void print_node_list();
+	Node* get_node(int id){
+		std::map<int, Node *>::iterator it;
+		it = kv_nodes_by_id.find(id);
+		if(it != kv_nodes_by_id.end()){
+			return it->second;
+		}
+		return NULL;
+	}
 private:
 	friend class ClusterStore;
 

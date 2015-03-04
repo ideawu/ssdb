@@ -44,3 +44,14 @@ int Node::init(const std::string &ip, int port){
 	
 	return 0;
 }
+
+int Node::set_kv_range(const KeyRange &kv_range){
+	this->kv_range = kv_range;
+	const std::vector<std::string>* resp;
+	resp = this->db->request("set_kv_range", kv_range.start, kv_range.end);
+	if(!resp || resp->empty() || resp->at(0) != "ok"){
+		log_error("set_kv_range error!");
+		return -1;
+	}
+	return 0;
+}
