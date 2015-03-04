@@ -14,9 +14,6 @@ int main(int argc, char **argv){
 	Cluster cluster;
 	cluster.init();
 	
-	printf("init node_list:\n");
-	cluster.print_node_list();
-	
 	Node *node1, *node2;
 	
 	if(0){
@@ -37,25 +34,26 @@ int main(int argc, char **argv){
 		cluster.split_kv_node(node1, node2);
 		printf("node_list:\n");
 		cluster.print_node_list();
+		return 0;
 	}else{
+		printf("init node_list:\n");
+		cluster.print_node_list();
+
 		node1 = cluster.get_node(1);
 		node2 = cluster.get_node(2);
 		if(!node1 || !node2){
 			printf("init node error!\n");
 			return 0;
 		}
-	}
 	
-	while(1){
-		printf("Press Enter to migrate_kv_data: ");
-		getchar();
-		cluster.migrate_kv_data(node1, node2);
-		printf("node_list:\n");
-		cluster.print_node_list();
+		while(1){
+			printf("Press Enter to migrate_kv_data: ");
+			getchar();
+			cluster.migrate_kv_data(node1, node2);
+			printf("node_list:\n");
+			cluster.print_node_list();
+		}
 	}
-
-	delete node1;
-	delete node2;
 	
 	return 0;
 }
