@@ -28,7 +28,6 @@ ClusterServer::ClusterServer(SSDB *ssdb, const Config &conf, NetworkServer *net)
 }
 
 ClusterServer::~ClusterServer(){
-	log_debug("ClusterServer finalized");
 }
 
 int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp){

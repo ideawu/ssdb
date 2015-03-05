@@ -5,10 +5,13 @@ CFLAGS += -I${LIBSSDB_PATH} -I../ssdb
 CLIBS += ${LIBSSDB_PATH}/libssdb-client.a ../util/libutil.a ../net/libnet.a ../ssdb/libssdb.a
 OBJS = spliter.o cluster.o cluster_store.o node.o key_range.o serv.o
 
-all: ${OBJS} ssdb-cluster.o
-	${CXX} -o ssdb-cluster ssdb-cluster.o ${OBJS} ${LIBS} ${CLIBS}
+all: ${OBJS} ssdb-cluster.o app.o
+	${CXX} -o ssdb-cluster ssdb-cluster.o app.o ${OBJS} ${LIBS} ${CLIBS}
 
 #${CXX} ${CFLAGS} -o test-cluster test-cluster.cpp ${OBJS} ${CLIBS}
+
+app.o: app.h app.cpp
+	${CXX} ${CFLAGS} -c app.cpp
 
 ssdb-cluster.o: ssdb-cluster.cpp
 	${CXX} ${CFLAGS} -c ssdb-cluster.cpp
