@@ -72,7 +72,7 @@ function timespan(stime){
 function show_version(){
 	try{
 		resp = link.request('info', []);
-		sys.stderr.write('server version: ' + resp.data[2] + '\n\n');
+		sys.stderr.write(resp.data[0] + ' ' + resp.data[2] + '\n\n');
 	}catch(Exception e){
 	}
 }
