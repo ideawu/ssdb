@@ -96,12 +96,17 @@ void Application::init(){
 	check_pidfile();
 	
 	{ // logger
+		std::string log_output;
+		std::string log_level_;
+		int64_t log_rotate_size;
+
 		log_level_ = conf->get_str("logger.level");
+		strtolower(&log_level_);
 		if(log_level_.empty()){
 			log_level_ = "debug";
 		}
 		int level = Logger::get_level(log_level_.c_str());
-		log_rotate_size = conf->get_num("logger.rotate.size");
+		log_rotate_size = conf->get_int64("logger.rotate.size");
 		log_output = conf->get_str("logger.output");
 		if(log_output == ""){
 			log_output = "stdout";
@@ -120,7 +125,6 @@ void Application::init(){
 		fprintf(stderr, "'%s' is not a directory or not exists!\n", app_args.work_dir.c_str());
 		exit(1);
 	}
-	data_db_dir = app_args.work_dir + "/data";
 
 	// WARN!!!
 	// deamonize() MUST be called before any thread is created!

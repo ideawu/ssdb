@@ -29,12 +29,14 @@ void MyApplication::welcome(){
 void MyApplication::run(){
 	Options option;
 	option.load(*conf);
+	
+	std::string data_db_dir = app_args.work_dir + "/data";
 
 	log_info("%s %s", APP_NAME, APP_VERSION);
 	log_info("conf_file        : %s", app_args.conf_file.c_str());
-	log_info("log_level        : %s", log_level_.c_str());
-	log_info("log_output       : %s", log_output.c_str());
-	log_info("log_rotate_size  : %d", log_rotate_size);
+	log_info("log_level        : %s", Logger::shared()->level_name().c_str());
+	log_info("log_output       : %s", Logger::shared()->output_name().c_str());
+	log_info("log_rotate_size  : %" PRId64, Logger::shared()->rotate_size());
 
 	log_info("main_db          : %s", data_db_dir.c_str());
 	log_info("cache_size       : %d MB", option.cache_size);

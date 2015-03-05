@@ -24,6 +24,7 @@ found in the LICENSE file.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <string>
 
 class Logger{
 	public:
@@ -38,13 +39,19 @@ class Logger{
 		static const int LEVEL_MAX		= 5;
 
 		static int get_level(const char *levelname);
+		
+		static Logger* shared();
+		
+		std::string level_name();
+		std::string output_name();
+		uint64_t rotate_size();
 	private:
 		FILE *fp;
 		char filename[PATH_MAX];
 		int level_;
 		pthread_mutex_t *mutex;
 
-		uint64_t rotate_size;
+		uint64_t rotate_size_;
 		struct{
 			uint64_t w_curr;
 			uint64_t w_total;

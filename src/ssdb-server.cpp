@@ -174,14 +174,14 @@ void init(){
 	
 	std::string log_output;
 	std::string log_level;
-	int log_rotate_size = 0;
+	int64_t log_rotate_size = 0;
 	{ // logger
 		log_level = conf->get_str("logger.level");
 		if(log_level.empty()){
 			log_level = "debug";
 		}
 		int level = Logger::get_level(log_level.c_str());
-		log_rotate_size = conf->get_num("logger.rotate.size");
+		log_rotate_size = conf->get_int64("logger.rotate.size");
 		log_output = conf->get_str("logger.output");
 		if(log_output == ""){
 			log_output = "stdout";
@@ -209,7 +209,7 @@ void init(){
 	log_info("conf_file        : %s", app_args.conf_file.c_str());
 	log_info("log_level        : %s", log_level.c_str());
 	log_info("log_output       : %s", log_output.c_str());
-	log_info("log_rotate_size  : %d", log_rotate_size);
+	log_info("log_rotate_size  : %" PRId64, log_rotate_size);
 
 	log_info("main_db          : %s", data_db_dir.c_str());
 	log_info("meta_db          : %s", meta_db_dir.c_str());

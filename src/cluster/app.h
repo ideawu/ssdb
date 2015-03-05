@@ -30,10 +30,6 @@ protected:
 
 	Config *conf;
 	AppArgs app_args;
-	std::string data_db_dir;
-	std::string log_output;
-	std::string log_level_;
-	int log_rotate_size;
 	
 private:
 	void usage(int argc, char **argv);

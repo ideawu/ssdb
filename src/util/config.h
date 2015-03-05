@@ -54,6 +54,7 @@ class Config{
 		const Config* get(const char *key) const;
 		int num() const;
 		int get_num(const char *key) const;
+		int64_t get_int64(const char *key) const;
 		const char* str() const;
 		const char* get_str(const char *key) const;
 
