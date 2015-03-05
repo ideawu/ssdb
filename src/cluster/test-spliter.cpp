@@ -11,6 +11,7 @@ found in the LICENSE file.
 #include "node.h"
 #include "SSDB_client.h"
 #include "../util/log.h"
+#include "../ssdb/ssdb.h"
 
 int main(int argc, char **argv){
 	Node node1, node2;
@@ -38,7 +39,7 @@ int main(int argc, char **argv){
 	std::string min_key;
 	std::string max_key;
 	while(1){
-		int64_t size = spliter.move_some();
+		int64_t size = spliter.move_some(3);
 		if(size == -1){
 			fprintf(stderr, "error!\n");
 			exit(1);

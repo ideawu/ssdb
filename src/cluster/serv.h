@@ -11,9 +11,8 @@ found in the LICENSE file.
 #include <vector>
 #include <string>
 #include "../ssdb/ssdb_impl.h"
-#include "../ssdb/ttl.h"
 #include "../net/server.h"
-
+#include "cluster.h"
 
 class ClusterServer
 {
@@ -22,6 +21,7 @@ private:
 
 public:
 	SSDBImpl *ssdb;
+	Cluster *cluster;
 
 	ClusterServer(SSDB *ssdb, const Config &conf, NetworkServer *net);
 	~ClusterServer();

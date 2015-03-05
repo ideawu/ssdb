@@ -8,7 +8,9 @@ OBJS = spliter.o cluster.o cluster_store.o node.o key_range.o serv.o
 all: ${OBJS} ssdb-cluster.o app.o
 	${CXX} -o ssdb-cluster ssdb-cluster.o app.o ${OBJS} ${LIBS} ${CLIBS}
 
-#${CXX} ${CFLAGS} -o test-cluster test-cluster.cpp ${OBJS} ${CLIBS}
+test:
+	${CXX} ${CFLAGS} -o test-cluster test-cluster.cpp ${OBJS} ${CLIBS}
+	${CXX} ${CFLAGS} -o test-spliter test-spliter.cpp ${OBJS} ${CLIBS}
 
 app.o: app.h app.cpp
 	${CXX} ${CFLAGS} -c app.cpp
@@ -32,9 +34,6 @@ key_range.o: key_range.h key_range.cpp
 
 spliter.o: spliter.h spliter.cpp
 	${CXX} ${CFLAGS} -c spliter.cpp
-	
-test:
-	${CXX} ${CFLAGS} -o test-spliter test-spliter.cpp ${OBJS} ${CLIBS}
 
 clean:
 	rm -f ssdb-split *.a *.o

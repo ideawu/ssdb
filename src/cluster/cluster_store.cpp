@@ -64,7 +64,7 @@ int ClusterStore::load_node(const std::string &id, const std::string &data){
 	log_debug("load node[%s - %s:%d] \"%s\" \"%s\"", id.c_str(), ip.c_str(), port,
 		 str_escape(kv_start).c_str(), str_escape(kv_end).c_str());
 
-	Node *node = this->cluster->connect_node(ip, port);
+	Node *node = cluster->connect_node(ip, port);
 	if(!node){
 		log_error("load node[%s:%d] error!", ip.c_str(), port);
 		return -1;
@@ -74,6 +74,9 @@ int ClusterStore::load_node(const std::string &id, const std::string &data){
 	// 节点在 cluster 中登记的 kv_range 可能和节点自身所认为的不一致, 以在
 	// cluster 中登记的为准.
 	node->id = str_to_int(id);
+	if(node->id > cluster->last_node_id){
+		cluster->last_node_id = node->id;
+	}
 	
 	if(node->set_kv_range(KeyRange(kv_start, kv_end)) == -1){
 		log_error("init_kv_range error!");

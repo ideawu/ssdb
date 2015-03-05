@@ -10,25 +10,17 @@
 static const int MOVE_BATCH_SIZE = 2;
 
 Cluster::Cluster(){
-	last_node_id = 1;
+	last_node_id = 0;
 	this->db = NULL;
 	this->store = NULL;
 }
 
 Cluster::~Cluster(){
-	delete db;
 	delete store;
 }
 
-int Cluster::init(){
-	std::string work_dir = "./tmp";
-	Options opt;
-	this->db = SSDB::open(opt, work_dir);
-	if(this->db == NULL){
-		log_error("failed to open cluster db!");
-		return -1;
-	}
-	
+int Cluster::init(SSDB *db){
+	this->db = db;
 	this->store = new ClusterStore(this);
 	this->store->load_node_list();
 	return 0;
@@ -55,7 +47,7 @@ void Cluster::print_node_list(){
 int Cluster::add_kv_node(Node *node){
 	if(!node->id){
 		// TODO: 在别的地方分配 id
-		node->id = last_node_id ++;
+		node->id = ++last_node_id;
 	}
 	log_debug("%s: %s", __FUNCTION__, node->str().c_str());
 	std::map<std::string, Node *>::iterator it;
@@ -87,7 +79,9 @@ int Cluster::del_kv_node(Node *node){
 int64_t Cluster::split_kv_node(Node *src, Node *dst){
 	log_debug("%s: %s => %s", __FUNCTION__, src->str().c_str(), dst->str().c_str());
 	dst->kv_range = KeyRange();
-	return _migrate_kv_data(src, dst);
+	int64_t ret = _migrate_kv_data(src, dst);
+	// 没有数据可分裂也返回错误
+	return ret > 0? ret : -1;
 }
 
 int64_t Cluster::migrate_kv_data(Node *src, Node *dst){
@@ -139,6 +133,6 @@ int64_t Cluster::_migrate_kv_data(Node *src, Node *dst){
 		log_error("error!");
 		return -1;
 	}
-	
+
 	return size;
 }

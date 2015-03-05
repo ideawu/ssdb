@@ -11,10 +11,12 @@ class ClusterStore;
 
 class Cluster{
 public:
+	std::map<std::string, Node *> kv_node_list;
+
 	Cluster();
 	~Cluster();
 	
-	int init();
+	int init(SSDB *db);
 	Node* connect_node(const std::string &ip, int port);
 	
 	int add_kv_node(Node *node);
@@ -45,7 +47,6 @@ private:
 	int64_t _migrate_kv_data(Node *src, Node *dst);
 
 	// 保存 node.kv_range.min_key 对应 node 的关系, 利用 map 的有序性.
-	std::map<std::string, Node *> kv_node_list;
 	std::map<int, Node *> kv_nodes_by_id;
 };
 
