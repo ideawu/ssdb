@@ -7,6 +7,8 @@
 #include "../ssdb/ssdb.h"
 #include "../util/log.h"
 
+static const int MOVE_BATCH_SIZE = 2;
+
 Cluster::Cluster(){
 	last_node_id = 1;
 	this->db = NULL;
@@ -29,7 +31,6 @@ int Cluster::init(){
 	
 	this->store = new ClusterStore(this);
 	this->store->load_node_list();
-	
 	return 0;
 }
 
@@ -83,20 +84,20 @@ int Cluster::del_kv_node(Node *node){
 	return 0;
 }
 
-int Cluster::split_kv_node(Node *src, Node *dst){
+int64_t Cluster::split_kv_node(Node *src, Node *dst){
 	log_debug("%s: %s => %s", __FUNCTION__, src->str().c_str(), dst->str().c_str());
 	dst->kv_range = KeyRange();
 	return _migrate_kv_data(src, dst);
 }
 
-int Cluster::migrate_kv_data(Node *src, Node *dst){
+int64_t Cluster::migrate_kv_data(Node *src, Node *dst){
 	log_debug("%s: %s => %s", __FUNCTION__, src->str().c_str(), dst->str().c_str());
 	return _migrate_kv_data(src, dst);
 }
 
-int Cluster::_migrate_kv_data(Node *src, Node *dst){
+int64_t Cluster::_migrate_kv_data(Node *src, Node *dst){
 	Spliter spliter(this->db, src, dst);
-	int64_t size = spliter.move_some();
+	int64_t size = spliter.move_some(MOVE_BATCH_SIZE);
 	if(size == -1){
 		log_error("error!");
 		return -1;
@@ -139,5 +140,5 @@ int Cluster::_migrate_kv_data(Node *src, Node *dst){
 		return -1;
 	}
 	
-	return 0;
+	return size;
 }

@@ -7,8 +7,6 @@
 #include "../util/strings.h"
 #include "../ssdb/ssdb.h"
 
-static const int COPY_BATCH_SIZE = 2;
-
 Spliter::Spliter(SSDB *cluster, Node *src_node, Node *dst_node){
 	this->cluster = cluster;
 	this->src_node = src_node;
@@ -69,7 +67,8 @@ int Spliter::save_last_move_key(const std::string &key){
 	return 0;
 }
 
-int64_t Spliter::move_some(){
+int64_t Spliter::move_some(int batch_size){
+	this->move_batch_size = batch_size;
 	int ret;
 	std::string min_key;
 	std::string max_key;
@@ -87,7 +86,7 @@ int64_t Spliter::move_some(){
 int Spliter::find_src_key_range_to_move(std::string *min_key, std::string *max_key){
 	std::vector<std::string> keys;
 	ssdb::Status s;
-	s = src_node->db->keys(last_move_key, "", COPY_BATCH_SIZE, &keys);
+	s = src_node->db->keys(last_move_key, "", move_batch_size, &keys);
 	if(!s.ok()){
 		log_error("response error: %s", s.code().c_str());
 		return -1;
@@ -118,7 +117,7 @@ int64_t Spliter::move_key_range(const std::string &min_key, const std::string &m
 	while(1){
 		std::vector<std::string> keys;
 		ssdb::Status s;
-		s = src_node->db->keys(iterate_key_start, max_key, COPY_BATCH_SIZE, &keys);
+		s = src_node->db->keys(iterate_key_start, max_key, move_batch_size, &keys);
 		if(!s.ok()){
 			log_error("response error: %s", s.code().c_str());
 			return -1;

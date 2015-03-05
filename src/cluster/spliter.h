@@ -14,7 +14,7 @@ public:
 	~Spliter();
 	
 	// 返回迁移的数据的字节数(估计), -1 表示出错; 0 表示已迁移完毕.
-	int64_t move_some();
+	int64_t move_some(int batch_size);
 	int finish();
 
 	SSDB *cluster;
@@ -36,6 +36,7 @@ private:
 	int set_dst_kv_range(const std::string &min_key, const std::string &max_key);
 	int del_src_key(const std::string &key);
 
+	int move_batch_size;
 	std::string status_key;
 	std::string last_move_key;
 	KeyRange src_kv_range;
