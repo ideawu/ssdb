@@ -8,6 +8,10 @@ found in the LICENSE file.
 #include "../include.h"
 #include "../util/log.h"
 #include "../util/strings.h"
+#include "./t_kv.h"
+#include "./t_hash.h"
+#include "./t_zset.h"
+#include "./t_queue.h"
 #include <map>
 
 /* Binlog */
@@ -34,6 +38,51 @@ char Binlog::cmd() const{
 const Bytes Binlog::key() const{
 	return Bytes(buf.data() + HEADER_LEN, buf.size() - HEADER_LEN);
 }
+
+std::string Binlog::user_key() const{
+    Bytes key = this->key();
+    if (key.empty() ) {
+        return std::string();
+    }
+
+    std::string ukey;
+    std::string tmp1, tmp2;
+    uint64_t tmpint;
+    switch (key.data()[0]) {
+    case DataType::SYNCLOG:
+        log_warn("synclog has no user key!");
+        return std::string();
+    case DataType::KV:
+        decode_kv_key(key, &ukey);
+        break;
+    case DataType::HASH:
+        decode_hash_key(key, &ukey, &tmp1);
+        break;
+    case DataType::HSIZE:
+        decode_hsize_key(key, &ukey);
+        break;
+    case DataType::ZSET:
+        decode_zset_key(key, &ukey, &tmp1);
+        break;
+    case DataType::ZSCORE:
+        decode_zscore_key(key, &ukey, &tmp1, &tmp2);
+        break;
+    case DataType::ZSIZE:
+        decode_zsize_key(key, &ukey);
+        break;
+    case DataType::QUEUE:
+        decode_qitem_key(key, &ukey, &tmpint);
+        break;
+    case DataType::QSIZE:
+        decode_qsize_key(key, &ukey);
+        break;
+    default:
+        log_warn("decoding for user_key: data type not supported. [%d]", int(key.data()[0]) );
+        break;
+    }
+
+    return ukey;
+}    
 
 int Binlog::load(const Bytes &s){
 	if(s.size() < HEADER_LEN){

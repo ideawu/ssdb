@@ -31,6 +31,8 @@ private:
 	bool is_mirror;
 	char log_type;
 
+    std::string prefix;
+
 	static const int DISCONNECTED = 0;
 	static const int INIT = 1;
 	static const int COPY = 2;
@@ -59,7 +61,7 @@ private:
 	}
 public:
 	std::string auth;
-	Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror=false);
+	Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror=false, const char* prefix = NULL);
 	~Slave();
 	void start();
 	void stop();

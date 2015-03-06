@@ -227,6 +227,21 @@ void BackendSync::Client::init(){
 			);
 		this->status = Client::COPY;
 	}
+    // sync prefix
+    if (req->size() > 4) {
+        std::string prefix_conf = req->at(4).String();
+        log_info("sync prefix list: %s", prefix_conf.c_str() );
+        this->prefix_list = string_split(prefix_conf.c_str(), ',');
+        for (std::vector<std::string>::const_iterator i = this->prefix_list.begin();
+            i != this->prefix_list.end();
+            ++i) 
+        {
+            if (0 == i->compare("*") ) {
+                this->prefix_list.clear();
+                break;
+            }
+        }
+    }
 }
 
 void BackendSync::Client::reset(){
@@ -307,8 +322,10 @@ int BackendSync::Client::copy(){
 		ret = 1;
 		
 		Binlog log(this->last_seq, BinlogType::COPY, cmd, slice(key));
-		log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
-		link->send(log.repr(), val);
+		if (match_prefix(log) ) {
+            log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+		    link->send(log.repr(), val);
+        }
 	}
 	return ret;
 
@@ -380,6 +397,10 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 		break;
 	}
 
+    if (!match_prefix(log) ) {
+        return 1;
+    }    
+
 	int ret = 0;
 	std::string val;
 	switch(log.cmd()){
@@ -410,4 +431,22 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			break;
 	}
 	return 1;
+}
+
+bool BackendSync::Client::match_prefix(const Binlog &log) {
+    if (this->prefix_list.empty() ) {
+        return true;
+    }
+    
+    std::string user_key = log.user_key();
+    for (std::vector<std::string>::const_iterator prefix = this->prefix_list.begin();
+        prefix != this->prefix_list.end();
+        ++prefix) 
+    {
+        if (0 == ::strncmp(user_key.c_str(), prefix->c_str(), prefix->length()) ) {
+            return true;
+        }
+    }
+
+    return false;
 }

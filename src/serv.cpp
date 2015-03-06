@@ -270,9 +270,14 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 				}
 				
 				std::string id = c->get_str("id");
+
+                std::string prefix = c->get_str("prefix");
+                if (prefix.empty() ) {
+                    prefix = "*";
+                }
 				
-				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
-				Slave *slave = new Slave(ssdb, meta, ip.c_str(), port, is_mirror);
+				log_info("slaveof: %s:%d, type: %s, prefix: %s", ip.c_str(), port, type.c_str(), prefix.c_str());
+				Slave *slave = new Slave(ssdb, meta, ip.c_str(), port, is_mirror, prefix.c_str());
 				if(!id.empty()){
 					slave->set_id(id);
 				}

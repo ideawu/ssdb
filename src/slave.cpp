@@ -8,7 +8,7 @@ found in the LICENSE file.
 #include "slave.h"
 #include "include.h"
 
-Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
+Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror, const char *prefix){
 	thread_quit = false;
 	this->ssdb = ssdb;
 	this->meta = meta;
@@ -21,6 +21,8 @@ Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
 	}else{
 		this->log_type = BinlogType::SYNC;
 	}
+
+    this->prefix = (prefix == NULL) ? "*" : prefix;
 	
 	{
 		char buf[128];
@@ -184,7 +186,7 @@ int Slave::connect(){
 				}
 			}
 			
-			link->send("sync140", str(this->last_seq), this->last_key, type);
+			link->send("sync140", str(this->last_seq), this->last_key, type, this->prefix);
 			if(link->flush() == -1){
 				log_error("[%s] network error", this->id_.c_str());
 				delete link;
