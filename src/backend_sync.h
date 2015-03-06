@@ -54,6 +54,7 @@ struct BackendSync::Client{
 	std::string last_key;
 	const BackendSync *backend;
 	bool is_mirror;
+    std::vector<std::string> prefix_list;
 	
 	Iterator *iter;
 
@@ -66,6 +67,7 @@ struct BackendSync::Client{
 	int sync(BinlogQueue *logs);
 
 	std::string stats();
+    bool match_prefix(const Binlog &log);
 };
 
 #endif

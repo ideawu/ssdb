@@ -32,6 +32,7 @@ public:
 	char type() const;
 	char cmd() const;
 	const Bytes key() const;
+    std::string user_key() const;
 
 	const char* data() const{
 		return buf.data();

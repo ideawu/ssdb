@@ -15,7 +15,7 @@ found in the LICENSE file.
 #include <inttypes.h>
 #include <string>
 #include <algorithm>
-
+#include <vector>
 
 inline static
 int is_empty_str(const char *str){
@@ -418,5 +418,21 @@ int bitcount(const char *p, int size){
 	}
 #endif
 
+static inline
+std::vector<std::string> string_split(const char *str, char split_char) {
+    std::vector<std::string> vec;
+    const char *begin = str;
+    const char *p = str;
+    for (; p && *p; ++p) {
+        if (*p == split_char) {
+            vec.push_back(std::string(begin, p - begin));
+            begin = p + 1;
+        }
+    }
+
+    vec.push_back(std::string(begin, p - begin) );
+
+    return vec;
+}
 
 #endif
