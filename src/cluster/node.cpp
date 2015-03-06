@@ -11,7 +11,7 @@ Node::~Node(){
 	delete db;
 }
 
-std::string Node::str(){
+std::string Node::str() const{
 	char buf[512];
 	snprintf(buf, sizeof(buf), "%4d: (\"%s\" - \"%s\"]",
 		id, str_escape(kv_range.start).c_str(), str_escape(kv_range.end).c_str());

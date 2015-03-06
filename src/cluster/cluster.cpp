@@ -134,17 +134,21 @@ int64_t Cluster::_migrate_kv_data(Node *src, Node *dst){
 		return -1;
 	}
 
-	ret = add_kv_node(src);
-	if(ret == -1){
-		log_error("error!");
-		return -1;
+	if(!src->kv_range.empty()){
+		ret = add_kv_node(src);
+		if(ret == -1){
+			log_error("error!");
+			return -1;
+		}
 	}
 	
-	ret = add_kv_node(dst);
-	if(ret == -1){
-		log_error("error!");
-		return -1;
+	if(!dst->kv_range.empty()){
+		ret = add_kv_node(dst);
+		if(ret == -1){
+			log_error("error!");
+			return -1;
+		}
 	}
-
+	
 	return size;
 }

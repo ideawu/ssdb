@@ -13,9 +13,10 @@ public:
 
 	KeyRange();
 	KeyRange(const std::string &start, const std::string &end);
-	bool check_overlapped(const KeyRange &range);
+	bool check_overlapped(const KeyRange &range) const;
+	bool empty() const;
 	
-	std::string str();
+	std::string str() const;
 private:
 };
 
