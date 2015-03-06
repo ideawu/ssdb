@@ -15,7 +15,6 @@ ClusterStore::~ClusterStore(){
 }
 	
 int ClusterStore::save_node(const Node *node){
-	// TODO: 需要设计一种更好的序列化方案, 或者使用 json?
 	std::string node_key = str(node->id);
 	std::string val;
 	
@@ -32,7 +31,16 @@ int ClusterStore::save_node(const Node *node){
 		log_error("cluster store error!");
 		return -1;
 	}
-
+	return 0;
+}
+	
+int ClusterStore::del_node(const Node *node){
+	std::string node_key = str(node->id);
+	int ret = cluster->db->hdel(node_list_key, node_key);
+	if(ret == -1){
+		log_error("cluster store error!");
+		return -1;
+	}
 	return 0;
 }
 

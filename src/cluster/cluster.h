@@ -19,6 +19,7 @@ public:
 	int init(SSDB *db);
 	Node* connect_node(const std::string &ip, int port);
 	
+	Node* get_node(int id);
 	int add_kv_node(Node *node);
 	int del_kv_node(Node *node);
 	
@@ -29,14 +30,6 @@ public:
 
 	// TODO: for testing
 	void print_node_list();
-	Node* get_node(int id){
-		std::map<int, Node *>::iterator it;
-		it = kv_nodes_by_id.find(id);
-		if(it != kv_nodes_by_id.end()){
-			return it->second;
-		}
-		return NULL;
-	}
 private:
 	friend class ClusterStore;
 

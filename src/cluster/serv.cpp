@@ -14,17 +14,21 @@ DEF_PROC(info);
 DEF_PROC(dbsize);
 DEF_PROC(kv_node_list);
 DEF_PROC(add_kv_node);
+DEF_PROC(del_kv_node);
 DEF_PROC(split_kv_node);
+DEF_PROC(migrate_kv_data);
 
-#define PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
+#define REG_PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
 
 void ClusterServer::reg_procs(NetworkServer *net){
-	PROC(info, "w");
-	PROC(dbsize, "w");
+	REG_PROC(info, "w");
+	REG_PROC(dbsize, "w");
 	
-	PROC(kv_node_list, "w");
-	PROC(add_kv_node, "w");
-	PROC(split_kv_node, "w");
+	REG_PROC(kv_node_list, "w");
+	REG_PROC(add_kv_node, "w");
+	REG_PROC(del_kv_node, "w");
+	REG_PROC(split_kv_node, "w");
+	REG_PROC(migrate_kv_data, "w");
 }
 
 ClusterServer::ClusterServer(SSDB *ssdb, const Config &conf, NetworkServer *net){
@@ -77,10 +81,26 @@ int proc_add_kv_node(NetworkServer *net, Link *link, const Request &req, Respons
 
 	int ret;
 	ret = serv->cluster->add_kv_node(node);
-	if(ret == 0){
-		resp->add("ok");
-	}else{
+	resp->reply_status(ret);
+	return 0;
+}
+
+int proc_del_kv_node(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ClusterServer *serv = (ClusterServer *)net->data;
+	if(req.size() < 2){
+		resp->add("client_error");
+		return 0;
+	}
+
+	int node_id = req[1].Int();
+	Node *node = serv->cluster->get_node(node_id);
+	if(!node){
+		log_error("node %d not found!", node_id);
 		resp->add("error");
+		resp->add("node not found");
+	}else{
+		int ret = serv->cluster->del_kv_node(node);
+		resp->reply_int(0, ret);
 	}
 	return 0;
 }
@@ -119,6 +139,39 @@ int proc_split_kv_node(NetworkServer *net, Link *link, const Request &req, Respo
 	}else{
 		delete node2;
 		resp->add("error");
+	}
+	return 0;
+}
+
+int proc_migrate_kv_data(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ClusterServer *serv = (ClusterServer *)net->data;
+	if(req.size() < 3){
+		resp->add("client_error");
+		return 0;
+	}
+	
+	int src_id = req[1].Int();
+	int dst_id = req[2].Int();
+	Node *node1 = serv->cluster->get_node(src_id);
+	Node *node2 = serv->cluster->get_node(dst_id);
+	if(!node1){
+		log_error("source node %d not found!", src_id);
+		resp->add("error");
+		resp->add("source node not found");
+		return 0;
+	}
+	if(!node2){
+		log_error("destination node %d not found!", dst_id);
+		resp->add("error");
+		resp->add("destination node not found");
+		return 0;
+	}
+
+	int64_t size = serv->cluster->migrate_kv_data(node1, node2);
+	if(size < 0){
+		resp->add("error");
+	}else{
+		resp->reply_int(0, size);
 	}
 	return 0;
 }
@@ -162,7 +215,7 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 int proc_dbsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	ClusterServer *serv = (ClusterServer *)net->data;
 	uint64_t size = serv->ssdb->size();
-	resp->push_back("ok");
-	resp->push_back(str(size));
+	resp->add("ok");
+	resp->add(size);
 	return 0;
 }

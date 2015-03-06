@@ -10,7 +10,7 @@
 static const int MOVE_BATCH_SIZE = 2;
 
 Cluster::Cluster(){
-	last_node_id = 0;
+	this->last_node_id = 0;
 	this->db = NULL;
 	this->store = NULL;
 }
@@ -44,6 +44,15 @@ void Cluster::print_node_list(){
 	}
 }
 
+Node* Cluster::get_node(int id){
+	std::map<int, Node *>::iterator it;
+	it = kv_nodes_by_id.find(id);
+	if(it != kv_nodes_by_id.end()){
+		return it->second;
+	}
+	return NULL;
+}
+
 int Cluster::add_kv_node(Node *node){
 	if(!node->id){
 		// TODO: 在别的地方分配 id
@@ -71,9 +80,12 @@ int Cluster::add_kv_node(Node *node){
 
 int Cluster::del_kv_node(Node *node){
 	log_debug("%s: %s", __FUNCTION__, node->str().c_str());
+	if(store->del_node(node) == -1){
+		return -1;
+	}
 	kv_node_list.erase(node->kv_range.start);
 	kv_nodes_by_id.erase(node->id);
-	return 0;
+	return 1;
 }
 
 int64_t Cluster::split_kv_node(Node *src, Node *dst){

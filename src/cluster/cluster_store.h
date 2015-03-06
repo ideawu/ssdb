@@ -12,6 +12,7 @@ public:
 	~ClusterStore();
 	
 	int save_node(const Node *node);
+	int del_node(const Node *node);
 	int load_node_list();
 	
 private:
