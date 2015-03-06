@@ -115,40 +115,31 @@ int64_t Cluster::_migrate_kv_data(Node *src, Node *dst){
 	log_debug("moved: %" PRId64 " bytes", size);
 	
 	int ret;
-	ret = del_kv_node(src);
-	if(ret == -1){
+	if(del_kv_node(src) == -1){
 		log_error("error!");
 		return -1;
 	}
 	if(dst->id){
-		ret = del_kv_node(dst);
-		if(ret == -1){
+		if(del_kv_node(dst) == -1){
 			log_error("error!");
 			return -1;
 		}
 	}
-
-	ret = spliter.finish();
-	if(ret == -1){
+	if(spliter.finish() == -1){
 		log_error("error!");
 		return -1;
 	}
-
 	if(!src->kv_range.empty()){
-		ret = add_kv_node(src);
-		if(ret == -1){
+		if(add_kv_node(src) == -1){
 			log_error("error!");
 			return -1;
 		}
 	}
-	
 	if(!dst->kv_range.empty()){
-		ret = add_kv_node(dst);
-		if(ret == -1){
+		if(add_kv_node(dst) == -1){
 			log_error("error!");
 			return -1;
 		}
 	}
-	
 	return size;
 }
