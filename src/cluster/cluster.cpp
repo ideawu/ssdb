@@ -114,7 +114,6 @@ int64_t Cluster::_migrate_kv_data(Node *src, Node *dst){
 	}
 	log_debug("moved: %" PRId64 " bytes", size);
 	
-	int ret;
 	if(del_kv_node(src) == -1){
 		log_error("error!");
 		return -1;

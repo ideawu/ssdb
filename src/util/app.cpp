@@ -1,9 +1,10 @@
 #include "app.h"
-#include "include.h"
-#include "../util/log.h"
-#include "../util/file.h"
-#include "../util/daemon.h"
-#include "../util/strings.h"
+#include "log.h"
+#include "file.h"
+#include "config.h"
+#include "daemon.h"
+#include "strings.h"
+#include <stdio.h>
 
 int Application::main(int argc, char **argv){
 	conf = NULL;

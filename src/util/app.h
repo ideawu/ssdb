@@ -2,7 +2,8 @@
 #define UTIL_APP_H
 
 #include <string>
-#include "../util/config.h"
+
+class Config;
 
 class Application{
 public:

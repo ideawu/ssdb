@@ -7,8 +7,8 @@ found in the LICENSE file.
 #include "version.h"
 #include "../net/server.h"
 #include "../ssdb/ssdb.h"
+#include "../util/app.h"
 #include "serv.h"
-#include "app.h"
 
 #define APP_NAME "ssdb-cluster"
 #define APP_VERSION SSDB_CLUSTER_VERSION
