@@ -12,6 +12,7 @@ public:
 
 	int main(int argc, char **argv);
 	
+	virtual void usage(int argc, char **argv);
 	virtual void welcome() = 0;
 	virtual void run() = 0;
 
@@ -33,7 +34,6 @@ protected:
 	AppArgs app_args;
 	
 private:
-	void usage(int argc, char **argv);
 	void parse_args(int argc, char **argv);
 	void init();
 
