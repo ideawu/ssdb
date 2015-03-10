@@ -109,6 +109,7 @@ DEF_PROC(qset);
 DEF_PROC(dump);
 DEF_PROC(sync140);
 DEF_PROC(info);
+DEF_PROC(version);
 DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(clear_binlog);
@@ -224,6 +225,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	PROC(dump, "b");
 	PROC(sync140, "b");
 	PROC(info, "r");
+	PROC(version, "r");
 	PROC(dbsize, "r");
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
@@ -434,6 +436,12 @@ int proc_dbsize(NetworkServer *net, Link *link, const Request &req, Response *re
 	uint64_t size = serv->ssdb->size();
 	resp->push_back("ok");
 	resp->push_back(str(size));
+	return 0;
+}
+
+int proc_version(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	resp->push_back("ok");
+	resp->push_back(SSDB_VERSION);
 	return 0;
 }
 

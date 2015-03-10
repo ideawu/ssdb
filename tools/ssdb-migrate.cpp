@@ -6,9 +6,74 @@
 #include "util/strings.h"
 #include "SSDB_client.h"
 
+#define BATCH_SIZE 10
+
 ssdb::Client *src = NULL;
 ssdb::Client *dst = NULL;
-int batch_size = 10;
+
+void welcome(){
+	printf("ssdb-migrate - SSDB server migration tool\n");
+	printf("Copyright (c) 2012-2015 ssdb.io\n");
+	printf("\n");
+}
+
+void usage(int argc, char **argv){
+	printf("Usage:\n"
+		"    %s type src_ip src_port dst_ip dst_port limit\n"
+		"\n"
+		"Options:\n"
+		"    type      Supported values: KV\n"
+		"    src_ip    IP addr of the SSDB server to move data from, example: 127.0.0.1\n"
+		"    src_port  Port number of source SSDB server\n"
+		"    src_ip    IP addr of the SSDB server to move data to, example: 127.0.0.1\n"
+		"    dst_port  Port number of destination SSDB server\n"
+		"    limit     Approximated number of keys to be moved, example: 1000\n"
+		"    -h        Show this message"
+		"\n"
+		"Example:\n"
+		"    %s KV 127.0.0.1 8887 127.0.0.1 8889 13\n"
+		"\n",
+		argv[0], argv[0]);
+	exit(1);   
+}
+
+struct AppArgs{
+	std::string type;
+	std::string src_ip;
+	int src_port;
+	std::string dst_ip;
+	int dst_port;
+	int limit;
+};
+
+void parse_args(AppArgs *args, int argc, char **argv){
+	if(argc < 7){
+		usage(argc, argv);
+	}
+	for(int i=1; i<argc; i++){
+		if(std::string("-h") == argv[i]){
+			usage(argc, argv);
+		}
+		if(argv[i][0] == '-'){
+			fprintf(stderr, "ERROR: Invalid argument: %s!\n", argv[i]);
+			exit(1);   
+		}
+	}
+	args->type = argv[1];
+	args->src_ip = argv[2];
+	args->src_port = str_to_int(argv[3]);
+	args->dst_ip = argv[4];
+	args->dst_port = str_to_int(argv[5]);
+	args->limit = str_to_int(argv[6]);
+	if(args->type != "KV"){
+		fprintf(stderr, "ERROR: only type of KV is supported!\n");
+		exit(1);   
+	}
+	if(args->limit <= 0){
+		fprintf(stderr, "ERROR: invalid limit option!\n");
+		exit(1);   
+	}
+}
 
 struct KeyRange{
 	std::string start;
@@ -69,7 +134,7 @@ int move_range(const std::string &min_key, const std::string &max_key, int limit
 		*moved_max_key = keys[keys.size() - 1];
 
 		// lock key range
-		log_debug("lock range %s", KeyRange(min_key, *moved_max_key).str().c_str());
+		log_info("lock range %s", KeyRange(min_key, *moved_max_key).str().c_str());
 		const std::vector<std::string>* resp;
 		resp = src->request("set_kv_range", *moved_max_key, max_key);
 		if(!resp || resp->empty() || resp->at(0) != "ok"){
@@ -83,7 +148,7 @@ int move_range(const std::string &min_key, const std::string &max_key, int limit
 		const std::string &key = keys[i];
 		if(move_key(key) == -1){
 			log_fatal("move key %s error! %s", key.c_str(), s.code().c_str());
-			exit(0);
+			exit(1);   
 		}
 	}
 	
@@ -129,40 +194,49 @@ int set_key_range(ssdb::Client *client, const KeyRange &range){
 	return 0;
 }
 
-int main(int argc, char **argv){
-	const char *src_ip = "127.0.0.1";
-	int src_port = 8887;
-	const char *dst_ip = "127.0.0.1";
-	int dst_port = 8889;
-	int limit = 13; // aproximated number of keys to be deleted
+void check_version(ssdb::Client *client){
+	const std::vector<std::string>* resp;
+	resp = client->request("version");
+	if(!resp || resp->size() < 2 || resp->at(0) != "ok"){
+		fprintf(stderr, "ERROR: ssdb-server 1.9.0 or higher is required!\n");
+		exit(1);
+	}
+}
 
-	src = init_client(src_ip, src_port);
+int main(int argc, char **argv){
+	welcome();
+	AppArgs args;
+	parse_args(&args, argc, argv);
+
+	src = init_client(args.src_ip, args.src_port);
 	if(src == NULL){
 		log_error("fail to connect to server!");
 		return 0;
 	}
-	dst = init_client(dst_ip, dst_port);
+	dst = init_client(args.dst_ip, args.dst_port);
 	if(dst == NULL){
 		log_error("fail to connect to server!");
 		return 0;
 	}
+	check_version(src);
+	check_version(dst);
 	
 	KeyRange src_range;
 	if(get_key_range(src, &src_range) == -1){
 		return -1;
 	}
-	log_debug("old src %s", src_range.str().c_str());
+	log_info("old src %s", src_range.str().c_str());
 	
 	KeyRange dst_range;
 	if(get_key_range(dst, &dst_range) == -1){
 		return -1;
 	}
-	log_debug("old dst %s", dst_range.str().c_str());
+	log_info("old dst %s", dst_range.str().c_str());
 
-	for(int i=0; i<limit; i+=batch_size){
-		int num = batch_size;
-		if(limit - i < batch_size){
-			num = limit - i;
+	for(int i=0; i<args.limit; i+=BATCH_SIZE){
+		int num = BATCH_SIZE;
+		if(args.limit - i < BATCH_SIZE){
+			num = args.limit - i;
 		}
 		
 		// move data
@@ -171,31 +245,35 @@ int main(int argc, char **argv){
 		ret = move_range(src_range.start, src_range.end, num, &moved_max_key);
 		if(ret == -1){
 			log_fatal("move_range error!");
-			exit(0);
+			exit(1);   
 		}
+		if(ret == 0){
+			continue;
+		}
+		log_debug("moved %d key(s)", ret);
 		while(ret == num){
 			// check again, make sure there is not key inserted before we lock range
 			ret = move_range(src_range.start, moved_max_key, num, NULL);
 			if(ret == -1){
 				log_fatal("move_range error!");
-				exit(0);
+				exit(1);   
 			}
 		}
 	
 		KeyRange new_src_range(moved_max_key, src_range.end);
 		KeyRange new_dst_range(dst_range.start, moved_max_key);
 	
-		log_debug("new src %s", new_src_range.str().c_str());
-		log_debug("new dst %s", new_dst_range.str().c_str());
+		log_info("src %s => %s", src_range.str().c_str(), new_src_range.str().c_str());
+		log_info("dst %s => %s", dst_range.str().c_str(), new_dst_range.str().c_str());
 	
 		// update key range
 		if(set_key_range(src, new_src_range) == -1){
-			log_error("src server set_kv_range error!");
-			return -1;
+			log_fatal("src server set_kv_range error!");
+			exit(1);   
 		}
 		if(set_key_range(dst, new_dst_range) == -1){
-			log_error("dst server set_kv_range error!");
-			return -1;
+			log_fatal("dst server set_kv_range error!");
+			exit(1);   
 		}
 	}
 	

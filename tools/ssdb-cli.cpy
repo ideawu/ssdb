@@ -303,6 +303,17 @@ while(true){
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
 		switch(cmd){
+			case 'version':
+                if(resp.code == 'ok'){
+                    printf(resp.data[0] + '\n');
+                }else{
+    				if(resp.data){
+    					print repr_data(resp.code), repr_data(resp.data);
+    				}else{
+    					print repr_data(resp.code);
+    				}
+                }
+                break;
 			case 'exists':
 			case 'hexists':
 			case 'zexists':
