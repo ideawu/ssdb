@@ -6,7 +6,7 @@
 #include "util/strings.h"
 #include "SSDB_client.h"
 
-#define BATCH_SIZE 10
+#define BATCH_SIZE 100
 
 ssdb::Client *src = NULL;
 ssdb::Client *dst = NULL;
