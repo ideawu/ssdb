@@ -18,6 +18,7 @@ ssdb-server
 tools/ssdb-dump
 tools/ssdb-bench
 tools/ssdb-repair
+tools/ssdb-migrate
 tools/leveldb-import
 _pack
 build_config.mk
