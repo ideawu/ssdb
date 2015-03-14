@@ -31,8 +31,8 @@ private:
 	SSDB *ssdb;
 	volatile bool thread_quit;
 	std::string list_name;
-	int64_t first_timeout;
 	SortedSet fast_keys;
+	bool ttl_list_is_empty;
 
 	void start();
 	void stop();

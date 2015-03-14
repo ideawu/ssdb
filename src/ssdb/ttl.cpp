@@ -16,8 +16,7 @@ ExpirationHandler::ExpirationHandler(SSDB *ssdb){
 	this->ssdb = ssdb;
 	this->thread_quit = false;
 	this->list_name = EXPIRATION_LIST_KEY;
-	this->first_timeout = 0;
-	this->expire_loop();
+	this->ttl_list_is_empty = false;
 	this->start();
 }
 
@@ -56,15 +55,12 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 		return -1;
 	}
 
+	this->ttl_list_is_empty = false;
 	int ret = ssdb->zset(this->list_name, key, Bytes(data, size));
 	if(ret == -1){
 		return -1;
 	}
-	if(expired < first_timeout){
-		first_timeout = expired;
-	}
 	std::string s_key = key.String();
-	fast_keys.del(s_key);
 	if(fast_keys.empty() || expired <= fast_keys.max_score()){
 		fast_keys.add(s_key, expired);
 		if(fast_keys.size() > BATCH_SIZE){
@@ -72,6 +68,7 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 			fast_keys.pop_back();
 		}
 	}else{
+		fast_keys.del(s_key);
 		//log_debug("don't put in fast_keys");
 	}
 	
@@ -87,9 +84,6 @@ int ExpirationHandler::del_ttl(const Bytes &key){
 }
 
 int64_t ExpirationHandler::get_ttl(const Bytes &key){
-	if(this->fast_keys.empty()){
-		return -1;
-	}
 	std::string score;
 	if(ssdb->zget(this->list_name, key, &score) == 1){
 		int64_t ex = str_to_int64(score);
@@ -125,7 +119,7 @@ void ExpirationHandler::expire_loop(){
 	if(this->fast_keys.empty()){
 		this->load_expiration_keys_from_db(BATCH_SIZE);
 		if(this->fast_keys.empty()){
-			this->first_timeout = INT64_MAX;
+			this->ttl_list_is_empty = true;
 			return;
 		}
 	}
@@ -133,8 +127,6 @@ void ExpirationHandler::expire_loop(){
 	int64_t score;
 	std::string key;
 	if(this->fast_keys.front(&key, &score)){
-		this->first_timeout = score;
-		
 		if(score <= time_ms()){
 			log_debug("expired %s", key.c_str());
 			ssdb->del(key);
@@ -148,7 +140,7 @@ void* ExpirationHandler::thread_func(void *arg){
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
 	
 	while(!handler->thread_quit){
-		if(handler->first_timeout > time_ms()){
+		if(handler->ttl_list_is_empty){
 			usleep(10 * 1000);
 			continue;
 		}
