@@ -1,3 +1,6 @@
+* 1.8.1
+	* Bug fixes:
+		- Fix ttl bug(https://github.com/ideawu/ssdb/issues/628)(2015-03-14)
 * 1.8.0
 	* New features:
 		- Support SSDB style keys command through redis-cli(2014-12-08)
