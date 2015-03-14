@@ -16,11 +16,12 @@ ExpirationHandler::ExpirationHandler(SSDB *ssdb){
 	this->ssdb = ssdb;
 	this->thread_quit = false;
 	this->list_name = EXPIRATION_LIST_KEY;
-	this->first_timeout = 0;
+	this->ttl_list_is_empty = false;
 	this->start();
 }
 
 ExpirationHandler::~ExpirationHandler(){
+	Locking l(&this->mutex);
 	this->stop();
 	ssdb = NULL;
 }
@@ -54,15 +55,12 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 		return -1;
 	}
 
+	this->ttl_list_is_empty = false;
 	int ret = ssdb->zset(this->list_name, key, Bytes(data, size));
 	if(ret == -1){
 		return -1;
 	}
-	if(expired < first_timeout){
-		first_timeout = expired;
-	}
 	std::string s_key = key.String();
-	fast_keys.del(s_key);
 	if(fast_keys.empty() || expired <= fast_keys.max_score()){
 		fast_keys.add(s_key, expired);
 		if(fast_keys.size() > BATCH_SIZE){
@@ -70,6 +68,7 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 			fast_keys.pop_back();
 		}
 	}else{
+		fast_keys.del(s_key);
 		//log_debug("don't put in fast_keys");
 	}
 	
@@ -77,8 +76,10 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 }
 
 int ExpirationHandler::del_ttl(const Bytes &key){
-	fast_keys.del(key.String());
-	ssdb->zdel(this->list_name, key);
+	if(!this->fast_keys.empty()){
+		fast_keys.del(key.String());
+		ssdb->zdel(this->list_name, key);
+	}
 	return 0;
 }
 
@@ -109,39 +110,41 @@ void ExpirationHandler::load_expiration_keys_from_db(int num){
 	log_debug("load %d keys into fast_keys", n);
 }
 
+void ExpirationHandler::expire_loop(){
+	Locking l(&this->mutex);
+	if(!this->ssdb){
+		return;
+	}
+
+	if(this->fast_keys.empty()){
+		this->load_expiration_keys_from_db(BATCH_SIZE);
+		if(this->fast_keys.empty()){
+			this->ttl_list_is_empty = true;
+			return;
+		}
+	}
+	
+	int64_t score;
+	std::string key;
+	if(this->fast_keys.front(&key, &score)){
+		if(score <= time_ms()){
+			log_debug("expired %s", key.c_str());
+			ssdb->del(key);
+			ssdb->zdel(this->list_name, key);
+			this->fast_keys.pop_front();
+		}
+	}
+}
+
 void* ExpirationHandler::thread_func(void *arg){
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
 	
 	while(!handler->thread_quit){
-		SSDB *ssdb = handler->ssdb;
-		if(!ssdb){
-			break;
-		}
-		if(handler->first_timeout > time_ms()){
+		if(handler->ttl_list_is_empty){
 			usleep(10 * 1000);
 			continue;
 		}
-		
-		{
-			Locking l(&handler->mutex);
-			if(handler->fast_keys.empty()){
-				handler->load_expiration_keys_from_db(BATCH_SIZE);
-				handler->first_timeout = INT64_MAX;
-			}
-		
-			int64_t score;
-			std::string key;
-			if(handler->fast_keys.front(&key, &score)){
-				handler->first_timeout = score;
-				
-				if(score <= time_ms()){
-					log_debug("expired %s", key.c_str());
-					ssdb->del(key);
-					ssdb->zdel(handler->list_name, key);
-					handler->fast_keys.pop_front();
-				}
-			}
-		}
+		handler->expire_loop();
 	}
 	
 	log_debug("ExpirationHandler thread quit");

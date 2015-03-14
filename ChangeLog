@@ -5,6 +5,8 @@
 		- Add dbsize command(2014-11-02)
 		- Include sync clients' stats in info(2014-11-02)
 		- Refactor codes, separate into: libutil, libnet, libssdb(2014-11-02)
+	* Bug fixes:
+		- Fix ttl bug(https://github.com/ideawu/ssdb/issues/628)(2015-03-14)
 * 1.7.0.1
 	* New features:
 		- Sync qset operations(2014-11-05)
