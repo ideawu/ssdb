@@ -79,13 +79,13 @@ int main(int argc, char **argv){
 	write_pid();
 	log_info("ssdb server started.");
 	net->serve();
-	remove_pidfile();
 	
 	delete net;
 	delete ss;
 	delete meta_db;
 	delete data_db;
 	delete conf;
+	remove_pidfile();
 	log_info("ssdb server exit.");
 	return 0;
 }
