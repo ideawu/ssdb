@@ -16,7 +16,7 @@ ExpirationHandler::ExpirationHandler(SSDB *ssdb){
 	this->ssdb = ssdb;
 	this->thread_quit = false;
 	this->list_name = EXPIRATION_LIST_KEY;
-	this->ttl_list_is_empty = false;
+	this->first_timeout = 0;
 	this->start();
 }
 
@@ -55,13 +55,15 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 		return -1;
 	}
 
-	this->ttl_list_is_empty = false;
 	int ret = ssdb->zset(this->list_name, key, Bytes(data, size));
 	if(ret == -1){
 		return -1;
 	}
+	if(expired < first_timeout){
+		first_timeout = expired;
+	}
 	std::string s_key = key.String();
-	if(fast_keys.empty() || expired <= fast_keys.max_score()){
+	if(!fast_keys.empty() && expired <= fast_keys.max_score()){
 		fast_keys.add(s_key, expired);
 		if(fast_keys.size() > BATCH_SIZE){
 			log_debug("pop_back");
@@ -119,7 +121,7 @@ void ExpirationHandler::expire_loop(){
 	if(this->fast_keys.empty()){
 		this->load_expiration_keys_from_db(BATCH_SIZE);
 		if(this->fast_keys.empty()){
-			this->ttl_list_is_empty = true;
+			this->first_timeout = INT64_MAX;
 			return;
 		}
 	}
@@ -127,6 +129,8 @@ void ExpirationHandler::expire_loop(){
 	int64_t score;
 	std::string key;
 	if(this->fast_keys.front(&key, &score)){
+		this->first_timeout = score;
+		
 		if(score <= time_ms()){
 			log_debug("expired %s", key.c_str());
 			ssdb->del(key);
@@ -140,7 +144,7 @@ void* ExpirationHandler::thread_func(void *arg){
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
 	
 	while(!handler->thread_quit){
-		if(handler->ttl_list_is_empty){
+		if(handler->first_timeout > time_ms()){
 			usleep(10 * 1000);
 			continue;
 		}
