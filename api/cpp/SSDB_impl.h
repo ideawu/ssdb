@@ -41,6 +41,8 @@ public:
 	virtual Status multi_set(const std::map<std::string, std::string> &kvs);
 	virtual Status multi_del(const std::vector<std::string> &keys);
 	
+	virtual Status hstatus(const std::string &name,	const std::string &key_start, const std::string &key_end,
+	uint64_t limit, std::vector<std::string> *ret, std::string status);
 	virtual Status hget(const std::string &name, const std::string &key, std::string *val);
 	virtual Status hset(const std::string &name, const std::string &key, const std::string &val);
 	virtual Status hdel(const std::string &name, const std::string &key);
@@ -58,6 +60,9 @@ public:
 	virtual Status multi_hset(const std::string &name, const std::map<std::string, std::string> &kvs);
 	virtual Status multi_hdel(const std::string &name, const std::vector<std::string> &keys);
 
+    virtual Status zstatus(const std::string &name, const std::string &key_start,
+	    int64_t *score_start, int64_t *score_end, uint64_t limit, 
+	    std::vector<std::string> *ret, std::string status);
 	virtual Status zget(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zset(const std::string &name, const std::string &key, int64_t score);
 	virtual Status zdel(const std::string &name, const std::string &key);
