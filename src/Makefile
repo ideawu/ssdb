@@ -7,9 +7,12 @@ LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
 
-all: ${OBJS} ssdb-server.o
-	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS}
-
+#all: ${OBJS} ssdb-server.o
+#	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS}
+all:
+	make cluster.o
+cluster.o: cluster.h cluster.cpp
+	${CXX} ${CFLAGS} -c cluster.cpp
 ssdb-server.o: ssdb-server.cpp
 	${CXX} ${CFLAGS} -c ssdb-server.cpp
 slave.o: slave.h slave.cpp
