@@ -2,7 +2,7 @@ include ../build_config.mk
 
 OBJS = proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
 	backend_dump.o backend_sync.o slave.o \
-	serv.o proc_cluster.o cluster.o
+	serv.o proc_cluster.o cluster.o cluster_store.o
 LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
@@ -16,6 +16,8 @@ proc_cluster.o: serv.h proc_cluster.cpp
 	${CXX} ${CFLAGS} -c proc_cluster.cpp
 cluster.o: cluster.h cluster.cpp
 	${CXX} ${CFLAGS} -c cluster.cpp
+cluster_store.o: cluster_store.h cluster_store.cpp
+	${CXX} ${CFLAGS} -c cluster_store.cpp
 
 ssdb-server.o: ssdb-server.cpp
 	${CXX} ${CFLAGS} -c ssdb-server.cpp

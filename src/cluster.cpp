@@ -6,44 +6,76 @@ found in the LICENSE file.
 #include "cluster.h"
 #include "ssdb/ssdb.h"
 #include "util/log.h"
+#include "cluster_store.h"
 
 Cluster::Cluster(SSDB *db){
-	next_id = 1;
-	this->db = db;
-	// TODO: load node list
 	log_debug("Cluster init");
+	this->next_id = 1;
+	this->db = db;
+	this->store = new ClusterStore(db);
 }
 
 Cluster::~Cluster(){
+	delete store;
 	log_debug("Cluster finalized");
 }
 
-int Cluster::add_node(const std::string &ip, int port){
+int Cluster::init(){
+	int ret = this->store->load_kv_node_list(&kv_node_list);
+	if(ret == -1){
+		log_error("load_kv_node_list failed!");
+		return -1;
+	}
+	std::vector<Node>::iterator it;
+	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
+		const Node &node = *it;
+		if(node.id >= this->next_id){
+			this->next_id = node.id + 1;
+		}
+	}
+	return 0;
+}
+
+int Cluster::add_kv_node(const std::string &ip, int port){
+	Locking l(&mutex);
 	Node node;
 	node.id = next_id ++;
 	node.ip = ip;
 	node.port = port;
-	node_list.push_back(node);
+	
+	if(store->save_kv_node(node) == -1){
+		return -1;
+	}
+	
+	kv_node_list.push_back(node);
 	return node.id;
 }
 
-int Cluster::del_node(int id){
+int Cluster::del_kv_node(int id){
+	Locking l(&mutex);
 	std::vector<Node>::iterator it;
-	for(it=node_list.begin(); it!=node_list.end(); it++){
+	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
 		const Node &node = *it;
 		if(node.id == id){
-			node_list.erase(it);
+			if(store->del_kv_node(id) == -1){
+				return -1;
+			}
+			kv_node_list.erase(it);
 			return 1;
 		}
 	}
 	return 0;
 }
 
-int Cluster::set_key_range(int id, const KeyRange &range){
+int Cluster::set_kv_range(int id, const KeyRange &range){
+	Locking l(&mutex);
 	std::vector<Node>::iterator it;
-	for(it=node_list.begin(); it!=node_list.end(); it++){
+	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
 		Node &node = *it;
 		if(node.id == id){
+			if(store->save_kv_node(node) == -1){
+				return -1;
+			}
 			node.range = range;
 			return 1;
 		}
@@ -51,12 +83,14 @@ int Cluster::set_key_range(int id, const KeyRange &range){
 	return 0;
 }
 
-int Cluster::get_node_list(std::vector<Node> *list){
-	*list = node_list;
+int Cluster::get_kv_node_list(std::vector<Node> *list){
+	Locking l(&mutex);
+	*list = kv_node_list;
 	return 0;
 }
 
-int64_t Cluster::migrate_data(int src_id, int dst_id, int keys){
+int64_t Cluster::migrate_kv_data(int src_id, int dst_id, int keys){
+	Locking l(&mutex);
 	return -1;
 }
 

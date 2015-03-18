@@ -10,6 +10,7 @@ found in the LICENSE file.
 #include <string>
 #include <vector>
 #include "util/strings.h"
+#include "util/thread.h"
 
 class KeyRange{
 public:
@@ -45,9 +46,9 @@ public:
 	
 	int id;
 	int status;
+	KeyRange range;
 	std::string ip;
 	int port;
-	KeyRange range;
 	
 	Node(){
 		this->id = 0;
@@ -56,25 +57,30 @@ public:
 };
 
 class SSDB;
+class ClusterStore;
 
 class Cluster
 {
 public:
 	Cluster(SSDB *db);
 	~Cluster();
+
+	int init();
 	
 	// 返回节点的 id
-	int add_node(const std::string &ip, int port);
-	int del_node(int id);
-	int set_key_range(int id, const KeyRange &range);
-	int get_node_list(std::vector<Node> *list);
+	int add_kv_node(const std::string &ip, int port);
+	int del_kv_node(int id);
+	int set_kv_range(int id, const KeyRange &range);
+	int get_kv_node_list(std::vector<Node> *list);
 	// 返回迁移的字节数
-	int64_t migrate_data(int src_id, int dst_id, int keys);
+	int64_t migrate_kv_data(int src_id, int dst_id, int keys);
 
 private:
 	SSDB *db;
+	ClusterStore *store;
 	int next_id;
-	std::vector<Node> node_list;
+	std::vector<Node> kv_node_list;
+	Mutex mutex;
 };
 
 #endif
