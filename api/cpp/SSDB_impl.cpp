@@ -170,6 +170,24 @@ Status ClientImpl::dbsize(int64_t *ret){
 	return _read_int64(resp, ret);
 }
 
+Status ClientImpl::get_kv_range(std::string *start, std::string *end){
+	const std::vector<std::string> *resp;
+	resp = this->request("get_kv_range");
+	Status s(resp);
+	if(s.ok()){
+		*start = resp->at(1);
+		*end = resp->at(2);
+	}
+	return s;
+}
+
+Status ClientImpl::set_kv_range(const std::string &start, const std::string &end){
+	const std::vector<std::string> *resp;
+	resp = this->request("set_kv_range", start, end);
+	Status s(resp);
+	return s;
+}
+
 /******************** KV *************************/
 
 Status ClientImpl::get(const std::string &key, std::string *val){

@@ -17,6 +17,7 @@ public:
 	~ClusterStore();
 
 	int save_kv_node(const Node &node);
+	int load_kv_node(int id, Node *node);
 	int del_kv_node(int id);
 	int load_kv_node_list(std::vector<Node> *list);
 

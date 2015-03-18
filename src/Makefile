@@ -2,16 +2,16 @@ include ../build_config.mk
 
 OBJS = proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
 	backend_dump.o backend_sync.o slave.o \
-	serv.o proc_cluster.o cluster.o cluster_store.o
+	serv.o proc_cluster.o cluster.o cluster_store.o cluster_migrate.o
 LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
 
 all: ${OBJS} ssdb-server.o
-	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS}
+	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS} ../api/cpp/libssdb-client.a
 
-a: proc_cluster.o
-	make cluster.o
+cluster_migrate.o: cluster_migrate.h cluster_migrate.cpp
+	${CXX} ${CFLAGS} -I../api/cpp -c cluster_migrate.cpp
 proc_cluster.o: serv.h proc_cluster.cpp
 	${CXX} ${CFLAGS} -c proc_cluster.cpp
 cluster.o: cluster.h cluster.cpp

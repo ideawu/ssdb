@@ -30,6 +30,23 @@ int ClusterStore::save_kv_node(const Node &node){
 	return 0;
 }
 
+int ClusterStore::load_kv_node(int id, Node *node){
+	std::string key = str(id);
+	std::string val;
+	int ret = db->hget(kv_node_list_key, key, &val);
+	if(ret <= 0){
+		return ret;
+	}
+	LineDecoder dec(val);
+	dec.read(&node->id);
+	dec.read(&node->status);
+	dec.read(&node->range.begin);
+	dec.read(&node->range.end);
+	dec.read(&node->ip);
+	dec.read(&node->port);
+	return 1;
+}
+
 int ClusterStore::del_kv_node(int id){
 	std::string key = str(id);
 	int ret = db->hdel(kv_node_list_key, key);
@@ -46,14 +63,7 @@ int ClusterStore::load_kv_node_list(std::vector<Node> *list){
 	if(it){
 		while(it->next()){
 			Node node;
-			LineDecoder dec(it->val);
-			dec.read(&node.id);
-			dec.read(&node.status);
-			dec.read(&node.range.begin);
-			dec.read(&node.range.end);
-			dec.read(&node.ip);
-			dec.read(&node.port);
-	
+			this->load_kv_node(str_to_int(it->key), &node);
 			log_debug("load node: %d - %s %s:%d", node.id, node.range.str().c_str(),
 				node.ip.c_str(), node.port);
 			list->push_back(node);

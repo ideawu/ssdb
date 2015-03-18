@@ -67,13 +67,14 @@ public:
 
 	int init();
 	
+	int get_kv_node(int id, Node *ret);
 	// 返回节点的 id
 	int add_kv_node(const std::string &ip, int port);
 	int del_kv_node(int id);
 	int set_kv_range(int id, const KeyRange &range);
 	int get_kv_node_list(std::vector<Node> *list);
 	// 返回迁移的字节数
-	int64_t migrate_kv_data(int src_id, int dst_id, int keys);
+	int64_t migrate_kv_data(int src_id, int dst_id, int num_keys);
 
 private:
 	SSDB *db;
@@ -81,6 +82,7 @@ private:
 	int next_id;
 	std::vector<Node> kv_node_list;
 	Mutex mutex;
+	
 };
 
 #endif

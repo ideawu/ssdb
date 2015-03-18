@@ -88,3 +88,23 @@ int proc_cluster_set_kv_range(NetworkServer *net, Link *link, const Request &req
 	}
 	return 0;
 }
+
+int proc_cluster_migrate_kv_data(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	Cluster *cluster = serv->cluster;
+	if(req.size() < 4){
+		resp->push_back("client_error");
+		return 0;
+	}
+
+	int src_id = req[1].Int();
+	int dst_id = req[2].Int();
+	int num_keys = req[3].Int();
+	int64_t ret = cluster->migrate_kv_data(src_id, dst_id, num_keys);
+	if(ret == -1){
+		resp->add("error");
+	}else{
+		resp->reply_int(0, ret);
+	}
+	return 0;
+}

@@ -7,6 +7,7 @@ found in the LICENSE file.
 #include "ssdb/ssdb.h"
 #include "util/log.h"
 #include "cluster_store.h"
+#include "cluster_migrate.h"
 
 Cluster::Cluster(SSDB *db){
 	log_debug("Cluster init");
@@ -89,8 +90,46 @@ int Cluster::get_kv_node_list(std::vector<Node> *list){
 	return 0;
 }
 
-int64_t Cluster::migrate_kv_data(int src_id, int dst_id, int keys){
+int Cluster::get_kv_node(int id, Node *ret){
 	Locking l(&mutex);
-	return -1;
+	std::vector<Node>::iterator it;
+	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
+		Node &node = *it;
+		if(node.id == id){
+			*ret = node;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int64_t Cluster::migrate_kv_data(int src_id, int dst_id, int num_keys){
+	Node src, dst;
+	int ret;
+	ret = get_kv_node(src_id, &src);
+	if(ret != 1){
+		return -1;
+	}
+	ret = get_kv_node(dst_id, &dst);
+	if(ret != 1){
+		return -1;
+	}
+	
+	Locking l(&mutex);
+	ClusterMigrate migrate;
+	int64_t size = migrate.migrate_kv_data(&src, &dst, num_keys);
+	if(size > 0){
+		std::vector<Node>::iterator it;
+		for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
+			Node &node = *it;
+			if(src.id == node.id){
+				src.range = node.range;
+			}
+			if(dst.id == node.id){
+				dst.range = node.range;
+			}
+		}
+	}
+	return size;
 }
 
