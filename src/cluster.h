@@ -9,6 +9,7 @@ found in the LICENSE file.
 #include "include.h"
 #include <string>
 #include <vector>
+#include "util/strings.h"
 
 class KeyRange{
 public:
@@ -19,6 +20,21 @@ public:
 	KeyRange(const std::string &begin, const std::string &end){
 		this->begin = begin;
 		this->end = end;
+	}
+	std::string str() const{
+		return "(\"" + str_escape(begin) + "\" - \"" + str_escape(end) + "\"]";
+	}
+	bool check_overlapped(const KeyRange &range) const{
+		if(!this->begin.empty() && !range.end.empty() && this->begin >= range.end){
+			return false;
+		}
+		if(!this->end.empty() && !range.begin.empty() && this->end <= range.begin){
+			return false;
+		}
+		return true;
+	}
+	bool empty() const{
+		return begin == "" && end == "";
 	}
 };
 
@@ -32,6 +48,11 @@ public:
 	std::string ip;
 	int port;
 	KeyRange range;
+	
+	Node(){
+		this->id = 0;
+		this->status = INIT;
+	}
 };
 
 class SSDB;
@@ -39,7 +60,7 @@ class SSDB;
 class Cluster
 {
 public:
-	static Cluster* create(SSDB *db);
+	Cluster(SSDB *db);
 	~Cluster();
 	
 	// 返回节点的 id
@@ -54,8 +75,6 @@ private:
 	SSDB *db;
 	int next_id;
 	std::vector<Node> node_list;
-	
-	Cluster();
 };
 
 #endif

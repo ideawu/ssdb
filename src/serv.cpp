@@ -250,6 +250,7 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 	backend_dump = new BackendDump(this->ssdb);
 	backend_sync = new BackendSync(this->ssdb, sync_speed);
 	expiration = new ExpirationHandler(this->ssdb);
+	cluster = new Cluster(this->ssdb);
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
@@ -311,6 +312,7 @@ SSDBServer::~SSDBServer(){
 	delete backend_dump;
 	delete backend_sync;
 	delete expiration;
+	delete cluster;
 
 	log_debug("SSDBServer finalized");
 }

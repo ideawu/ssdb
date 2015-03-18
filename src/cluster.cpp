@@ -7,19 +7,15 @@ found in the LICENSE file.
 #include "ssdb/ssdb.h"
 #include "util/log.h"
 
-Cluster::Cluster(){
+Cluster::Cluster(SSDB *db){
 	next_id = 1;
+	this->db = db;
+	// TODO: load node list
+	log_debug("Cluster init");
 }
 
 Cluster::~Cluster(){
-}
-
-Cluster* Cluster::create(SSDB *db){
-	Cluster *cluster = new Cluster;
-	cluster->db = db;
-	
-	// load node list
-	return cluster;
+	log_debug("Cluster finalized");
 }
 
 int Cluster::add_node(const std::string &ip, int port){
