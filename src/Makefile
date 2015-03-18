@@ -9,8 +9,10 @@ EXES = ../ssdb-server
 
 #all: ${OBJS} ssdb-server.o
 #	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS}
-all:
+all: proc_cluster.o
 	make cluster.o
+proc_cluster.o: serv.h proc_cluster.cpp
+	${CXX} ${CFLAGS} -c proc_cluster.cpp
 cluster.o: cluster.h cluster.cpp
 	${CXX} ${CFLAGS} -c cluster.cpp
 ssdb-server.o: ssdb-server.cpp
