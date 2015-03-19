@@ -74,10 +74,10 @@ int Cluster::set_kv_range(int id, const KeyRange &range){
 	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
 		Node &node = *it;
 		if(node.id == id){
+			node.range = range;
 			if(store->save_kv_node(node) == -1){
 				return -1;
 			}
-			node.range = range;
 			return 1;
 		}
 	}
