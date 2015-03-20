@@ -36,7 +36,7 @@ int proc_cluster_add_kv_node(NetworkServer *net, Link *link, const Request &req,
 	SSDBServer *serv = (SSDBServer *)net->data;
 	Cluster *cluster = serv->cluster;
 	if(req.size() < 3){
-		resp->push_back("client_error");
+		resp->add("client_error");
 		return 0;
 	}
 	
@@ -55,7 +55,7 @@ int proc_cluster_del_kv_node(NetworkServer *net, Link *link, const Request &req,
 	SSDBServer *serv = (SSDBServer *)net->data;
 	Cluster *cluster = serv->cluster;
 	if(req.size() < 2){
-		resp->push_back("client_error");
+		resp->add("client_error");
 		return 0;
 	}
 	
@@ -73,7 +73,7 @@ int proc_cluster_set_kv_range(NetworkServer *net, Link *link, const Request &req
 	SSDBServer *serv = (SSDBServer *)net->data;
 	Cluster *cluster = serv->cluster;
 	if(req.size() < 4){
-		resp->push_back("client_error");
+		resp->add("client_error");
 		return 0;
 	}
 	
@@ -81,6 +81,30 @@ int proc_cluster_set_kv_range(NetworkServer *net, Link *link, const Request &req
 	std::string begin = req[2].String();
 	std::string end = req[3].String();
 	int ret = cluster->set_kv_range(id, KeyRange(begin, end));
+	if(ret == -1){
+		resp->add("error");
+	}else{
+		resp->reply_int(0, ret);
+	}
+	return 0;
+}
+
+int proc_cluster_set_kv_status(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	Cluster *cluster = serv->cluster;
+	if(req.size() < 3){
+		resp->add("client_error");
+		return 0;
+	}
+	
+	int id = req[1].Int();
+	int status = req[2].Int();
+	if(status != Node::INIT && status != Node::SERVING){
+		resp->add("client_error");
+		resp->add("invalid status");
+		return 0;
+	}
+	int ret = cluster->set_kv_status(id, status);
 	if(ret == -1){
 		resp->add("error");
 	}else{

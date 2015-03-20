@@ -70,18 +70,28 @@ int Cluster::del_kv_node(int id){
 
 int Cluster::set_kv_range(int id, const KeyRange &range){
 	Locking l(&mutex);
-	std::vector<Node>::iterator it;
-	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
-		Node &node = *it;
-		if(node.id == id){
-			node.range = range;
-			if(store->save_kv_node(node) == -1){
-				return -1;
-			}
-			return 1;
-		}
+	Node *node = this->get_kv_node_ref(id);
+	if(!node){
+		return 0;
 	}
-	return 0;
+	node->range = range;
+	if(store->save_kv_node(*node) == -1){
+		return -1;
+	}
+	return 1;
+}
+
+int Cluster::set_kv_status(int id, int status){
+	Locking l(&mutex);
+	Node *node = this->get_kv_node_ref(id);
+	if(!node){
+		return 0;
+	}
+	node->status = status;
+	if(store->save_kv_node(*node) == -1){
+		return -1;
+	}
+	return 1;
 }
 
 int Cluster::get_kv_node_list(std::vector<Node> *list){
@@ -90,52 +100,49 @@ int Cluster::get_kv_node_list(std::vector<Node> *list){
 	return 0;
 }
 
-int Cluster::get_kv_node(int id, Node *ret){
-	Locking l(&mutex);
+Node* Cluster::get_kv_node_ref(int id){
 	std::vector<Node>::iterator it;
 	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
 		Node &node = *it;
 		if(node.id == id){
-			*ret = node;
-			return 1;
+			return &node;
 		}
+	}
+	return NULL;
+}
+
+int Cluster::get_kv_node(int id, Node *ret){
+	Locking l(&mutex);
+	Node *node = this->get_kv_node_ref(id);
+	if(node){
+		*ret = *node;
+		return 1;
 	}
 	return 0;
 }
 
 int64_t Cluster::migrate_kv_data(int src_id, int dst_id, int num_keys){
-	Node src, dst;
-	int ret;
-	ret = get_kv_node(src_id, &src);
-	if(ret != 1){
+	Locking l(&mutex);
+	
+	Node *src = this->get_kv_node_ref(src_id);
+	if(!src){
 		return -1;
 	}
-	ret = get_kv_node(dst_id, &dst);
-	if(ret != 1){
+	Node *dst = this->get_kv_node_ref(dst_id);
+	if(!dst){
 		return -1;
 	}
 	
-	Locking l(&mutex);
 	ClusterMigrate migrate;
-	int64_t size = migrate.migrate_kv_data(&src, &dst, num_keys);
+	int64_t size = migrate.migrate_kv_data(src, dst, num_keys);
 	if(size > 0){
-		std::vector<Node>::iterator it;
-		for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
-			Node &node = *it;
-			if(src.id == node.id){
-				node.range = src.range;
-				if(store->save_kv_node(node) == -1){
-					log_error("after migrate_kv_data, save src failed!");
-					return -1;
-				}
-			}
-			if(dst.id == node.id){
-				node.range = dst.range;
-				if(store->save_kv_node(node) == -1){
-					log_error("after migrate_kv_data, save dst failed!");
-					return -1;
-				}
-			}
+		if(store->save_kv_node(*src) == -1){
+			log_error("after migrate_kv_data, save src failed!");
+			return -1;
+		}
+		if(store->save_kv_node(*dst) == -1){
+			log_error("after migrate_kv_data, save dst failed!");
+			return -1;
 		}
 	}
 	return size;

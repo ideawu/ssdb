@@ -123,6 +123,7 @@ DEF_PROC(cluster_add_kv_node);
 DEF_PROC(cluster_del_kv_node);
 DEF_PROC(cluster_kv_node_list);
 DEF_PROC(cluster_set_kv_range);
+DEF_PROC(cluster_set_kv_status);
 DEF_PROC(cluster_migrate_kv_data);
 
 
@@ -246,6 +247,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(cluster_del_kv_node, "r");
 	REG_PROC(cluster_kv_node_list, "r");
 	REG_PROC(cluster_set_kv_range, "r");
+	REG_PROC(cluster_set_kv_status, "r");
 	REG_PROC(cluster_migrate_kv_data, "r");
 }
 

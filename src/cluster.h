@@ -77,6 +77,7 @@ public:
 	int add_kv_node(const std::string &ip, int port);
 	int del_kv_node(int id);
 	int set_kv_range(int id, const KeyRange &range);
+	int set_kv_status(int id, int status);
 	int get_kv_node_list(std::vector<Node> *list);
 	// 返回迁移的字节数
 	int64_t migrate_kv_data(int src_id, int dst_id, int num_keys);
@@ -88,6 +89,7 @@ private:
 	std::vector<Node> kv_node_list;
 	Mutex mutex;
 	
+	Node* get_kv_node_ref(int id);
 };
 
 #endif
