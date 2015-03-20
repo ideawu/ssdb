@@ -1,2 +1,2 @@
-Moved to src/api
+Moved to src/client
 

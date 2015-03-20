@@ -8,8 +8,6 @@ SSDB C++ API Documentation {#mainpage}
 Download the SSDB source code from [github](https://github.com/ideawu/ssdb).
 
     make
-    cd api/cpp
-    make
 
 The shell commands above will compile the C++ API codes, and generate a `libssdb-client.a` file.
 
