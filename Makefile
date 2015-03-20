@@ -10,8 +10,9 @@ all:
 	chmod u+x tools/ssdb-cli
 	cd "${LEVELDB_PATH}"; ${MAKE}
 	cd src/util; ${MAKE}
-	cd src/ssdb; ${MAKE}
 	cd src/net; ${MAKE}
+	cd src/client; ${MAKE}
+	cd src/ssdb; ${MAKE}
 	cd src; ${MAKE}
 	cd tools; ${MAKE}
 

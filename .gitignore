@@ -26,6 +26,7 @@ log.txt
 log_slave.txt
 api/cpp/demo
 api/cpp/hello-ssdb
+api/cpp/SSDB_client.h
 api/cpp/test
 api/cpp/html
 api/php/a.php
