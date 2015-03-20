@@ -21,13 +21,13 @@ function welcome(){
 function show_command_help(){
 	print '';
 	print '# display ssdb-server status';
-	print '    info';
+	print '	info';
 	print '# escape/do not escape response data';
-	print '    : escape yes|no';
+	print '	: escape yes|no';
 	print '# export/import';
-	print '    export [-i] out_file';
-	print '        -i    interactive mode';
-	print '    import in_file';
+	print '	export [-i] out_file';
+	print '		-i	interactive mode';
+	print '	import in_file';
 	print '';
 	print 'see http://ssdb.io/docs/php/ for commands details';
 	print '';
@@ -304,16 +304,16 @@ while(true){
 	}else{
 		switch(cmd){
 			case 'version':
-                if(resp.code == 'ok'){
-                    printf(resp.data[0] + '\n');
-                }else{
-    				if(resp.data){
-    					print repr_data(resp.code), repr_data(resp.data);
-    				}else{
-    					print repr_data(resp.code);
-    				}
-                }
-                break;
+				if(resp.code == 'ok'){
+					printf(resp.data[0] + '\n');
+				}else{
+					if(resp.data){
+						print repr_data(resp.code), repr_data(resp.data);
+					}else{
+						print repr_data(resp.code);
+					}
+				}
+				break;
 			case 'exists':
 			case 'hexists':
 			case 'zexists':
@@ -475,7 +475,7 @@ while(true){
 				for(i=1; i<len(resp.data); i++){
 					s = resp.data[i];
 					if(is_val){
-						s = '    ' + s.replace('\n', '\n    ');
+						s = '	' + s.replace('\n', '\n	');
 					}
 					print s;
 					is_val = !is_val;
@@ -495,11 +495,25 @@ while(true){
 					klen = max(len(resp.data[i]), klen);
 					vlen = max(len(resp.data[i+1]), vlen);
 				}
-				printf('    kv :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
+				printf('	kv :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
 				#printf('  hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
 				#printf('  zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
 				#printf(' queue :  %-*s  -  %-*s\n', klen, resp.data[6], vlen, resp.data[7]);
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
+				break;
+			case 'cluster_kv_node_list':
+				cluster.kv_node_list(resp, time_consume);
+				break;
+			case 'cluster_migrate_kv_data':
+				printf('%s byte(s) migrated.\n', resp.data[0]);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+				break;
+			case 'cluster_kv_add_node':
+			case 'cluster_kv_del_node':
+			case 'cluster_set_kv_range':
+			case 'cluster_set_kv_status':
+				print repr_data(resp.data);
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
 			default:
 				if(resp.data){
