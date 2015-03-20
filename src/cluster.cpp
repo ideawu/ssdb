@@ -123,10 +123,18 @@ int64_t Cluster::migrate_kv_data(int src_id, int dst_id, int num_keys){
 		for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
 			Node &node = *it;
 			if(src.id == node.id){
-				src.range = node.range;
+				node.range = src.range;
+				if(store->save_kv_node(node) == -1){
+					log_error("after migrate_kv_data, save src failed!");
+					return -1;
+				}
 			}
 			if(dst.id == node.id){
-				dst.range = node.range;
+				node.range = dst.range;
+				if(store->save_kv_node(node) == -1){
+					log_error("after migrate_kv_data, save dst failed!");
+					return -1;
+				}
 			}
 		}
 	}

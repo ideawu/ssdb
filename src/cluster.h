@@ -54,6 +54,11 @@ public:
 		this->id = 0;
 		this->status = INIT;
 	}
+	std::string str() const{
+		char buf[512];
+		snprintf(buf, sizeof(buf), "%4d: %s", id, str_escape(range.str()).c_str());
+		return std::string(buf);
+	}
 };
 
 class SSDB;
