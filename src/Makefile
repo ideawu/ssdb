@@ -8,10 +8,10 @@ EXES = ../ssdb-server
 
 
 all: ${OBJS} ssdb-server.o
-	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS} ../api/cpp/libssdb-client.a
+	${CXX} -o ../ssdb-server ssdb-server.o ${OBJS} ${LIBS} ${CLIBS} client/SSDB_impl.o
 
 cluster_migrate.o: cluster_migrate.h cluster_migrate.cpp
-	${CXX} ${CFLAGS} -I../api/cpp -c cluster_migrate.cpp
+	${CXX} ${CFLAGS} -I./client -c cluster_migrate.cpp
 proc_cluster.o: serv.h proc_cluster.cpp
 	${CXX} ${CFLAGS} -c proc_cluster.cpp
 cluster.o: cluster.h cluster.cpp
