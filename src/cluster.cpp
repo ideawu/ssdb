@@ -70,6 +70,17 @@ int Cluster::del_kv_node(int id){
 
 int Cluster::set_kv_range(int id, const KeyRange &range){
 	Locking l(&mutex);
+	std::vector<Node>::iterator it;
+	for(it=kv_node_list.begin(); it!=kv_node_list.end(); it++){
+		Node &node = *it;
+		if(node.id != id && node.status == Node::SERVING){
+			if(node.range.overlapped(range)){
+				log_error("range overlapped!");
+				return -1;
+			}
+		}
+	}
+	
 	Node *node = this->get_kv_node_ref(id);
 	if(!node){
 		return 0;

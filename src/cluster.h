@@ -25,7 +25,7 @@ public:
 	std::string str() const{
 		return "(\"" + str_escape(begin) + "\" - \"" + str_escape(end) + "\"]";
 	}
-	bool check_overlapped(const KeyRange &range) const{
+	bool overlapped(const KeyRange &range) const{
 		if(!this->begin.empty() && !range.end.empty() && this->begin >= range.end){
 			return false;
 		}
