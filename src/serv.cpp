@@ -522,22 +522,22 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		serv->get_kv_range(&s, &e);
 		char buf[512];
 		{
-			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "    kv  : \"%s\" - \"%s\"",
 				str_escape(s).c_str(),
 				str_escape(e).c_str()
 				);
 			val.append(buf);
 		}
 		{
-			snprintf(buf, sizeof(buf), "\n\thash: \"\" - \"\"");
+			snprintf(buf, sizeof(buf), "\n    hash: \"\" - \"\"");
 			val.append(buf);
 		}
 		{
-			snprintf(buf, sizeof(buf), "\n\tzset: \"\" - \"\"");
+			snprintf(buf, sizeof(buf), "\n    zset: \"\" - \"\"");
 			val.append(buf);
 		}
 		{
-			snprintf(buf, sizeof(buf), "\n\tlist: \"\" - \"\"");
+			snprintf(buf, sizeof(buf), "\n    list: \"\" - \"\"");
 			val.append(buf);
 		}
 		resp->push_back("serv_key_range");
@@ -551,25 +551,25 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
 		if(ret == 0){
 			char buf[512];
 			
-			snprintf(buf, sizeof(buf), "\tkv  : \"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "    kv  : \"%s\" - \"%s\"",
 				hexmem(tmp[0].data(), tmp[0].size()).c_str(),
 				hexmem(tmp[1].data(), tmp[1].size()).c_str()
 				);
 			val.append(buf);
 			
-			snprintf(buf, sizeof(buf), "\n\thash: \"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n    hash: \"%s\" - \"%s\"",
 				hexmem(tmp[2].data(), tmp[2].size()).c_str(),
 				hexmem(tmp[3].data(), tmp[3].size()).c_str()
 				);
 			val.append(buf);
 			
-			snprintf(buf, sizeof(buf), "\n\tzset: \"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n    zset: \"%s\" - \"%s\"",
 				hexmem(tmp[4].data(), tmp[4].size()).c_str(),
 				hexmem(tmp[5].data(), tmp[5].size()).c_str()
 				);
 			val.append(buf);
 			
-			snprintf(buf, sizeof(buf), "\n\tlist: \"%s\" - \"%s\"",
+			snprintf(buf, sizeof(buf), "\n    list: \"%s\" - \"%s\"",
 				hexmem(tmp[6].data(), tmp[6].size()).c_str(),
 				hexmem(tmp[7].data(), tmp[7].size()).c_str()
 				);
