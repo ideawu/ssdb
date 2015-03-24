@@ -56,7 +56,10 @@ Client* Client::connect(const char *ip, int port){
 	static bool inited = false;
 	if(!inited){
 		inited = true;
+#if _WIN32 || _WIN64
+#else
 		signal(SIGPIPE, SIG_IGN);
+#endif
 	}
 	ClientImpl *client = new ClientImpl();
 	client->link = Link::connect(ip, port);

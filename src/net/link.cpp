@@ -7,7 +7,32 @@ found in the LICENSE file.
 #include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
+#if _WIN32 || _WIN64
+#include <WinSock2.h>
+#include <ws2ipdef.h>
+#include <WS2tcpip.h>
+int ssdb_net_write(int fd, const void* data, size_t len)
+{
+	return send(fd, (char*)data, len, 0);
+}
+int ssdb_net_read(int fd, void* data, size_t len)
+{
+	return recv(fd, (char*)data, len, 0);
+}
+void ssdb_net_close(int fd)
+{
+	closesocket(fd);
+}
+#define write ssdb_net_write
+#define read ssdb_net_read
+#define close ssdb_net_close
+
+typedef char* skoptval;
+#define bzero(d,s) memset(d, 0, s)
+#else
+typedef void* skoptval;
 #include <sys/socket.h>
+#endif
 
 #include "link.h"
 
@@ -62,21 +87,26 @@ void Link::close(){
 
 void Link::nodelay(bool enable){
 	int opt = enable? 1 : 0;
-	::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void *)&opt, sizeof(opt));
+	::setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (skoptval)&opt, sizeof(opt));
 }
 
 void Link::keepalive(bool enable){
 	int opt = enable? 1 : 0;
-	::setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&opt, sizeof(opt));
+	::setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (skoptval)&opt, sizeof(opt));
 }
 
 void Link::noblock(bool enable){
 	noblock_ = enable;
+#if _WIN32 || _WIN64
+	unsigned long async = enable;
+	ioctlsocket(sock, FIONBIO, &async);
+#else
 	if(enable){
 		::fcntl(sock, F_SETFL, O_NONBLOCK | O_RDWR);
 	}else{
 		::fcntl(sock, F_SETFL, O_RDWR);
 	}
+#endif
 }
 
 
@@ -124,7 +154,7 @@ Link* Link::listen(const char *ip, int port){
 	if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
 		goto sock_err;
 	}
-	if(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
+	if(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (skoptval)&opt, sizeof(opt)) == -1){
 		goto sock_err;
 	}
 	if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
@@ -162,7 +192,7 @@ Link* Link::accept(){
 	}
 
 	struct linger opt = {1, 0};
-	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
+	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (skoptval)&opt, sizeof(opt));
 	if (ret != 0) {
 		//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
 	}
