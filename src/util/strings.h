@@ -27,7 +27,7 @@ found in the LICENSE file.
 # define PRId64 "ld" 
 #else
 # define PRIu64 "llu"
-# define PRId64 "ld" 
+# define PRId64 "lld" 
 #endif
 
 #else

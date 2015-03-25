@@ -19,7 +19,7 @@ void Response::add(int s){
 }
 
 void Response::add(int64_t s){
-	char buf[20];
+	char buf[21];
 	sprintf(buf, "%" PRId64 "", s);
 	resp.push_back(buf);
 }

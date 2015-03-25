@@ -64,7 +64,7 @@ std::string Binlog::dumps() const{
 	if(buf.size() < HEADER_LEN){
 		return str;
 	}
-	char buf[20];
+	char buf[21];
 	snprintf(buf, sizeof(buf), "%" PRIu64 " ", this->seq());
 	str.append(buf);
 
