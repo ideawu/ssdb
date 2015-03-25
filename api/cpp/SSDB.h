@@ -5,7 +5,11 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
+#if _WIN32 || _WIN64
+#include <stdint.h>
+#else
 #include <inttypes.h>
+#endif
 #include <string>
 #include <vector>
 #include <map>

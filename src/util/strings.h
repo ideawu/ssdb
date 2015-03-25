@@ -6,15 +6,34 @@ found in the LICENSE file.
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <string>
 #include <algorithm>
+
+#if _WIN32 || _WIN64
+#include <stdint.h>
+#define snprintf _snprintf
+#define strtoll _strtoi64
+#define strtoull _strtoui64
+#include <direct.h>
+
+
+#if _WIN64
+# define PRIu64 "lu" 
+# define PRId64 "ld" 
+#else
+# define PRIu64 "llu"
+# define PRId64 "lld" 
+#endif
+
+#else
+#include <unistd.h>
+#include <inttypes.h>
+#endif
 
 
 inline static
