@@ -117,6 +117,15 @@ See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 Download ssdb-server.exe from here: https://github.com/ideawu/ssdb-bin
 
 
+## SSDB library for iOS
+
+	cd SSDB_SOURCE_PATH
+	make ios
+	# ls ios/
+	libleveldb-ios.a libsnappy-ios.a libssdb-ios.a libutil-ios.a
+
+Drag the static libraies files into your iOS project. Then add `SOURCE_PATH/ios/include` to your iOS project's __Header Search Paths__, which is set in __Build Settings__.
+
 ## Links
 
 * [Author's homepage](http://www.ideawu.com/blog/)
