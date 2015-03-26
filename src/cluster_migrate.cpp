@@ -51,6 +51,7 @@ int ClusterMigrate::move_key(const std::string &key){
 		log_error("src server error! %s", s.code().c_str());
 		return -1;
 	}
+	// TODO: TTL
 	s = dst->set(key, val);
 	if(!s.ok()){
 		log_error("dst server error! %s", s.code().c_str());
