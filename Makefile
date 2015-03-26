@@ -16,6 +16,10 @@ all:
 	cd src; ${MAKE}
 	cd tools; ${MAKE}
 
+ios:
+	#cd "${LEVELDB_PATH}"; make clean; CXXFLAGS=-stdlib=libc++ ${MAKE} PLATFORM=IOS
+	#cd "${SNAPPY_PATH}"; make clean; make -f Makefile-ios
+
 install:
 	mkdir -p ${PREFIX}
 	mkdir -p ${PREFIX}/_cpy_

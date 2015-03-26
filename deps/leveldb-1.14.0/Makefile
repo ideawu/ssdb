@@ -56,7 +56,11 @@ TESTS = \
 PROGRAMS = db_bench leveldbutil $(TESTS)
 BENCHMARKS = db_bench_sqlite3 db_bench_tree_db
 
+ifeq ($(PLATFORM), IOS)
+LIBRARY = libleveldb-ios.a
+else
 LIBRARY = libleveldb.a
+endif
 MEMENVLIBRARY = libmemenv.a
 
 default: all
@@ -193,7 +197,7 @@ IOSVERSION=$(shell defaults read $(PLATFORMSROOT)/iPhoneOS.platform/version CFBu
 
 .cc.o:
 	mkdir -p ios-x86/$(dir $@)
-	$(CXX) $(CXXFLAGS) -isysroot $(SIMULATORROOT)/SDKs/iPhoneSimulator$(IOSVERSION).sdk -arch i686 -c $< -o ios-x86/$@
+	$(CXX) $(CXXFLAGS) -isysroot $(SIMULATORROOT)/SDKs/iPhoneSimulator$(IOSVERSION).sdk -arch i386 -arch x86_64 -c $< -o ios-x86/$@
 	mkdir -p ios-arm/$(dir $@)
 	xcrun -sdk iphoneos $(CXX) $(CXXFLAGS) -isysroot $(DEVICEROOT)/SDKs/iPhoneOS$(IOSVERSION).sdk -arch armv6 -arch armv7 -c $< -o ios-arm/$@
 	lipo ios-x86/$@ ios-arm/$@ -create -output $@
