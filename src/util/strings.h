@@ -354,11 +354,11 @@ double str_to_double(const char *p, int size){
 static inline
 std::string substr(const std::string &str, int start, int size){
 	if(start < 0){
-		start = str.size() + start;
+		start = (int)str.size() + start;
 	}
 	if(size < 0){
 		// 忽略掉 abs(size) 个字节
-		size = (str.size() + size) - start;
+		size = ((int)str.size() + size) - start;
 	}
 	if(start < 0 || size_t(start) >= str.size() || size < 0){
 		return "";
@@ -369,11 +369,11 @@ std::string substr(const std::string &str, int start, int size){
 static inline
 std::string str_slice(const std::string &str, int start, int end){
 	if(start < 0){
-		start = str.size() + start;
+		start = (int)str.size() + start;
 	}
 	int size;
 	if(end < 0){
-		size = (str.size() + end + 1) - start;
+		size = ((int)str.size() + end + 1) - start;
 	}else{
 		size = end - start + 1;
 	}

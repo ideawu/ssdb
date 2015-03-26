@@ -3,5 +3,7 @@
 #define SSDB_VERSION "1.9.0"
 #endif
 #endif
+#ifndef IOS
 #include <stdlib.h>
 #include <jemalloc/jemalloc.h>
+#endif

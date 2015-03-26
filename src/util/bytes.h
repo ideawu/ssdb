@@ -32,12 +32,12 @@ class Bytes{
 
 		Bytes(const std::string &str){
 			data_ = str.data();
-			size_ = str.size();
+			size_ = (int)str.size();
 		}
 
 		Bytes(const char *str){
 			data_ = str;
-			size_ = strlen(str);
+			size_ = (int)strlen(str);
 		}
 
 		const char* data() const{
@@ -149,7 +149,7 @@ class Buffer{
 		}
 
 		int space() const{
-			return total_ - (data_ - buf) - size_;
+			return total_ - (int)(data_ - buf) - size_;
 		}
 
 		void incr(int num){
