@@ -25,8 +25,8 @@ _pack
 build_config.mk
 log.txt
 log_slave.txt
-api/cpp/demo
-api/cpp/hello-ssdb
+src/client/demo
+src/client/hello-ssdb
 api/cpp/SSDB_client.h
 api/cpp/test
 api/cpp/html
