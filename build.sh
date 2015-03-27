@@ -101,12 +101,14 @@ echo "#endif" >> src/version.h
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD)
 	;;
-        OS_ANDROID_CROSSCOMPILE)
-                echo "#define OS_ANDROID 1" >> src/version.h
-        ;;
+	OS_ANDROID_CROSSCOMPILE)
+        echo "#define OS_ANDROID 1" >> src/version.h
+	;;
 	*)
+		echo "#ifndef IOS" >> src/version.h
 		echo "#include <stdlib.h>" >> src/version.h
 		echo "#include <jemalloc/jemalloc.h>" >> src/version.h
+		echo "#endif" >> src/version.h
 	;;
 esac
 
