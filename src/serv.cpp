@@ -233,7 +233,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 }
 
 
-SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const std::string &data_db_dir, const std::string &meta_db_dir, const Config &conf, NetworkServer *net){
+SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const std::string &data_db_dir, const std::string &meta_db_dir, const Config &conf, NetworkServer *net)
 {
 	this->ssdb = (SSDBImpl *)ssdb;
 	this->meta = meta;
