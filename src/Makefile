@@ -20,7 +20,7 @@ backend_dump.o: backend_dump.h backend_dump.cpp
 backend_sync.o: backend_sync.h backend_sync.cpp
 	${CXX} ${CFLAGS} -c backend_sync.cpp
 background_flush.o: background_flush.h background_flush.cpp
-        ${CXX} ${CFLAGS} -c background_flush.cpp
+	${CXX} ${CFLAGS} -c background_flush.cpp
 
 proc.o: serv.h proc.cpp
 	${CXX} ${CFLAGS} -c proc.cpp
