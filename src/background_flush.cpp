@@ -5,6 +5,7 @@ found in the LICENSE file.
 */
 #include <pthread.h>
 #include "background_flush.h"
+#include "serv.h"
 #include "util/log.h"
 
 #if defined(WIN32) || defined(WIN64)
@@ -58,18 +59,21 @@ void* BackgroundFlush::_run_thread(void *arg){
 	delete p;
 
     int time_ms=1000;
-    if((int flush_period_ms=_conf->get_num("persistent.flush_period_ms"))<0){
-        return (void *)NULL;
-    }else{
-        time_ms=flush_period_ms;
+    {
+        int flush_period_ms=background->_conf->get_num("persistent.flush_period_ms");
+        if(flush_period_ms<0){
+            return (void *)NULL;
+        }else{
+            time_ms=flush_period_ms;
+        }
     }
 
     while(1){
-        pthread_testcancel(void);
+        pthread_testcancel();
 
         int fd=open(background->_serv->get_meta_dir(),O_RDONLY);
         if(fd<0){
-            log_error("failed to open: %s",background->serv->get_meta_dir());
+            log_error("failed to open: %s",background->_serv->get_meta_dir());
         }else{
             if(fsync(fd)<0) log_error("failed to fsync: %s",background->_serv->get_meta_dir());
             close(fd);
@@ -83,7 +87,7 @@ void* BackgroundFlush::_run_thread(void *arg){
             close(fd);
         }
         
-        pthread_testcancel(void);
+        pthread_testcancel();
         
         usleep(1000*time_ms);
     }
