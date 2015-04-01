@@ -3,7 +3,11 @@
    Use of this source code is governed by a BSD-style license that can be
    found in the LICENSE file.
    */
+#include <errno.h>
 #include <pthread.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "background_flush.h"
 #include "serv.h"
 #include "util/log.h"
@@ -25,6 +29,48 @@ static void usleep(__int64 usec)
     CloseHandle(timer); 
 }
 #endif
+
+static void fsync_dir(const char *dir)
+{
+    struct dirent *file;
+    struct stat st;    
+    DIR *d;
+
+    int fd = open(dir, O_RDONLY);
+    if(fd < 0){
+        log_error("failed to open: %s", dir);
+    }else{
+        if(fsync(fd) < 0) log_error("failed to fsync: %s", dir);
+        close(fd);
+    }
+
+    if(!(d = opendir(dir)))
+    {
+        log_error("error opendir: %s", dir);
+        return;
+    }
+
+    while((file = readdir(d)) != NULL)
+    {
+        if(strncmp(file->d_name, ".", 1) == 0)
+            continue;
+        
+        if(stat(file->d_name, &st) >= 0 && S_ISDIR(st.st_mode))
+            continue;
+
+        const std::string path=std::string(dir) + "/" + file->d_name;
+	
+        int fd = open(path.c_str(), O_RDONLY);
+        if(fd < 0){
+            log_error("%s: %s", strerror(errno), path.c_str());
+        }else{
+            if(fsync(fd) < 0) log_error("%s: %s", strerror(errno), path.c_str());
+            close(fd);
+        }
+    }
+
+    closedir(d);
+}
 
 BackgroundFlush::BackgroundFlush(SSDBServer *serv,const Config *config):_serv(serv),_conf(config)
 {}
@@ -70,22 +116,9 @@ void* BackgroundFlush::_run_thread(void *arg){
 
     while(1){
         pthread_testcancel();
-
-        int fd = open(background->_serv->get_meta_dir(), O_RDONLY);
-        if(fd < 0){
-            log_error("failed to open: %s", background->_serv->get_meta_dir());
-        }else{
-            if(fsync(fd) < 0) log_error("failed to fsync: %s", background->_serv->get_meta_dir());
-            close(fd);
-        }
-
-        fd=open(background->_serv->get_data_dir(), O_RDONLY);
-        if(fd < 0){
-            log_error("failed to open: %s", background->_serv->get_data_dir());
-        }else{
-            if(fsync(fd) < 0) log_error("failed to fsync: %s", background->_serv->get_data_dir());
-            close(fd);
-        }
+        
+        fsync_dir(background->_serv->get_meta_dir());
+        fsync_dir(background->_serv->get_data_dir());
 
         pthread_testcancel();
 
