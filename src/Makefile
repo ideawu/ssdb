@@ -1,8 +1,9 @@
 include ../build_config.mk
 
 OBJS = proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
-	backend_dump.o backend_sync.o slave.o \
-	serv.o
+        backend_dump.o backend_sync.o background_flush.o slave.o \
+        serv.o
+
 LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
 EXES = ../ssdb-server
 
@@ -18,6 +19,8 @@ backend_dump.o: backend_dump.h backend_dump.cpp
 	${CXX} ${CFLAGS} -c backend_dump.cpp
 backend_sync.o: backend_sync.h backend_sync.cpp
 	${CXX} ${CFLAGS} -c backend_sync.cpp
+background_flush.o: background_flush.h background_flush.cpp
+	${CXX} ${CFLAGS} -c background_flush.cpp
 
 proc.o: serv.h proc.cpp
 	${CXX} ${CFLAGS} -c proc.cpp

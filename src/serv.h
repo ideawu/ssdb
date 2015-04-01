@@ -14,6 +14,7 @@ found in the LICENSE file.
 #include "ssdb/ttl.h"
 #include "backend_dump.h"
 #include "backend_sync.h"
+#include "background_flush.h"
 #include "slave.h"
 #include "net/server.h"
 
@@ -25,18 +26,25 @@ private:
 	
 	std::string kv_range_s;
 	std::string kv_range_e;
-	
+
+	std::string meta_dir;
+	std::string data_dir;
+
 	SSDB *meta;
 
 public:
 	SSDBImpl *ssdb;
 	BackendDump *backend_dump;
 	BackendSync *backend_sync;
+	BackgroundFlush *background_flush;
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
 
-	SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net);
+	SSDBServer(SSDB *ssdb, SSDB *meta, const std::string &data_db_dir, const std::string &data_meta_dir, const Config &conf, NetworkServer *net);
 	~SSDBServer();
+
+	const char *get_meta_dir();
+	const char *get_data_dir();
 
 	int set_kv_range(const std::string &s, const std::string &e);
 	int get_kv_range(std::string *s, std::string *e);
