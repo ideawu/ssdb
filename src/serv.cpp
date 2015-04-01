@@ -238,8 +238,8 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const std::string &data_db_dir, c
 	this->ssdb = (SSDBImpl *)ssdb;
 	this->meta = meta;
 
-    this->meta_dir=meta_db_dir;
-    this->data_dir=data_db_dir;
+	this->meta_dir=meta_db_dir;
+	this->data_dir=data_db_dir;
 
 	net->data = this;
 	this->reg_procs(net);
@@ -248,7 +248,7 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const std::string &data_db_dir, c
 
 	backend_dump = new BackendDump(this->ssdb);
 	backend_sync = new BackendSync(this->ssdb, sync_speed);
-    background_flush = new BackgroundFlush(this, &conf);
+	background_flush = new BackgroundFlush(this, &conf);
 	expiration = new ExpirationHandler(this->ssdb);
 
 	{ // slaves
@@ -317,11 +317,11 @@ SSDBServer::~SSDBServer(){
 }
 
 const char *SSDBServer::get_data_dir(){
-    return this->data_dir.c_str();
+	return this->data_dir.c_str();
 }
 
 const char *SSDBServer::get_meta_dir(){
-    return this->meta_dir.c_str();
+	return this->meta_dir.c_str();
 }
 
 int SSDBServer::set_kv_range(const std::string &start, const std::string &end){

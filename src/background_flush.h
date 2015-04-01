@@ -16,15 +16,15 @@ public:
 	BackgroundFlush(SSDBServer *serv, const Config *config);
 	~BackgroundFlush();
 	void start();
-    void end();
+	void end();
 private:
 	struct run_arg{
 		const BackgroundFlush *background;
 	};
 	static void* _run_thread(void *arg);
 	SSDBServer *_serv;
-    const Config *_conf;
-    pthread_t tid;
+	const Config *_conf;
+	pthread_t tid;
 };
 
 #endif

@@ -77,10 +77,10 @@ int main(int argc, char **argv){
 	SSDBServer *ss = new SSDBServer(data_db, meta_db, data_db_dir, meta_db_dir, *conf, net);
 
 	write_pid();
-    
-    ss->background_flush->start();
+
+	ss->background_flush->start();
 	
-    log_info("ssdb server started.");
+	log_info("ssdb server started.");
 	net->serve();
 	
 	delete net;
