@@ -439,6 +439,7 @@ int proc_zremrangebyrank(NetworkServer *net, Link *link, const Request &req, Res
 	return 0;
 }
 
+// 因为 writer 线程只有一个, 所以这个操作还是线程安全的
 static inline
 void zpop(ZIterator *it, SSDBServer *serv, const Bytes &name, Response *resp){
 	resp->push_back("ok");
