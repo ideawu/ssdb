@@ -416,6 +416,8 @@ while(true){
 			case 'zrscan':
 			case 'zrange':
 			case 'zrrange':
+			case 'zpop_front':
+			case 'zpop_back':
 				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'score'));
 				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data['index'] as k){

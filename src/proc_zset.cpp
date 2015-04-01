@@ -439,3 +439,37 @@ int proc_zremrangebyrank(NetworkServer *net, Link *link, const Request &req, Res
 	return 0;
 }
 
+static inline
+void zpop(ZIterator *it, SSDBServer *serv, const Bytes &name, Response *resp){
+	resp->push_back("ok");
+	while(it->next()){
+		serv->ssdb->zdel(name, it->key);
+		resp->add(it->key);
+		resp->add(it->score);
+	}
+}
+
+int proc_zpop_front(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(3);
+
+	const Bytes &name = req[1];
+	uint64_t limit = req[2].Uint64();
+	ZIterator *it = serv->ssdb->zscan(name, "", "", "", limit);
+	zpop(it, serv, name, resp);
+	delete it;
+	return 0;
+}
+
+int proc_zpop_back(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(3);
+
+	const Bytes &name = req[1];
+	uint64_t limit = req[2].Uint64();
+	ZIterator *it = serv->ssdb->zrscan(name, "", "", "", limit);
+	zpop(it, serv, name, resp);
+	delete it;
+	return 0;
+}
+

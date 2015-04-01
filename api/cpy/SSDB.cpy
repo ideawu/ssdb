@@ -232,6 +232,8 @@ class SSDB{
 			case 'zrscan':
 			case 'zrange':
 			case 'zrrange':
+			case 'zpop_front':
+			case 'zpop_back':
 				if(resp[0] == 'ok'){
 					if(len(resp) % 2 == 1){
 						data = {'index':[], 'items':{}};

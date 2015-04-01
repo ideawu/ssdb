@@ -465,6 +465,8 @@ class SSDB
 			case 'multi_get':
 			case 'multi_hget':
 			case 'multi_zget':
+			case 'zpop_front':
+			case 'zpop_back':
 				if($resp[0] == 'ok'){
 					if(count($resp) % 2 == 1){
 						$data = array();

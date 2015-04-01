@@ -1,9 +1,10 @@
 * 1.9.0
 	* New features:
+		- Add zpop_front, zpop_back command(2015-04-01)
+		- Support static library build for iOS(2015-03-26)
+		- Update options.max_open_files default value to 500(2015-03-15)
 		- Add version command(2015-03-10)
 		- Add rkeys command(2015-02-15)
-		- Update options.max_open_files default value to 500(2015-03-15)
-		- Support static library build for iOS(2015-03-26)
 	* Bug fixes:
 		- Fix ttl bug(https://github.com/ideawu/ssdb/issues/628)(2015-03-14)
 * 1.8.0
