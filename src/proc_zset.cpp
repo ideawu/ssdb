@@ -443,9 +443,11 @@ static inline
 void zpop(ZIterator *it, SSDBServer *serv, const Bytes &name, Response *resp){
 	resp->push_back("ok");
 	while(it->next()){
-		serv->ssdb->zdel(name, it->key);
-		resp->add(it->key);
-		resp->add(it->score);
+		int ret = serv->ssdb->zdel(name, it->key);
+		if(ret == 1){
+			resp->add(it->key);
+			resp->add(it->score);
+		}
 	}
 }
 
