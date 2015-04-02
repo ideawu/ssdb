@@ -64,14 +64,15 @@ void usage(int argc, char **argv){
 	printf("Usage:\n"
 		"\n"
 		"    %s -o output_folder\n"
+		"    %s ip port output_folder\n"
 		"\n"
 		"Options:\n"
-		"    -h <hostname>      Server hostname (default: 127.0.0.1).\n"
+		"    -h <ip>            Server IP address (default: 127.0.0.1).\n"
 		"    -p <port>          Server port (default: 8888).\n"
 		"    -a <password>      Password to use when connecting to the server.\n"
 		"    -o <output_folder> local backup folder that will be created.\n"
 		"\n",
-		argv[0]);
+		argv[0], argv[0]);
 	exit(1);   
 }
 
