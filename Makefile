@@ -10,10 +10,21 @@ all:
 	chmod u+x tools/ssdb-cli
 	cd "${LEVELDB_PATH}"; ${MAKE}
 	cd src/util; ${MAKE}
-	cd src/ssdb; ${MAKE}
 	cd src/net; ${MAKE}
+	cd src/client; ${MAKE}
+	cd src/ssdb; ${MAKE}
 	cd src; ${MAKE}
 	cd tools; ${MAKE}
+
+.PHONY: ios
+	
+ios:
+	cd "${LEVELDB_PATH}"; make clean; CXXFLAGS=-stdlib=libc++ ${MAKE} PLATFORM=IOS
+	cd "${SNAPPY_PATH}"; make clean; make -f Makefile-ios
+	mkdir -p ios
+	mv ${LEVELDB_PATH}/libleveldb-ios.a ${SNAPPY_PATH}/libsnappy-ios.a ios/
+	cd src/util; make clean; ${MAKE} -f Makefile-ios
+	cd src/ssdb; make clean; ${MAKE} -f Makefile-ios
 
 install:
 	mkdir -p ${PREFIX}

@@ -1,0 +1,36 @@
+include ../../build_config.mk
+
+PLATFORMSROOT=/Applications/Xcode.app/Contents/Developer/Platforms
+SIMULATORROOT=$(PLATFORMSROOT)/iPhoneSimulator.platform/Developer
+DEVICEROOT=$(PLATFORMSROOT)/iPhoneOS.platform/Developer
+IOSVERSION=$(shell defaults read $(PLATFORMSROOT)/iPhoneOS.platform/version CFBundleShortVersionString)
+SIMULATOR_SDK=$(SIMULATORROOT)/SDKs/iPhoneSimulator$(IOSVERSION).sdk
+DEVICE_SDK=$(DEVICEROOT)/SDKs/iPhoneOS$(IOSVERSION).sdk
+
+CFLAGS=-stdlib=libc++ -DHAVE_CONFIG_H -DIOS -I. -O2 -I$(LEVELDB_PATH)/include
+SIMULATOR_CFLAGS=$(CFLAGS) -isysroot $(SIMULATOR_SDK) -arch i386 -arch x86_64
+DEVICE_CFLAGS=$(CFLAGS) -isysroot $(DEVICE_SDK) -arch armv6 -arch armv7
+
+OBJS = ssdb_impl.o iterator.o options.o t_kv.o t_hash.o t_zset.o t_queue.o binlog.o ttl.o
+LIB = libssdb-ios.a
+OUTPUT_LIB_DIR = ../../ios
+OUTPUT_HEADER_DIR = ../../ios/include/ssdb
+
+all: $(OBJS)
+	rm -f $(LIB)
+	ar -rs $(LIB) $(OBJS)
+	rm -rf $(OUTPUT_HEADER_DIR) $(OUTPUT_LIB_DIR)/$(LIB)
+	mkdir -p $(OUTPUT_HEADER_DIR)
+	cp -f const.h binlog.h iterator.h options.h ssdb.h ttl.h $(OUTPUT_HEADER_DIR)
+	mv -f $(LIB) $(OUTPUT_LIB_DIR)
+
+.cpp.o:
+	mkdir -p ios-x86
+	mkdir -p ios-arm
+	$(CXX) $(SIMULATOR_CFLAGS) -c $< -o ios-x86/$@
+	xcrun -sdk iphoneos $(CXX) $(DEVICE_CFLAGS) -c $< -o ios-arm/$@
+	lipo ios-x86/$@ ios-arm/$@ -create -output $@
+
+clean:
+	rm -f ${EXES} *.o *.exe *.a
+

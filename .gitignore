@@ -1,3 +1,4 @@
+ios
 888*.conf
 var888*
 *.o
@@ -8,6 +9,7 @@ tmp
 .DS_Store
 *.pyc
 var/*
+var_*
 var_slave/*
 dev_ssdb.conf*
 *.swp
@@ -17,13 +19,15 @@ ssdb-server
 tools/ssdb-dump
 tools/ssdb-bench
 tools/ssdb-repair
+tools/ssdb-migrate
 tools/leveldb-import
 _pack
 build_config.mk
 log.txt
 log_slave.txt
-api/cpp/demo
-api/cpp/hello-ssdb
+src/client/demo
+src/client/hello-ssdb
+api/cpp/SSDB_client.h
 api/cpp/test
 api/cpp/html
 api/php/a.php

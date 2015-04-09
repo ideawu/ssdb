@@ -18,6 +18,8 @@ static DEF_PROC(auth);
 
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
+static const int READER_THREADS = 10;
+static const int WRITER_THREADS = 1;
 
 volatile bool quit = false;
 volatile uint32_t g_ticks = 0;
@@ -37,6 +39,9 @@ void signal_handler(int sig){
 }
 
 NetworkServer::NetworkServer(){
+	num_readers = READER_THREADS;
+	num_writers = WRITER_THREADS;
+	
 	tick_interval = TICK_INTERVAL;
 	status_report_ticks = STATUS_REPORT_TICKS;
 
@@ -80,7 +85,7 @@ NetworkServer::~NetworkServer(){
 	delete reader;
 }
 
-NetworkServer* NetworkServer::init(const char *conf_file){
+NetworkServer* NetworkServer::init(const char *conf_file, int num_readers, int num_writers){
 	if(!is_file(conf_file)){
 		fprintf(stderr, "'%s' is not a file or not exists!\n", conf_file);
 		exit(1);
@@ -98,12 +103,12 @@ NetworkServer* NetworkServer::init(const char *conf_file){
 			exit(1);
 		}
 	}
-	NetworkServer* serv = init(*conf);
+	NetworkServer* serv = init(*conf, num_readers, num_writers);
 	delete conf;
 	return serv;
 }
 
-NetworkServer* NetworkServer::init(const Config &conf){
+NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_writers){
 	static bool inited = false;
 	if(inited){
 		return NULL;
@@ -111,6 +116,12 @@ NetworkServer* NetworkServer::init(const Config &conf){
 	inited = true;
 	
 	NetworkServer *serv = new NetworkServer();
+	if(num_readers >= 0){
+		serv->num_readers = num_readers;
+	}
+	if(num_writers >= 0){
+		serv->num_writers = num_writers;
+	}
 	// init ip_filter
 	{
 		Config *cc = (Config *)conf.get("server");
@@ -170,9 +181,9 @@ NetworkServer* NetworkServer::init(const Config &conf){
 
 void NetworkServer::serve(){
 	writer = new ProcWorkerPool("writer");
-	writer->start(WRITER_THREADS);
+	writer->start(num_writers);
 	reader = new ProcWorkerPool("reader");
-	reader->start(READER_THREADS);
+	reader->start(num_readers);
 
 	ready_list_t ready_list;
 	ready_list_t ready_list_2;

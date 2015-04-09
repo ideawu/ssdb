@@ -33,13 +33,17 @@ int log_write(int level, const char *fmt, ...){
 
 /*****/
 
+Logger* Logger::shared(){
+	return &logger;
+}
+
 Logger::Logger(){
 	fp = stdout;
 	level_ = LEVEL_DEBUG;
 	mutex = NULL;
 
 	filename[0] = '\0';
-	rotate_size = 0;
+	rotate_size_ = 0;
 	stats.w_curr = 0;
 	stats.w_total = 0;
 }
@@ -50,6 +54,32 @@ Logger::~Logger(){
 		free(mutex);
 	}
 	this->close();
+}
+
+std::string Logger::level_name(){
+	switch(level_){
+		case Logger::LEVEL_FATAL:
+			return "fatal";
+		case Logger::LEVEL_ERROR:
+			return "error";
+		case Logger::LEVEL_WARN:
+			return "warn";
+		case Logger::LEVEL_INFO:
+			return "info";
+		case Logger::LEVEL_DEBUG:
+			return "debug";
+		case Logger::LEVEL_TRACE:
+			return "trace";
+	}
+	return "";
+}
+
+std::string Logger::output_name(){
+	return filename;
+}
+
+uint64_t Logger::rotate_size(){
+	return rotate_size_;
 }
 
 void Logger::threadsafe(){
@@ -76,6 +106,8 @@ int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t r
 		fprintf(stderr, "log filename too long!");
 		return -1;
 	}
+	this->level_ = level;
+	this->rotate_size_ = rotate_size;
 	strcpy(this->filename, filename);
 
 	FILE *fp;
@@ -95,7 +127,6 @@ int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t r
 			fprintf(stderr, "fstat log file %s error!", filename);
 			return -1;
 		}else{
-			this->rotate_size = rotate_size;
 			stats.w_curr = st.st_size;
 		}
 	}
@@ -159,7 +190,7 @@ int Logger::get_level(const char *levelname){
 	return LEVEL_DEBUG;
 }
 
-inline static const char* level_name(int level){
+inline static const char* get_level_name(int level){
 	switch(level){
 		case Logger::LEVEL_FATAL:
 			return "[FATAL] ";
@@ -204,7 +235,7 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	}
 	ptr += len;
 
-	memcpy(ptr, level_name(level), LEVEL_NAME_LEN);
+	memcpy(ptr, get_level_name(level), LEVEL_NAME_LEN);
 	ptr += LEVEL_NAME_LEN;
 
 	int space = sizeof(buf) - (ptr - buf) - 10;
@@ -226,7 +257,7 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 
 	stats.w_curr += len;
 	stats.w_total += len;
-	if(rotate_size > 0 && stats.w_curr > rotate_size){
+	if(rotate_size_ > 0 && stats.w_curr > rotate_size_){
 		this->rotate();
 	}
 	if(this->mutex){

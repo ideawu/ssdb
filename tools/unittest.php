@@ -463,6 +463,21 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->zrscan($name, '3', 3, 1, 1);
 		$vals = array_values($ret);
 		$this->assert($vals[0] === 2);
+
+		$ssdb->zclear($name);
+		for($i=0; $i<10; $i++){
+			$ssdb->zset($name, $i, $i);
+		}
+		$ret = $ssdb->zpop_front($name, 2);
+		$keys = array_keys($ret);
+		$vals = array_values($ret);
+		$this->assert($keys[0] === 0 && $vals[0] === 0);
+		$this->assert($keys[1] === 1 && $vals[1] === 1);
+		$ret = $ssdb->zpop_back($name, 2);
+		$keys = array_keys($ret);
+		$vals = array_values($ret);
+		$this->assert($keys[0] === 9 && $vals[0] === 9);
+		$this->assert($keys[1] === 8 && $vals[1] === 8);
 	}
 }
 

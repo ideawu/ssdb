@@ -38,8 +38,8 @@ private:
 
 	void proc(ProcJob *job);
 
-	static const int READER_THREADS = 10;
-	static const int WRITER_THREADS = 1;
+	int num_readers;
+	int num_writers;
 	ProcWorkerPool *writer;
 	ProcWorkerPool *reader;
 
@@ -58,8 +58,8 @@ public:
 	~NetworkServer();
 	
 	// could be called only once
-	static NetworkServer* init(const char *conf_file);
-	static NetworkServer* init(const Config &conf);
+	static NetworkServer* init(const char *conf_file, int num_readers=-1, int num_writers=-1);
+	static NetworkServer* init(const Config &conf, int num_readers=-1, int num_writers=-1);
 	void serve();
 };
 

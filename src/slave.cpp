@@ -293,10 +293,6 @@ int Slave::proc(const std::vector<Bytes> &req){
 			break;
 		case BinlogType::COPY:{
 			status = COPY;
-			if(++copy_count % 1000 == 1){
-				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
-					copy_count, this->last_seq, log.seq());
-			}
 			if(req.size() >= 2){
 				log_debug("[%s] %s [%d]", sync_type, log.dumps().c_str(), req[1].size());
 			}else{
@@ -344,10 +340,15 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 		case BinlogCommand::END:
 			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
 				copy_count, this->last_seq, log.seq());
+			this->status = SYNC;
 			this->last_key = "";
 			this->save_status();
 			break;
 		default:
+			if(++copy_count % 1000 == 1){
+				log_info("copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
+					copy_count, this->last_seq, log.seq());
+			}
 			return proc_sync(log, req);
 			break;
 	}

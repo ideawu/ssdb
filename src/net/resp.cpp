@@ -24,10 +24,20 @@ void Response::add(int64_t s){
 	resp.push_back(buf);
 }
 
+void Response::add(uint64_t s){
+	char buf[20];
+	sprintf(buf, "%" PRIu64 "", s);
+	resp.push_back(buf);
+}
+
 void Response::add(double s){
 	char buf[30];
 	snprintf(buf, sizeof(buf), "%f", s);
 	resp.push_back(buf);
+}
+
+void Response::add(const std::string &s){
+	resp.push_back(s);
 }
 
 void Response::reply_status(int status, const char *errmsg){

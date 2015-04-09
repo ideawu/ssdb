@@ -223,6 +223,14 @@ int Config::get_num(const char *key) const{
 	return c->num();
 }
 
+int64_t Config::get_int64(const char *key) const{
+	const Config *c = this->get(key);
+	if(!c){
+		return 0;
+	}
+	return str_to_int64(c->val);
+}
+
 const char* Config::get_str(const char *key) const{
 	const Config *c = this->get(key);
 	if(!c){

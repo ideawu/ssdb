@@ -1,7 +1,7 @@
 #ifndef SSDB_API_IMPL_CPP
 #define SSDB_API_IMPL_CPP
 
-#include "SSDB.h"
+#include "SSDB_client.h"
 #include "net/link.h"
 
 namespace ssdb{
@@ -26,6 +26,10 @@ public:
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::vector<std::string> &s2);
 	virtual const std::vector<std::string>* request(const std::string &cmd, const std::string &s2, const std::vector<std::string> &s3);
 
+	virtual Status dbsize(int64_t *ret);
+	virtual Status get_kv_range(std::string *start, std::string *end);
+	virtual Status set_kv_range(const std::string &start, const std::string &end);
+
 	virtual Status get(const std::string &key, std::string *val);
 	virtual Status set(const std::string &key, const std::string &val);
 	virtual Status setx(const std::string &key, const std::string &val, int ttl);
@@ -46,7 +50,7 @@ public:
 	virtual Status hdel(const std::string &name, const std::string &key);
 	virtual Status hincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status hsize(const std::string &name, int64_t *ret);
-	virtual Status hclear(const std::string &name, int64_t *ret);
+	virtual Status hclear(const std::string &name, int64_t *ret=NULL);
 	virtual Status hkeys(const std::string &name, const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret);
 	virtual Status hscan(const std::string &name, const std::string &key_start, const std::string &key_end,
@@ -63,7 +67,7 @@ public:
 	virtual Status zdel(const std::string &name, const std::string &key);
 	virtual Status zincr(const std::string &name, const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status zsize(const std::string &name, int64_t *ret);
-	virtual Status zclear(const std::string &name, int64_t *ret);
+	virtual Status zclear(const std::string &name, int64_t *ret=NULL);
 	virtual Status zrank(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zrrank(const std::string &name, const std::string &key, int64_t *ret);
 	virtual Status zrange(const std::string &name,
@@ -86,9 +90,10 @@ public:
 	virtual Status multi_zset(const std::string &name, const std::map<std::string, int64_t> &kss);
 	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys);
 
-	virtual Status qpush(const std::string &key, const std::string &val);
-	virtual Status qpop(const std::string &key, std::string *val);
+	virtual Status qpush(const std::string &name, const std::string &item);
+	virtual Status qpop(const std::string &name, std::string *item);
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret);
+	virtual Status qclear(const std::string &name, int64_t *ret=NULL);
 };
 
 }; // namespace ssdb

@@ -16,7 +16,7 @@ found in the LICENSE file.
 #include "backend_sync.h"
 #include "slave.h"
 #include "net/server.h"
-
+#include "cluster.h"
 
 class SSDBServer
 {
@@ -34,6 +34,7 @@ public:
 	BackendSync *backend_sync;
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
+	Cluster *cluster;
 
 	SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net);
 	~SSDBServer();
@@ -45,8 +46,8 @@ public:
 };
 
 
-#define CHECK_KEY_RANGE(n) do{ \
-		if(req.size() > n){ \
+#define CHECK_KV_KEY_RANGE(n) do{ \
+		if(!link->ignore_key_range && req.size() > n){ \
 			if(!serv->in_kv_range(req[n])){ \
 				resp->push_back("out_of_range"); \
 				return 0; \

@@ -29,6 +29,7 @@ Link::Link(bool is_server){
 	remote_ip[0] = '\0';
 	remote_port = -1;
 	auth = false;
+	ignore_key_range = false;
 	
 	if(is_server){
 		input = output = NULL;
