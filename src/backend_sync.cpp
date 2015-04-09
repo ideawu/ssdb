@@ -217,6 +217,10 @@ void BackendSync::Client::init(){
 			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
 			);
 		this->status = Client::SYNC;
+		
+		Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::END, "");
+		log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
+		link->send(log.repr(), "copy_end");
 	}else{
 		// a slave must reset its last_key when receiving 'copy_end' command
 		log_info("[%s] %s:%d fd: %d, copy recover, seq: %" PRIu64 ", key: '%s'",
