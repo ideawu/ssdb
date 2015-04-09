@@ -7,6 +7,8 @@
 		- Add rkeys command(2015-02-15)
 	* Bug fixes:
 		- Fix replication status display error(2015-04-09)
+* 1.8.1
+	* Bug fixes:
 		- Fix ttl bug(https://github.com/ideawu/ssdb/issues/628)(2015-03-14)
 * 1.8.0
 	* New features:
