@@ -344,6 +344,7 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 		case BinlogCommand::END:
 			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
 				copy_count, this->last_seq, log.seq());
+			this->status = SYNC;
 			this->last_key = "";
 			this->save_status();
 			break;
