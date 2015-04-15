@@ -1,5 +1,6 @@
 * 1.9.0
 	* New features:
+		- Add bitcount command, which is similar to Redis's bitcount(2015-04-15)
 		- Add zpop_front, zpop_back command(2015-04-01)
 		- Support static library build for iOS(2015-03-26)
 		- Update options.max_open_files default value to 500(2015-03-15)

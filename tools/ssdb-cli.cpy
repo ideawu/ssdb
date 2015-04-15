@@ -343,6 +343,7 @@ while(true){
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':
+			case 'bitcount':
 			case 'strlen':
 			case 'getset':
 			case 'setnx':

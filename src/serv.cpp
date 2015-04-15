@@ -21,7 +21,7 @@ DEF_PROC(countbit);
 DEF_PROC(substr);
 DEF_PROC(getrange);
 DEF_PROC(strlen);
-DEF_PROC(redis_bitcount);
+DEF_PROC(bitcount);
 DEF_PROC(del);
 DEF_PROC(incr);
 DEF_PROC(decr);
@@ -144,7 +144,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(substr, "r");
 	REG_PROC(getrange, "r");
 	REG_PROC(strlen, "r");
-	REG_PROC(redis_bitcount, "r");
+	REG_PROC(bitcount, "r");
 	REG_PROC(incr, "wt");
 	REG_PROC(decr, "wt");
 	REG_PROC(scan, "rt");
