@@ -314,6 +314,11 @@ while(true){
 					}
 				}
 				break;
+			case 'hdel':
+			case 'hset':
+				print resp.data;
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+				break;
 			case 'exists':
 			case 'hexists':
 			case 'zexists':
@@ -397,7 +402,6 @@ while(true){
 			case 'hset':
 			case 'del':
 			case 'zdel':
-			case 'hdel':
 				print resp.code;
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
