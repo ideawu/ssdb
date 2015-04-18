@@ -318,9 +318,9 @@ while(true){
 			case 'hexists':
 			case 'zexists':
 				if(resp.data == true){
-					printf('true\n');
+					printf('1\n');
 				}else{
-					printf('false\n');
+					printf('0\n');
 				}
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
