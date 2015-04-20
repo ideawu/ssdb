@@ -61,5 +61,6 @@ clean:
 clean_all: clean
 	cd "${LEVELDB_PATH}"; ${MAKE} clean
 	rm -f ${JEMALLOC_PATH}/Makefile
+	cd "${SNAPPY_PATH}"; ${MAKE} clean
 	rm -f ${SNAPPY_PATH}/Makefile
 	
