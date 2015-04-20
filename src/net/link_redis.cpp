@@ -59,7 +59,7 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO, "getbit",	"getbit",		REPLY_INT},
 	{STRATEGY_AUTO, "setbit",	"setbit",		REPLY_INT},
 	{STRATEGY_AUTO, "strlen",	"strlen",		REPLY_INT},
-	{STRATEGY_AUTO, "bitcount",	"redis_bitcount",		REPLY_INT},
+	{STRATEGY_AUTO, "bitcount",	"bitcount",		REPLY_INT},
 	{STRATEGY_AUTO, "substr",	"getrange",		REPLY_BULK},
 	{STRATEGY_AUTO, "getrange",	"getrange",		REPLY_BULK},
 	{STRATEGY_AUTO, "keys", 	"keys", 		REPLY_MULTI_BULK},

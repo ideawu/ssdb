@@ -314,13 +314,18 @@ while(true){
 					}
 				}
 				break;
+			case 'hdel':
+			case 'hset':
+				print resp.data;
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+				break;
 			case 'exists':
 			case 'hexists':
 			case 'zexists':
 				if(resp.data == true){
-					printf('true\n');
+					printf('1\n');
 				}else{
-					printf('false\n');
+					printf('0\n');
 				}
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;
@@ -343,6 +348,7 @@ while(true){
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':
+			case 'bitcount':
 			case 'strlen':
 			case 'getset':
 			case 'setnx':
@@ -396,7 +402,6 @@ while(true){
 			case 'hset':
 			case 'del':
 			case 'zdel':
-			case 'hdel':
 				print resp.code;
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 				break;

@@ -145,6 +145,7 @@ class SSDB{
 			case 'getbit':
 			case 'setbit':
 			case 'countbit':
+			case 'bitcount':
 			case 'strlen':
 			case 'ttl':
 			case 'expire':
