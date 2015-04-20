@@ -7,7 +7,7 @@ DEVICE_SDK=$(DEVICEROOT)/SDKs/iPhoneOS$(IOSVERSION).sdk
 
 CFLAGS=-stdlib=libc++ -DHAVE_CONFIG_H -I. -O2
 SIMULATOR_CFLAGS=$(CFLAGS) -isysroot $(SIMULATOR_SDK) -arch i386 -arch x86_64
-DEVICE_CFLAGS=$(CFLAGS) -isysroot $(DEVICE_SDK) -arch armv6 -arch armv7
+DEVICE_CFLAGS=$(CFLAGS) -isysroot $(DEVICE_SDK) -arch armv6 -arch armv7 -arch armv7s -arch arm64
 
 #OBJS = $(patsubst %.cc, %.o, $(wildcard *.cc))
 OBJS = snappy-c.o snappy-sinksource.o snappy-stubs-internal.o snappy.o
