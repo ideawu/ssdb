@@ -65,7 +65,11 @@ TESTS = \
 PROGRAMS = db_bench leveldbutil $(TESTS)
 BENCHMARKS = db_bench_sqlite3 db_bench_tree_db
 
+ifeq ($(PLATFORM), IOS)
+LIBRARY = libleveldb-ios.a
+else
 LIBRARY = libleveldb.a
+endif
 MEMENVLIBRARY = libmemenv.a
 
 default: all
