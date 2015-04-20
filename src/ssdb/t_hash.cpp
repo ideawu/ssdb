@@ -131,6 +131,7 @@ int SSDBImpl::hget(const Bytes &name, const Bytes &key, std::string *val){
 		return 0;
 	}
 	if(!s.ok()){
+		log_error("%s", s.ToString().c_str());
 		return -1;
 	}
 	return 1;
