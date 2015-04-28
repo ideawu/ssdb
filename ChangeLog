@@ -1,5 +1,6 @@
 * 1.9.0
 	* New features:
+		- Update MAX_PACKET_SIZE to 128MB(2015-04-28)
 		- Process most read commands in reader threads, not main thread(2015-04-28)
 		- Add bitcount command, which is similar to Redis's bitcount(2015-04-15)
 		- Add zpop_front, zpop_back command(2015-04-01)
