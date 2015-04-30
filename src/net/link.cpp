@@ -82,8 +82,7 @@ void Link::noblock(bool enable){
 
 
 Link* Link::connect(const char *ip, int port){
-	Link *link;
-	int sock = -1;
+//	Link *link;
 
 	struct sockaddr_in addr;
 	bzero(&addr, sizeof(addr));
@@ -91,24 +90,29 @@ Link* Link::connect(const char *ip, int port){
 	addr.sin_port = htons((short)port);
 	inet_pton(AF_INET, ip, &addr.sin_addr);
 
-	if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
-		goto sock_err;
-	}
-	if(::connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
-		goto sock_err;
+	int sock = -1;
+	try{
+		if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
+			throw SOCKET_MAKE_ERROR;
+		}
+		if(::connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
+			throw SOCKET_CONNECT_ERROR;
+		}
+
+	}catch(...){
+		if(sock >= 0)
+			::close(sock);
+		return NULL;
 	}
 
 	//log_debug("fd: %d, connect to %s:%d", sock, ip, port);
-	link = new Link();
+	Link *link = new Link();
 	link->sock = sock;
 	link->keepalive(true);
 	return link;
-sock_err:
+
 	//log_debug("connect to %s:%d failed: %s", ip, port, strerror(errno));
-	if(sock >= 0){
-		::close(sock);
-	}
-	return NULL;
+
 }
 
 Link* Link::listen(const char *ip, int port){
