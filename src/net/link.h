@@ -16,6 +16,15 @@ found in the LICENSE file.
 
 #include "link_redis.h"
 
+
+/*
+ * define socket error
+ */
+
+const int SOCKET_MAKE_ERROR			=		0;
+const int SOCKET_CONNECT_ERROR		=		1;
+
+
 class Link{
 	private:
 		int sock;
