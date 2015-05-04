@@ -169,7 +169,7 @@ int main(int argc, char **argv){
 		}
 	}
 	link->send("dump", "A", "", "-1");
-	if(link->flush()<0){
+	if(link->flush() < 0){
 		fprintf(stderr, "ERROR: error sending dump!\n");
 		exit(1);
 	}
