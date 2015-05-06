@@ -92,6 +92,7 @@ int log_open(const char *filename, int level=Logger::LEVEL_DEBUG,
 	bool is_threadsafe=false, uint64_t rotate_size=0);
 int log_level();
 void set_log_level(int level);
+void set_log_level(const char *s);
 int log_write(int level, const char *fmt, ...);
 
 
