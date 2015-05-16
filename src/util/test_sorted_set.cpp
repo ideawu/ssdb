@@ -28,11 +28,11 @@ int main(int argc, char **argv){
 	}
 	log_debug("");
 	
-	std::string *key;
+	std::string key;
 	int64_t score;
 	int n = 0;
-	while(zset.front(key, &score)){
-		printf("%s : %4lld\n", key->c_str(), score);
+	while(zset.front(&key, &score)){
+		printf("%s : %4lld\n", key.c_str(), score);
 		zset.pop_front();
 		n ++;
 	}
