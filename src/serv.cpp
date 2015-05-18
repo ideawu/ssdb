@@ -132,35 +132,35 @@ DEF_PROC(cluster_migrate_kv_data);
 #define REG_PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
 
 void SSDBServer::reg_procs(NetworkServer *net){
-	REG_PROC(get, "r");
+	REG_PROC(get, "rt");
 	REG_PROC(set, "wt");
 	REG_PROC(del, "wt");
 	REG_PROC(setx, "wt");
 	REG_PROC(setnx, "wt");
 	REG_PROC(getset, "wt");
-	REG_PROC(getbit, "r");
+	REG_PROC(getbit, "rt");
 	REG_PROC(setbit, "wt");
-	REG_PROC(countbit, "r");
-	REG_PROC(substr, "r");
-	REG_PROC(getrange, "r");
-	REG_PROC(strlen, "r");
-	REG_PROC(bitcount, "r");
+	REG_PROC(countbit, "rt");
+	REG_PROC(substr, "rt");
+	REG_PROC(getrange, "rt");
+	REG_PROC(strlen, "rt");
+	REG_PROC(bitcount, "rt");
 	REG_PROC(incr, "wt");
 	REG_PROC(decr, "wt");
 	REG_PROC(scan, "rt");
 	REG_PROC(rscan, "rt");
 	REG_PROC(keys, "rt");
 	REG_PROC(rkeys, "rt");
-	REG_PROC(exists, "r");
-	REG_PROC(multi_exists, "r");
+	REG_PROC(exists, "rt");
+	REG_PROC(multi_exists, "rt");
 	REG_PROC(multi_get, "rt");
 	REG_PROC(multi_set, "wt");
 	REG_PROC(multi_del, "wt");
-	REG_PROC(ttl, "r");
+	REG_PROC(ttl, "rt");
 	REG_PROC(expire, "wt");
 
-	REG_PROC(hsize, "r");
-	REG_PROC(hget, "r");
+	REG_PROC(hsize, "rt");
+	REG_PROC(hget, "rt");
 	REG_PROC(hset, "wt");
 	REG_PROC(hdel, "wt");
 	REG_PROC(hincr, "wt");
@@ -173,9 +173,9 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(hvals, "rt");
 	REG_PROC(hlist, "rt");
 	REG_PROC(hrlist, "rt");
-	REG_PROC(hexists, "r");
-	REG_PROC(multi_hexists, "r");
-	REG_PROC(multi_hsize, "r");
+	REG_PROC(hexists, "rt");
+	REG_PROC(multi_hexists, "rt");
+	REG_PROC(multi_hsize, "rt");
 	REG_PROC(multi_hget, "rt");
 	REG_PROC(multi_hset, "wt");
 	REG_PROC(multi_hdel, "wt");
@@ -185,7 +185,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(zrrank, "rt");
 	REG_PROC(zrange, "rt");
 	REG_PROC(zrrange, "rt");
-	REG_PROC(zsize, "r");
+	REG_PROC(zsize, "rt");
 	REG_PROC(zget, "rt");
 	REG_PROC(zset, "wt");
 	REG_PROC(zdel, "wt");
@@ -202,18 +202,18 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(zavg, "rt");
 	REG_PROC(zremrangebyrank, "wt");
 	REG_PROC(zremrangebyscore, "wt");
-	REG_PROC(zexists, "r");
-	REG_PROC(multi_zexists, "r");
-	REG_PROC(multi_zsize, "r");
+	REG_PROC(zexists, "rt");
+	REG_PROC(multi_zexists, "rt");
+	REG_PROC(multi_zsize, "rt");
 	REG_PROC(multi_zget, "rt");
 	REG_PROC(multi_zset, "wt");
 	REG_PROC(multi_zdel, "wt");
 	REG_PROC(zpop_front, "wt");
 	REG_PROC(zpop_back, "wt");
 
-	REG_PROC(qsize, "r");
-	REG_PROC(qfront, "r");
-	REG_PROC(qback, "r");
+	REG_PROC(qsize, "rt");
+	REG_PROC(qfront, "rt");
+	REG_PROC(qback, "rt");
 	REG_PROC(qpush, "wt");
 	REG_PROC(qpush_front, "wt");
 	REG_PROC(qpush_back, "wt");
@@ -228,7 +228,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(qrlist, "rt");
 	REG_PROC(qslice, "rt");
 	REG_PROC(qrange, "rt");
-	REG_PROC(qget, "r");
+	REG_PROC(qget, "rt");
 	REG_PROC(qset, "wt");
 
 	REG_PROC(clear_binlog, "wt");
@@ -237,7 +237,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(sync140, "b");
 	REG_PROC(info, "r");
 	REG_PROC(version, "r");
-	REG_PROC(dbsize, "r");
+	REG_PROC(dbsize, "rt");
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
 	REG_PROC(compact, "rt");

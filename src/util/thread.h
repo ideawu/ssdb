@@ -102,7 +102,7 @@ class SelectableQueue{
 		int fd(){
 			return fds[0];
 		}
-
+		int size();
 		// multi writer
 		int push(const T item);
 		// single reader
@@ -261,6 +261,15 @@ int SelectableQueue<T>::push(const T item){
 	}
 	pthread_mutex_unlock(&mutex);
 	return 1;
+}
+
+template <class T>
+int SelectableQueue<T>::size(){
+	int ret = 0;
+	pthread_mutex_lock(&mutex);
+	ret = items.size();
+	pthread_mutex_unlock(&mutex);
+	return ret;
 }
 
 template <class T>
