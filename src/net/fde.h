@@ -9,7 +9,7 @@ found in the LICENSE file.
 #include "../include.h"
 
 #ifdef __linux__
-	#define HAVE_EPOLL 1
+	#define HAVE_EPOLL 
 #endif
 
 #define FDEVENT_NONE	(0)
