@@ -16,6 +16,8 @@ static DEF_PROC(ping);
 static DEF_PROC(info);
 static DEF_PROC(auth);
 
+NetworkServer* NetworkServer::m_NetworkServer = NULL;
+
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
 static const int READER_THREADS = 10;
@@ -109,13 +111,12 @@ NetworkServer* NetworkServer::init(const char *conf_file, int num_readers, int n
 }
 
 NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_writers){
-	static bool inited = false;
-	if(inited){
-		return NULL;
-	}
-	inited = true;
-	
+	if (m_NetworkServer != NULL)
+		return m_NetworkServer;
+
 	NetworkServer *serv = new NetworkServer();
+	m_NetworkServer = serv;
+
 	if(num_readers >= 0){
 		serv->num_readers = num_readers;
 	}
@@ -285,6 +286,7 @@ void NetworkServer::serve(){
 		} // end foreach ready link
 	}
 }
+
 
 Link* NetworkServer::accept_link(){
 	Link *link = serv_link->accept();
