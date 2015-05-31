@@ -506,7 +506,7 @@ class SSDB
 		try{
 			while(true){
 				$ret = @fwrite($this->sock, $s);
-				if($ret === false){
+				if($ret === false || $ret === 0){
 					$this->close();
 					throw new SSDBException('Connection lost');
 				}
@@ -526,6 +526,7 @@ class SSDB
 	private function recv(){
 		$this->step = self::STEP_SIZE;
 		while(true){
+			echo 'w';
 			$ret = $this->parse();
 			if($ret === null){
 				try{
