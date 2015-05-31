@@ -526,7 +526,6 @@ class SSDB
 	private function recv(){
 		$this->step = self::STEP_SIZE;
 		while(true){
-			echo 'w';
 			$ret = $this->parse();
 			if($ret === null){
 				try{
