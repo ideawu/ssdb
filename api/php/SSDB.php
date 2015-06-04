@@ -85,6 +85,12 @@ class SSDB
 		}
 	}
 	
+	function set_timeout($timeout_ms){
+		$timeout_sec = intval($timeout_ms/1000);
+		$timeout_usec = ($timeout_ms - $timeout_sec * 1000) * 1000;
+		@stream_set_timeout($this->sock, $timeout_sec, $timeout_usec);
+	}
+	
 	/**
 	 * After this method invoked with yesno=true, all requesting methods
 	 * will not return a SSDB_Response object.
