@@ -32,16 +32,16 @@ install:
 	mkdir -p ${PREFIX}/deps
 	mkdir -p ${PREFIX}/var
 	mkdir -p ${PREFIX}/var_slave
-	cp ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
-	cp -r api ${PREFIX}
-	cp -r \
+	cp -f ssdb-server ssdb.conf ssdb_slave.conf ${PREFIX}
+	cp -rf api ${PREFIX}
+	cp -rf \
 		tools/ssdb-bench \
 		tools/ssdb-cli tools/ssdb_cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
 		tools/ssdb-repair \
 		tools/ssdb-ins.sh \
 		${PREFIX}
-	cp -r deps/cpy ${PREFIX}/deps
+	cp -rf deps/cpy ${PREFIX}/deps
 	chmod 755 ${PREFIX}
 	chmod -R ugo+rw ${PREFIX}/*
 	rm -f ${PREFIX}/Makefile
