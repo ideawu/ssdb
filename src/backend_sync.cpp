@@ -65,7 +65,7 @@ void BackendSync::proc(const Link *link){
 }
 
 void* BackendSync::_run_thread(void *arg){
-       pthread_detach(pthread_self());
+        pthread_detach(pthread_self());
 	struct run_arg *p = (struct run_arg*)arg;
 	BackendSync *backend = (BackendSync *)p->backend;
 	Link *link = (Link *)p->link;
