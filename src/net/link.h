@@ -11,7 +11,9 @@ found in the LICENSE file.
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#ifdef _UNIX_SOCKETS_
 #include <sys/un.h>
+#endif
 
 #include "../util/bytes.h"
 
@@ -62,7 +64,9 @@ class Link{
 
 		static Link* connect(const char *ip, int port);
 		static Link* listen(const char *ip, int port);
+#ifdef _UNIX_SOCKETS_
                 static Link* listen(const char *socket);
+#endif
 		Link* accept();
 
 		// read network data info buffer

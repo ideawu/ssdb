@@ -113,6 +113,7 @@ sock_err:
 	return NULL;
 }
 
+#ifdef _UNIX_SOCKETS_
 Link* Link::listen(const char *socket){
         Link *link;
         int sock = -1;
@@ -146,7 +147,6 @@ Link* Link::listen(const char *socket){
         addr.sun_family = AF_UNIX;
         strncpy(addr.sun_path, socket, sizeof(addr.sun_path));
         if((sock = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
-                log_debug("here");
                 goto sock_err;
         }
         if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
@@ -168,7 +168,7 @@ sock_err:
         }
         return NULL;
 }
-
+#endif
 
         
 Link* Link::listen(const char *ip, int port){
