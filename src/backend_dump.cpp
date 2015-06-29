@@ -30,6 +30,7 @@ void BackendDump::proc(const Link *link){
 }
 
 void* BackendDump::_run_thread(void *arg){
+	pthread_detach(pthread_self());
 	struct run_arg *p = (struct run_arg*)arg;
 	const BackendDump *backend = p->backend;
 	Link *link = (Link *)p->link;
