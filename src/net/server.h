@@ -14,6 +14,8 @@ found in the LICENSE file.
 #include "proc.h"
 #include "worker.h"
 
+#define SERVER_LINKS 2
+
 class Link;
 class Config;
 class IpFilter;
@@ -28,11 +30,11 @@ private:
 	int status_report_ticks;
 
 	//Config *conf;
-	Link *serv_link;
+	Link *serv_link[SERVER_LINKS];
 	IpFilter *ip_filter;
 	Fdevents *fdes;
 
-	Link* accept_link();
+	Link* accept_link(int index);
 	int proc_result(ProcJob *job, ready_list_t *ready_list);
 	int proc_client_event(const Fdevent *fde, ready_list_t *ready_list);
 

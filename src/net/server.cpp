@@ -46,7 +46,13 @@ NetworkServer::NetworkServer(){
 	status_report_ticks = STATUS_REPORT_TICKS;
 
 	//conf = NULL;
-	serv_link = NULL;
+	Link *serv_link[SERVER_LINKS] = {}; // current support is one AF_INET and one AF_UNIX
+        /*
+        for (int i=0; i < SERVER_LINKS; i++) {
+                log_debug("Setting to null %i", i);
+                serv_link[i] = NULL;
+        }
+        */
 	link_count = 0;
 
 	fdes = new Fdevents();
@@ -75,7 +81,11 @@ NetworkServer::NetworkServer(){
 	
 NetworkServer::~NetworkServer(){
 	//delete conf;
-	delete serv_link;
+        for(int i=0; i < SERVER_LINKS; i++) {
+                if (serv_link[i] != NULL) {
+	                delete serv_link[i];
+                }
+        }
 	delete fdes;
 	delete ip_filter;
 
@@ -146,17 +156,33 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 	{ // server
 		const char *ip = conf.get_str("server.ip");
 		int port = conf.get_num("server.port");
+                const char *socket = conf.get_str("server.socket");
+
 		if(ip == NULL || ip[0] == '\0'){
-			ip = "127.0.0.1";
+                        log_debug("No inet socket configured");
 		}
-		
-		serv->serv_link = Link::listen(ip, port);
-		if(serv->serv_link == NULL){
-			log_fatal("error opening server socket! %s", strerror(errno));
-			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
-			exit(1);
-		}
-		log_info("server listen on %s:%d", ip, port);
+                else {
+		        serv->serv_link[0] = Link::listen(ip, port);
+                        if(serv->serv_link[0] == NULL){
+                                log_fatal("error opening server inet socket! %s", strerror(errno));
+                                fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
+                                exit(1);
+                        }
+                        log_info("server listens on %s:%d", ip, port);
+                }
+
+                if (socket == NULL || socket[0] == '\0') {
+                        log_debug("No unix domainsocket configured");
+                }
+                else {
+                        serv->serv_link[1] = Link::listen(socket);
+                        if(serv->serv_link[1] == NULL){
+                                log_fatal("error opening server unix socket! %s", strerror(errno));
+                                fprintf(stderr, "error opening server unix socket! %s\n", strerror(errno));
+                                exit(1);
+                        }
+                        log_info("server listens on %s", socket);
+                }
 
 		std::string password;
 		password = conf.get_str("server.auth");
@@ -175,6 +201,7 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			serv->need_auth = true;
 			serv->password = password;
 		}
+
 	}
 	return serv;
 }
@@ -190,7 +217,11 @@ void NetworkServer::serve(){
 	ready_list_t::iterator it;
 	const Fdevents::events_t *events;
 
-	fdes->set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
+        for(int i=0; i < SERVER_LINKS; i++) {
+                if(serv_link[i] != NULL) {
+                        fdes->set(serv_link[i]->fd(), FDEVENT_IN, 0, serv_link[i]);
+                }
+        }
 	fdes->set(this->reader->fd(), FDEVENT_IN, 0, this->reader);
 	fdes->set(this->writer->fd(), FDEVENT_IN, 0, this->writer);
 	
@@ -219,15 +250,23 @@ void NetworkServer::serve(){
 		
 		for(int i=0; i<(int)events->size(); i++){
 			const Fdevent *fde = events->at(i);
-			if(fde->data.ptr == serv_link){
-				Link *link = accept_link();
-				if(link){
-					this->link_count ++;				
-					log_debug("new link from %s:%d, fd: %d, links: %d",
-						link->remote_ip, link->remote_port, link->fd(), this->link_count);
-					fdes->set(link->fd(), FDEVENT_IN, 1, link);
-				}
-			}else if(fde->data.ptr == this->reader || fde->data.ptr == this->writer){
+                        int j;
+                        for(j=0; j < SERVER_LINKS; j++) {
+                                // check for new connections
+                                if (serv_link[j] != NULL && serv_link[j] == fde->data.ptr)
+                                        break;
+                        }
+                        if (j < SERVER_LINKS) {
+                                // there was a match
+                                log_debug("attempting to accept");
+                                Link *link = accept_link(j);
+                                if(link){
+                                        this->link_count ++;				
+                                        log_debug("new link from %s:%d, fd: %d, links: %d",
+                                        link->remote_ip, link->remote_port, link->fd(), this->link_count);
+                                        fdes->set(link->fd(), FDEVENT_IN, 1, link);
+                                }
+                        } else if(fde->data.ptr == this->reader || fde->data.ptr == this->writer){
 				ProcWorkerPool *worker = (ProcWorkerPool *)fde->data.ptr;
 				ProcJob job;
 				if(worker->pop(&job) == 0){
@@ -286,8 +325,8 @@ void NetworkServer::serve(){
 	}
 }
 
-Link* NetworkServer::accept_link(){
-	Link *link = serv_link->accept();
+Link* NetworkServer::accept_link(int index){
+	Link *link = serv_link[index]->accept();
 	if(link == NULL){
 		log_error("accept failed! %s", strerror(errno));
 		return NULL;
