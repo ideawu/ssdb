@@ -76,11 +76,11 @@ std::string real_dirname(const char *filepath){
 		if(p != NULL){
 			dir.append(p);
 		}
+		dir.append("/");
 	}
 
 	const char *p = strrchr(filepath, '/');
 	if(p != NULL){
-		dir.append("/");
 		dir.append(filepath, p - filepath);
 	}
 	return dir;
