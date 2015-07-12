@@ -236,6 +236,7 @@ int Queue<T>::pop(T *data){
 template <class T>
 SelectableQueue<T>::SelectableQueue(){
 	if(pipe(fds) == -1){
+		fprintf(stderr, "create pipe error\n");
 		exit(0);
 	}
 	pthread_mutex_init(&mutex, NULL);
@@ -257,6 +258,7 @@ int SelectableQueue<T>::push(const T item){
 		items.push(item);
 	}
 	if(::write(fds[1], "1", 1) == -1){
+		fprintf(stderr, "write fds error\n");
 		exit(0);
 	}
 	pthread_mutex_unlock(&mutex);
