@@ -150,14 +150,14 @@ function run(link, args){
 	scan.name = ls.key;
 	while(scan.next()){
 		show_progress();
-		write_line(['qpush', ls.key, scan.key]);
+		write_line(['qpush', ls.key, scan.val]);
 	}
 	while(ls.next()){
 		scan = new SSDB_queue_scan(link);
 		scan.name = ls.key;
 		while(scan.next()){
 			show_progress();
-			write_line(['qpush', ls.key, scan.key]);
+			write_line(['qpush', ls.key, scan.val]);
 		}
 	}
 	
