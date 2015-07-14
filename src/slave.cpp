@@ -165,7 +165,7 @@ int Slave::connect(){
 		log_info("[%s][%d] connecting to master at %s:%d...", this->id_.c_str(), (connect_retry-1)/50, ip, port);
 		link = Link::connect(ip, port);
 		if(link == NULL){
-			log_error("[%s]failed to connect to master: %s:%d!", this->id_.c_str(), ip, port);
+			log_error("[%s]failed to connect to master: %s:%d! %s", this->id_.c_str(), ip, port, strerror(errno));
 			goto err;
 		}else{
 			status = INIT;
