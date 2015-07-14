@@ -309,7 +309,7 @@ int SSDBImpl::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back
 		
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
-		log_error("Write error!");
+		log_error("Write error! %s", s.ToString().c_str());
 		return -1;
 	}
 	return 1;

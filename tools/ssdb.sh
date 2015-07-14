@@ -4,6 +4,7 @@
 # description: SSDB startup scripts
 #
 ssdb_root=/usr/local/ssdb
+ssdb_bin=$ssdb_root/ssdb-server
 # each config file for one instance
 # configs="/data/ssdb_data/test/ssdb.conf /data/ssdb_data/test2/ssdb.conf"
 configs="/data/ssdb_data/test/ssdb.conf"
@@ -15,13 +16,13 @@ fi
  
 start() {
 	for conf in $configs; do
-		$ssdb_root/ssdb-ins.sh start $conf
+		$ssdb_bin $conf -s restart -d
 	done
 }
  
 stop() {
 	for conf in $configs; do
-		$ssdb_root/ssdb-ins.sh stop $conf
+		$ssdb_bin $conf -s stop -d
 	done
 }
  
@@ -33,18 +34,12 @@ case "$1" in
     stop)
         stop
         ;;
-    status)
-        ;;
     restart)
         stop
         start
         ;;
-    condrestart)
-        ;;
-    reload)
-        ;;
     *)
-        echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+        echo $"Usage: $0 {start|stop|restart}"
         ;;
 esac
 exit $RETVAL
