@@ -165,7 +165,11 @@ int proc_zrank(NetworkServer *net, Link *link, const Request &req, Response *res
 	CHECK_NUM_PARAMS(3);
 
 	int64_t ret = serv->ssdb->zrank(req[1], req[2]);
-	resp->reply_int(ret, ret);
+	if(ret == -1){
+		resp->add("not_found");
+	}else{
+		resp->reply_int(ret, ret);
+	}
 	return 0;
 }
 
@@ -174,7 +178,11 @@ int proc_zrrank(NetworkServer *net, Link *link, const Request &req, Response *re
 	CHECK_NUM_PARAMS(3);
 
 	int64_t ret = serv->ssdb->zrrank(req[1], req[2]);
-	resp->reply_int(ret, ret);
+	if(ret == -1){
+		resp->add("not_found");
+	}else{
+		resp->reply_int(ret, ret);
+	}
 	return 0;
 }
 
