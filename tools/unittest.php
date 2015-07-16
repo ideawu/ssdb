@@ -384,6 +384,8 @@ class SSDBTest extends UnitTest{
 		$ret = $ssdb->zset($name, 'a', $val);
 		$ret = $ssdb->zset($name, 'b', $val);
 
+		$ret = $ssdb->zrank($name, 'aaaaaaaa');
+		$this->assert($ret === null);
 		$ret = $ssdb->zrank($name, 'a');
 		$this->assert($ret != -1);
 		$ret = $ssdb->zrrank($name, 'a');

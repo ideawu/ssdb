@@ -1,3 +1,7 @@
+* 1.9.1
+	* Incompatible changes:
+		- zrank/zrrank return not_found(prev is error) if member not exists(2015-07-16)
+		- PHP API zrank/zrrank return null(prev is false) if member not exists(2015-07-16)
 * 1.9.0
 	* New features:
 		- Update MAX_PACKET_SIZE to 128MB(2015-04-28)
