@@ -112,6 +112,37 @@ int SSDBImpl::getset(const Bytes &key, std::string *val, const Bytes &newval, ch
 	return found;
 }
 
+int SSDBImpl::cmpset(const Bytes &key, const Bytes &cmpval, const Bytes &newval, int64_t *changed, char log_type){
+	if(key.empty()){
+		log_error("empty key!");
+		//return -1;
+		return 0;
+	}
+	Transaction trans(binlogs);
+
+	std::string val;
+	int found = this->get(key, &val);
+
+	*changed = 0;
+	if (found == 1)
+	{
+		if (val == cmpval)
+		{
+			std::string buf = encode_kv_key(key);
+			binlogs->Put(buf, slice(newval));
+			binlogs->add_log(log_type, BinlogCommand::KSET, buf);
+			leveldb::Status s = binlogs->commit();
+			if (! s.ok())
+			{
+				log_error("set error: %s", s.ToString().c_str());
+				return -1;
+			}
+			//changed
+			*changed = 1;
+		}
+	}
+	return found;
+}
 
 int SSDBImpl::del(const Bytes &key, char log_type){
 	Transaction trans(binlogs);
