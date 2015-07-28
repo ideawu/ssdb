@@ -70,6 +70,7 @@ public:
 	
 	virtual int get(const Bytes &key, std::string *val);
 	virtual int getset(const Bytes &key, std::string *val, const Bytes &newval, char log_type=BinlogType::SYNC);
+	virtual int cmpset(const Bytes &key, const Bytes &cmpval, const Bytes &newval, int64_t *changed, char log_type=BinlogType::SYNC);
 	// return (start, end]
 	virtual KIterator* scan(const Bytes &start, const Bytes &end, uint64_t limit);
 	virtual KIterator* rscan(const Bytes &start, const Bytes &end, uint64_t limit);

@@ -203,6 +203,20 @@ Status ClientImpl::set(const std::string &key, const std::string &val){
 	return s;
 }
 
+Status ClientImpl::getset(const std::string &key, const std::string &setval, std::string *val)
+{
+	const std::vector<std::string> *resp;
+	resp = this->request("getset", key, setval);
+	return _read_str(resp, val);
+}
+
+Status ClientImpl::cmpset(const std::string &key, const std::string &cmpval, const std::string &setval, int64_t *changed )
+{
+	const std::vector<std::string> *resp;
+	resp = this->request("cmpset", key, cmpval, setval);
+	return _read_int64(resp, changed);
+}
+
 Status ClientImpl::setx(const std::string &key, const std::string &val, int ttl){
 	const std::vector<std::string> *resp;
 	resp = this->request("setx", key, val, str(ttl));
@@ -551,4 +565,10 @@ Status ClientImpl::qclear(const std::string &name, int64_t *ret){
 	return _read_int64(resp, ret);
 }
 
+Status ClientImpl::qsize( const std::string & name, int64_t & size )
+{
+	size = 0;
+	const std::vector<std::string> *resp = this->request( "qsize", name );
+	return _read_int64( resp, &size );
+}
 }; // namespace ssdb

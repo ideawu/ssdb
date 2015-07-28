@@ -15,6 +15,7 @@ DEF_PROC(set);
 DEF_PROC(setx);
 DEF_PROC(setnx);
 DEF_PROC(getset);
+DEF_PROC(cmpset);
 DEF_PROC(getbit);
 DEF_PROC(setbit);
 DEF_PROC(countbit);
@@ -138,6 +139,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(setx, "wt");
 	REG_PROC(setnx, "wt");
 	REG_PROC(getset, "wt");
+	REG_PROC(cmpset, "wt");
 	REG_PROC(getbit, "rt");
 	REG_PROC(setbit, "wt");
 	REG_PROC(countbit, "rt");

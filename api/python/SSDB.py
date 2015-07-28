@@ -104,7 +104,7 @@ class SSDB(object):
 					pass
 					return SSDB_Response(resp[0], resp[1 : ])
 				break
-			if False or ((cmd) == 'substr') or ((cmd) == 'get') or ((cmd) == 'getset') or ((cmd) == 'hget') or ((cmd) == 'qfront') or ((cmd) == 'qback') or ((cmd) == 'qget'):
+			if False or ((cmd) == 'substr') or ((cmd) == 'get') or ((cmd) == 'getset') or ((cmd) == 'cmpset') or ((cmd) == 'hget') or ((cmd) == 'qfront') or ((cmd) == 'qback') or ((cmd) == 'qget'):
 				pass
 
 				if resp[0]=='ok':

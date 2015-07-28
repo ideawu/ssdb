@@ -92,6 +92,9 @@ public:
 	/// @{
 	virtual Status get(const std::string &key, std::string *val) = 0;
 	virtual Status set(const std::string &key, const std::string &val) = 0;
+	
+	virtual Status getset(const std::string &key, const std::string &setval, std::string *val) = 0;
+	virtual Status cmpset(const std::string &key, const std::string &cmpval, const std::string &setval, int64_t *changed ) = 0;
 	/**
 	 * Set the value of the key, with a time to live.
 	 */
@@ -235,6 +238,7 @@ public:
 	virtual Status qpop(const std::string &name, std::string *item) = 0;
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret) = 0;
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL) = 0;
+	virtual Status qsize( const std::string & key, int64_t & size ) = 0;
 private:
 	// No copying allowed
 	Client(const Client&);

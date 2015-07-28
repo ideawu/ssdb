@@ -105,6 +105,7 @@ class SSDB{
 			case 'substr':
 			case 'get':
 			case 'getset':
+			case 'cmpset':
 			case 'hget':
 			case 'qfront':
 			case 'qback':
