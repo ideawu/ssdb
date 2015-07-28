@@ -12,6 +12,7 @@ var/*
 var_*
 var_slave/*
 dev_ssdb.conf*
+dev_slave.conf
 *.swp
 *_cpy_*
 *.dSYM*

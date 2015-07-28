@@ -28,7 +28,7 @@ class SSDBImpl : public SSDB
 {
 private:
 	friend class SSDB;
-	leveldb::DB* db;
+	leveldb::DB* ldb;
 	leveldb::Options options;
 	
 	SSDBImpl();
@@ -36,6 +36,8 @@ public:
 	BinlogQueue *binlogs;
 	
 	virtual ~SSDBImpl();
+
+	virtual int flushdb();
 
 	// return (start, end], not include start
 	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit);

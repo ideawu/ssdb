@@ -72,7 +72,7 @@ int64_t SSDBImpl::qsize(const Bytes &name){
 	std::string val;
 
 	leveldb::Status s;
-	s = db->Get(leveldb::ReadOptions(), key, &val);
+	s = ldb->Get(leveldb::ReadOptions(), key, &val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
@@ -90,14 +90,14 @@ int64_t SSDBImpl::qsize(const Bytes &name){
 int SSDBImpl::qfront(const Bytes &name, std::string *item){
 	int ret = 0;
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+	ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &seq);
 	if(ret == -1){
 		return -1;
 	}
 	if(ret == 0){
 		return 0;
 	}
-	ret = qget_by_seq(this->db, name, seq, item);
+	ret = qget_by_seq(this->ldb, name, seq, item);
 	return ret;
 }
 
@@ -105,14 +105,14 @@ int SSDBImpl::qfront(const Bytes &name, std::string *item){
 int SSDBImpl::qback(const Bytes &name, std::string *item){
 	int ret = 0;
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+	ret = qget_uint64(this->ldb, name, QBACK_SEQ, &seq);
 	if(ret == -1){
 		return -1;
 	}
 	if(ret == 0){
 		return 0;
 	}
-	ret = qget_by_seq(this->db, name, seq, item);
+	ret = qget_by_seq(this->ldb, name, seq, item);
 	return ret;
 }
 
@@ -124,7 +124,7 @@ int SSDBImpl::qset_by_seq(const Bytes &name, uint64_t seq, const Bytes &item, ch
 	if(size == -1){
 		return -1;
 	}
-	ret = qget_uint64(this->db, name, QFRONT_SEQ, &min_seq);
+	ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &min_seq);
 	if(ret == -1){
 		return -1;
 	}
@@ -163,10 +163,10 @@ int SSDBImpl::qset(const Bytes &name, int64_t index, const Bytes &item, char log
 	int ret;
 	uint64_t seq;
 	if(index >= 0){
-		ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+		ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &seq);
 		seq += index;
 	}else{
-		ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+		ret = qget_uint64(this->ldb, name, QBACK_SEQ, &seq);
 		seq += index + 1;
 	}
 	if(ret == -1){
@@ -199,7 +199,7 @@ int64_t SSDBImpl::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or
 	int ret;
 	// generate seq
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, front_or_back_seq, &seq);
+	ret = qget_uint64(this->ldb, name, front_or_back_seq, &seq);
 	if(ret == -1){
 		return -1;
 	}
@@ -263,7 +263,7 @@ int SSDBImpl::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back
 	
 	int ret;
 	uint64_t seq;
-	ret = qget_uint64(this->db, name, front_or_back_seq, &seq);
+	ret = qget_uint64(this->ldb, name, front_or_back_seq, &seq);
 	if(ret == -1){
 		return -1;
 	}
@@ -271,7 +271,7 @@ int SSDBImpl::_qpop(const Bytes &name, std::string *item, uint64_t front_or_back
 		return 0;
 	}
 	
-	ret = qget_by_seq(this->db, name, seq, item);
+	ret = qget_by_seq(this->ldb, name, seq, item);
 	if(ret == -1){
 		return -1;
 	}
@@ -429,7 +429,7 @@ int SSDBImpl::qslice(const Bytes &name, int64_t begin, int64_t end,
 	uint64_t seq_begin, seq_end;
 	if(begin >= 0 && end >= 0){
 		uint64_t tmp_seq;
-		ret = qget_uint64(this->db, name, QFRONT_SEQ, &tmp_seq);
+		ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &tmp_seq);
 		if(ret != 1){
 			return ret;
 		}
@@ -437,7 +437,7 @@ int SSDBImpl::qslice(const Bytes &name, int64_t begin, int64_t end,
 		seq_end = tmp_seq + end;
 	}else if(begin < 0 && end < 0){
 		uint64_t tmp_seq;
-		ret = qget_uint64(this->db, name, QBACK_SEQ, &tmp_seq);
+		ret = qget_uint64(this->ldb, name, QBACK_SEQ, &tmp_seq);
 		if(ret != 1){
 			return ret;
 		}
@@ -445,11 +445,11 @@ int SSDBImpl::qslice(const Bytes &name, int64_t begin, int64_t end,
 		seq_end = tmp_seq + end + 1;
 	}else{
 		uint64_t f_seq, b_seq;
-		ret = qget_uint64(this->db, name, QFRONT_SEQ, &f_seq);
+		ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &f_seq);
 		if(ret != 1){
 			return ret;
 		}
-		ret = qget_uint64(this->db, name, QBACK_SEQ, &b_seq);
+		ret = qget_uint64(this->ldb, name, QBACK_SEQ, &b_seq);
 		if(ret != 1){
 			return ret;
 		}
@@ -467,7 +467,7 @@ int SSDBImpl::qslice(const Bytes &name, int64_t begin, int64_t end,
 	
 	for(; seq_begin <= seq_end; seq_begin++){
 		std::string item;
-		ret = qget_by_seq(this->db, name, seq_begin, &item);
+		ret = qget_by_seq(this->ldb, name, seq_begin, &item);
 		if(ret == -1){
 			return -1;
 		}
@@ -483,10 +483,10 @@ int SSDBImpl::qget(const Bytes &name, int64_t index, std::string *item){
 	int ret;
 	uint64_t seq;
 	if(index >= 0){
-		ret = qget_uint64(this->db, name, QFRONT_SEQ, &seq);
+		ret = qget_uint64(this->ldb, name, QFRONT_SEQ, &seq);
 		seq += index;
 	}else{
-		ret = qget_uint64(this->db, name, QBACK_SEQ, &seq);
+		ret = qget_uint64(this->ldb, name, QBACK_SEQ, &seq);
 		seq += index + 1;
 	}
 	if(ret == -1){
@@ -496,6 +496,6 @@ int SSDBImpl::qget(const Bytes &name, int64_t index, std::string *item){
 		return 0;
 	}
 	
-	ret = qget_by_seq(this->db, name, seq, item);
+	ret = qget_by_seq(this->ldb, name, seq, item);
 	return ret;
 }

@@ -210,8 +210,9 @@ void BackendSync::Client::init(){
 		}
 	}
 	const char *type = is_mirror? "mirror" : "sync";
+	// a slave must reset its last_key when receiving 'copy_end' command
 	if(last_key == "" && last_seq != 0){
-		log_info("[%s] %s:%d fd: %d, sync, seq: %" PRIu64 ", key: '%s'",
+		log_info("[%s] %s:%d fd: %d, sync recover, seq: %" PRIu64 ", key: '%s'",
 			type,
 			link->remote_ip, link->remote_port,
 			link->fd(),
@@ -222,8 +223,15 @@ void BackendSync::Client::init(){
 		Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::END, "");
 		log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 		link->send(log.repr(), "copy_end");
+	}else if(last_key == "" && last_seq == 0){
+		log_info("[%s] %s:%d fd: %d, copy begin, seq: %" PRIu64 ", key: '%s'",
+			type,
+			link->remote_ip, link->remote_port,
+			link->fd(),
+			last_seq, hexmem(last_key.data(), last_key.size()).c_str()
+			);
+		this->reset();
 	}else{
-		// a slave must reset its last_key when receiving 'copy_end' command
 		log_info("[%s] %s:%d fd: %d, copy recover, seq: %" PRIu64 ", key: '%s'",
 			type,
 			link->remote_ip, link->remote_port,
