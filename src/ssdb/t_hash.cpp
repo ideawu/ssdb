@@ -87,7 +87,7 @@ int64_t SSDBImpl::hsize(const Bytes &name){
 	std::string val;
 	leveldb::Status s;
 
-	s = db->Get(leveldb::ReadOptions(), size_key, &val);
+	s = ldb->Get(leveldb::ReadOptions(), size_key, &val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
@@ -126,7 +126,7 @@ int64_t SSDBImpl::hclear(const Bytes &name){
 
 int SSDBImpl::hget(const Bytes &name, const Bytes &key, std::string *val){
 	std::string dbkey = encode_hash_key(name, key);
-	leveldb::Status s = db->Get(leveldb::ReadOptions(), dbkey, val);
+	leveldb::Status s = ldb->Get(leveldb::ReadOptions(), dbkey, val);
 	if(s.IsNotFound()){
 		return 0;
 	}

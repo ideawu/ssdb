@@ -159,7 +159,7 @@ int SSDBImpl::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type
 int SSDBImpl::get(const Bytes &key, std::string *val){
 	std::string buf = encode_kv_key(key);
 
-	leveldb::Status s = db->Get(leveldb::ReadOptions(), buf, val);
+	leveldb::Status s = ldb->Get(leveldb::ReadOptions(), buf, val);
 	if(s.IsNotFound()){
 		return 0;
 	}

@@ -91,7 +91,7 @@ int64_t SSDBImpl::zsize(const Bytes &name){
 	std::string val;
 	leveldb::Status s;
 
-	s = db->Get(leveldb::ReadOptions(), size_key, &val);
+	s = ldb->Get(leveldb::ReadOptions(), size_key, &val);
 	if(s.IsNotFound()){
 		return 0;
 	}else if(!s.ok()){
@@ -107,7 +107,7 @@ int64_t SSDBImpl::zsize(const Bytes &name){
 
 int SSDBImpl::zget(const Bytes &name, const Bytes &key, std::string *score){
 	std::string buf = encode_zset_key(name, key);
-	leveldb::Status s = db->Get(leveldb::ReadOptions(), buf, score);
+	leveldb::Status s = ldb->Get(leveldb::ReadOptions(), buf, score);
 	if(s.IsNotFound()){
 		return 0;
 	}
