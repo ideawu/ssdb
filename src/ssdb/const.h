@@ -8,6 +8,7 @@ found in the LICENSE file.
 
 static const int SSDB_SCORE_WIDTH		= 9;
 static const int SSDB_KEY_LEN_MAX		= 255;
+static const int SSDB_SUB_KEY_LEN_MAX   = 16443;
 
 class DataType{
 public:
