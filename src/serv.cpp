@@ -87,6 +87,26 @@ DEF_PROC(multi_zset);
 DEF_PROC(multi_zdel);
 DEF_PROC(zpop_front);
 DEF_PROC(zpop_back);
+
+
+DEF_PROC(nexists);
+DEF_PROC(multi_nset);
+DEF_PROC(nset);
+DEF_PROC(nsize);
+DEF_PROC(nget);
+DEF_PROC(nrange);
+DEF_PROC(nrrange);
+DEF_PROC(nclear);
+DEF_PROC(nscan);
+DEF_PROC(nrscan);
+DEF_PROC(nlist);
+DEF_PROC(nrlist);
+DEF_PROC(nsum);
+DEF_PROC(navg);
+DEF_PROC(nremrangebyscore);
+DEF_PROC(nremrangebyrank);
+DEF_PROC(npop_front);
+DEF_PROC(npop_back);
 	
 DEF_PROC(qsize);
 DEF_PROC(qfront);
@@ -210,6 +230,27 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(multi_zdel, "wt");
 	REG_PROC(zpop_front, "wt");
 	REG_PROC(zpop_back, "wt");
+
+	//nset
+	REG_PROC(nexists, "rt");
+	REG_PROC(multi_nset, "wt");
+	REG_PROC(nset, "wt");
+	REG_PROC(nsize, "rt");
+	REG_PROC(nget, "rt");
+	REG_PROC(nrange, "rt");
+	REG_PROC(nrrange, "rt");
+	REG_PROC(nclear, "wt");
+	REG_PROC(nscan, "rt");
+	REG_PROC(nrscan, "rt");
+	REG_PROC(nlist, "rt");
+	REG_PROC(nrlist, "rt");
+	REG_PROC(nsum, "rt");
+	REG_PROC(navg, "rt");
+	REG_PROC(nremrangebyscore, "rt");
+	REG_PROC(nremrangebyrank, "rt");
+	REG_PROC(npop_front, "wt");
+	REG_PROC(npop_back, "wt");
+
 
 	REG_PROC(qsize, "rt");
 	REG_PROC(qfront, "rt");

@@ -82,5 +82,20 @@ private:
 	Iterator *it;
 };
 
+class NIterator{
+public:
+	std::string name;
+	std::string score;
+	std::string val;
+
+	NIterator(Iterator *it, const Bytes &name);
+	~NIterator();
+	void return_val(bool onoff);
+	bool skip(uint64_t offset);
+	bool next();
+private:
+	Iterator *it;
+	bool return_val_;
+};
 
 #endif

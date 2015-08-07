@@ -301,7 +301,7 @@ static int zset_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &key, const B
 		log_error("name too long!");
 		return -1;
 	}
-	if(key.size() > SSDB_SUB_KEY_LEN_MAX){
+	if(key.size() > SSDB_KEY_LEN_MAX){
 		log_error("key too long!");
 		return -1;
 	}

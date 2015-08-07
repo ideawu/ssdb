@@ -7,6 +7,7 @@ found in the LICENSE file.
 #include "t_kv.h"
 #include "t_hash.h"
 #include "t_zset.h"
+#include "t_nset.h"
 #include "t_queue.h"
 #include "../util/log.h"
 #include "../util/config.h"
@@ -188,6 +189,55 @@ bool ZIterator::next(){
 		}
 		if(decode_zscore_key(ks, NULL, &key, &score) == -1){
 			continue;
+		}
+		return true;
+	}
+	return false;
+}
+
+/* NSET */
+NIterator::NIterator(Iterator *it, const Bytes &name){
+	this->it = it;
+	this->name.assign(name.data(), name.size());
+	this->return_val_ = true;
+}
+
+NIterator::~NIterator(){
+	delete it;
+}
+
+void NIterator::return_val(bool onoff){
+	this->return_val_ = onoff;
+}
+
+
+bool NIterator::skip(uint64_t offset){
+	while(offset-- > 0){
+		if(this->next() == false){
+			return false;
+		}
+	}
+	return true;
+}
+
+bool NIterator::next(){
+	while(it->next()){
+		Bytes ks = it->key();
+		Bytes vs = it->val();
+		//dump(ks.data(), ks.size(), "z.next");
+		//dump(vs.data(), vs.size(), "z.next");
+		if(ks.data()[0] != DataType::NSET){
+			return false;
+		}
+		std::string n;
+		if(decode_nscore_key(ks, &n, &score) == -1){
+			continue;
+		}
+		if(n != this->name){
+			return false;
+		}
+		if(return_val_){
+			this->val.assign(vs.data(), vs.size());
 		}
 		return true;
 	}

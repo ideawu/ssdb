@@ -41,6 +41,8 @@ public:
 
 	// return (start, end], not include start
 	virtual Iterator* iterator(const std::string &start, const std::string &end, uint64_t limit);
+	// return [start, end], great than or equal to start
+	virtual Iterator* iterator_ge(const std::string &start, const std::string &end, uint64_t limit);
 	virtual Iterator* rev_iterator(const std::string &start, const std::string &end, uint64_t limit);
 
 	//void flushdb();
@@ -124,6 +126,36 @@ public:
 	virtual int zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list);
 	
+	/* ***********************************************************************
+	 * nset
+	 * ***********************************************************************/
+	virtual int nset(const Bytes &name, const Bytes &val, const Bytes &score, char log_type=BinlogType::SYNC);
+	virtual int ndel(const Bytes &name, const Bytes &score, char log_type=BinlogType::SYNC);
+	// -1: error, 1: ok, 0: value is not an integer or out of range
+
+	virtual int64_t nsize(const Bytes &name);
+	/**
+	 * @return -1: error; 0: not found; 1: found
+	 */
+	virtual int nget(const Bytes &name, const Bytes &score, std::string *val);
+	virtual NIterator* nrange(const Bytes &name, uint64_t offset, uint64_t limit);
+	virtual NIterator* nrrange(const Bytes &name, uint64_t offset, uint64_t limit);
+	/**
+	 * scan by score, but won't return @key if key.score=score_start.
+	 * return (score_start, score_end]
+	 */
+	virtual NIterator* nscan(const Bytes &name,
+			const Bytes &score_start, const Bytes &score_end, uint64_t limit);
+	virtual NIterator* nrscan(const Bytes &name,
+			const Bytes &score_start, const Bytes &score_end, uint64_t limit);
+	virtual int nlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list);
+	virtual int nrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
+			std::vector<std::string> *list);
+
+
+	 /* ***********************************************************************/
+
 	virtual int64_t qsize(const Bytes &name);
 	// @return 0: empty queue, 1: item peeked, -1: error
 	virtual int qfront(const Bytes &name, std::string *item);
