@@ -1,6 +1,8 @@
 * 1.9.2
 	* New features:
 		- The slave will flush db when receive copy_begin(2015-07-28)
+	* Incompatible changes:
+		- Will not support db size for redis clients(2015-08-07)
 * 1.9.1
 	* Incompatible changes:
 		- zrank/zrrank return not_found(prev is error) if member not exists(2015-07-16)
