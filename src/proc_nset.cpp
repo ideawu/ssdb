@@ -1,5 +1,4 @@
 /*
-Copyright (c) 2015-2016 weizetao. All rights reserved.
 Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
@@ -21,45 +20,7 @@ int proc_nexists(NetworkServer *net, Link *link, const Request &req, Response *r
 	return 0;
 }
 
-//int proc_multi_nexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
-//	SSDBServer *serv = (SSDBServer *)net->data;
-//	CHECK_NUM_PARAMS(3);
-//
-//	resp->push_back("ok");
-//	const Bytes &name = req[1];
-//	std::string val;
-//	for(Request::const_iterator it=req.begin()+2; it!=req.end(); it++){
-//		const Bytes &score = *it;
-//		int64_t ret = serv->ssdb->nget(name, score, &val);
-//		resp->push_back(key.String());
-//		if(ret > 0){
-//			resp->push_back("1");
-//		}else{
-//			resp->push_back("0");
-//		}
-//	}
-//	return 0;
-//}
-
-//int proc_multi_nsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
-//	SSDBServer *serv = (SSDBServer *)net->data;
-//	CHECK_NUM_PARAMS(2);
-//
-//	resp->push_back("ok");
-//	for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
-//		const Bytes &key = *it;
-//		int64_t ret = serv->ssdb->nsize(key);
-//		resp->push_back(key.String());
-//		if(ret == -1){
-//			resp->push_back("-1");
-//		}else{
-//			resp->add(ret);
-//		}
-//	}
-//	return 0;
-//}
-
-int proc_multi_nset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+int proc_nmset(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	if(req.size() < 4 || req.size() % 2 != 0){
 		resp->push_back("client_error");
@@ -140,6 +101,38 @@ int proc_nrrange(NetworkServer *net, Link *link, const Request &req, Response *r
 		resp->push_back(it->score);
 	}
 	delete it;
+	return 0;
+}
+
+int proc_ndel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(3);
+
+	int ret = serv->ssdb->ndel(req[1], req[2]);
+	resp->reply_bool(ret);
+	return 0;
+}
+
+int proc_nmdel(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	if(req.size() < 3){
+		resp->push_back("client_error");
+	}else{
+		int num = 0;
+		const Bytes &name = req[1];
+		std::vector<Bytes>::const_iterator it = req.begin() + 2;
+		for(; it != req.end(); it += 1){
+			const Bytes &score = *it;
+			int ret = serv->ssdb->ndel(name, score);
+			if(ret == -1){
+				resp->push_back("error");
+				return 0;
+			}else{
+				num += ret;
+			}
+		}
+		resp->reply_int(0, num);
+	}
 	return 0;
 }
 

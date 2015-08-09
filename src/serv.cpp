@@ -90,8 +90,10 @@ DEF_PROC(zpop_back);
 
 
 DEF_PROC(nexists);
-DEF_PROC(multi_nset);
+DEF_PROC(nmset);
 DEF_PROC(nset);
+DEF_PROC(ndel);
+DEF_PROC(nmdel);
 DEF_PROC(nsize);
 DEF_PROC(nget);
 DEF_PROC(nrange);
@@ -233,8 +235,10 @@ void SSDBServer::reg_procs(NetworkServer *net){
 
 	//nset
 	REG_PROC(nexists, "rt");
-	REG_PROC(multi_nset, "wt");
+	REG_PROC(nmset, "wt");
 	REG_PROC(nset, "wt");
+	REG_PROC(ndel, "wt");
+	REG_PROC(nmdel, "wt");
 	REG_PROC(nsize, "rt");
 	REG_PROC(nget, "rt");
 	REG_PROC(nrange, "rt");

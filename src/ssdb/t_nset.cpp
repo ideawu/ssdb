@@ -250,8 +250,11 @@ static int nset_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &val, const B
 			std::string nkey = encode_nscore_key(name, score);
 			ssdb->binlogs->Put(nkey, slice(val));
 			ssdb->binlogs->add_log(log_type, BinlogCommand::NSET, nkey);
+			ret = 1;
+		}else {
+			ret = 0;
 		}
-		ret = 0;
+
 	}
 	return ret;
 }
