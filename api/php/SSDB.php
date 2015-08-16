@@ -353,6 +353,7 @@ class SSDB
 			case 'zremrangebyrank':
 			case 'zremrangebyscore':
 			case 'ttl':
+			case 'expire':
 				if($resp[0] == 'ok'){
 					$val = isset($resp[1])? intval($resp[1]) : 0;
 					return new SSDB_Response($resp[0], $val);

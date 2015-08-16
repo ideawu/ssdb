@@ -76,6 +76,15 @@ class SSDBTest extends UnitTest{
 		$ssdb = $this->ssdb;
 		$val = str_repeat(mt_rand(), mt_rand(1, 100));
 		
+		$ssdb->del('TEST_a');
+		$ret = $ssdb->ttl('TEST_a');
+		$this->assert($ret === -1);
+		$ret = $ssdb->expire('TEST_a', 10);
+		$this->assert($ret === 0);
+		$ssdb->set('TEST_a', $val);
+		$ret = $ssdb->expire('TEST_a', 10);
+		$this->assert($ret === 1);
+		
 		$ssdb->setx('TEST_a', $val, 1);
 		$ret = $this->ssdb->get('TEST_a');
 		$this->assert($ret === $val);

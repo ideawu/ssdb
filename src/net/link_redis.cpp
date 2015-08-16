@@ -113,7 +113,6 @@ static RedisCommand_raw cmds_raw[] = {
 	{STRATEGY_AUTO,		"lset",		    "qset", 			REPLY_STATUS},
 	{STRATEGY_AUTO,		"lrange",		"qslice",			REPLY_MULTI_BULK},
 
-	{STRATEGY_AUTO, 	"dbsize",		"dbsize",			REPLY_INT},
 	{STRATEGY_AUTO, 	NULL,			NULL,			0}
 };
 
