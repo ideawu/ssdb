@@ -54,7 +54,7 @@ SSDB* SSDB::open(const Options &opt, const std::string &dir){
 
 	status = leveldb::DB::Open(ssdb->options, dir, &ssdb->ldb);
 	if(!status.ok()){
-		log_error("open db failed");
+		log_error("open db failed: %s", status.ToString().c_str());
 		goto err;
 	}
 	ssdb->binlogs = new BinlogQueue(ssdb->ldb, opt.binlog);
