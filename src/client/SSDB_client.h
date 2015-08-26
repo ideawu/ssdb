@@ -231,9 +231,12 @@ public:
 	virtual Status multi_zdel(const std::string &name, const std::vector<std::string> &keys) = 0;
 	/// @}
 
-	virtual Status qpush(const std::string &name, const std::string &item) = 0;
-	virtual Status qpop(const std::string &name, std::string *item) = 0;
+	virtual Status qpush(const std::string &name, const std::string &item, int64_t *ret_size=NULL) = 0;
+	virtual Status qpush(const std::string &name, const std::vector<std::string> &items, int64_t *ret_size=NULL) = 0;
+	virtual Status qpop(const std::string &name, std::string *ret) = 0;
+	virtual Status qpop(const std::string &name, int64_t limit, std::vector<std::string> *ret) = 0;
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret) = 0;
+	virtual Status qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret) = 0;
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL) = 0;
 private:
 	// No copying allowed
