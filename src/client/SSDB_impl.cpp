@@ -521,10 +521,31 @@ Status ClientImpl::multi_zdel(const std::string &name, const std::vector<std::st
 	return s;
 }
 
-Status ClientImpl::qpush(const std::string &name, const std::string &item){
+Status ClientImpl::qpush(const std::string &name, const std::string &item, int64_t *ret_size){
 	const std::vector<std::string> *resp;
 	resp = this->request("qpush", name, item);
 	Status s(resp);
+	if(ret_size != NULL && s.ok()){
+		if(resp->size() > 1){
+			*ret_size = str_to_int64(resp->at(1));
+		}else{
+			return Status("error");
+		}
+	}
+	return s;
+}
+
+Status ClientImpl::qpush(const std::string &name, const std::vector<std::string> &items, int64_t *ret_size){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpush", name, items);
+	Status s(resp);
+	if(ret_size != NULL && s.ok()){
+		if(resp->size() > 1){
+			*ret_size = str_to_int64(resp->at(1));
+		}else{
+			return Status("error");
+		}
+	}
 	return s;
 }
 
@@ -532,6 +553,12 @@ Status ClientImpl::qpop(const std::string &name, std::string *item){
 	const std::vector<std::string> *resp;
 	resp = this->request("qpop", name);
 	return _read_str(resp, item);
+}
+
+Status ClientImpl::qpop(const std::string &name, int64_t limit, std::vector<std::string> *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpop", name, str(limit));
+	return _read_list(resp, ret);
 }
 
 Status ClientImpl::qslice(const std::string &name,
@@ -542,6 +569,14 @@ Status ClientImpl::qslice(const std::string &name,
 	std::string s_end = str(end);
 	const std::vector<std::string> *resp;
 	resp = this->request("qslice", name, s_begin, s_end);
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret){
+	std::string s_begin = str(begin);
+	std::string s_limit = str(limit);
+	const std::vector<std::string> *resp;
+	resp = this->request("qrange", name, s_begin, s_limit);
 	return _read_list(resp, ret);
 }
 
