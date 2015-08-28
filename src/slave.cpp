@@ -209,7 +209,7 @@ void* Slave::_run_thread(void *arg){
 	bool reconnect = false;
 	
 #define RECV_TIMEOUT		200
-#define MAX_RECV_TIMEOUT	300 * 1000
+#define MAX_RECV_TIMEOUT	15 * 1000
 #define MAX_RECV_IDLE		MAX_RECV_TIMEOUT/RECV_TIMEOUT
 
 	while(!slave->thread_quit){
