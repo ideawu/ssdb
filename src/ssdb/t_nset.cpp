@@ -52,6 +52,7 @@ int64_t SSDBImpl::nsize(const Bytes &name){
 		return ret < 0? 0 : ret;
 	}
 }
+
 static int ndel_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &score, char log_type){
 	if(name.size() > SSDB_KEY_LEN_MAX ){
 		log_error("name too long!");
@@ -61,12 +62,44 @@ static int ndel_one(SSDBImpl *ssdb, const Bytes &name, const Bytes &score, char 
 	std::string nkey;
 	// delete zscore key
 	nkey = encode_nscore_key(name, score);
+	std::string val;
+
+	int found = ssdb->nget(name, score, &val);
+	if(found != 1){
+		return 0;
+	}
+
 	ssdb->binlogs->Delete(nkey);
 	ssdb->binlogs->add_log(log_type, BinlogCommand::NDEL, nkey);
 
 	return 1;
 }
 
+int SSDBImpl::nexpire_del(const Bytes &nkey, char log_type){
+	Transaction trans(binlogs);
+
+	std::string name, score;
+
+	int ret = decode_nscore_key(nkey, &name, &score);
+	if(ret != 0){
+		return -1;
+	}
+
+	ret = ndel_one(this, Bytes(name), Bytes(score), log_type);
+	if(ret >= 0){
+		if(ret > 0){
+			if(incr_nsize(this, Bytes(name), -ret) == -1){
+				return -1;
+			}
+		}
+		leveldb::Status s = binlogs->commit();
+		if(!s.ok()){
+			log_error("ndel error: %s", s.ToString().c_str());
+			return -1;
+		}
+	}
+	return ret;
+}
 
 int SSDBImpl::ndel(const Bytes &name, const Bytes &score, char log_type){
 	Transaction trans(binlogs);
@@ -80,14 +113,12 @@ int SSDBImpl::ndel(const Bytes &name, const Bytes &score, char log_type){
 		}
 		leveldb::Status s = binlogs->commit();
 		if(!s.ok()){
-			log_error("zdel error: %s", s.ToString().c_str());
+			log_error("ndel error: %s", s.ToString().c_str());
 			return -1;
 		}
 	}
 	return ret;
 }
-
-
 
 static NIterator* niterator(
 	SSDBImpl *ssdb,
@@ -123,7 +154,6 @@ static NIterator* niterator(
 		return new NIterator(ssdb->rev_iterator(start, end, limit), name);
 	}
 }
-
 
 NIterator* SSDBImpl::nrange(const Bytes &name, uint64_t offset, uint64_t limit){
 	if(offset + limit > limit){

@@ -133,7 +133,11 @@ void ExpirationHandler::expire_loop(){
 		
 		if(score <= time_ms()){
 			log_debug("expired %s", key.c_str());
-			ssdb->del(key);
+			if(key[0] == DataType::NSET){
+				ssdb->nexpire_del(key);
+			}else{
+				ssdb->del(key);
+			}
 			ssdb->zdel(this->list_name, key);
 			this->fast_keys.pop_front();
 		}

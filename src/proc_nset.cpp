@@ -44,11 +44,43 @@ int proc_nmset(NetworkServer *net, Link *link, const Request &req, Response *res
 	return 0;
 }
 
+#define encode_score(s) big_endian((uint64_t)(s))
 int proc_nset(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_NUM_PARAMS(4);
+
+	if(req.size() != 4 && req.size() != 5 ){
+		resp->push_back("client_error");
+		resp->push_back("wrong number of arguments");
+		return 0;
+	}
 
 	int ret = serv->ssdb->nset(req[1], req[2], req[3]);
+
+	if (req.size() == 5){
+		Locking l(&serv->expiration->mutex);
+
+		std::string buf;
+		buf.append(1, DataType::NSET);
+		buf.append(1, (uint8_t)req[1].size());
+		buf.append(req[1].data(), req[1].size());
+
+		int64_t s = req[3].Int64();
+		if(s < 0){
+			buf.append(1, '-');
+		}else{
+			buf.append(1, '=');
+		}
+		s = encode_score(s);
+
+		buf.append((char *)&s, sizeof(int64_t));
+
+
+		std::string val;
+		int ret = serv->ssdb->nget(req[1], req[3], &val);
+		if (ret == 1) {
+			serv->expiration->set_ttl(Bytes(buf), req[4].Int());
+		}
+	}
 	resp->reply_int(ret, ret);
 	return 0;
 }

@@ -131,6 +131,7 @@ public:
 	 * ***********************************************************************/
 	virtual int nset(const Bytes &name, const Bytes &val, const Bytes &score, char log_type=BinlogType::SYNC);
 	virtual int ndel(const Bytes &name, const Bytes &score, char log_type=BinlogType::SYNC);
+	virtual int nexpire_del(const Bytes &nkey, char log_type=BinlogType::SYNC);
 	// -1: error, 1: ok, 0: value is not an integer or out of range
 
 	virtual int64_t nsize(const Bytes &name);
