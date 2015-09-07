@@ -244,7 +244,7 @@ int64_t SSDBImpl::_qpush(const Bytes &name, const Bytes &item, uint64_t front_or
 
 	leveldb::Status s = binlogs->commit();
 	if(!s.ok()){
-		log_error("Write error!");
+		log_error("Write error! %s", s.ToString().c_str());
 		return -1;
 	}
 	return size;
