@@ -140,8 +140,31 @@ int proc_ndel(NetworkServer *net, Link *link, const Request &req, Response *resp
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);
 
+	Locking l(&serv->expiration->mutex);
 	int ret = serv->ssdb->ndel(req[1], req[2]);
-	resp->reply_bool(ret);
+	if(ret == -1){
+		resp->push_back("error");
+	}else{
+		std::string buf;
+		buf.append(1, DataType::NSET);
+		buf.append(1, (uint8_t)req[1].size());
+		buf.append(req[1].data(), req[1].size());
+
+		int64_t s = req[2].Int64();
+		if(s < 0){
+			buf.append(1, '-');
+		}else{
+			buf.append(1, '=');
+		}
+		s = encode_score(s);
+
+		buf.append((char *)&s, sizeof(int64_t));
+
+		serv->expiration->del_ttl(Bytes(buf));
+
+		resp->push_back("ok");
+		resp->push_back("1");
+	}
 	return 0;
 }
 
