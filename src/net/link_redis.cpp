@@ -512,6 +512,12 @@ int RedisLink::parse_req(Buffer *input){
 	int size = input->size();
 	char *ptr = input->data();
 	
+	// ignore leading empty lines
+	while(size > 0 && (ptr[0] == '\n' || ptr[0] == '\r')){
+		ptr ++;
+		size --;
+		parsed ++;
+	}
 	//dump(ptr, size);
 	
 	if(ptr[0] != '*'){
@@ -544,15 +550,21 @@ int RedisLink::parse_req(Buffer *input){
 			continue;
 		}
 		
-		if(len > size - 2){
+		if(len > size - 1){
 			break;
 		}
 		
 		recv_bytes.push_back(Bytes(ptr, len));
 		
-		ptr += len + 2;
-		size -= len + 2;
-		parsed += len + 2;
+		ptr += len + 1;
+		size -= len + 1;
+		parsed += len + 1;
+		// compatiabl with both CRLF and LF
+		if(*ptr == '\n'){
+			ptr += 1;
+			size -= 1;
+			parsed += 1;
+		}
 
 		num_args --;
 		if(num_args == 0){

@@ -271,6 +271,13 @@ const std::vector<Bytes>* Link::recv(){
 	int parsed = 0;
 	int size = input->size();
 	char *head = input->data();
+
+	// ignore leading empty lines
+	while(size > 0 && (head[0] == '\n' || head[0] == '\r')){
+		head ++;
+		size --;
+		parsed ++;
+	}
 	
 	// Redis protocol supports
 	if(head[0] == '*'){
@@ -284,13 +291,6 @@ const std::vector<Bytes>* Link::recv(){
 		}else{
 			return NULL;
 		}
-	}
-
-	// ignore leading empty lines
-	while(size > 0 && (head[0] == '\n' || head[0] == '\r')){
-		head ++;
-		size --;
-		parsed ++;
 	}
 
 	while(size > 0){
