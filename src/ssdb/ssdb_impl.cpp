@@ -68,6 +68,7 @@ err:
 }
 
 int SSDBImpl::flushdb(){
+	Transaction trans(binlogs);
 	int ret = 0;
 	bool stop = false;
 	while(!stop){

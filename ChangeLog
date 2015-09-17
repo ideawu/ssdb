@@ -1,5 +1,6 @@
 * 1.9.2
 	* New features:
+		- Provide server side flushdb(2015-09-17)
 		- The slave will flush db when receive copy_begin(2015-07-28)
 	* Incompatible changes:
 		- Will not support db size for redis clients(2015-08-07)
