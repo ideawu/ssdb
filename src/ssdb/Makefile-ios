@@ -7,7 +7,7 @@ IOSVERSION=$(shell defaults read $(PLATFORMSROOT)/iPhoneOS.platform/version CFBu
 SIMULATOR_SDK=$(SIMULATORROOT)/SDKs/iPhoneSimulator$(IOSVERSION).sdk
 DEVICE_SDK=$(DEVICEROOT)/SDKs/iPhoneOS$(IOSVERSION).sdk
 
-CFLAGS=-stdlib=libc++ -DHAVE_CONFIG_H -DIOS -I. -O2 -I$(LEVELDB_PATH)/include
+CFLAGS= -miphoneos-version-min=7.0 -stdlib=libc++ -DIOS -I. -O2 -I$(LEVELDB_PATH)/include
 SIMULATOR_CFLAGS=$(CFLAGS) -isysroot $(SIMULATOR_SDK) -arch i386 -arch x86_64
 DEVICE_CFLAGS=$(CFLAGS) -isysroot $(DEVICE_SDK) -arch armv6 -arch armv7 -arch armv7s -arch arm64
 
@@ -27,8 +27,8 @@ all: $(OBJS)
 .cpp.o:
 	mkdir -p ios-x86
 	mkdir -p ios-arm
-	$(CXX) $(SIMULATOR_CFLAGS) -c $< -o ios-x86/$@
-	xcrun -sdk iphoneos $(CXX) $(DEVICE_CFLAGS) -c $< -o ios-arm/$@
+	xcrun -sdk iphonesimulator clang++ $(SIMULATOR_CFLAGS) -c $< -o ios-x86/$@
+	xcrun -sdk iphoneos clang++ $(DEVICE_CFLAGS) -c $< -o ios-arm/$@
 	lipo ios-x86/$@ ios-arm/$@ -create -output $@
 
 clean:
