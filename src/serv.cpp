@@ -115,6 +115,7 @@ DEF_PROC(version);
 DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(clear_binlog);
+DEF_PROC(flushdb);
 
 DEF_PROC(get_key_range);
 DEF_PROC(ignore_key_range);
@@ -232,6 +233,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(qset, "wt");
 
 	REG_PROC(clear_binlog, "wt");
+	REG_PROC(flushdb, "wt");
 
 	REG_PROC(dump, "b");
 	REG_PROC(sync140, "b");
@@ -386,6 +388,13 @@ bool SSDBServer::in_kv_range(const std::string &key){
 int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->binlogs->flush();
+	resp->push_back("ok");
+	return 0;
+}
+
+int proc_flushdb(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	serv->ssdb->flushdb();
 	resp->push_back("ok");
 	return 0;
 }

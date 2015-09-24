@@ -244,6 +244,8 @@ while(true){
 	
 	try{
 		if(cmd == 'flushdb'){
+			resp = link.request(cmd, []);
+			
 			stime = datetime.datetime.now();
 			if(len(args) == 0){
 				flushdb.flushdb(link, '');
