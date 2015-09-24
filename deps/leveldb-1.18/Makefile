@@ -207,6 +207,7 @@ SIMULATORROOT=$(PLATFORMSROOT)/iPhoneSimulator.platform/Developer
 DEVICEROOT=$(PLATFORMSROOT)/iPhoneOS.platform/Developer
 IOSVERSION=$(shell defaults read $(PLATFORMSROOT)/iPhoneOS.platform/version CFBundleShortVersionString)
 IOSARCH=-arch armv6 -arch armv7 -arch armv7s -arch arm64
+CXXFLAGS+= -miphoneos-version-min=7.0
 
 .cc.o:
 	mkdir -p ios-x86/$(dir $@)
