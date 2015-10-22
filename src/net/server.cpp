@@ -19,7 +19,7 @@ static DEF_PROC(auth);
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
 static const int READER_THREADS = 10;
-static const int WRITER_THREADS = 1;
+static const int WRITER_THREADS = 1;  // 必须为1, 因为某些写操作依赖单线程
 
 volatile bool quit = false;
 volatile uint32_t g_ticks = 0;
