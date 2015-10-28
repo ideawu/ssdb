@@ -337,6 +337,9 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 		case BinlogCommand::BEGIN:
 			log_info("copy begin");
 			log_info("start flushdb...");
+			this->last_seq = 0;
+			this->last_key = "";
+			this->save_status();
 			ssdb->flushdb();
 			log_info("end flushdb.");
 			break;
