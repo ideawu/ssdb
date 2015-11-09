@@ -13,6 +13,8 @@ found in the LICENSE file.
 
 #include "link_redis.cpp"
 
+#include "../util/log.h"
+
 #define MAX_PACKET_SIZE		128 * 1024 * 1024
 #define INIT_BUFFER_SIZE	8
 
@@ -111,6 +113,64 @@ sock_err:
 	return NULL;
 }
 
+#ifdef _UNIX_SOCKETS_
+Link* Link::listen(const char *socket){
+        Link *link;
+        int sock = -1;
+        struct sockaddr_un addr;
+
+        // Verify that socket is available
+        struct stat sock_stat;
+        int status = stat (socket, &sock_stat);
+        if(status == 0) {
+                // file exists, check if it's a socket, or somehing else that we don't want to touch
+                if ((sock_stat.st_mode & S_IFMT) == S_IFSOCK) {
+                        status = unlink (socket);
+                        if (status != 0) {
+                                log_error("Error unlinking the socket node: %s", socket);
+                                 return NULL;
+                        }
+                }
+                else {
+                        log_error("Path for socket exists but is not a socket: %s", socket);
+                        return NULL;
+                }
+        }
+        else {
+                if(errno != ENOENT) {
+                        log_error("Error stating the socket: %s", socket);
+                        return NULL;
+                }
+        }
+
+        bzero(&addr, sizeof(addr));
+        addr.sun_family = AF_UNIX;
+        strncpy(addr.sun_path, socket, sizeof(addr.sun_path));
+        if((sock = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
+                goto sock_err;
+        }
+        if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
+                goto sock_err;
+        }
+        if(::listen(sock, 5) == -1){
+                goto sock_err;
+        }
+
+        link = new Link(true);
+        link->sock = sock;
+        snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", socket);
+        link->remote_port = 0;
+        return link;
+sock_err:
+        log_debug("connect to %s failed: %s", socket, strerror(errno));
+        if (sock >= 0){
+                ::close(sock);
+        }
+        return NULL;
+}
+#endif
+
+        
 Link* Link::listen(const char *ip, int port){
 	Link *link;
 	int sock = -1;
@@ -168,7 +228,7 @@ Link* Link::accept(){
 		//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
 	}
 
-	link = new Link();
+	link = new Link(false);
 	link->sock = client_sock;
 	link->keepalive(true);
 	inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));

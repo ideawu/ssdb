@@ -20,10 +20,11 @@ fi
 case "$TARGET_OS" in
     Darwin)
         #PLATFORM_CLIBS="-pthread"
-		#PLATFORM_CFLAGS=""
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     Linux)
         PLATFORM_CLIBS="-pthread"
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     OS_ANDROID_CROSSCOMPILE)
         PLATFORM_CLIBS="-pthread"
@@ -34,22 +35,27 @@ case "$TARGET_OS" in
         ;;
     SunOS)
         PLATFORM_CLIBS="-lpthread -lrt"
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     FreeBSD)
         PLATFORM_CLIBS="-lpthread"
 		MAKE=gmake
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     NetBSD)
         PLATFORM_CLIBS="-lpthread -lgcc_s"
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     OpenBSD)
         PLATFORM_CLIBS="-pthread"
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     DragonFly)
         PLATFORM_CLIBS="-lpthread"
         ;;
     HP-UX)
         PLATFORM_CLIBS="-pthread"
+        PLATFORM_CFLAGS="-D_UNIX_SOCKETS_"
         ;;
     *)
         echo "Unknown platform!" >&2

@@ -28,11 +28,11 @@ private:
 	int status_report_ticks;
 
 	//Config *conf;
-	Link *serv_link;
+	ready_list_t serv_link;
 	IpFilter *ip_filter;
 	Fdevents *fdes;
 
-	Link* accept_link();
+	Link* accept_link(Link *srv);
 	int proc_result(ProcJob *job, ready_list_t *ready_list);
 	int proc_client_event(const Fdevent *fde, ready_list_t *ready_list);
 
