@@ -28,6 +28,14 @@ echo $resp; // output: 123
 
 [More...](http://ssdb.io/docs/php/)
 
+
+## Who's using SSDB?
+
+![all-ssdb-users](http://ssdb.io/img/ssdb-users/all-ssdb-users.jpg)
+
+[And more...](http://ssdb.io/docs/users.html)
+
+
 ## Documentation
 
 * [View online](http://ssdb.io/docs/)
@@ -107,10 +115,6 @@ Run on a 2013 MacBook Pro 13 inch with Retina display.
 ## Architecture
 
 ![ssdb architecture](http://ssdb.io/ssdb.png)
-
-## Who's using SSDB?
-
-See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 
 ## Windows executable
 
