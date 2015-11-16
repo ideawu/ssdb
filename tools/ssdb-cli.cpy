@@ -170,7 +170,11 @@ function request_with_retry(cmd, args=null){
 		resp = link.request(cmd, args);
 		if(resp.code == 'disconnected'){
 			link.close();
-			time.sleep(retry);
+			sleep = retry;
+			if(sleep > 3){
+				sleep = 3;
+			}
+			time.sleep(sleep);
 			retry ++;
 			if(retry > max_retry){
 				sys.stderr.write('cannot connect to server, give up...\n');
@@ -290,7 +294,13 @@ while(true){
 	
 	try{
 		if(cmd == 'flushdb'){
-			request_with_retry('ping');
+			resp = request_with_retry('ping');
+			if(!resp){
+				throw new Exception('error');
+			}
+			if(resp.code != 'ok'){
+				throw new Exception(resp.message);
+			}
 			
 			stime = datetime.datetime.now();
 			if(len(args) == 0){
