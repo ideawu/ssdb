@@ -1,6 +1,6 @@
 # SSDB - A fast NoSQL database for storing big list of data
 
-[![Platform](https://img.shields.io/badge/platform-Linux,%20BSD,%20osx,%20Windows-blue.svg?style=flat)](https://github.com/ideawu/ssdb) [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg?style=flat)](LICENSE) [![NoSQL](https://img.shields.io/badge/db-NoSQL-blue.svg?style=flat)](https://github.com/ideawu/ssdb)
+[![Platform](https://img.shields.io/badge/platform-Linux,%20BSD,%20osx,%20Windows-green.svg?style=flat)](https://github.com/ideawu/ssdb) [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg?style=flat)](LICENSE) [![NoSQL](https://img.shields.io/badge/db-NoSQL-yellow.svg?style=flat)](https://github.com/ideawu/ssdb)
 
 
 SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL database, __an alternative to Redis__.
