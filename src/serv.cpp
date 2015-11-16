@@ -394,6 +394,11 @@ int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Respon
 
 int proc_flushdb(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
+	if(serv->slaves.size() > 0 || serv->backend_sync->stats().size() > 0){
+		resp->push_back("error");
+		resp->push_back("flushdb is not allowed when replication is in use!");
+		return 0;
+	}
 	serv->ssdb->flushdb();
 	resp->push_back("ok");
 	return 0;
