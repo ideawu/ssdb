@@ -28,6 +28,13 @@ function qclear(link, zname, verbose=true){
 	return ret;
 }
 function flushdb(link, data_type){
+	resp = link.request('info');
+	for(i=1; i<len(resp.data); i+=2){
+		if(resp.data[i] == 'replication'){
+			throw new Exception('flushdb is not allowed when replication is in use!');
+		}
+	}
+
 	printf('\n');
 	printf('============================ DANGER! ============================\n');
 	printf('This operation is DANGEROUS and is not recoverable, if you\n');
@@ -46,6 +53,13 @@ function flushdb(link, data_type){
 	}
 
 	print 'Begin to flushdb...\n';
+
+	if(data_type == ''){
+		resp = link.request('flushdb', []);
+		if(resp.code != 'ok' && resp.code != 'client_error'){
+			throw new Exception(resp.message);
+		}
+	}
 	
 	batch = 1000;
 	

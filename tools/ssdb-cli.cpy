@@ -45,6 +45,8 @@ function usage(){
 	print '		ssdb server hostname/ip address';
 	print '	-p 8888';
 	print '		ssdb server port';
+	print '	-v --help';
+	print '		show this message';
 	print '';
 	print 'Examples:';
 	print '	ssdb-cli';
@@ -77,7 +79,6 @@ function show_version(){
 	}
 }
 
-
 host = '';
 port = '';
 opt = '';
@@ -85,6 +86,10 @@ args = [];
 foreach(sys.argv[1 ..] as arg){
 	if(opt == '' && arg.startswith('-')){
 		opt = arg;
+		if(arg == '--help' || arg == '--h' || arg == '-v'){
+			usage();
+			exit(0);
+		}
 	}else{
 		switch(opt){
 			case '-h':
@@ -149,6 +154,47 @@ if(sys.stdin.isatty()){
 
 
 password = false;
+
+function request_with_retry(cmd, args=null){
+	gs = globals();
+	link = gs['link'];
+	password = gs['password'];
+	
+	if(!args){
+		args = [];
+	}
+	
+	retry = 0;
+	max_retry = 5;
+	while(true){
+		resp = link.request(cmd, args);
+		if(resp.code == 'disconnected'){
+			link.close();
+			time.sleep(retry);
+			retry ++;
+			if(retry > max_retry){
+				sys.stderr.write('cannot connect to server, give up...\n');
+				break;
+			}
+			sys.stderr.write(sprintf('[%d/%d] reconnecting to server... ', retry, max_retry));
+			try{
+				link = new SSDB(host, port);
+				gs['link'] = link;
+				sys.stderr.write('done.\n');
+			}catch(socket.error e){
+				sys.stderr.write(sprintf('Connect error: %s\n', str(e)));
+				continue;
+			}
+			sys.stderr.write('\n');
+			if(password){
+				ret = link.request('auth', [password]);
+			}
+		}else{
+			return resp;
+		}
+	}
+	return null;
+}
 
 while(true){
 	line = '';
@@ -244,7 +290,7 @@ while(true){
 	
 	try{
 		if(cmd == 'flushdb'){
-			resp = link.request(cmd, []);
+			request_with_retry('ping');
 			
 			stime = datetime.datetime.now();
 			if(len(args) == 0){
@@ -260,36 +306,8 @@ while(true){
 		continue;
 	}
 
-	retry = 0;
-	max_retry = 5;
 	stime = datetime.datetime.now();
-	while(true){
-		stime = datetime.datetime.now();
-		resp = link.request(cmd, args);
-		if(resp.code == 'disconnected'){
-			link.close();
-			time.sleep(retry);
-			retry ++;
-			if(retry > max_retry){
-				sys.stderr.write('cannot connect to server, give up...\n');
-				break;
-			}
-			sys.stderr.write(sprintf('[%d/%d] reconnecting to server... ', retry, max_retry));
-			try{
-				link = new SSDB(host, port);
-				sys.stderr.write('done.\n');
-			}catch(socket.error e){
-				sys.stderr.write(sprintf('Connect error: %s\n', str(e)));
-				continue;
-			}
-			sys.stderr.write('\n');
-			if(password){
-				ret = link.request('auth', [password]);
-			}
-		}else{
-			break;
-		}
-	}
+	resp = request_with_retry(cmd, args);
 
 	time_consume = timespan(stime);
 	if(!resp.ok()){
