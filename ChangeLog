@@ -6,6 +6,7 @@
 	* Incompatible changes:
 		- Will not support db size for redis clients(2015-08-07)
 	* Bug fixes:
+		- Fix setbit crash on very big offset(2015-11-17)
 		- Fix Jedis zadd() score in scientific notation(2015-10-22)
 * 1.9.1
 	* Incompatible changes:

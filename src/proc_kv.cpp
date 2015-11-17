@@ -318,6 +318,14 @@ int proc_setbit(NetworkServer *net, Link *link, const Request &req, Response *re
 		resp->push_back("bit is not an integer or out of range");
 		return 0;
 	}
+	if(offset < 0 || offset > Link::MAX_PACKET_SIZE * 8){
+		std::string msg = "offset is out of range [0, ";
+		msg += str(Link::MAX_PACKET_SIZE * 8);
+		msg += "]";
+		resp->push_back("client_error");
+		resp->push_back(msg);
+		return 0;
+	}
 	int on = req[3].Int();
 	int ret = serv->ssdb->setbit(key, offset, on);
 	resp->reply_bool(ret);
