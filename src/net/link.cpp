@@ -13,7 +13,6 @@ found in the LICENSE file.
 
 #include "link_redis.cpp"
 
-#define MAX_PACKET_SIZE		128 * 1024 * 1024
 #define INIT_BUFFER_SIZE	8
 
 int Link::min_recv_buf = 8 * 1024;
