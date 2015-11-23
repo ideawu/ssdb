@@ -1,6 +1,6 @@
 * 1.9.2
 	* New features:
-		- Supports specifying slaveof.hostname in ssdb.conf(2015-11-23)
+		- Supports specifying slaveof.host in ssdb.conf(2015-11-23)
 		- Do not allow flushdb when replication is in use(2015-11-16)
 		- Provide server side flushdb(2015-09-17)
 		- The slave will flush db when receive copy_begin(2015-07-28)
