@@ -288,6 +288,9 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 				}
 				std::string ip = c->get_str("ip");
 				int port = c->get_num("port");
+				if(ip == ""){
+					ip = c->get_str("host");
+				}
 				if(ip == "" || port <= 0 || port > 65535){
 					continue;
 				}
