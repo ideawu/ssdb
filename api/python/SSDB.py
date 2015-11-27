@@ -129,7 +129,7 @@ class SSDB(object):
 					try:
 						pass
 						size = int(params[2])
-					except Exception , e:
+					except Exception:
 						pass
 
 					if size==1:
@@ -166,7 +166,7 @@ class SSDB(object):
 								pass
 								val = int(resp[1])
 							return SSDB_Response('ok', val)
-						except Exception , e:
+						except Exception:
 							pass
 							return SSDB_Response('server_error', 'Invalid response')
 					else:
@@ -225,7 +225,7 @@ class SSDB(object):
 							try:
 								pass
 								v = int(v)
-							except Exception , e:
+							except Exception:
 								pass
 								v = - (1)
 							data['index'].append(k)
@@ -370,7 +370,11 @@ class SSDB(object):
 
 			while True:
 				pass
-				ret = this.sock.send(s)
+				try:
+					ret = this.sock.send(s)
+				except TypeError:
+					#IF PYTHON3
+					ret = this.sock.send(bytes(s, 'UTF-8'))
 
 				if ret==0:
 					pass
@@ -380,7 +384,7 @@ class SSDB(object):
 				if len(s)==0:
 					pass
 					break
-		except socket.error , e:
+		except socket.error:
 			pass
 			return - (1)
 		return ret
@@ -390,7 +394,7 @@ class SSDB(object):
 		try:
 			pass
 			data = this.sock.recv(1024 * 8)
-		except Exception , e:
+		except Exception:
 			pass
 			data = ''
 
@@ -398,7 +402,11 @@ class SSDB(object):
 			pass
 			this.close()
 			return 0
-		this.recv_buf += data
+		try:
+			this.recv_buf += data
+		except:
+			#IF PYTHON3
+			this.recv_buf += data.decode('UTF-8')
 		return len(data)
 
 	def recv(this):
@@ -449,7 +457,7 @@ class SSDB(object):
 			try:
 				pass
 				num = int(line)
-			except Exception , e:
+			except Exception:
 				pass
 				return []
 			epos = (spos + num)
