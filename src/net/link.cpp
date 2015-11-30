@@ -97,6 +97,7 @@ static bool is_ip(const char *host){
 		}else{
 			return false;
 		}
+		p ++;
 	}
 	return dot_count == 3;
 }
