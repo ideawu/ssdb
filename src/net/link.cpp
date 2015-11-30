@@ -82,23 +82,21 @@ void Link::noblock(bool enable){
 
 static bool is_ip(const char *host){
 	int dot_count = 0;
-	const char *p = host;
 	int digit_count = 0;
-	while(p){
+	for(const char *p = host; *p; p++){
 		if(*p == '.'){
-			if(digit_count >= 1 && digit_count <= 3){
-				dot_count += 1;
+			dot_count += 1;
+			if(digit_count >= 1 && digit_count <= 3){ 
 				digit_count = 0;
 			}else{
 				return false;
-			}
+			}   
 		}else if(*p >= '0' && *p <= '9'){
 			digit_count += 1;
 		}else{
 			return false;
-		}
-		p ++;
-	}
+		}   
+	}   
 	return dot_count == 3;
 }
 
