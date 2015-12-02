@@ -69,6 +69,7 @@ DEF_PROC(zdel);
 DEF_PROC(zincr);
 DEF_PROC(zdecr);
 DEF_PROC(zclear);
+DEF_PROC(zfix);
 DEF_PROC(zscan);
 DEF_PROC(zrscan);
 DEF_PROC(zkeys);
@@ -193,6 +194,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(zincr, "wt");
 	REG_PROC(zdecr, "wt");
 	REG_PROC(zclear, "wt");
+	REG_PROC(zfix, "wt");
 	REG_PROC(zscan, "rt");
 	REG_PROC(zrscan, "rt");
 	REG_PROC(zkeys, "rt");
