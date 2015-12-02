@@ -391,9 +391,12 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 		if(ks.data()[0] != DataType::ZSCORE){
 			break;
 		}
-		std::string key, score;
-		if(decode_zscore_key(ks, NULL, &key, &score) == -1){
+		std::string name2, key, score;
+		if(decode_zscore_key(ks, &name, &key, &score) == -1){
 			size = -1;
+			break;
+		}
+		if(name != name2){
 			break;
 		}
 		size ++;
