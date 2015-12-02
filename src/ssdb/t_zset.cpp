@@ -384,7 +384,6 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 	it = this->iterator(it_start, it_end, UINT64_MAX);
 	size = 0;
 	while(it->next()){
-		size ++;
 		Bytes ks = it->key();
 		//Bytes vs = it->val();
 		//dump(ks.data(), ks.size(), "z.next");
@@ -397,6 +396,7 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 			size = -1;
 			break;
 		}
+		size ++;
 		
 		std::string buf = encode_zset_key(name, key);
 		std::string score2;
@@ -447,7 +447,6 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 	it = this->iterator(it_start, it_end, UINT64_MAX);
 	size = 0;
 	while(it->next()){
-		size ++;
 		Bytes ks = it->key();
 		//Bytes vs = it->val();
 		//dump(ks.data(), ks.size(), "z.next");
@@ -463,6 +462,7 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 		if(name != name2){
 			break;
 		}
+		size ++;
 		Bytes score = it->val();
 		
 		std::string buf = encode_zscore_key(name, key, score);
