@@ -443,7 +443,7 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 	//////////////////////////////////////////
 
 	it_start = encode_zset_key(name, "");
-	it_end = encode_zset_key(name, "\xff");
+	it_end = encode_zset_key(name.String() + "\xff", "");
 	it = this->iterator(it_start, it_end, UINT64_MAX);
 	size = 0;
 	while(it->next()){
@@ -455,9 +455,12 @@ int64_t SSDBImpl::zfix(const Bytes &name){
 		if(ks.data()[0] != DataType::ZSET){
 			break;
 		}
-		std::string key;
-		if(decode_zset_key(ks, NULL, &key) == -1){
+		std::string name2, key;
+		if(decode_zset_key(ks, &name2, &key) == -1){
 			size = -1;
+			break;
+		}
+		if(name != name2){
 			break;
 		}
 		Bytes score = it->val();
