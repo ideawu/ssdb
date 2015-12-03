@@ -248,7 +248,7 @@ int SSDBImpl::getbit(const Bytes &key, int bitoffset){
 	if(len >= val.size()){
 		return 0;
 	}
-	return val[len] & (1 << bit);
+	return (val[len] & (1 << bit)) == 0? 0 : 1;
 }
 
 
