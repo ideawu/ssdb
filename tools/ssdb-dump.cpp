@@ -67,7 +67,7 @@ void usage(int argc, char **argv){
 		"    %s ip port output_folder\n"
 		"\n"
 		"Options:\n"
-		"    -h <ip>            Server IP address (default: 127.0.0.1).\n"
+		"    -h <ip/hostname>   Server IP address/hostname (default: 127.0.0.1).\n"
 		"    -p <port>          Server port (default: 8888).\n"
 		"    -a <password>      Password to use when connecting to the server.\n"
 		"    -o <output_folder> local backup folder that will be created.\n"

@@ -80,6 +80,7 @@ void Link::noblock(bool enable){
 	}
 }
 
+// TODO: check less than 256
 static bool is_ip(const char *host){
 	int dot_count = 0;
 	int digit_count = 0;

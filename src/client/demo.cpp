@@ -18,7 +18,7 @@ char* readline(char *buf, int num){
 }
 
 int main(int argc, char **argv){
-	printf("Usage: %s [ip] [port]\n", argv[0]);
+	printf("Usage: %s [host] [port]\n", argv[0]);
 	const char *ip = (argc >= 2)? argv[1] : "127.0.0.1";
 	int port = (argc >= 3)? atoi(argv[2]) : 8888;
 

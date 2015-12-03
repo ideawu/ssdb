@@ -370,3 +370,147 @@ static int incr_zsize(SSDBImpl *ssdb, const Bytes &name, int64_t incr){
 	}
 	return 0;
 }
+
+int64_t SSDBImpl::zfix(const Bytes &name){
+	Transaction trans(binlogs);
+	std::string it_start, it_end;
+	Iterator *it;
+	leveldb::Status s;
+	int64_t size = 0;
+	int64_t old_size;
+
+	it_start = encode_zscore_key(name, "", SSDB_SCORE_MIN);
+	it_end = encode_zscore_key(name, "\xff", SSDB_SCORE_MAX);
+	it = this->iterator(it_start, it_end, UINT64_MAX);
+	size = 0;
+	while(it->next()){
+		Bytes ks = it->key();
+		//Bytes vs = it->val();
+		//dump(ks.data(), ks.size(), "z.next");
+		//dump(vs.data(), vs.size(), "z.next");
+		if(ks.data()[0] != DataType::ZSCORE){
+			break;
+		}
+		std::string name2, key, score;
+		if(decode_zscore_key(ks, &name2, &key, &score) == -1){
+			size = -1;
+			break;
+		}
+		if(name != name2){
+			break;
+		}
+		size ++;
+		
+		std::string buf = encode_zset_key(name, key);
+		std::string score2;
+		s = ldb->Get(leveldb::ReadOptions(), buf, &score2);
+		if(!s.ok() && !s.IsNotFound()){
+			log_error("zget error: %s", s.ToString().c_str());
+			size = -1;
+			break;
+		}
+		if(s.IsNotFound() || score != score2){
+			log_info("fix incorrect zset item, name: %s, key: %s, score: %s",
+				hexmem(name.data(), name.size()).c_str(),
+				hexmem(key.data(), key.size()).c_str(),
+				hexmem(score.data(), score.size()).c_str()
+				);
+			s = ldb->Put(leveldb::WriteOptions(), buf, score);
+			if(!s.ok()){
+				log_error("db error! %s", s.ToString().c_str());
+				size = -1;
+				break;
+			}
+		}
+	}
+	delete it;
+	if(size == -1){
+		return -1;
+	}
+
+	old_size = this->zsize(name);
+	if(old_size == -1){
+		return -1;
+	}
+	if(old_size != size){
+		log_info("fix zsize, name: %s, size: %" PRId64 " => %" PRId64,
+			hexmem(name.data(), name.size()).c_str(), old_size, size);
+		std::string size_key = encode_zsize_key(name);
+		if(size == 0){
+			s = ldb->Delete(leveldb::WriteOptions(), size_key);
+		}else{
+			s = ldb->Put(leveldb::WriteOptions(), size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+		}
+	}
+	
+	//////////////////////////////////////////
+
+	it_start = encode_zset_key(name, "");
+	it_end = encode_zset_key(name.String() + "\xff", "");
+	it = this->iterator(it_start, it_end, UINT64_MAX);
+	size = 0;
+	while(it->next()){
+		Bytes ks = it->key();
+		//Bytes vs = it->val();
+		//dump(ks.data(), ks.size(), "z.next");
+		//dump(vs.data(), vs.size(), "z.next");
+		if(ks.data()[0] != DataType::ZSET){
+			break;
+		}
+		std::string name2, key;
+		if(decode_zset_key(ks, &name2, &key) == -1){
+			size = -1;
+			break;
+		}
+		if(name != name2){
+			break;
+		}
+		size ++;
+		Bytes score = it->val();
+		
+		std::string buf = encode_zscore_key(name, key, score);
+		std::string score2;
+		s = ldb->Get(leveldb::ReadOptions(), buf, &score2);
+		if(!s.ok() && !s.IsNotFound()){
+			log_error("zget error: %s", s.ToString().c_str());
+			size = -1;
+			break;
+		}
+		if(s.IsNotFound()){
+			log_info("fix incorrect zset score, name: %s, key: %s, score: %s",
+				hexmem(name.data(), name.size()).c_str(),
+				hexmem(key.data(), key.size()).c_str(),
+				hexmem(score.data(), score.size()).c_str()
+				);
+			s = ldb->Put(leveldb::WriteOptions(), buf, "");
+			if(!s.ok()){
+				log_error("db error! %s", s.ToString().c_str());
+				size = -1;
+				break;
+			}
+		}
+	}
+	delete it;
+	if(size == -1){
+		return -1;
+	}
+
+	old_size = this->zsize(name);
+	if(old_size == -1){
+		return -1;
+	}
+	if(old_size != size){
+		log_info("fix zsize, name: %s, size: %" PRId64 " => %" PRId64,
+			hexmem(name.data(), name.size()).c_str(), old_size, size);
+		std::string size_key = encode_zsize_key(name);
+		if(size == 0){
+			s = ldb->Delete(leveldb::WriteOptions(), size_key);
+		}else{
+			s = ldb->Put(leveldb::WriteOptions(), size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+		}
+	}
+	
+	//////////////////////////////////////////
+	
+	return size;
+}
