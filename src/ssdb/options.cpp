@@ -6,6 +6,12 @@ found in the LICENSE file.
 #include "options.h"
 #include "../util/strings.h"
 
+#ifdef NDEBUG
+	static const int LOG_QUEUE_SIZE  = 20 * 1000 * 1000;
+#else
+	static const int LOG_QUEUE_SIZE  = 10000;
+#endif
+
 Options::Options(){
 	Config c;
 	this->load(c);
@@ -19,6 +25,7 @@ void Options::load(const Config &conf){
 	compaction_speed = conf.get_num("leveldb.compaction_speed");
 	compression = conf.get_str("leveldb.compression");
 	std::string binlog = conf.get_str("replication.binlog");
+	binlog_capacity = (size_t)conf.get_num("replication.binlog.capacity");
 
 	strtolower(&compression);
 	if(compression != "no"){
@@ -29,6 +36,9 @@ void Options::load(const Config &conf){
 		this->binlog = false;
 	}else{
 		this->binlog = true;
+	}
+	if(binlog_capacity <= 0){
+		binlog_capacity = LOG_QUEUE_SIZE;
 	}
 
 	if(cache_size <= 0){

@@ -48,11 +48,6 @@ public:
 // circular queue
 class BinlogQueue{
 private:
-#ifdef NDEBUG
-	static const int LOG_QUEUE_SIZE  = 20 * 1000 * 1000;
-#else
-	static const int LOG_QUEUE_SIZE  = 10000;
-#endif
 	leveldb::DB *db;
 	uint64_t min_seq;
 	uint64_t last_seq;
@@ -71,7 +66,7 @@ private:
 public:
 	Mutex mutex;
 
-	BinlogQueue(leveldb::DB *db, bool enabled=true);
+	BinlogQueue(leveldb::DB *db, bool enabled=true, int capacity=20000000);
 	~BinlogQueue();
 	void begin();
 	void rollback();

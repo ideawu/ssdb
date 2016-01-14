@@ -284,10 +284,6 @@ int BackendSync::Client::copy(){
 		if(++iterate_count > 1000 || link->output->size() > 2 * 1024 * 1024){
 			break;
 		}
-		if(time_ms() - stime > 3000){
-			log_info("copy blocks too long, flush");
-			break;
-		}
 		
 		if(!iter->next()){
 			goto copy_end;
@@ -316,12 +312,16 @@ int BackendSync::Client::copy(){
 		}else{
 			continue;
 		}
-		
-		ret = 1;
+		ret++;
 		
 		Binlog log(this->last_seq, BinlogType::COPY, cmd, slice(key));
 		log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
 		link->send(log.repr(), val);
+		
+		if(time_ms() - stime > 3000){
+			log_info("copy blocks too long, flush");
+			break;
+		}
 	}
 	return ret;
 

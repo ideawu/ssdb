@@ -1,5 +1,6 @@
 * 1.9.2
 	* New features:
+		- Binlog capacity can be set in config file(2016-01-14)
 		- Provide zfix command to repair broken zset(2015-12-02)
 		- Supports specifying slaveof.host in ssdb.conf(2015-11-23)
 		- Do not allow flushdb when replication is in use(2015-11-16)

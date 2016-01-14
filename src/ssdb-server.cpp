@@ -58,6 +58,7 @@ void MyApplication::run(){
 	log_info("compaction_speed : %d MB/s", option.compaction_speed);
 	log_info("compression      : %s", option.compression.c_str());
 	log_info("binlog           : %s", option.binlog? "yes" : "no");
+	log_info("binlog_capacity  : %d", option.binlog_capacity);
 	log_info("sync_speed       : %d MB/s", conf->get_num("replication.sync_speed"));
 
 	SSDB *data_db = NULL;
