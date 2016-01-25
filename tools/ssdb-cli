@@ -1,5 +1,8 @@
 #!/bin/sh
-DIR=`dirname $0`
+SCRIPT=`readlink -f "$0"`
+[ -z "$SCRIPT" ] && SCRIPT=$0
+DIR=`dirname $SCRIPT`
+
 
 if [ -e $DIR/../deps/cpy/cpy ]; then
 	CPY=$DIR/../deps/cpy/cpy
