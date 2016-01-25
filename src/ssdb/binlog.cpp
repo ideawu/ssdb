@@ -150,29 +150,24 @@ static inline uint64_t decode_seq_key(const leveldb::Slice &key){
 	return seq;
 }
 
-BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled){
+BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	this->db = db;
 	this->min_seq = 0;
 	this->last_seq = 0;
 	this->tran_seq = 0;
-	this->capacity = LOG_QUEUE_SIZE;
+	this->capacity = capacity;
 	this->enabled = enabled;
 	
 	Binlog log;
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
-	if(this->last_seq > LOG_QUEUE_SIZE){
-		this->min_seq = this->last_seq - LOG_QUEUE_SIZE;
-	}else{
-		this->min_seq = 0;
-	}
-	// TODO: use binary search to find out min_seq
-	if(this->find_next(this->min_seq, &log) == 1){
+	if(this->find_next(0, &log) == 1){
 		this->min_seq = log.seq();
 	}
 	if(this->enabled){
-		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",", capacity, min_seq, last_seq);
+		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",",
+			this->capacity, this->min_seq, this->last_seq);
 	}
 
 	// start cleaning thread
@@ -362,12 +357,12 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		usleep(100 * 1000);
 		assert(logs->last_seq >= logs->min_seq);
 
-		if(logs->last_seq - logs->min_seq < LOG_QUEUE_SIZE * 1.1){
+		if(logs->last_seq - logs->min_seq < logs->capacity * 1.1){
 			continue;
 		}
 		
 		uint64_t start = logs->min_seq;
-		uint64_t end = logs->last_seq - LOG_QUEUE_SIZE;
+		uint64_t end = logs->last_seq - logs->capacity;
 		logs->del_range(start, end);
 		logs->min_seq = end + 1;
 		log_info("clean %d logs[%" PRIu64 " ~ %" PRIu64 "], %d left, max: %" PRIu64 "",
