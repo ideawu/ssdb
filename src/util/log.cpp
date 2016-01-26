@@ -113,10 +113,10 @@ void Logger::rotate(){
 	char newpath[PATH_MAX];
 	time_t time;
 	struct timeval tv;
-	struct tm *tm;
+	struct tm *tm, tm_tmp;
 	gettimeofday(&tv, NULL);
 	time = tv.tv_sec;
-	tm = localtime(&time);
+	tm = localtime_r(&time, &tm_tmp);
 	sprintf(newpath, "%s.%04d%02d%02d-%02d%02d%02d",
 		this->filename,
 		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
