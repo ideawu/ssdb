@@ -245,7 +245,7 @@ int Link::read(){
 	return ret;
 }
 
-int Link::write(){
+int Link::write( bool bSendAll ){
 	if(output->total() == INIT_BUFFER_SIZE){
 		output->grow();
 	}
@@ -272,6 +272,10 @@ int Link::write(){
 			}
 			ret += len;
 			output->decr(len);
+			if (! bSendAll) 
+			{
+				break;
+			}
 		}
 		if(!noblock_){
 			break;
