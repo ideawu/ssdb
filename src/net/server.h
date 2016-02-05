@@ -36,7 +36,7 @@ private:
 	int proc_result(ProcJob *job, ready_list_t *ready_list);
 	int proc_client_event(const Fdevent *fde, ready_list_t *ready_list);
 
-	void proc(ProcJob *job);
+	int proc(ProcJob *job);
 
 	int num_readers;
 	int num_writers;
