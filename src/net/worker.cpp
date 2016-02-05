@@ -29,8 +29,7 @@ int ProcWorker::proc(ProcJob *job){
 	if(job->link->send(resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
-		if (job->cmd->flags & Command::FLAG_READ)
-		{
+		if (job->cmd->flags & Command::FLAG_READ){
 			int len = job->link->write();
 			if(len < 0){
 				job->result = PROC_ERROR;
