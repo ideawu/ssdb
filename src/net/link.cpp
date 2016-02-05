@@ -246,9 +246,6 @@ int Link::read(){
 }
 
 int Link::write(){
-	if(output->total() == INIT_BUFFER_SIZE){
-		output->grow();
-	}
 	int ret = 0;
 	int want;
 	while((want = output->size()) > 0){

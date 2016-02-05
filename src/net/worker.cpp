@@ -29,6 +29,12 @@ int ProcWorker::proc(ProcJob *job){
 	if(job->link->send(resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
+		if(job->cmd->flags & Command::FLAG_READ){
+			int len = job->link->write();
+			if(len < 0){
+				job->result = PROC_ERROR;
+			}
+		}
 		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
 			job->time_wait, job->time_proc,
 			serialize_req(*req).c_str(),
