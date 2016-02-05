@@ -31,8 +31,10 @@ int ProcWorker::proc(ProcJob *job){
 	}else{
 		if (job->cmd->flags & Command::FLAG_READ)
 		{
-			static bool bSendAll = false;
-			job->link->write( bSendAll );
+			int len = job->link->write();
+			if(len < 0){
+				job->result = PROC_ERROR;
+			}
 		}
 		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
 			job->time_wait, job->time_proc,
