@@ -67,7 +67,7 @@ class Link{
 
 		// read network data info buffer
 		int read();
-		int write( bool bSendAll = true);
+		int write();
 		// flush buffered data to network
 		// REQUIRES: nonblock
 		int flush();
