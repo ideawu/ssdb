@@ -372,6 +372,9 @@ const std::vector<Bytes>* Link::recv(){
 			head += 2;
 			size -= 2;
 			parsed += 2;
+		}else if(size > 0){
+			// bad format
+			return NULL;
 		}else{
 			break;
 		}

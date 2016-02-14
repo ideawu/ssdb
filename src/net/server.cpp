@@ -229,12 +229,12 @@ void NetworkServer::serve(){
 				}
 			}else if(fde->data.ptr == this->reader || fde->data.ptr == this->writer){
 				ProcWorkerPool *worker = (ProcWorkerPool *)fde->data.ptr;
-				ProcJob job;
+				ProcJob *job;
 				if(worker->pop(&job) == 0){
 					log_fatal("reading result from workers error!");
 					exit(0);
 				}
-				if(proc_result(&job, &ready_list) == PROC_ERROR){
+				if(proc_result(job, &ready_list) == PROC_ERROR){
 					//
 				}
 			}else{
@@ -266,20 +266,21 @@ void NetworkServer::serve(){
 			
 			link->active_time = millitime();
 
-			ProcJob job;
-			job.link = link;
-			this->proc(&job);
-			if(job.result == PROC_THREAD){
+			ProcJob *job = new ProcJob();
+			job->link = link;
+			job->req = link->last_recv();
+			int result = this->proc(job);
+			if(result == PROC_THREAD){
 				fdes->del(link->fd());
 				continue;
 			}
-			if(job.result == PROC_BACKEND){
+			if(result == PROC_BACKEND){
 				fdes->del(link->fd());
 				this->link_count --;
 				continue;
 			}
 			
-			if(proc_result(&job, &ready_list_2) == PROC_ERROR){
+			if(proc_result(job, &ready_list_2) == PROC_ERROR){
 				//
 			}
 		} // end foreach ready link
@@ -307,23 +308,33 @@ Link* NetworkServer::accept_link(){
 
 int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
 	Link *link = job->link;
-	int len;
+	int result = job->result;
 			
+	if(log_level() >= Logger::LEVEL_DEBUG){
+		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
+			job->time_wait, job->time_proc,
+			serialize_req(*job->req).c_str(),
+			serialize_req(job->resp.resp).c_str());
+	}
 	if(job->cmd){
 		job->cmd->calls += 1;
 		job->cmd->time_wait += job->time_wait;
 		job->cmd->time_proc += job->time_proc;
 	}
-	if(job->result == PROC_ERROR){
+	delete job;
+	
+	if(result == PROC_ERROR){
 		log_info("fd: %d, proc error, delete link", link->fd());
 		goto proc_err;
 	}
 	
-	len = link->write();
-	//log_debug("write: %d", len);
-	if(len < 0){
-		log_debug("fd: %d, write: %d, delete link", link->fd(), len);
-		goto proc_err;
+	if(!link->output->empty()){
+		int len = link->write();
+		//log_debug("write: %d", len);
+		if(len < 0){
+			log_debug("fd: %d, write: %d, delete link", link->fd(), len);
+			goto proc_err;
+		}
 	}
 
 	if(!link->output->empty()){
@@ -399,57 +410,48 @@ int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_lis
 	return 0;
 }
 
-void NetworkServer::proc(ProcJob *job){
+int NetworkServer::proc(ProcJob *job){
 	job->serv = this;
 	job->result = PROC_OK;
 	job->stime = millitime();
 
-	const Request *req = job->link->last_recv();
-	Response resp;
+	const Request *req = job->req;
 
 	do{
 		// AUTH
 		if(this->need_auth && job->link->auth == false && req->at(0) != "auth"){
-			resp.push_back("noauth");
-			resp.push_back("authentication required");
+			job->resp.push_back("noauth");
+			job->resp.push_back("authentication required");
 			break;
 		}
 		
 		Command *cmd = proc_map.get_proc(req->at(0));
 		if(!cmd){
-			resp.push_back("client_error");
-			resp.push_back("Unknown Command: " + req->at(0).String());
+			job->resp.push_back("client_error");
+			job->resp.push_back("Unknown Command: " + req->at(0).String());
 			break;
 		}
 		job->cmd = cmd;
 		
 		if(cmd->flags & Command::FLAG_THREAD){
 			if(cmd->flags & Command::FLAG_WRITE){
-				job->result = PROC_THREAD;
-				writer->push(*job);
+				writer->push(job);
 			}else{
-				job->result = PROC_THREAD;
-				reader->push(*job);
+				reader->push(job);
 			}
-			return;
+			return PROC_THREAD;
 		}
 
 		proc_t p = cmd->proc;
 		job->time_wait = 1000 * (millitime() - job->stime);
-		job->result = (*p)(this, job->link, *req, &resp);
+		job->result = (*p)(this, job->link, *req, &job->resp);
 		job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
 	}while(0);
 	
-	if(job->link->send(resp.resp) == -1){
+	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
-	}else{
-		if(log_level() >= Logger::LEVEL_DEBUG){
-			log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-				job->time_wait, job->time_proc,
-				serialize_req(*req).c_str(),
-				serialize_req(resp.resp).c_str());
-		}
 	}
+	return job->result;
 }
 
 

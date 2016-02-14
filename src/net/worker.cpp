@@ -18,15 +18,14 @@ void ProcWorker::init(){
 }
 
 int ProcWorker::proc(ProcJob *job){
-	const Request *req = job->link->last_recv();
-	Response resp;
+	const Request *req = job->req;
 	
 	proc_t p = job->cmd->proc;
 	job->time_wait = 1000 * (millitime() - job->stime);
-	job->result = (*p)(job->serv, job->link, *req, &resp);
+	job->result = (*p)(job->serv, job->link, *req, &job->resp);
 	job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
 
-	if(job->link->send(resp.resp) == -1){
+	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
 		if(job->cmd->flags & Command::FLAG_READ){
@@ -35,10 +34,6 @@ int ProcWorker::proc(ProcJob *job){
 				job->result = PROC_ERROR;
 			}
 		}
-		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-			job->time_wait, job->time_proc,
-			serialize_req(*req).c_str(),
-			serialize_req(resp.resp).c_str());
 	}
 	return 0;
 }

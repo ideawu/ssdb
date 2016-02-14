@@ -42,13 +42,13 @@ void Options::load(const Config &conf){
 	}
 
 	if(cache_size <= 0){
-		cache_size = 8;
+		cache_size = 16;
 	}
 	if(write_buffer_size <= 0){
-		write_buffer_size = 4;
+		write_buffer_size = 16;
 	}
 	if(block_size <= 0){
-		block_size = 4;
+		block_size = 16;
 	}
 	if(max_open_files <= 0){
 		max_open_files = cache_size / 1024 * 300;

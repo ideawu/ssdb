@@ -120,7 +120,7 @@ class WorkerPool{
 				int id;
 				virtual void init(){}
 				virtual void destroy(){}
-				virtual int proc(JOB *job) = 0;
+				virtual int proc(JOB job) = 0;
 			private:
 			protected:
 				std::string name;
@@ -352,7 +352,7 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 			::exit(0);
 			break;
 		}
-		worker->proc(&job);
+		worker->proc(job);
 		if(tp->results.push(job) == -1){
 			fprintf(stderr, "results.push error\n");
 			::exit(0);
