@@ -354,10 +354,10 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 		if(!logs->db){
 			break;
 		}
-		usleep(100 * 1000);
 		assert(logs->last_seq >= logs->min_seq);
 
-		if(logs->last_seq - logs->min_seq < logs->capacity * 1.1){
+		if(logs->last_seq - logs->min_seq < logs->capacity + 10000){
+			usleep(50 * 1000);
 			continue;
 		}
 		
