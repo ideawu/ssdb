@@ -12,11 +12,6 @@ found in the LICENSE file.
 // filter ip address
 class IpFilter{
 private:
-	bool deny_all;
-	bool allow_all;
-	bool empty_;
-	std::set<std::string> deny;
-	std::set<std::string> allow;
 	
 	bool check_hit(const std::set<std::string> &m, const std::string &ip){
 		if(m.empty()){
@@ -49,57 +44,67 @@ private:
 	}
 
 public:
+	bool allow_all;
+	std::set<std::string> deny;
+	std::set<std::string> allow;
 
 	IpFilter(){
-		deny_all = false;
-		allow_all = false;
-		empty_ = true;
-	}
-	
-	bool empty(){
-		return empty_;
+		allow_all = true;
 	}
 	
 	void add_allow(const std::string &ip_prefix){
 		if(ip_prefix == "all" || ip_prefix == "*"){
 			allow_all = true;
 		}else{
+			allow_all = false;
 			// '@' and '=' is greater than any char in ip
 			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
 			allow.insert(prefix);
 		}
-		empty_ = false;
+	}
+
+	void del_allow(const std::string &ip_prefix){
+		if(ip_prefix == "all" || ip_prefix == "*"){
+			allow_all = false;
+		}else{
+			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
+			allow.erase(prefix);
+		}
 	}
 	
 	void add_deny(const std::string &ip_prefix){
 		if(ip_prefix == "all" || ip_prefix == "*"){
-			deny_all = true;
+			// nothing
 		}else{
+			// deny_all is always true
 			// '@' and '=' is greater than any char in ip
 			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
 			deny.insert(prefix);
 		}
-		empty_ = false;
+	}
+
+	void del_deny(const std::string &ip_prefix){
+		if(ip_prefix == "all" || ip_prefix == "*"){
+			// nothing
+		}else{
+			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
+			deny.erase(prefix);
+		}
 	}
 	
 	bool check_pass(const std::string &ip){
-		if(empty_){
-			return true;
-		}
 		// check specified allow/deny
-		if(check_hit(allow, ip)){
-			return true;
-		}
 		if(check_hit(deny, ip)){
 			return false;
 		}
-		if(deny_all){
-			return false;
+		if(check_hit(allow, ip)){
+			return true;
 		}
 		if(allow_all){
 			return true;
+		}else{
+			return false;
 		}
-		return false;
 	}
 };
 

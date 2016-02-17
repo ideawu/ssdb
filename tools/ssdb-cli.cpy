@@ -189,7 +189,6 @@ function request_with_retry(cmd, args=null){
 				sys.stderr.write(sprintf('Connect error: %s\n', str(e)));
 				continue;
 			}
-			sys.stderr.write('\n');
 			if(password){
 				ret = link.request('auth', [password]);
 			}
@@ -318,6 +317,10 @@ while(true){
 
 	stime = datetime.datetime.now();
 	resp = request_with_retry(cmd, args);
+	if(resp == null){
+		sys.stderr.write("error!\n");
+		continue;
+	}
 
 	time_consume = timespan(stime);
 	if(!resp.ok()){
@@ -551,6 +554,20 @@ while(true){
 			case 'cluster_set_kv_status':
 				print repr_data(resp.data);
 				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+				break;
+			case 'list_allow_ip':
+			case 'list_deny_ip':
+				if(cmd == 'list_allow_ip'){
+					name = 'allow_ip';
+				}else{
+					name = 'deny_ip';
+				}
+				sys.stderr.write(name + '\n');
+				sys.stderr.write('-' * 17 + '\n');
+				foreach(resp.data as k){
+					printf('%s\n', repr_data(k));
+				}
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
 			default:
 				if(resp.data){

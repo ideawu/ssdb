@@ -29,7 +29,6 @@ private:
 
 	//Config *conf;
 	Link *serv_link;
-	IpFilter *ip_filter;
 	Fdevents *fdes;
 
 	Link* accept_link();
@@ -49,6 +48,7 @@ protected:
 	void usage(int argc, char **argv);
 
 public:
+	IpFilter *ip_filter;
 	void *data;
 	ProcMap proc_map;
 	int link_count;
