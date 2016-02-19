@@ -60,7 +60,8 @@ private:
 	int del(uint64_t seq);
 	// [start, end] includesive
 	int del_range(uint64_t start, uint64_t end);
-		
+	
+	void clean_obsolete_binlogs();
 	void merge();
 	bool enabled;
 public:
