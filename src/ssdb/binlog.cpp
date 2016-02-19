@@ -162,6 +162,12 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
+	// 不要从0开始find_next, 因为老版本普通产生了断续的binlog
+	// 例如, binlog-1 存在, 但后面的被删除了, 然后到 binlog-100000 时又开始存在.
+	// 所以下面这段代码是错误的!
+	//if(this->find_next(0, &log) == 1){
+	//	this->min_seq = log.seq();
+	//}
 	if(this->last_seq > this->capacity){
 		this->min_seq = this->last_seq - this->capacity;
 	}else{
