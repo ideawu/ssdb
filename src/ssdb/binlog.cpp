@@ -162,7 +162,12 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
-	if(this->find_next(0, &log) == 1){
+	if(this->last_seq > this->capacity){
+		this->min_seq = this->last_seq - this->capacity;
+	}else{
+		this->min_seq = 0;
+	}
+	if(this->find_next(this->min_seq, &log) == 1){
 		this->min_seq = log.seq();
 	}
 	if(this->enabled){
