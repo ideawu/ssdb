@@ -162,9 +162,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
-	// 不要从0开始find_next, 因为老版本普通产生了断续的binlog
-	// 例如, binlog-1 存在, 但后面的被删除了, 然后到 binlog-100000 时又开始存在.
-	// 所以下面这段代码是错误的!
+	// 下面这段代码是可能性能非常差!
 	//if(this->find_next(0, &log) == 1){
 	//	this->min_seq = log.seq();
 	//}
@@ -179,6 +177,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->enabled){
 		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",",
 			this->capacity, this->min_seq, this->last_seq);
+		this->clean_obsolete_binlogs();
 	}
 
 	// start cleaning thread
@@ -383,6 +382,34 @@ void* BinlogQueue::log_clean_thread_func(void *arg){
 	
 	logs->thread_quit = false;
 	return (void *)NULL;
+}
+
+// 因为老版本可能产生了断续的binlog
+// 例如, binlog-1 存在, 但后面的被删除了, 然后到 binlog-100000 时又开始存在.
+void BinlogQueue::clean_obsolete_binlogs(){
+	std::string key_str = encode_seq_key(this->min_seq);
+	leveldb::ReadOptions iterate_options;
+	leveldb::Iterator *it = db->NewIterator(iterate_options);
+	it->Seek(key_str);
+	if(it->Valid()){
+		it->Prev();
+	}
+	uint64_t count = 0;
+	while(it->Valid()){
+		leveldb::Slice key = it->key();
+		uint64_t seq = decode_seq_key(key);
+		if(seq == 0){
+			break;
+		}
+		this->del(seq);
+		
+		it->Prev();
+		count ++;
+	}
+	delete it;
+	if(count > 0){
+		log_info("clean_obsolete_binlogs: %" PRIu64, count);
+	}
 }
 
 // TESTING, slow, so not used
