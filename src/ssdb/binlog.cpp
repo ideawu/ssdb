@@ -177,7 +177,9 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->enabled){
 		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",",
 			this->capacity, this->min_seq, this->last_seq);
-		this->clean_obsolete_binlogs();
+		// 这个方法有性能问题
+		// 但是, 如果不执行清理, 如果将 capacity 修改大, 可能会导致主从同步问题
+		//this->clean_obsolete_binlogs();
 	}
 
 	// start cleaning thread
