@@ -233,6 +233,11 @@ while(true){
 	if(len(ps) == 0){
 		continue;
 	}
+
+	for(i=0; i<len(ps); i++){
+		ps[i] = ps[i].decode('string-escape');
+	}
+	
 	cmd = ps[0].lower();
 	if(cmd.startswith(':')){
 		ps[0] = cmd[1 ..];

@@ -1,5 +1,6 @@
 * 1.9.3
 	* New features:
+		- User can input binary data via ssdb-cli(2016-02-24)
 		- Add ip_filter relative commands(2016-02-17)
 * 1.9.2
 	* New features:
