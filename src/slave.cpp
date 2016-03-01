@@ -132,9 +132,7 @@ void Slave::migrate_old_status(){
 
 std::string Slave::status_key(){
 	std::string key;
-	if(key.empty()){
-		key = "slave.status." + this->id_;
-	}
+	key = "slave.status." + this->id_;
 	return key;
 }
 
