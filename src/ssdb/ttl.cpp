@@ -78,7 +78,9 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 }
 
 int ExpirationHandler::del_ttl(const Bytes &key){
-	if(!this->fast_keys.empty()){
+	// 这样用是有 bug 的, 虽然 fast_keys 为空, 不代表整个 ttl 队列为空
+	// if(!this->fast_keys.empty()){
+	if(first_timeout != INT64_MAX){
 		fast_keys.del(key.String());
 		ssdb->zdel(this->list_name, key);
 	}
