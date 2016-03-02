@@ -16,7 +16,7 @@ ExpirationHandler::ExpirationHandler(SSDB *ssdb){
 	this->ssdb = ssdb;
 	this->thread_quit = false;
 	this->list_name = EXPIRATION_LIST_KEY;
-	this->first_timeout = INT64_MAX;
+	this->first_timeout = 0;
 	this->start();
 }
 
