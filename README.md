@@ -17,6 +17,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * Persistent queue service
 * **Replication(master-slave), load balance**
 * GUI administration tool([phpssdbadmin](https://github.com/ssdb/phpssdbadmin))
+* Built-in CLI nagios self-checks
 
 ## PHP client API example
 
