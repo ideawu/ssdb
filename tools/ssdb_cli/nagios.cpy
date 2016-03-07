@@ -3,21 +3,29 @@ nagios_warn = 85;
 nagios_critical = 95;
 
 function run(link, cli_args){
-	opt = '';
-	foreach(cli_args as arg){
+    gs = globals();
+    opt = '';
+    foreach(cli_args as arg){
 		if(opt == '' && arg.startswith('-')){
 			opt = arg;
 		}else{
 			switch(opt){
 				case '-n':
-					nagios_probe = arg;
+                    opt = '';
+                    gs['nagios_probe'] = arg;
 					break;
 				case '-w':
-					nagios_warn = arg;
+                    gs['nagios_warn'] = arg;
+                    opt = '';
 					break;
 				case '-c':
-					nagios_critical = arg;
-					break;
+                    gs['nagios_critical'] = arg;
+                    opt = '';
+                    break;
+                default: 
+                    # ignore args '-h host -p port'
+                    opt = '';
+                    break;
 			}
 		}
 	}
