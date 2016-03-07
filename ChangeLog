@@ -2,6 +2,7 @@
 	* New features:
 		- User can input binary data via ssdb-cli(2016-02-24)
 		- Add ip_filter relative commands(2016-02-17)
+		- CLI comands with nagios output format
 	* Bug fixes:
 		- Fix ttl not be deleted when deleting the only one key with ttl in the db, issue#885(2016-03-02)
 		- Fix bug when connecting to multi masters, the slave saves only one master's status(2016-03-01)

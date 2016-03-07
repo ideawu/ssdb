@@ -18,6 +18,114 @@ function welcome(){
 	sys.stderr.write('\n');
 }
 
+function nagios_check(){
+	try{
+           resp = link.request('info', []);
+           if(nagios_probe == 'info'){
+               info(resp);
+           }
+           if(nagios_probe == 'dbsize'){
+               nagios_dbsize(resp);
+           }
+           if(nagios_probe == 'replication'){
+               nagios_replication(resp);
+           }
+           if(nagios_probe == 'write_read'){
+               nagios_write_read();
+           }
+           # Possible future checks:
+           # - check if binlogs.max_seq == replication.client.last_seq
+           # - does total_calls is growing
+	}catch(Exception e){
+           sys.stderr.write(str(e) + '\n');
+	}
+           #sys.stderr.write('exit\n');
+	exit(0);
+}
+
+function nagios_probe_check(resp){
+    next_val = false;
+    ret = '';
+    for(i=1; i<len(resp.data); i++){
+        s = resp.data[i];
+        if(next_val){
+            s = s.replace('\n', '\n	');
+            next_val = !next_val;
+            #print s;
+            ret += s;
+        }
+        if(s == nagios_probe){
+            next_val = !next_val;
+        }
+    }
+    return ret;
+}
+
+function nagios_dbsize(resp){
+    dbsize = nagios_probe_check(resp);
+    if(dbsize > nagios_critical){
+        print 'CRITICAL: dbsize ' + str(dbsize) + ' larger than ' + str(nagios_critical);
+        exit(2);
+    }
+    else if(dbsize > nagios_warn){
+        print 'WARN: dbsize ' + str(dbsize) + ' larger than ' + str(nagios_warn);
+        exit(1);
+    }
+    else{
+        print 'OK: dbsize ' + str(dbsize) + ' less than ' + str(nagios_critical);
+        exit(0);
+    }
+}
+
+function nagios_replication(resp){
+    replication = nagios_probe_check(resp);
+    replication = replication.replace('slaveof', '\nslaveof');
+    if(replication.find('DISCONNECTED') > 0 ){
+        print 'CRITICAL: ' + replication;
+        exit(2);
+    }
+    else if(replication.find('COPY') > 0 || replication.find('INIT') > 0 || replication.find('OUT_OF_SYNC') > 0){
+        print 'WARN: ' + replication;
+        exit(1);
+    }
+    else if(replication.find('SYNC') > 0){
+        print 'OK: ' + replication;
+        exit(0);
+    }
+    else{
+        print 'WARN, is replication configured? Status: ' + replication;
+        exit(1);
+    }
+}
+
+function nagios_write_read(){
+    test_key = 'write_read_test_key';
+    resp = link.request('set', ['nagiostest', test_key]);
+    #print resp;
+    resp = link.request('get', ['nagiostest']);
+    #print resp;
+    if (resp.data == test_key){
+       print 'OK: ' + resp.data;
+       exit(0);
+    }
+    else{
+       print 'WRITE_READ failed: ' + resp.data;
+       exit(2);
+    }
+}
+
+function info(resp){
+    is_val = false;
+    for(i=1; i<len(resp.data); i++){
+        s = resp.data[i];
+        if(is_val){
+            s = '	' + s.replace('\n', '\n	');
+        }
+        print s;
+        is_val = !is_val;
+    }
+}
+
 function show_command_help(){
 	print '';
 	print '# display ssdb-server status';
@@ -47,12 +155,22 @@ function usage(){
 	print '		ssdb server port';
 	print '	-v --help';
 	print '		show this message';
+	print '	-n [info, dbsize, replication, write_read]';
+	print '		choose nagios probe';
+	print '	-w INT';
+	print '		set nagios WARN level';
+	print '	-c INT';
+	print '		set nagios CRITICAL level';
 	print '';
 	print 'Examples:';
 	print '	ssdb-cli';
 	print '	ssdb-cli 8888';
 	print '	ssdb-cli 127.0.0.1 8888';
 	print '	ssdb-cli -h 127.0.0.1 -p 8888';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n dbsize -w 500000 -c 600000';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n replication';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n write_read';
+	print '	ssdb-cli -n info';
 }
 
 function repr_data(s){
@@ -82,7 +200,11 @@ function show_version(){
 host = '';
 port = '';
 opt = '';
+nagios_probe = '';
+nagios_warn = 85;
+nagios_critical = 95;
 args = [];
+
 foreach(sys.argv[1 ..] as arg){
 	if(opt == '' && arg.startswith('-')){
 		opt = arg;
@@ -98,6 +220,18 @@ foreach(sys.argv[1 ..] as arg){
 				break;
 			case '-p':
 				port = arg;
+				opt = '';
+				break;
+			case '-n':
+				nagios_probe = arg;
+				opt = '';
+				break;
+			case '-w':
+				nagios_warn = arg;
+				opt = '';
+				break;
+			case '-c':
+				nagios_critical = arg;
 				opt = '';
 				break;
 			default:
@@ -145,6 +279,10 @@ try{
 	sys.stderr.write(sprintf('Failed to connect to: %s:%d\n', host, port));
 	sys.stderr.write(sprintf('Connection error: %s\n', str(e)));
 	sys.exit(0);
+}
+
+if(len(nagios_probe) > 0){
+    nagios_check();
 }
 
 welcome();
