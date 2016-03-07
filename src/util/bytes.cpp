@@ -19,7 +19,9 @@ Buffer::~Buffer(){
 void Buffer::nice(){
 	// 保证不改变后半段的数据, 以便使已生成的 Bytes 不失效.
 	if(data_ - buf > total_/2){
-		memcpy(buf, data_, size_);
+		if(size_ > 0){
+			memcpy(buf, data_, size_);
+		}
 		data_ = buf;
 	}
 }
