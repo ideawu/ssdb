@@ -3,9 +3,9 @@ nagios_warn = 85;
 nagios_critical = 95;
 
 function run(link, cli_args){
-		gs = globals();
-		opt = '';
-		foreach(cli_args as arg){
+	gs = globals();
+	opt = '';
+	foreach(cli_args as arg){
 		if(opt == '' && arg.startswith('-')){
 			opt = arg;
 		}else{
@@ -62,7 +62,7 @@ function nagios_info(resp){
 		}
 		print s;
 		is_val = !is_val;
-		}
+	}
 }
 
 function nagios_probe_check(resp){
