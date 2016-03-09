@@ -30,6 +30,17 @@ int proc_getset(NetworkServer *net, Link *link, const Request &req, Response *re
 	return 0;
 }
 
+int proc_cmpset(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(4);
+	CHECK_KEY_RANGE(1);
+
+	int64_t changed = 0;
+	int ret = serv->ssdb->cmpset(req[1], req[2], req[3], &changed);
+	resp->reply_int(ret, changed);
+	return 0;
+}
+
 int proc_set(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(3);

@@ -381,6 +381,7 @@ while(true){
 			case 'bitcount':
 			case 'strlen':
 			case 'getset':
+			case 'cmpset':
 			case 'setnx':
 			case 'get':
 			case 'substr':

@@ -33,6 +33,8 @@ public:
 	virtual Status get(const std::string &key, std::string *val);
 	virtual Status set(const std::string &key, const std::string &val);
 	virtual Status setx(const std::string &key, const std::string &val, int ttl);
+	virtual Status getset(const std::string &key, const std::string &setval, std::string *val);
+	virtual Status cmpset(const std::string &key, const std::string &cmpval, const std::string &setval, int64_t *changed);
 	virtual Status del(const std::string &key);
 	virtual Status incr(const std::string &key, int64_t incrby, int64_t *ret);
 	virtual Status keys(const std::string &key_start, const std::string &key_end,
@@ -97,6 +99,7 @@ public:
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret);
 	virtual Status qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret);
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL);
+	virtual Status qsize( const std::string & name, int64_t & size );
 };
 
 }; // namespace ssdb
