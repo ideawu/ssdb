@@ -561,7 +561,7 @@ int RedisLink::parse_req(Buffer *input){
 		size -= len + 1;
 		parsed += len + 1;
 		// compatiabl with both CRLF and LF
-		if(*ptr == '\n'){
+		if(size > 0 && *ptr == '\n'){
 			ptr += 1;
 			size -= 1;
 			parsed += 1;
