@@ -109,6 +109,7 @@ foreach(sys.argv[1 ..] as arg){
 			case '-w':
 			case '-c':
 				run_nagios = true;
+				opt = '';
 				break;
 			default:
 				args.append(arg);
