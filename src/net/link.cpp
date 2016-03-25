@@ -242,6 +242,7 @@ int Link::read(){
 		}
 	}
 	//log_debug("read %d", ret);
+	//printf("%s\n", hexmem(input->data(), input->size()).c_str());
 	return ret;
 }
 
