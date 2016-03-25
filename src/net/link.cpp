@@ -364,15 +364,15 @@ const std::vector<Bytes>* Link::recv(){
 
 		head += head_len + body_len;
 		parsed += head_len + body_len;
-		if(size > 0 && head[0] == '\n'){
+		if(size >= 1 && head[0] == '\n'){
 			head += 1;
 			size -= 1;
 			parsed += 1;
-		}else if(size > 1 && head[0] == '\r' && head[1] == '\n'){
+		}else if(size >= 2 && head[0] == '\r' && head[1] == '\n'){
 			head += 2;
 			size -= 2;
 			parsed += 2;
-		}else if(size > 0){
+		}else if(size >= 2){
 			// bad format
 			return NULL;
 		}else{
