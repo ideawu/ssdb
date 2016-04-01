@@ -145,6 +145,11 @@ public:
 		const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret) = 0;
 	/**
+	 * Return all hashmap key-value pairs.
+	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
+	 */
+	virtual Status hgetall(const std::string &name, std::vector<std::string> *ret) = 0;
+	/**
 	 * Return key-value pairs.
 	 * The two elements at ret[n] and ret[n+1] form a key-value pair, n=0,2,4,...
 	 */

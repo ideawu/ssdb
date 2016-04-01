@@ -331,6 +331,14 @@ Status ClientImpl::hkeys(const std::string &name,
 	return _read_list(resp, ret);
 }
 
+Status ClientImpl::hgetall(const std::string &name,
+	 std::vector<std::string> *ret)
+{
+	const std::vector<std::string> *resp;
+	resp = this->request("hgetall", name );
+	return _read_list(resp, ret);
+}
+
 Status ClientImpl::hscan(const std::string &name,
 	const std::string &key_start, const std::string &key_end,
 	uint64_t limit, std::vector<std::string> *ret)
