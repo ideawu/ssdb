@@ -23,7 +23,7 @@ case "$TARGET_OS" in
 		#PLATFORM_CFLAGS=""
         ;;
     Linux)
-        PLATFORM_CLIBS="-pthread"
+        PLATFORM_CLIBS="-pthread -lrt"
         ;;
     OS_ANDROID_CROSSCOMPILE)
         PLATFORM_CLIBS="-pthread"
@@ -127,10 +127,8 @@ echo "CFLAGS += ${PLATFORM_CFLAGS}" >> build_config.mk
 echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
 
 echo "CLIBS=" >> build_config.mk
-echo "CLIBS += ${PLATFORM_CLIBS}" >> build_config.mk
 echo "CLIBS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
 echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
-
 
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)
@@ -140,6 +138,8 @@ case "$TARGET_OS" in
 		echo "CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
 	;;
 esac
+
+echo "CLIBS += ${PLATFORM_CLIBS}" >> build_config.mk
 
 
 if test -z "$TMPDIR"; then
