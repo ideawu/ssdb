@@ -117,7 +117,6 @@ int SSDBImpl::del(const Bytes &key, char log_type){
 	Transaction trans(binlogs);
 
 	std::string buf = encode_kv_key(key);
-	binlogs->begin();
 	binlogs->Delete(buf);
 	binlogs->add_log(log_type, BinlogCommand::KDEL, buf);
 	leveldb::Status s = binlogs->commit();

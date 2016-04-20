@@ -1,6 +1,6 @@
 #!/bin/sh
 BASE_DIR=`pwd`
-JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-3.3.1"
+JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-4.1.0"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.18"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
@@ -23,7 +23,7 @@ case "$TARGET_OS" in
 		#PLATFORM_CFLAGS=""
         ;;
     Linux)
-        PLATFORM_CLIBS="-pthread"
+        PLATFORM_CLIBS="-pthread -lrt"
         ;;
     OS_ANDROID_CROSSCOMPILE)
         PLATFORM_CLIBS="-pthread"
@@ -82,6 +82,7 @@ case "$TARGET_OS" in
 		if [ ! -f Makefile ]; then
 			echo ""
 			echo "##### building jemalloc... #####"
+			sh ./autogen.sh
 			./configure
 			make
 			echo "##### building jemalloc finished #####"
@@ -126,10 +127,8 @@ echo "CFLAGS += ${PLATFORM_CFLAGS}" >> build_config.mk
 echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
 
 echo "CLIBS=" >> build_config.mk
-echo "CLIBS += ${PLATFORM_CLIBS}" >> build_config.mk
 echo "CLIBS += \"$LEVELDB_PATH/libleveldb.a\"" >> build_config.mk
 echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
-
 
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)
@@ -139,6 +138,8 @@ case "$TARGET_OS" in
 		echo "CFLAGS += -I \"$JEMALLOC_PATH/include\"" >> build_config.mk
 	;;
 esac
+
+echo "CLIBS += ${PLATFORM_CLIBS}" >> build_config.mk
 
 
 if test -z "$TMPDIR"; then

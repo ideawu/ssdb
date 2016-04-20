@@ -1,3 +1,12 @@
+* 1.9.3
+	* New features:
+		- Do not allow slave request binlogs with seq greater than max_seq(2016-03-18)
+		- CLI comands with nagios output format(2016-03-06)
+		- User can input binary data via ssdb-cli(2016-02-24)
+		- Add ip_filter relative commands(2016-02-17)
+	* Bug fixes:
+		- Fix ttl not be deleted when deleting the only one key with ttl in the db, issue#885(2016-03-02)
+		- Fix bug when connecting to multi masters, the slave saves only one master's status(2016-03-01)
 * 1.9.2
 	* New features:
 		- Binlog capacity can be set in config file(2016-01-14)

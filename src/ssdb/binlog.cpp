@@ -121,6 +121,7 @@ std::string Binlog::dumps() const{
 			break;
 		case BinlogCommand::QPOP_FRONT:
 			str.append("qpop_front ");
+			break;
 		case BinlogCommand::QSET:
 			str.append("qset ");
 			break;

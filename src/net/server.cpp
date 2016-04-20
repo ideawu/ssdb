@@ -15,6 +15,12 @@ found in the LICENSE file.
 static DEF_PROC(ping);
 static DEF_PROC(info);
 static DEF_PROC(auth);
+static DEF_PROC(list_allow_ip);
+static DEF_PROC(add_allow_ip);
+static DEF_PROC(del_allow_ip);
+static DEF_PROC(list_deny_ip);
+static DEF_PROC(add_deny_ip);
+static DEF_PROC(del_deny_ip);
 
 #define TICK_INTERVAL          100 // ms
 #define STATUS_REPORT_TICKS    (300 * 1000/TICK_INTERVAL) // second
@@ -56,6 +62,12 @@ NetworkServer::NetworkServer(){
 	proc_map.set_proc("ping", "r", proc_ping);
 	proc_map.set_proc("info", "r", proc_info);
 	proc_map.set_proc("auth", "r", proc_auth);
+	proc_map.set_proc("list_allow_ip", "r", proc_list_allow_ip);
+	proc_map.set_proc("add_allow_ip",  "r", proc_add_allow_ip);
+	proc_map.set_proc("del_allow_ip",  "r", proc_del_allow_ip);
+	proc_map.set_proc("list_deny_ip",  "r", proc_list_deny_ip);
+	proc_map.set_proc("add_deny_ip",   "r", proc_add_deny_ip);
+	proc_map.set_proc("del_deny_ip",   "r", proc_del_deny_ip);
 
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGINT, signal_handler);
@@ -497,3 +509,96 @@ static int proc_auth(NetworkServer *net, Link *link, const Request &req, Respons
 	}
 	return 0;
 }
+
+#define ENSURE_LOCALHOST() do{ \
+		if(strcmp(link->remote_ip, "127.0.0.1") != 0){ \
+			resp->push_back("noauth"); \
+			resp->push_back("this command is only available from 127.0.0.1"); \
+			return 0; \
+		} \
+	}while(0)
+
+static int proc_list_allow_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+
+	resp->push_back("ok");
+	IpFilter *ip_filter = net->ip_filter;
+	if(ip_filter->allow_all){
+		resp->push_back("all");
+	}
+	std::set<std::string>::const_iterator it;
+	for(it=ip_filter->allow.begin(); it!=ip_filter->allow.end(); it++){
+		std::string ip = *it;
+		ip = ip.substr(0, ip.size() - 1);
+		resp->push_back(ip);
+	}
+
+	return 0;
+}
+
+static int proc_add_allow_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		IpFilter *ip_filter = net->ip_filter;
+		ip_filter->add_allow(req[1].String());
+		resp->push_back("ok");
+	}
+	return 0;
+}
+
+static int proc_del_allow_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		IpFilter *ip_filter = net->ip_filter;
+		ip_filter->del_allow(req[1].String());
+		resp->push_back("ok");
+	}
+	return 0;
+}
+
+static int proc_list_deny_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+
+	resp->push_back("ok");
+	IpFilter *ip_filter = net->ip_filter;
+	if(!ip_filter->allow_all){
+		resp->push_back("all");
+	}
+	std::set<std::string>::const_iterator it;
+	for(it=ip_filter->deny.begin(); it!=ip_filter->deny.end(); it++){
+		std::string ip = *it;
+		ip = ip.substr(0, ip.size() - 1);
+		resp->push_back(ip);
+	}
+
+	return 0;
+}
+
+static int proc_add_deny_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		IpFilter *ip_filter = net->ip_filter;
+		ip_filter->add_deny(req[1].String());
+		resp->push_back("ok");
+	}
+	return 0;
+}
+
+static int proc_del_deny_ip(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	ENSURE_LOCALHOST();
+	if(req.size() != 2){
+		resp->push_back("client_error");
+	}else{
+		IpFilter *ip_filter = net->ip_filter;
+		ip_filter->del_deny(req[1].String());
+		resp->push_back("ok");
+	}
+	return 0;
+}
+

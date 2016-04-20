@@ -80,6 +80,18 @@ void* BackendSync::_run_thread(void *arg){
 	Client client(backend);
 	client.link = link;
 	client.init();
+	
+	uint64_t max_binlog_seq = 0;
+	Binlog log;
+	int ret = logs->find_last(&log);
+	if(ret > 0){
+		max_binlog_seq = log.seq();
+	}
+	if(client.last_seq > max_binlog_seq){
+		log_error("client requests binlogs in future, not allowed!");
+		delete link;
+		return NULL;
+	}
 
 	{
 		pthread_t tid = pthread_self();

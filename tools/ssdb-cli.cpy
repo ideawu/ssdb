@@ -2,6 +2,10 @@ import thread, re, time, socket;
 import getopt, shlex;
 import datetime;
 import ssdb_cli.*;
+sys.path.append('./api/python');
+sys.path.append('../api/python');
+sys.path.append('/usr/local/ssdb/api/python');
+import SSDB.*;
 
 try{
 	import readline;
@@ -12,7 +16,7 @@ escape_data = false;
 
 function welcome(){
 	sys.stderr.write('ssdb (cli) - ssdb command line tool.\n');
-	sys.stderr.write('Copyright (c) 2012-2015 ssdb.io\n');
+	sys.stderr.write('Copyright (c) 2012-2016 ssdb.io\n');
 	sys.stderr.write('\n');
 	sys.stderr.write("'h' or 'help' for help, 'q' to quit.\n");
 	sys.stderr.write('\n');
@@ -47,12 +51,22 @@ function usage(){
 	print '		ssdb server port';
 	print '	-v --help';
 	print '		show this message';
+	print '	-n [info, dbsize, replication, write_read]';
+	print '		choose nagios probe';
+	print '	-w INT';
+	print '		set nagios WARN level';
+	print '	-c INT';
+	print '		set nagios CRITICAL level';
 	print '';
 	print 'Examples:';
 	print '	ssdb-cli';
 	print '	ssdb-cli 8888';
 	print '	ssdb-cli 127.0.0.1 8888';
 	print '	ssdb-cli -h 127.0.0.1 -p 8888';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n dbsize -w 500000 -c 600000';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n replication';
+	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n write_read';
+	print '	ssdb-cli -n info';
 }
 
 function repr_data(s){
@@ -71,18 +85,12 @@ function timespan(stime){
 	return time_consume;
 }
 
-function show_version(){
-	try{
-		resp = link.request('info', []);
-		sys.stderr.write(resp.data[0] + ' ' + resp.data[2] + '\n\n');
-	}catch(Exception e){
-	}
-}
-
 host = '';
 port = '';
 opt = '';
 args = [];
+run_nagios = false;
+
 foreach(sys.argv[1 ..] as arg){
 	if(opt == '' && arg.startswith('-')){
 		opt = arg;
@@ -98,6 +106,13 @@ foreach(sys.argv[1 ..] as arg){
 				break;
 			case '-p':
 				port = arg;
+				opt = '';
+				break;
+			// nagios
+			case '-n':
+			case '-w':
+			case '-c':
+				run_nagios = true;
 				opt = '';
 				break;
 			default:
@@ -134,11 +149,6 @@ try{
 	sys.exit(0);
 }
 
-sys.path.append('./api/python');
-sys.path.append('../api/python');
-sys.path.append('/usr/local/ssdb/api/python');
-import SSDB.SSDB;
-
 try{
 	link = new SSDB(host, port);
 }catch(socket.error e){
@@ -147,9 +157,14 @@ try{
 	sys.exit(0);
 }
 
+if(run_nagios){
+	nagios.run(link, sys.argv[1 ..]);
+	exit(0);
+}
+
 welcome();
 if(sys.stdin.isatty()){
-	show_version();
+	util.show_version(link);
 }
 
 
@@ -189,7 +204,6 @@ function request_with_retry(cmd, args=null){
 				sys.stderr.write(sprintf('Connect error: %s\n', str(e)));
 				continue;
 			}
-			sys.stderr.write('\n');
 			if(password){
 				ret = link.request('auth', [password]);
 			}
@@ -234,6 +248,11 @@ while(true){
 	if(len(ps) == 0){
 		continue;
 	}
+
+	for(i=0; i<len(ps); i++){
+		ps[i] = ps[i].decode('string-escape');
+	}
+	
 	cmd = ps[0].lower();
 	if(cmd.startswith(':')){
 		ps[0] = cmd[1 ..];
@@ -268,7 +287,7 @@ while(true){
 		continue;
 	}
 	if(cmd == 'v'){
-		show_version();
+		util.show_version(link);
 		continue;
 	}
 	if(cmd == 'auth'){
@@ -318,110 +337,27 @@ while(true){
 
 	stime = datetime.datetime.now();
 	resp = request_with_retry(cmd, args);
+	if(resp == null){
+		sys.stderr.write("error!\n");
+		continue;
+	}
 
 	time_consume = timespan(stime);
+
 	if(!resp.ok()){
 		if(resp.not_found()){
 			sys.stderr.write('not_found\n');
 		}else{
 			s = resp.code;
 			if(resp.message){
-				s += ': ' + resp.message;
+				s += ': ' + str(resp.message);
 			}
 			sys.stderr.write(str(s) + '\n');
 		}
 		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}else{
+		skip = false;
 		switch(cmd){
-			case 'version':
-				if(resp.code == 'ok'){
-					printf(resp.data[0] + '\n');
-				}else{
-					if(resp.data){
-						print repr_data(resp.code), repr_data(resp.data);
-					}else{
-						print repr_data(resp.code);
-					}
-				}
-				break;
-			case 'hdel':
-			case 'hset':
-				print resp.data;
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
-			case 'exists':
-			case 'hexists':
-			case 'zexists':
-				if(resp.data == true){
-					printf('1\n');
-				}else{
-					printf('0\n');
-				}
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
-			case 'multi_exists':
-			case 'multi_hexists':
-			case 'multi_zexists':
-				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
-				sys.stderr.write('-' * 25 + '\n');
-				foreach(resp.data as k=>v){
-					if(v == true){
-						s = 'true';
-					}else{
-						s = 'false';
-					}
-					printf('  %-15s : %s\n', repr_data(k), s);
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
-				break;
-			case 'dbsize':
-			case 'getbit':
-			case 'setbit':
-			case 'countbit':
-			case 'bitcount':
-			case 'strlen':
-			case 'getset':
-			case 'setnx':
-			case 'get':
-			case 'substr':
-			case 'ttl':
-			case 'expire':
-			case 'zget':
-			case 'hget':
-			case 'qfront':
-			case 'qback':
-			case 'qget':
-			case 'incr':
-			case 'decr':
-			case 'zincr':
-			case 'zdecr':
-			case 'hincr':
-			case 'hdecr':
-			case 'hsize':
-			case 'zsize':
-			case 'qsize':
-			case 'zrank':
-			case 'zrrank':
-			case 'zsum':
-			case 'zcount':
-			case 'zavg':
-			case 'zremrangebyrank':
-			case 'zremrangebyscore':
-			case 'zavg':
-			case 'multi_del':
-			case 'multi_hdel':
-			case 'multi_zdel':
-			case 'hclear':
-			case 'zclear':
-			case 'qclear':
-			case 'qpush':
-			case 'qpush_front':
-			case 'qpush_back':
-			case 'qtrim_front':
-			case 'qtrim_back':
-				print repr_data(resp.data);
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
 			case 'ping':
 			case 'qset':
 			case 'compact':
@@ -432,82 +368,11 @@ while(true){
 			case 'hset':
 			case 'del':
 			case 'zdel':
-				print resp.code;
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
-			case 'scan':
-			case 'rscan':
-			case 'hgetall':
-			case 'hscan':
-			case 'hrscan':
-				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
-				sys.stderr.write('-' * 25 + '\n');
-				foreach(resp.data['index'] as k){
-					printf('  %-15s : %s\n', repr_data(k), repr_data(resp.data['items'][k]));
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
-				break;
-			case 'zscan':
-			case 'zrscan':
-			case 'zrange':
-			case 'zrrange':
-			case 'zpop_front':
-			case 'zpop_back':
-				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'score'));
-				sys.stderr.write('-' * 25 + '\n');
-				foreach(resp.data['index'] as k){
-					score = resp.data['items'][k];
-					printf('  %-15s: %s\n', repr_data(repr_data(k)), score);
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
-				break;
-			case 'keys':
-			case 'rkeys':
-			case 'list':
-			case 'zkeys':
-			case 'hkeys':
-				sys.stderr.write(sprintf('  %15s\n', 'key'));
-				sys.stderr.write('-' * 17 + '\n');
-				foreach(resp.data as k){
-					printf('  %15s\n', repr_data(k));
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
-				break;
-			case 'hvals':
-				sys.stderr.write(sprintf('  %15s\n', 'value'));
-				sys.stderr.write('-' * 17 + '\n');
-				foreach(resp.data as k){
-					printf('  %15s\n', repr_data(k));
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
-				break;
-			case 'hlist':
-			case 'hrlist':
-			case 'zlist':
-			case 'zrlist':
-			case 'qlist':
-			case 'qrlist':
-			case 'qslice':
-			case 'qrange':
-			case 'qpop':
-			case 'qpop_front':
-			case 'qpop_back':
-				foreach(resp.data as k){
-					printf('  %s\n', repr_data(k));
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
-				break;
-			case 'multi_get':
-			case 'multi_hget':
-			case 'multi_zget':
-				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
-				sys.stderr.write('-' * 25 + '\n');
-				foreach(resp.data as k=>v){
-					printf('  %-15s : %s\n', repr_data(k), repr_data(v));
-				}
-				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
+				skip = true;
+				printf(str(resp.code) + '\n');
 				break;
 			case 'info':
+				skip = true;
 				is_val = false;
 				for(i=1; i<len(resp.data); i++){
 					s = resp.data[i];
@@ -519,48 +384,46 @@ while(true){
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
-			case 'get_key_range':
-				for(i=0; i<len(resp.data); i++){
-					resp.data[i] = repr_data(resp.data[i]);
-					if(resp.data[i] == ''){
-						resp.data[i] = '""';
+		}
+		if(skip){
+			sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+			continue;
+		}
+
+		switch(resp.type){
+			case 'none':
+				printf(str(resp.data) + '\n');
+				break;
+			case 'val':
+				if(resp.code == 'ok'){
+					printf(str(resp.data) + '\n');
+				}else{
+					if(resp.data){
+						print repr_data(resp.code), repr_data(resp.data);
+					}else{
+						print repr_data(resp.code);
 					}
 				}
-				klen = 0;
-				vlen = 0;
-				for(i=0; i<len(resp.data); i+=2){
-					klen = max(len(resp.data[i]), klen);
-					vlen = max(len(resp.data[i+1]), vlen);
+				break;
+			case 'list':
+				sys.stderr.write(sprintf('  %15s\n', 'key'));
+				sys.stderr.write('-' * 17 + '\n');
+				foreach(resp.data as k){
+					printf('  %15s\n', repr_data(k));
 				}
-				printf('	kv :  %-*s  -  %-*s\n', klen, resp.data[0], vlen, resp.data[1]);
-				#printf('  hash :  %-*s  -  %-*s\n', klen, resp.data[2], vlen, resp.data[3]);
-				#printf('  zset :  %-*s  -  %-*s\n', klen, resp.data[4], vlen, resp.data[5]);
-				#printf(' queue :  %-*s  -  %-*s\n', klen, resp.data[6], vlen, resp.data[7]);
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data), time_consume));
 				break;
-			case 'cluster_kv_node_list':
-				cluster.kv_node_list(resp, time_consume);
-				break;
-			case 'cluster_migrate_kv_data':
-				printf('%s byte(s) migrated.\n', resp.data[0]);
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
-			case 'cluster_kv_add_node':
-			case 'cluster_kv_del_node':
-			case 'cluster_set_kv_range':
-			case 'cluster_set_kv_status':
-				print repr_data(resp.data);
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
-				break;
-			default:
-				if(resp.data){
-					print repr_data(resp.code), repr_data(resp.data);
-				}else{
-					print repr_data(resp.code);
+			case 'map':
+				sys.stderr.write(sprintf('%-15s %s\n', 'key', 'value'));
+				sys.stderr.write('-' * 25 + '\n');
+				foreach(resp.data['index'] as k){
+					v = resp.data['items'][k];
+					printf('  %-15s: %s\n', repr_data(repr_data(k)), v);
 				}
-				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;
 		}
+		sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
 	}
 }
 
