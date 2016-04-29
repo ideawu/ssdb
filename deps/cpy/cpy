@@ -1,4 +1,10 @@
 #!/bin/sh
 
 DIR=`dirname $0`
+
+which python2.7 > /dev/null
+[ $? -eq 0 ] && { python2.7 $DIR/cpy.py $@; exit 0;}
+which python2 > /dev/null
+[ $? -eq 0 ] && { python2 $DIR/cpy.py $@; exit 0;}
+
 python $DIR/cpy.py $@
