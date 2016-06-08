@@ -41,6 +41,8 @@ int main(int argc, char **argv){
 	}else{
 		printf("error!\n");
 	}
+
+	vals.clear();
 	s = client->qslice("k", 0, 1, &vals);
 	if(s.ok()){
 		printf("qslice 0 1\n");
@@ -59,6 +61,23 @@ int main(int argc, char **argv){
 	s = client->qpop("k", &val);
 	if(s.ok()){
 		printf("qpop k = %s\n", val.c_str());
+	}else{
+		printf("error!\n");
+	}
+
+	vals.clear();
+	s = client->hgetall("h", &vals);
+	if(s.ok()){
+		printf("hgetall h\n");
+		std::string key, val;
+		for(int i = 0; i < (int)vals.size(); i++){
+			if(i%2 == 0){
+				key = vals[i];
+			}else{
+				val = vals[i];
+				printf("    %d %s=%s\n", i/2, key.c_str(), val.c_str());
+			}
+		}
 	}else{
 		printf("error!\n");
 	}
