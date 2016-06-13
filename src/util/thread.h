@@ -396,6 +396,7 @@ int WorkerPool<W, JOB>::stop(){
 		pthread_cancel(tids[i]);
 #endif
 	}
+	started = false;
 	return 0;
 }
 
