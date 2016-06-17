@@ -209,6 +209,8 @@ void NetworkServer::serve(){
 	uint32_t last_ticks = g_ticks;
 	
 	while(!quit){
+		double loop_stime = millitime();
+
 		// status report
 		if((uint32_t)(g_ticks - last_ticks) >= STATUS_REPORT_TICKS){
 			last_ticks = g_ticks;
@@ -296,6 +298,11 @@ void NetworkServer::serve(){
 				//
 			}
 		} // end foreach ready link
+
+		double loop_time = millitime() - loop_stime;
+		if(loop_time > 0.5){
+			log_debug("long loop time: %.3f", loop_time);
+		}
 	}
 }
 
@@ -400,7 +407,8 @@ int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_lis
 		int len = link->read();
 		//log_debug("fd: %d read: %d", link->fd(), len);
 		if(len <= 0){
-			log_debug("fd: %d, read: %d, delete link", link->fd(), len);
+			double serv_time = millitime() - link->create_time;
+			log_debug("fd: %d, read: %d, delete link, s:%.3f", link->fd(), len, serv_time);
 			link->mark_error();
 			return 0;
 		}

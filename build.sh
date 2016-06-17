@@ -4,6 +4,15 @@ JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-4.1.0"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.18"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
+# dependency check
+which autoconf > /dev/null 2>&1
+if [ "$?" != 0 ]; then
+	echo ""
+	echo "ERROR! autoconf required! install autoconf first"
+	echo ""
+	exit 1
+fi
+
 if test -z "$TARGET_OS"; then
 	TARGET_OS=`uname -s`
 fi
