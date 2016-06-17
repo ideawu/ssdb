@@ -295,7 +295,7 @@ int Slave::proc(const std::vector<Bytes> &req){
 		case BinlogType::CTRL:
 			if(log.key() == "OUT_OF_SYNC"){
 				status = OUT_OF_SYNC;
-				log_error("OUT_OF_SYNC, you should reset this node manually!");
+				log_error("OUT_OF_SYNC, you must reset this node manually!");
 			}
 			break;
 		case BinlogType::COPY:{
