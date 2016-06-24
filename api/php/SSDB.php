@@ -500,7 +500,7 @@ class SSDB
 		return new SSDB_Response('error', 'Unknown command: $cmd');
 	}
 
-	private function send($data){
+	function send($data){
 		$ps = array();
 		foreach($data as $p){
 			$ps[] = strlen($p);
@@ -530,7 +530,7 @@ class SSDB
 		return $ret;
 	}
 
-	private function recv(){
+	function recv(){
 		$this->step = self::STEP_SIZE;
 		while(true){
 			$ret = $this->parse();

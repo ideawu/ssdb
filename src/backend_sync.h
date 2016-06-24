@@ -64,6 +64,7 @@ struct BackendSync::Client{
 	void noop();
 	int copy();
 	int sync(BinlogQueue *logs);
+	void out_of_sync();
 
 	std::string stats();
 };

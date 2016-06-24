@@ -49,7 +49,7 @@ public:
 class BinlogQueue{
 private:
 	leveldb::DB *db;
-	uint64_t min_seq;
+	uint64_t min_seq_;
 	uint64_t last_seq;
 	uint64_t tran_seq;
 	int capacity;
@@ -91,6 +91,13 @@ public:
 	 */
 	int find_next(uint64_t seq, Binlog *log) const;
 	int find_last(Binlog *log) const;
+	
+	uint64_t min_seq() const{
+		return min_seq_;
+	}
+	uint64_t max_seq() const{
+		return last_seq;
+	}
 		
 	std::string stats() const;
 };

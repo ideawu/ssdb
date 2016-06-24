@@ -30,6 +30,7 @@ public:
 	static const char SYNC		= 1;
 	static const char MIRROR	= 2;
 	static const char COPY		= 3;
+	static const char CTRL		= 4;
 };
 
 class BinlogCommand{

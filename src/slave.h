@@ -35,6 +35,7 @@ private:
 	static const int INIT = 1;
 	static const int COPY = 2;
 	static const int SYNC = 4;
+	static const int OUT_OF_SYNC = 8;
 	int status;
 
 	void migrate_old_status();
