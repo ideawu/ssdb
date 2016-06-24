@@ -1,4 +1,6 @@
 * 1.9.3
+	* Incompatible changes:
+		- Don't auto flushdb in a replication(2016-06-24)
 	* New features:
 		- Do not allow slave request binlogs with seq greater than max_seq(2016-03-18)
 		- CLI comands with nagios output format(2016-03-06)
