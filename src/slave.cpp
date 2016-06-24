@@ -334,12 +334,9 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 	switch(log.cmd()){
 		case BinlogCommand::BEGIN:
 			log_info("copy begin");
-			log_info("start flushdb...");
 			this->last_seq = 0;
 			this->last_key = "";
 			this->save_status();
-			ssdb->flushdb();
-			log_info("end flushdb.");
 			break;
 		case BinlogCommand::END:
 			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
