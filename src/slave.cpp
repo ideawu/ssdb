@@ -334,9 +334,6 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 	switch(log.cmd()){
 		case BinlogCommand::BEGIN:
 			log_info("copy begin");
-			this->last_seq = 0;
-			this->last_key = "";
-			this->save_status();
 			break;
 		case BinlogCommand::END:
 			log_info("copy end, copy_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64,
