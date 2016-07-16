@@ -165,10 +165,10 @@ void Logger::rotate(){
 	char newpath[PATH_MAX];
 	time_t time;
 	struct timeval tv;
-	struct tm *tm;
+	struct tm *tm, tm_tmp;
 	gettimeofday(&tv, NULL);
 	time = tv.tv_sec;
-	tm = localtime(&time);
+	tm = localtime_r(&time, &tm_tmp);
 	sprintf(newpath, "%s.%04d%02d%02d-%02d%02d%02d",
 		this->filename,
 		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
@@ -243,10 +243,10 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 
 	time_t time;
 	struct timeval tv;
-	struct tm *tm;
+	struct tm *tm, tm_tmp;
 	gettimeofday(&tv, NULL);
 	time = tv.tv_sec;
-	tm = localtime(&time);
+	tm = localtime_r(&time, &tm_tmp);
 	/* %3ld 在数值位数超过3位的时候不起作用, 所以这里转成int */
 	len = sprintf(ptr, "%04d-%02d-%02d %02d:%02d:%02d.%03d ",
 		tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
@@ -269,7 +269,6 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	*ptr = '\0';
 
 	len = ptr - buf;
-	// change to write(), without locking?
 	if(this->mutex){
 		pthread_mutex_lock(this->mutex);
 	}

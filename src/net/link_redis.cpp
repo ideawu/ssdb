@@ -172,7 +172,8 @@ int RedisLink::convert_req(){
 			recv_string.push_back(recv_bytes[1].String());
 			for(int i=2; i<=recv_bytes.size()-2; i+=2){
 				recv_string.push_back(recv_bytes[i+1].String());
-				recv_string.push_back(recv_bytes[i].String());
+				int64_t score = (int64_t)recv_bytes[i].Double();
+				recv_string.push_back(str(score));
 			}
 		}
 		return 0;
@@ -560,7 +561,7 @@ int RedisLink::parse_req(Buffer *input){
 		size -= len + 1;
 		parsed += len + 1;
 		// compatiabl with both CRLF and LF
-		if(*ptr == '\n'){
+		if(size > 0 && *ptr == '\n'){
 			ptr += 1;
 			size -= 1;
 			parsed += 1;

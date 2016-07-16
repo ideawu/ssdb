@@ -224,11 +224,14 @@ int proc_zclear(NetworkServer *net, Link *link, const Request &req, Response *re
 	
 	const Bytes &name = req[1];
 	int64_t count = 0;
+	std::string key_start, score_start;
 	while(1){
-		ZIterator *it = serv->ssdb->zrange(name, 0, 1000);
+		ZIterator *it = serv->ssdb->zscan(name, key_start, score_start, "", 1000);
 		int num = 0;
 		while(it->next()){
-			int ret = serv->ssdb->zdel(name, it->key);
+			key_start = it->key;
+			score_start = it->score;
+			int ret = serv->ssdb->zdel(name, key_start);
 			if(ret == -1){
 				resp->push_back("error");
 				delete it;
@@ -484,3 +487,12 @@ int proc_zpop_back(NetworkServer *net, Link *link, const Request &req, Response 
 	return 0;
 }
 
+int proc_zfix(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(2);
+	
+	const Bytes &name = req[1];
+	int64_t ret = serv->ssdb->zfix(name);
+	resp->reply_int(ret, ret);
+	return 0;
+}

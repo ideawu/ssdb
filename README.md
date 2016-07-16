@@ -1,5 +1,8 @@
 # SSDB - A fast NoSQL database for storing big list of data
 
+[![Author](https://img.shields.io/badge/author-@ideawu-blue.svg?style=flat)](http://www.ideawu.net/) [![Platform](https://img.shields.io/badge/platform-Linux,%20BSD,%20OS%20X,%20Windows-green.svg?style=flat)](https://github.com/ideawu/ssdb) [![NoSQL](https://img.shields.io/badge/db-NoSQL-pink.svg?tyle=flat)](https://github.com/ideawu/ssdb) [![License](https://img.shields.io/badge/license-New%20BSD-yellow.svg?style=flat)](LICENSE)
+
+
 SSDB is a high performace key-value(key-string, key-zset, key-hashmap) NoSQL database, __an alternative to Redis__.
 
 SSDB is stable, production-ready and is widely used by many Internet companies including QIHU 360.
@@ -14,6 +17,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 * Persistent queue service
 * **Replication(master-slave), load balance**
 * GUI administration tool([phpssdbadmin](https://github.com/ssdb/phpssdbadmin))
+* Built-in CLI nagios self-checks
 
 ## PHP client API example
 
@@ -27,6 +31,14 @@ echo $resp; // output: 123
 ```
 
 [More...](http://ssdb.io/docs/php/)
+
+
+## Who's using SSDB?
+
+![all-ssdb-users](http://ssdb.io/img/ssdb-users/all-ssdb-users.jpg)
+
+[And more...](http://ssdb.io/docs/users.html)
+
 
 ## Documentation
 
@@ -107,10 +119,6 @@ Run on a 2013 MacBook Pro 13 inch with Retina display.
 ## Architecture
 
 ![ssdb architecture](http://ssdb.io/ssdb.png)
-
-## Who's using SSDB?
-
-See [Users wiki](https://github.com/ideawu/ssdb/wiki/Users)
 
 ## Windows executable
 

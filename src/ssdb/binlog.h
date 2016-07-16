@@ -48,13 +48,8 @@ public:
 // circular queue
 class BinlogQueue{
 private:
-#ifdef NDEBUG
-	static const int LOG_QUEUE_SIZE  = 20 * 1000 * 1000;
-#else
-	static const int LOG_QUEUE_SIZE  = 10000;
-#endif
 	leveldb::DB *db;
-	uint64_t min_seq;
+	uint64_t min_seq_;
 	uint64_t last_seq;
 	uint64_t tran_seq;
 	int capacity;
@@ -65,13 +60,14 @@ private:
 	int del(uint64_t seq);
 	// [start, end] includesive
 	int del_range(uint64_t start, uint64_t end);
-		
+	
+	void clean_obsolete_binlogs();
 	void merge();
 	bool enabled;
 public:
 	Mutex mutex;
 
-	BinlogQueue(leveldb::DB *db, bool enabled=true);
+	BinlogQueue(leveldb::DB *db, bool enabled=true, int capacity=20000000);
 	~BinlogQueue();
 	void begin();
 	void rollback();
@@ -95,6 +91,13 @@ public:
 	 */
 	int find_next(uint64_t seq, Binlog *log) const;
 	int find_last(Binlog *log) const;
+	
+	uint64_t min_seq() const{
+		return min_seq_;
+	}
+	uint64_t max_seq() const{
+		return last_seq;
+	}
 		
 	std::string stats() const;
 };

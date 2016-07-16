@@ -103,6 +103,7 @@ public:
 			std::vector<std::string> *list) = 0;
 	virtual int zrlist(const Bytes &name_s, const Bytes &name_e, uint64_t limit,
 			std::vector<std::string> *list) = 0;
+	virtual int64_t zfix(const Bytes &name) = 0;
 	
 	virtual int64_t qsize(const Bytes &name) = 0;
 	// @return 0: empty queue, 1: item peeked, -1: error

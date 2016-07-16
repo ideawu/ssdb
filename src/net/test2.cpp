@@ -9,8 +9,15 @@ found in the LICENSE file.
 DEF_PROC(hello);
 
 int main(int argc, char **argv){
+	fprintf(stderr, "Usage: %s [ip] [port]\n\n", argv[0]);
 	Config conf;
 	conf.set("server.port", "9000");
+	if(argc > 1){
+		conf.set("server.ip", argv[1]);
+	}
+	if(argc > 2){
+		conf.set("server.port", argv[2]);
+	}
 	NetworkServer *serv = NetworkServer::init(conf);
 	if(!serv){
 		exit(1);

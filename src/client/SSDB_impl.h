@@ -53,6 +53,7 @@ public:
 	virtual Status hclear(const std::string &name, int64_t *ret=NULL);
 	virtual Status hkeys(const std::string &name, const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret);
+	virtual Status hgetall(const std::string &name, std::vector<std::string> *ret);
 	virtual Status hscan(const std::string &name, const std::string &key_start, const std::string &key_end,
 		uint64_t limit, std::vector<std::string> *ret);
 	virtual Status hrscan(const std::string &name, const std::string &key_start, const std::string &key_end,

@@ -1,9 +1,33 @@
+* 1.9.4
+	* New features:
+		- Add OUT_OF_SYNC status, slave not flushdb when this status(2016-06-17)
+* 1.9.3
+	* New features:
+		- Do not allow slave request binlogs with seq greater than max_seq(2016-03-18)
+		- CLI comands with nagios output format(2016-03-06)
+		- User can input binary data via ssdb-cli(2016-02-24)
+		- Add ip_filter relative commands(2016-02-17)
+	* Bug fixes:
+		- Report error when setting ttl(expire) fail(2016-04-25)
+		- Fix ttl not be deleted when deleting the only one key with ttl in the db, issue#885(2016-03-02)
+		- Fix bug when connecting to multi masters, the slave saves only one master's status(2016-03-01)
 * 1.9.2
 	* New features:
+		- Binlog capacity can be set in config file(2016-01-14)
+		- Provide zfix command to repair broken zset(2015-12-02)
+		- Supports specifying slaveof.host in ssdb.conf(2015-11-23)
+		- Do not allow flushdb when replication is in use(2015-11-16)
 		- Provide server side flushdb(2015-09-17)
 		- The slave will flush db when receive copy_begin(2015-07-28)
 	* Incompatible changes:
 		- Will not support db size for redis clients(2015-08-07)
+	* Bug fixes:
+		- Fix ttl not be deleted when deleting the only one key with ttl in the db, issue#885(2016-03-02)
+		- Fix Logger bug on multi-threads(2016-01-25)
+		- Fix bug when ssdb-cli is soft linked(2016-01-25)
+		- Fix zclear infinite loop when data is broken(2015-12-02)
+		- Fix setbit crash on very big offset(2015-11-17)
+		- Fix Jedis zadd() score in scientific notation(2015-10-22)
 * 1.9.1
 	* Incompatible changes:
 		- zrank/zrrank return not_found(prev is error) if member not exists(2015-07-16)

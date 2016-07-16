@@ -1,4 +1,12 @@
 
+function show_version(link){
+	try{
+		resp = link.request('info', []);
+		sys.stderr.write(resp.data[0] + ' ' + resp.data[2] + '\n\n');
+	}catch(Exception e){
+	}
+}
+
 function dbsize(link){
 	resp = link.request('info', []);
 	foreach(resp.data as k=>v){

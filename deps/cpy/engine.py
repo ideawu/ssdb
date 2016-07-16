@@ -62,19 +62,19 @@ class CpyEngine:
 		base_dir = os.path.realpath(base_dir)
 		output_dir = os.path.realpath(output_dir)
 
-		files = self.find_imports(srcfile, base_dir)
-		files.remove(srcfile)
-		if len(files) > 0:
-			files = list(files)
-			files.sort()
-			#print '  ' + '\n  '.join(files)
-
-		shead, stail = os.path.split(srcfile)
-		slen = len(shead)
-		for f in files:
-			head, tail = os.path.split(f)
-			rel_dir = head[slen :]
-			self._compile(f, base_dir, output_dir + rel_dir)
+		# files = self.find_imports(srcfile, base_dir)
+		# files.remove(srcfile)
+		# if len(files) > 0:
+		# 	files = list(files)
+		# 	files.sort()
+		# 	#print '  ' + '\n  '.join(files)
+		#
+		# shead, stail = os.path.split(srcfile)
+		# slen = len(shead)
+		# for f in files:
+		# 	head, tail = os.path.split(f)
+		# 	rel_dir = head[slen :]
+		# 	self._compile(f, base_dir, output_dir + rel_dir)
 
 		dstfile = self._compile(srcfile, base_dir, output_dir)
 		return dstfile
@@ -179,12 +179,22 @@ class CpyBuilder:
 		base_dir = os.path.normpath(self.base_dir + '/' + rel_path)
 		srcfile = os.path.normpath(base_dir + '/' + f)
 		output_dir = os.path.normpath(self.output_dir + '/' + rel_path)
+		#print base_dir, output_dir, f, rel_path;
 
 		if f.endswith('.py'):
 			head, tail = os.path.split(f)
 			#print 'copy:    %-30s=> %s' % (srcfile, output_dir + '/' + tail)
 			shutil.copy(srcfile, output_dir + '/' + tail)
 		elif f.endswith('.cpy'):
+			self.write('#### start cpy import ###\n');
+			self.write(self.indent())
+			self.write('from engine import CpyEngine\n')
+			self.write(self.indent())
+			self.write('cpy = CpyEngine()\n')
+			self.write(self.indent())
+			self.write('dstfile = cpy.compile(\'' + srcfile + '\', \'' + rel_path + '\', \'' + output_dir + '\')\n')
+			self.write('#### end cpy import ###\n');
+
 			if srcfile in self.compiled_files:
 				return
 			self.compiled_files.add(srcfile)
