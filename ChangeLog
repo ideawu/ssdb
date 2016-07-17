@@ -1,4 +1,6 @@
 * 1.9.4
+	* Incompatible changes:
+		- Not writting pidfile when not running daemonized(2016-07-17)
 	* New features:
 		- Add OUT_OF_SYNC status, slave not flushdb when this status(2016-06-17)
 * 1.9.3
