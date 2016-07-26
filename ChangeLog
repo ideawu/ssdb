@@ -1,5 +1,6 @@
 * 1.9.4
 	* Incompatible changes:
+		- Treat unsupported redis command's reply as REPLY_MULTI_BULK(2016-07-26)
 		- Not writting pidfile when not running daemonized(2016-07-17)
 	* New features:
 		- Add OUT_OF_SYNC status, slave not flushdb when this status(2016-06-17)
