@@ -26,7 +26,7 @@
 		- Will not support db size for redis clients(2015-08-07)
 	* Bug fixes:
 		- Fix ttl not be deleted when deleting the only one key with ttl in the db, issue#885(2016-03-02)
-		- Fix Logger bug on multi-threads(2016-01-25)
+		- Fix Logger bug on multi-threads, which halt the service for seconds(2016-01-25)
 		- Fix bug when ssdb-cli is soft linked(2016-01-25)
 		- Fix zclear infinite loop when data is broken(2015-12-02)
 		- Fix setbit crash on very big offset(2015-11-17)
