@@ -85,10 +85,10 @@ function nagios_probe_check(resp){
 
 function nagios_dbsize(resp){
 	dbsize = nagios_probe_check(resp);
-	if(dbsize > nagios_critical){
+	if(long(dbsize) > long(nagios_critical)){
 		print 'CRITICAL: dbsize ' + str(dbsize) + ' larger than ' + str(nagios_critical);
 		exit(2);
-	}else if(dbsize > nagios_warn){
+	}else if(long(dbsize) > long(nagios_warn)){
 		print 'WARN: dbsize ' + str(dbsize) + ' larger than ' + str(nagios_warn);
 		exit(1);
 	}else{
