@@ -66,7 +66,6 @@ int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
 	if(!fast_keys.empty() && expired <= fast_keys.max_score()){
 		fast_keys.add(s_key, expired);
 		if(fast_keys.size() > BATCH_SIZE){
-			log_debug("pop_back");
 			fast_keys.pop_back();
 		}
 	}else{
