@@ -277,7 +277,7 @@ int SSDBImpl::key_range(std::vector<std::string> *keys){
 		Bytes ks = it->key();
 		if(ks.data()[0] == DataType::ZSIZE){
 			std::string n;
-			if(decode_hsize_key(ks, &n) == -1){
+			if(decode_zsize_key(ks, &n) == -1){
 				ret = -1;
 			}else{
 				zstart = n;
@@ -291,7 +291,7 @@ int SSDBImpl::key_range(std::vector<std::string> *keys){
 		Bytes ks = it->key();
 		if(ks.data()[0] == DataType::ZSIZE){
 			std::string n;
-			if(decode_hsize_key(ks, &n) == -1){
+			if(decode_zsize_key(ks, &n) == -1){
 				ret = -1;
 			}else{
 				zend = n;
