@@ -243,7 +243,7 @@ void NetworkServer::serve(){
 				}
 			}else if(fde->data.ptr == this->reader || fde->data.ptr == this->writer){
 				ProcWorkerPool *worker = (ProcWorkerPool *)fde->data.ptr;
-				ProcJob *job;
+				ProcJob *job = NULL;
 				if(worker->pop(&job) == 0){
 					log_fatal("reading result from workers error!");
 					exit(0);
