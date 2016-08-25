@@ -1,6 +1,7 @@
 ios
 888*.conf
 var888*
+*.ext
 *.o
 *.a
 *.out
