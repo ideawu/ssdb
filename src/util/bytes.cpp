@@ -82,13 +82,13 @@ int Buffer::read_record(Bytes *s){
 	char *p = body + body_len;
 	if(this->size_ >= head_len + body_len + 1){
 		if(p[0] == '\n'){
-			this->size_ -= head_len + body_len + 1;
+			this->decr(head_len + body_len + 1);
 			*s = Bytes(body, body_len);
 			return 1;
 		}else if(p[0] == '\r'){
 			if(this->size_ >= head_len + body_len + 2){
 				if(p[1] == '\n'){
-					this->size_ -= head_len + body_len + 2;
+					this->decr(head_len + body_len + 2);
 					*s = Bytes(body, body_len);
 					return 1;
 				}else{

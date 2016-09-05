@@ -9,6 +9,7 @@ found in the LICENSE file.
 #include <vector>
 #include "log.h"
 #include "sorted_set.h"
+#include "bytes.h"
 
 int main(int argc, char **argv){	
 	SortedSet zset;
@@ -37,6 +38,19 @@ int main(int argc, char **argv){
 		n ++;
 	}
 	log_debug("%d", n);
+	
+	{
+		Buffer bs(8192);
+		bs.append_record("a");
+		bs.append_record("bs");
+		dump(bs.data(), bs.size());
+	
+		Bytes s;
+		bs.read_record(&s);
+		dump(s.data(), s.size());
+		bs.read_record(&s);
+		dump(s.data(), s.size());
+	}
 	
 	return 0;
 }
