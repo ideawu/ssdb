@@ -301,7 +301,7 @@ void NetworkServer::serve(){
 
 		double loop_time = millitime() - loop_stime;
 		if(loop_time > 0.5){
-			log_debug("long loop time: %.3f", loop_time);
+			log_info("long loop time: %.3f", loop_time);
 		}
 	}
 }
