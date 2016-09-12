@@ -122,12 +122,12 @@ class Buffer{
 		char *data_;
 		int size_;
 		int total_;
-		int origin_total;
 	public:
 		Buffer(int total);
 		~Buffer();
 
-		int total() const{ // 缓冲区大小
+		// 缓冲区大小
+		int total() const{
 			return total_;
 		}
 
@@ -140,10 +140,12 @@ class Buffer{
 			return data_;
 		}
 
+		// 数据大小
 		int size() const{
 			return size_;
 		}
 
+		// 指向空闲处
 		char* slot() const{
 			return data_ + size_;
 		}
@@ -165,6 +167,8 @@ class Buffer{
 		void nice();
 		// 扩大缓冲区
 		int grow();
+		// 缩小缓冲区, 如果指定的 total 太小超过数据范围, 或者不合理, 则不会缩小
+		void shrink(int total=0);
 
 		std::string stats() const;
 		int read_record(Bytes *s);

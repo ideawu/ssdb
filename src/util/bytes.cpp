@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 Buffer::Buffer(int total){
 	size_ = 0;
-	total_ = origin_total = total;
+	total_ = total;
 	buf = (char *)malloc(total);
 	data_ = buf;
 }
@@ -24,6 +24,20 @@ void Buffer::nice(){
 		}
 		data_ = buf;
 	}
+}
+
+void Buffer::shrink(int total){
+	if(total <= 0){
+		total = 8 * 1024;
+	}
+	int offset = data_ - buf;
+	if(offset + size_ > total){ // 要求的空间太小, 停止
+		return;
+	}
+	
+	total_ = total;
+	buf = (char *)realloc(buf, total);
+	data_ = buf + offset;
 }
 
 int Buffer::grow(){ // 扩大缓冲区
