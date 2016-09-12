@@ -286,22 +286,19 @@ void NetworkServer::serve(){
 			int result = this->proc(job);
 			if(result == PROC_THREAD){
 				fdes->del(link->fd());
-				continue;
-			}
-			if(result == PROC_BACKEND){
+			}else if(result == PROC_BACKEND){
 				fdes->del(link->fd());
 				this->link_count --;
-				continue;
-			}
-			
-			if(proc_result(job, &ready_list_2) == PROC_ERROR){
-				//
+			}else{
+				if(proc_result(job, &ready_list_2) == PROC_ERROR){
+					//
+				}
 			}
 		} // end foreach ready link
 
 		double loop_time = millitime() - loop_stime;
 		if(loop_time > 0.5){
-			log_debug("long loop time: %.3f", loop_time);
+			log_warn("long loop time: %.3f", loop_time);
 		}
 	}
 }

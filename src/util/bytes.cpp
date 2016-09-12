@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 Buffer::Buffer(int total){
 	size_ = 0;
-	total_ = origin_total = total;
+	total_ = total;
 	buf = (char *)malloc(total);
 	data_ = buf;
 }
@@ -18,12 +18,26 @@ Buffer::~Buffer(){
 
 void Buffer::nice(){
 	// 保证不改变后半段的数据, 以便使已生成的 Bytes 不失效.
-	if(data_ - buf > total_/2){
+	if(size_ == 0 || data_ - buf > total_/2){
 		if(size_ > 0){
 			memcpy(buf, data_, size_);
 		}
 		data_ = buf;
 	}
+}
+
+void Buffer::shrink(int total){
+	if(total <= 0){
+		total = 8 * 1024;
+	}
+	int offset = data_ - buf;
+	if(offset + size_ > total){ // 要求的空间太小, 停止
+		return;
+	}
+	
+	total_ = total;
+	buf = (char *)realloc(buf, total);
+	data_ = buf + offset;
 }
 
 int Buffer::grow(){ // 扩大缓冲区
@@ -82,13 +96,13 @@ int Buffer::read_record(Bytes *s){
 	char *p = body + body_len;
 	if(this->size_ >= head_len + body_len + 1){
 		if(p[0] == '\n'){
-			this->size_ -= head_len + body_len + 1;
+			this->decr(head_len + body_len + 1);
 			*s = Bytes(body, body_len);
 			return 1;
 		}else if(p[0] == '\r'){
 			if(this->size_ >= head_len + body_len + 2){
 				if(p[1] == '\n'){
-					this->size_ -= head_len + body_len + 2;
+					this->decr(head_len + body_len + 2);
 					*s = Bytes(body, body_len);
 					return 1;
 				}else{

@@ -14,10 +14,8 @@ found in the LICENSE file.
 
 #include "link_redis.cpp"
 
-#define INIT_BUFFER_SIZE	8
-
-int Link::min_recv_buf = 8 * 1024;
-int Link::min_send_buf = 8 * 1024;
+#define INIT_BUFFER_SIZE  1024
+#define BEST_BUFFER_SIZE  (8 * 1024)
 
 
 Link::Link(bool is_server){
@@ -34,9 +32,6 @@ Link::Link(bool is_server){
 	if(is_server){
 		input = output = NULL;
 	}else{
-		// alloc memory lazily
-		//input = new Buffer(Link::min_recv_buf);
-		//output = new Buffer(Link::min_send_buf);
 		input = new Buffer(INIT_BUFFER_SIZE);
 		output = new Buffer(INIT_BUFFER_SIZE);
 	}
@@ -210,12 +205,16 @@ Link* Link::accept(){
 }
 
 int Link::read(){
-	if(input->total() == INIT_BUFFER_SIZE){
-		input->grow();
-	}
 	int ret = 0;
 	int want;
+	
 	input->nice();
+	// 由于 recv() 返回的数据是指向 input 所占的内存, 所以, 不能在 recv()
+	// 之后立即就释放内存, 只能在下一次read()的时候再释放.
+	if(input->size() == 0 && input->total() > BEST_BUFFER_SIZE){
+		input->shrink(BEST_BUFFER_SIZE);
+	}
+	
 	while((want = input->space()) > 0){
 		// test
 		//want = 1;
@@ -276,6 +275,9 @@ int Link::write(){
 		}
 	}
 	output->nice();
+	if(output->size() == 0 && output->total() > BEST_BUFFER_SIZE){
+		output->shrink(BEST_BUFFER_SIZE);
+	}
 	return ret;
 }
 
