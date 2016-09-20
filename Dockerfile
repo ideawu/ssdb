@@ -5,10 +5,10 @@ MAINTAINER wendal "wendal1985@gmail.com"
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && \
-  apt-get install -y --force-yes git make gcc g++ && apt-get clean && \
+  apt-get install -y --force-yes git make gcc g++ autoconf && apt-get clean && \
   git clone --depth 1 https://github.com/ideawu/ssdb.git ssdb && \
   cd ssdb && make && make install && cp ssdb-server /usr/bin && \
-  apt-get remove -y --force-yes git make gcc g++ && \
+  apt-get remove -y --force-yes git make gcc g++ autoconf && \
   apt-get autoremove -y && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
   cp ssdb.conf /etc && cd .. && yes | rm -r ssdb
