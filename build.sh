@@ -6,7 +6,7 @@ SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
 
 # dependency check
 which autoconf > /dev/null 2>&1
-if [ "$?" != 0 ]; then
+if [ "$?" -ne 0 ]; then
 	echo ""
 	echo "ERROR! autoconf required! install autoconf first"
 	echo ""
