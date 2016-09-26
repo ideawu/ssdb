@@ -168,6 +168,11 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			fprintf(stderr, "error opening server socket! %s\n", strerror(errno));
 			exit(1);
 		}
+		// see UNP
+		// if client send RST between server's calls of select() and accept(),
+		// accept() will block until next connection.
+		// so, set server socket nonblock.
+		serv->serv_link->noblock();
 		log_info("server listen on %s:%d", ip, port);
 
 		std::string password;
@@ -240,6 +245,8 @@ void NetworkServer::serve(){
 					log_debug("new link from %s:%d, fd: %d, links: %d",
 						link->remote_ip, link->remote_port, link->fd(), this->link_count);
 					fdes->set(link->fd(), FDEVENT_IN, 1, link);
+				}else{
+					log_debug("accept return NULL");
 				}
 			}else if(fde->data.ptr == this->reader || fde->data.ptr == this->writer){
 				ProcWorkerPool *worker = (ProcWorkerPool *)fde->data.ptr;

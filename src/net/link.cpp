@@ -190,11 +190,11 @@ Link* Link::accept(){
 		}
 	}
 
-	struct linger opt = {1, 0};
-	int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
-	if (ret != 0) {
-		//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
-	}
+	// struct linger opt = {1, 0};
+	// int ret = ::setsockopt(client_sock, SOL_SOCKET, SO_LINGER, (void *)&opt, sizeof(opt));
+	// if (ret != 0) {
+	// 	//log_error("socket %d set linger failed: %s", client_sock, strerror(errno));
+	// }
 
 	link = new Link();
 	link->sock = client_sock;
