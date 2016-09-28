@@ -272,8 +272,10 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	if(this->mutex){
 		pthread_mutex_lock(this->mutex);
 	}
-	fwrite(buf, len, 1, this->fp);
-	fflush(this->fp);
+	int fd = fileno(this->fp);
+	write(fd, buf, len);
+	//fwrite(buf, len, 1, this->fp);
+	//fflush(this->fp);
 
 	stats.w_curr += len;
 	stats.w_total += len;
