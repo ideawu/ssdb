@@ -126,15 +126,16 @@ int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t r
 	}else if(strcmp(filename, "stderr") == 0){
 		this->fd = STDERR_FILENO;
 	}else{
-		this->fd = ::open(filename, O_WRONLY | O_APPEND);
+		this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND, 0644);
 		if(this->fd == -1){
+			fprintf(stderr, "open log file %s error - %s\n", filename, strerror(errno));
 			return -1;
 		}
 
 		struct stat st;
 		int ret = fstat(this->fd, &st);
 		if(ret == -1){
-			fprintf(stderr, "fstat log file %s error!", filename);
+			fprintf(stderr, "fstat log file %s error!\n", filename);
 			return -1;
 		}else{
 			stats.w_curr = st.st_size;
@@ -169,8 +170,9 @@ void Logger::rotate(){
 	if(ret == -1){
 		return;
 	}
-	this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND);
+	this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND, 0644);
 	if(this->fd == -1){
+		fprintf(stderr, "open log file %s error - %s\n", filename, strerror(errno));
 		return;
 	}
 	stats.w_curr = 0;
