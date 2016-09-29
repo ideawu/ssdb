@@ -169,7 +169,7 @@ void Logger::rotate(){
 	if(ret == -1){
 		return;
 	}
-	this->fd = ::open(filename, O_WRONLY | O_APPEND);
+	this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND);
 	if(this->fd == -1){
 		return;
 	}
