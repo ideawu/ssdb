@@ -20,7 +20,7 @@ worker.o: worker.h worker.cpp
 server.o: server.h server.cpp
 	${CXX} ${CFLAGS} -c server.cpp
 
-test:
+test: all
 	${CXX} -o test.out test.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
 	${CXX} -o test2.out test2.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
 

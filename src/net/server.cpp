@@ -57,6 +57,8 @@ NetworkServer::NetworkServer(){
 
 	fdes = new Fdevents();
 	ip_filter = new IpFilter();
+	
+	readonly = false;
 
 	// add built-in procs, can be overridden
 	proc_map.set_proc("ping", "r", proc_ping);
@@ -134,26 +136,6 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 	if(num_writers >= 0){
 		serv->num_writers = num_writers;
 	}
-	// init ip_filter
-	{
-		Config *cc = (Config *)conf.get("server");
-		if(cc != NULL){
-			std::vector<Config *> *children = &cc->children;
-			std::vector<Config *>::iterator it;
-			for(it = children->begin(); it != children->end(); it++){
-				if((*it)->key == "allow"){
-					const char *ip = (*it)->str();
-					log_info("    allow %s", ip);
-					serv->ip_filter->add_allow(ip);
-				}
-				if((*it)->key == "deny"){
-					const char *ip = (*it)->str();
-					log_info("    deny %s", ip);
-					serv->ip_filter->add_deny(ip);
-				}
-			}
-		}
-	}
 	
 	{ // server
 		const char *ip = conf.get_str("server.ip");
@@ -183,9 +165,9 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			exit(1);
 		}
 		if(password.empty()){
-			log_info("auth: off");
+			log_info("    auth    : off");
 		}else{
-			log_info("auth: on");
+			log_info("    auth    : on");
 		}
 		serv->need_auth = false;		
 		if(!password.empty()){
@@ -193,6 +175,39 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			serv->password = password;
 		}
 	}
+
+	// init ip_filter
+	{
+		Config *cc = (Config *)conf.get("server");
+		if(cc != NULL){
+			std::vector<Config *> *children = &cc->children;
+			std::vector<Config *>::iterator it;
+			for(it = children->begin(); it != children->end(); it++){
+				if((*it)->key == "allow"){
+					const char *ip = (*it)->str();
+					log_info("    allow   : %s", ip);
+					serv->ip_filter->add_allow(ip);
+				}
+				if((*it)->key == "deny"){
+					const char *ip = (*it)->str();
+					log_info("    deny   : %s", ip);
+					serv->ip_filter->add_deny(ip);
+				}
+			}
+		}
+	}
+	
+	std::string readonly = conf.get_str("server.readonly");
+	strtolower(&readonly);
+	if(readonly == "yes"){
+		serv->readonly = true;
+	}else{
+		readonly = "no";
+		serv->readonly = false;
+	}
+	log_info("    readonly: %s", readonly.c_str());
+	
+
 	return serv;
 }
 
@@ -436,6 +451,12 @@ int NetworkServer::proc(ProcJob *job){
 		if(!job->cmd){
 			job->resp.push_back("client_error");
 			job->resp.push_back("Unknown Command: " + req->at(0).String());
+			break;
+		}
+
+		if(this->readonly && (job->cmd->flags & Command::FLAG_WRITE)){
+			job->resp.push_back("client_error");
+			job->resp.push_back("Forbidden Command: " + req->at(0).String());
 			break;
 		}
 		
