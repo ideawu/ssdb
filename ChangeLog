@@ -7,6 +7,7 @@
 		- Add OUT_OF_SYNC status, slave not flushdb when this status(2016-06-17)
 	* Bug fixes:
 		- Fix bug that busy expiration blocks setx request(2016-10-14)
+		- Fix issues/1003, binlogs null pointer error caused by multi-threading during shutdown(2016-10-20)
 * 1.9.3
 	* New features:
 		- Do not allow slave request binlogs with seq greater than max_seq(2016-03-18)
