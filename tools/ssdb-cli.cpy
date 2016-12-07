@@ -368,6 +368,10 @@ while(true){
 			case 'hset':
 			case 'del':
 			case 'zdel':
+			case 'add_allow_ip':
+			case 'del_allow_ip':
+			case 'add_deny_ip':
+			case 'del_deny_ip':
 				skip = true;
 				printf(str(resp.code) + '\n');
 				break;
