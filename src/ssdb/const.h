@@ -31,7 +31,7 @@ public:
 	static const char MIRROR	= 2;
 	static const char COPY		= 3;
 	static const char CTRL		= 4;
-	static const char UPDATE_SEQ= 5;
+	static const char UPDATE_SEQ	= 5;
 };
 
 class BinlogCommand{
