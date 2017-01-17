@@ -443,7 +443,7 @@ int NetworkServer::proc(ProcJob *job){
 		// AUTH
 		if(this->need_auth && job->link->auth == false && req->at(0) != "auth"){
 			job->resp.push_back("noauth");
-			job->resp.push_back("authentication required");
+			job->resp.push_back("authentication required.");
 			break;
 		}
 		
