@@ -14,7 +14,7 @@ $host = '127.0.0.1';
 $port = 8888;
 $ssdb = new SimpleSSDB($host, $port);
 
-$size = 2;
+$size = 1000;
 
 // KV
 $s_key = '';
