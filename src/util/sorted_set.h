@@ -18,6 +18,7 @@ public:
 		return size() == 0;
 	}
 	int size() const;
+	//the key is unique and only update item's score if exists
 	int add(const std::string &key, int64_t score);
 	// 0: not found, 1: found and deleted
 	int del(const std::string &key);
