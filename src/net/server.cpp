@@ -57,6 +57,8 @@ NetworkServer::NetworkServer(){
 
 	fdes = new Fdevents();
 	ip_filter = new IpFilter();
+	
+	readonly = false;
 
 	// add built-in procs, can be overridden
 	proc_map.set_proc("ping", "r", proc_ping);
@@ -134,26 +136,6 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 	if(num_writers >= 0){
 		serv->num_writers = num_writers;
 	}
-	// init ip_filter
-	{
-		Config *cc = (Config *)conf.get("server");
-		if(cc != NULL){
-			std::vector<Config *> *children = &cc->children;
-			std::vector<Config *>::iterator it;
-			for(it = children->begin(); it != children->end(); it++){
-				if((*it)->key == "allow"){
-					const char *ip = (*it)->str();
-					log_info("    allow %s", ip);
-					serv->ip_filter->add_allow(ip);
-				}
-				if((*it)->key == "deny"){
-					const char *ip = (*it)->str();
-					log_info("    deny %s", ip);
-					serv->ip_filter->add_deny(ip);
-				}
-			}
-		}
-	}
 	
 	{ // server
 		const char *ip = conf.get_str("server.ip");
@@ -183,9 +165,9 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			exit(1);
 		}
 		if(password.empty()){
-			log_info("auth: off");
+			log_info("    auth    : off");
 		}else{
-			log_info("auth: on");
+			log_info("    auth    : on");
 		}
 		serv->need_auth = false;		
 		if(!password.empty()){
@@ -193,6 +175,39 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			serv->password = password;
 		}
 	}
+
+	// init ip_filter
+	{
+		Config *cc = (Config *)conf.get("server");
+		if(cc != NULL){
+			std::vector<Config *> *children = &cc->children;
+			std::vector<Config *>::iterator it;
+			for(it = children->begin(); it != children->end(); it++){
+				if((*it)->key == "allow"){
+					const char *ip = (*it)->str();
+					log_info("    allow   : %s", ip);
+					serv->ip_filter->add_allow(ip);
+				}
+				if((*it)->key == "deny"){
+					const char *ip = (*it)->str();
+					log_info("    deny   : %s", ip);
+					serv->ip_filter->add_deny(ip);
+				}
+			}
+		}
+	}
+	
+	std::string readonly = conf.get_str("server.readonly");
+	strtolower(&readonly);
+	if(readonly == "yes"){
+		serv->readonly = true;
+	}else{
+		readonly = "no";
+		serv->readonly = false;
+	}
+	log_info("    readonly: %s", readonly.c_str());
+	
+
 	return serv;
 }
 
@@ -255,9 +270,7 @@ void NetworkServer::serve(){
 					log_fatal("reading result from workers error!");
 					exit(0);
 				}
-				if(proc_result(job, &ready_list) == PROC_ERROR){
-					//
-				}
+				proc_result(job, &ready_list);
 			}else{
 				proc_client_event(fde, &ready_list);
 			}
@@ -265,9 +278,10 @@ void NetworkServer::serve(){
 
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
+			fdes->del(link->fd());
+
 			if(link->error()){
 				this->link_count --;
-				fdes->del(link->fd());
 				delete link;
 				continue;
 			}
@@ -275,9 +289,8 @@ void NetworkServer::serve(){
 			const Request *req = link->recv();
 			if(req == NULL){
 				log_warn("fd: %d, link parse error, delete link", link->fd());
-				this->link_count --;
-				fdes->del(link->fd());
-				delete link;
+				link->mark_error();
+				ready_list_2.push_back(link);
 				continue;
 			}
 			if(req->empty()){
@@ -292,14 +305,12 @@ void NetworkServer::serve(){
 			job->req = link->last_recv();
 			int result = this->proc(job);
 			if(result == PROC_THREAD){
-				fdes->del(link->fd());
+				//
 			}else if(result == PROC_BACKEND){
-				fdes->del(link->fd());
+				// link_count does not include backend links
 				this->link_count --;
 			}else{
-				if(proc_result(job, &ready_list_2) == PROC_ERROR){
-					//
-				}
+				proc_result(job, &ready_list_2);
 			}
 		} // end foreach ready link
 
@@ -332,13 +343,7 @@ Link* NetworkServer::accept_link(){
 int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
 	Link *link = job->link;
 	int result = job->result;
-			
-	if(log_level() >= Logger::LEVEL_DEBUG){
-		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-			job->time_wait, job->time_proc,
-			serialize_req(*job->req).c_str(),
-			serialize_req(job->resp.resp).c_str());
-	}
+
 	if(job->cmd){
 		job->cmd->calls += 1;
 		job->cmd->time_wait += job->time_wait;
@@ -347,42 +352,29 @@ int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
 	delete job;
 	
 	if(result == PROC_ERROR){
-		log_info("fd: %d, proc error, delete link", link->fd());
-		goto proc_err;
-	}
-	
-	if(!link->output->empty()){
-		int len = link->write();
-		//log_debug("write: %d", len);
-		if(len < 0){
-			log_debug("fd: %d, write: %d, delete link", link->fd(), len);
-			goto proc_err;
+		link->mark_error();
+		ready_list->push_back(link);
+	}else{
+		if(link->output->empty()){
+			fdes->clr(link->fd(), FDEVENT_OUT);
+			if(link->input->empty()){
+				fdes->set(link->fd(), FDEVENT_IN, 1, link);
+			}else{
+				ready_list->push_back(link);
+			}
+		}else{
+			fdes->clr(link->fd(), FDEVENT_IN);
+			fdes->set(link->fd(), FDEVENT_OUT, 1, link);
 		}
 	}
-
-	if(!link->output->empty()){
-		fdes->set(link->fd(), FDEVENT_OUT, 1, link);
-	}
-	if(link->input->empty()){
-		fdes->set(link->fd(), FDEVENT_IN, 1, link);
-	}else{
-		fdes->clr(link->fd(), FDEVENT_IN);
-		ready_list->push_back(link);
-	}
-	return PROC_OK;
-
-proc_err:
-	this->link_count --;
-	fdes->del(link->fd());
-	delete link;
-	return PROC_ERROR;
+	return result;
 }
 
 /*
 event:
 	read => ready_list OR close
-	write => NONE
-proc =>
+	write => ready_list
+proc_result =>
 	done: write & (read OR ready_list)
 	async: stop (read & write)
 	
@@ -399,36 +391,42 @@ ready_list.
 A link is in either one of these places:
 	1. ready list
 	2. async worker queue
+	3. fdes
 So it safe to delete link when processing ready list and async worker result.
 */
 int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_list){
 	Link *link = (Link *)fde->data.ptr;
 	if(fde->events & FDEVENT_IN){
-		ready_list->push_back(link);
-		if(link->error()){
-			return 0;
-		}
 		int len = link->read();
 		//log_debug("fd: %d read: %d", link->fd(), len);
 		if(len <= 0){
 			double serv_time = millitime() - link->create_time;
 			log_debug("fd: %d, read: %d, delete link, s:%.3f", link->fd(), len, serv_time);
 			link->mark_error();
+			ready_list->push_back(link);
 			return 0;
 		}
-	}
-	if(fde->events & FDEVENT_OUT){
-		if(link->error()){
-			return 0;
-		}
+		ready_list->push_back(link);
+	}else if(fde->events & FDEVENT_OUT){
 		int len = link->write();
+		//log_debug("fd: %d, write: %d", link->fd(), len);
 		if(len <= 0){
 			log_debug("fd: %d, write: %d, delete link", link->fd(), len);
 			link->mark_error();
+			ready_list->push_back(link);
 			return 0;
 		}
+		
 		if(link->output->empty()){
 			fdes->clr(link->fd(), FDEVENT_OUT);
+			if(link->input->empty()){
+				fdes->set(link->fd(), FDEVENT_IN, 1, link);
+			}else{
+				ready_list->push_back(link);
+			}
+		}else{
+			fdes->clr(link->fd(), FDEVENT_IN);
+			fdes->set(link->fd(), FDEVENT_OUT, 1, link);
 		}
 	}
 	return 0;
@@ -445,20 +443,25 @@ int NetworkServer::proc(ProcJob *job){
 		// AUTH
 		if(this->need_auth && job->link->auth == false && req->at(0) != "auth"){
 			job->resp.push_back("noauth");
-			job->resp.push_back("authentication required");
+			job->resp.push_back("authentication required.");
 			break;
 		}
 		
-		Command *cmd = proc_map.get_proc(req->at(0));
-		if(!cmd){
+		job->cmd = proc_map.get_proc(req->at(0));
+		if(!job->cmd){
 			job->resp.push_back("client_error");
 			job->resp.push_back("Unknown Command: " + req->at(0).String());
 			break;
 		}
-		job->cmd = cmd;
+
+		if(this->readonly && (job->cmd->flags & Command::FLAG_WRITE)){
+			job->resp.push_back("client_error");
+			job->resp.push_back("Forbidden Command: " + req->at(0).String());
+			break;
+		}
 		
-		if(cmd->flags & Command::FLAG_THREAD){
-			if(cmd->flags & Command::FLAG_WRITE){
+		if(job->cmd->flags & Command::FLAG_THREAD){
+			if(job->cmd->flags & Command::FLAG_WRITE){
 				writer->push(job);
 			}else{
 				reader->push(job);
@@ -466,7 +469,7 @@ int NetworkServer::proc(ProcJob *job){
 			return PROC_THREAD;
 		}
 
-		proc_t p = cmd->proc;
+		proc_t p = job->cmd->proc;
 		job->time_wait = 1000 * (millitime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &job->resp);
 		job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
@@ -474,7 +477,21 @@ int NetworkServer::proc(ProcJob *job){
 	
 	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
+	}else{
+		// try to write socket before it would be added to fdevents
+		// socket is NONBLOCK, so it won't block.
+		if(job->link->write() < 0){
+			job->result = PROC_ERROR;
+		}
 	}
+
+	if(log_level() >= Logger::LEVEL_DEBUG){ // serialize_req is expensive
+		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
+			job->time_wait, job->time_proc,
+			serialize_req(*job->req).c_str(),
+			serialize_req(job->resp.resp).c_str());
+	}
+
 	return job->result;
 }
 

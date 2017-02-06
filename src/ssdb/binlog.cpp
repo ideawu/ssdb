@@ -64,6 +64,8 @@ std::string Binlog::dumps() const{
 	if(buf.size() < HEADER_LEN){
 		return str;
 	}
+	str.reserve(128);
+
 	char buf[20];
 	snprintf(buf, sizeof(buf), "%" PRIu64 " ", this->seq());
 	str.append(buf);
@@ -208,6 +210,7 @@ BinlogQueue::~BinlogQueue(){
 			usleep(10 * 1000);
 		}
 	}
+	Locking l(&this->mutex);
 	db = NULL;
 }
 
@@ -355,7 +358,12 @@ int BinlogQueue::del_range(uint64_t start, uint64_t end){
 		for(int count = 0; start <= end && count < 1000; start++, count++){
 			batch.Delete(encode_seq_key(start));
 		}
-		leveldb::Status s = db->Write(leveldb::WriteOptions(), &batch);
+		
+		Locking l(&this->mutex);
+		if(!this->db){
+			return -1;
+		}
+		leveldb::Status s = this->db->Write(leveldb::WriteOptions(), &batch);
 		if(!s.ok()){
 			return -1;
 		}

@@ -28,10 +28,19 @@ int ProcWorker::proc(ProcJob *job){
 	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
-		int len = job->link->write();
-		if(len < 0){
+		// try to write socket before it would be added to fdevents
+		// socket is NONBLOCK, so it won't block.
+		if(job->link->write() < 0){
 			job->result = PROC_ERROR;
 		}
 	}
+
+	if(log_level() >= Logger::LEVEL_DEBUG){ // serialize_req is expensive
+		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
+			job->time_wait, job->time_proc,
+			serialize_req(*job->req).c_str(),
+			serialize_req(job->resp.resp).c_str());
+	}
+
 	return 0;
 }

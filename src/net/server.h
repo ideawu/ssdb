@@ -41,6 +41,8 @@ private:
 	int num_writers;
 	ProcWorkerPool *writer;
 	ProcWorkerPool *reader;
+	
+	bool readonly;
 
 	NetworkServer();
 

@@ -14,6 +14,7 @@ found in the LICENSE file.
 static inline
 std::string encode_zsize_key(const Bytes &name){
 	std::string buf;
+	buf.reserve(name.size() + 1);
 	buf.append(1, DataType::ZSIZE);
 	buf.append(name.data(), name.size());
 	return buf;
@@ -34,6 +35,7 @@ int decode_zsize_key(const Bytes &slice, std::string *name){
 static inline
 std::string encode_zset_key(const Bytes &name, const Bytes &key){
 	std::string buf;
+	buf.reserve(128);
 	buf.append(1, DataType::ZSET);
 	buf.append(1, (uint8_t)name.size());
 	buf.append(name.data(), name.size());
@@ -61,6 +63,7 @@ int decode_zset_key(const Bytes &slice, std::string *name, std::string *key){
 static inline
 std::string encode_zscore_key(const Bytes &key, const Bytes &val, const Bytes &score){
 	std::string buf;
+	buf.reserve(128);
 	buf.append(1, DataType::ZSCORE);
 	buf.append(1, (uint8_t)key.size());
 	buf.append(key.data(), key.size());
