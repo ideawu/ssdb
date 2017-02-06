@@ -17,9 +17,10 @@ $ssdb = new SimpleSSDB($host, $port);
 $size = 1000;
 
 // KV
-$s_key = '';
+$s_key = ''; // the lower bound of key range to iterate over(exclusive)
+$e_key = ''; // the upper bound of key range to iterate over(inclusive)
 while(1){
-	$kvs = $ssdb->scan($s_key, '', $size);
+	$kvs = $ssdb->scan($s_key, $e_key, $size);
 	if(!$kvs){
 		break;
 	}
@@ -32,9 +33,10 @@ while(1){
 
 
 // HASH
-$s_name = '';
+$s_name = ''; // the lower bound of key range to iterate over(exclusive)
+$e_key = ''; // the upper bound of key range to iterate over(inclusive)
 while(1){
-	$names = $ssdb->hlist($s_name, '', $size);
+	$names = $ssdb->hlist($s_name, $e_key, $size);
 	if(!$names){
 		break;
 	}
@@ -58,9 +60,10 @@ while(1){
 
 
 // ZSET
-$s_name = '';
+$s_name = ''; // the lower bound of key range to iterate over(exclusive)
+$e_key = ''; // the upper bound of key range to iterate over(inclusive)
 while(1){
-	$names = $ssdb->zlist($s_name, '', $size);
+	$names = $ssdb->zlist($s_name, $e_key, $size);
 	if(!$names){
 		break;
 	}
@@ -86,9 +89,10 @@ while(1){
 
 
 // QUEUE/LIST
-$s_name = '';
+$s_name = ''; // the lower bound of key range to iterate over(exclusive)
+$e_key = ''; // the upper bound of key range to iterate over(inclusive)
 while(1){
-	$names = $ssdb->qlist($s_name, '', $size);
+	$names = $ssdb->qlist($s_name, $e_key, $size);
 	if(!$names){
 		break;
 	}
