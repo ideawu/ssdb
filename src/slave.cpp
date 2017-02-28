@@ -310,7 +310,8 @@ int Slave::proc(const std::vector<Bytes> &req){
 		}
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:{
-			status = SYNC;
+			//when master and slave is in copy state,slave may recieve log.type = SYNC (set key to master, and key < client.last_key)
+			//status = SYNC;
 			if(++sync_count % 1000 == 1){
 				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					sync_count, this->last_seq, log.seq());
