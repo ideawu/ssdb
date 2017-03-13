@@ -190,7 +190,7 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 				}
 				if((*it)->key == "deny"){
 					const char *ip = (*it)->str();
-					log_info("    deny   : %s", ip);
+					log_info("    deny    : %s", ip);
 					serv->ip_filter->add_deny(ip);
 				}
 			}
