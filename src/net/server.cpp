@@ -250,6 +250,8 @@ void NetworkServer::serve(){
 			log_fatal("events.wait error: %s", strerror(errno));
 			break;
 		}
+
+		double loop_time_0 = millitime() - loop_stime;
 		
 		for(int i=0; i<(int)events->size(); i++){
 			const Fdevent *fde = events->at(i);
@@ -275,6 +277,8 @@ void NetworkServer::serve(){
 				proc_client_event(fde, &ready_list);
 			}
 		}
+
+		double loop_time_1 = millitime() - loop_stime;
 
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
@@ -316,7 +320,7 @@ void NetworkServer::serve(){
 
 		double loop_time = millitime() - loop_stime;
 		if(loop_time > 0.5){
-			log_warn("long loop time: %.3f", loop_time);
+			log_warn("long loop time: %.3f %.3f %.3f", loop_time_0, loop_time_1, loop_time);
 		}
 	}
 }
