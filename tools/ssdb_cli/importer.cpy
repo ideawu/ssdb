@@ -21,7 +21,7 @@ function run(link, filename){
 			printf("%2d%%\n", progress_2);
 		}
 		
-		ps = line.strip().split('\t');
+		ps = line.strip('\n').split('\t');
 		if(len(ps) < 2){
 			print 'Error: bad format at line ' + str(lineno) + ', abort!';
 			return;
