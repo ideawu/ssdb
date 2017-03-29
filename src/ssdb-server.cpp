@@ -22,9 +22,9 @@ public:
 };
 
 void MyApplication::welcome(){
-	fprintf(stderr, "%s %s\n", APP_NAME, APP_VERSION);
-	fprintf(stderr, "Copyright (c) 2012-2015 ssdb.io\n");
-	fprintf(stderr, "\n");
+	fprintf(stdout, "%s %s\n", APP_NAME, APP_VERSION);
+	fprintf(stdout, "Copyright (c) 2012-2015 ssdb.io\n");
+	fprintf(stdout, "\n");
 }
 
 void MyApplication::usage(int argc, char **argv){
