@@ -6,7 +6,11 @@ function show_version(link){
 			sys.stderr.write(resp.data[0] + ' ' + resp.data[2] + '\n\n');
 		}else{
 			sys.stderr.write(resp.message + '\n');
-			sys.exit(0);
+			if(resp.code == 'noauth'){
+				//
+			}else{
+				sys.exit(0);
+			}
 		}
 	}catch(Exception e){
 		sys.stderr.write('Unexpected error: ' + str(e) + '\n');
