@@ -29,10 +29,11 @@ void MyApplication::welcome(){
 
 void MyApplication::usage(int argc, char **argv){
 	printf("Usage:\n");
-	printf("    %s [-d] /path/to/ssdb.conf [-s start|stop|restart]\n", argv[0]);
+	printf("    %s [-d] [-c key1=val1] [-c key2=val2] [/path/to/ssdb.conf] [-s start|stop|restart]\n", argv[0]);
 	printf("Options:\n");
 	printf("    -d    run as daemon\n");
 	printf("    -s    option to start|stop|restart the server\n");
+	printf("    -c    external config item, like server.ip=127.0.0.1\n");
 	printf("    -h    show this message\n");
 }
 
@@ -77,15 +78,15 @@ void MyApplication::run(){
 		exit(1);
 	}
 
-	NetworkServer *net = NULL;	
+	NetworkServer *net = NULL;
 	SSDBServer *server;
 	net = NetworkServer::init(*conf);
 	server = new SSDBServer(data_db, meta_db, *conf, net);
-	
+
 	log_info("pidfile: %s, pid: %d", app_args.pidfile.c_str(), (int)getpid());
 	log_info("ssdb server started.");
 	net->serve();
-	
+
 	delete net;
 	delete server;
 	delete meta_db;

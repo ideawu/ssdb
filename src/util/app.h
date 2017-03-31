@@ -2,6 +2,7 @@
 #define UTIL_APP_H
 
 #include <string>
+#include <vector>
 
 class Config;
 
@@ -11,7 +12,7 @@ public:
 	virtual ~Application(){};
 
 	int main(int argc, char **argv);
-	
+
 	virtual void usage(int argc, char **argv);
 	virtual void welcome() = 0;
 	virtual void run() = 0;
@@ -32,7 +33,7 @@ protected:
 
 	Config *conf;
 	AppArgs app_args;
-	
+	std::vector<std::string> external_config_items;
 private:
 	void parse_args(int argc, char **argv);
 	void init();

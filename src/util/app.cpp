@@ -16,17 +16,18 @@ int Application::main(int argc, char **argv){
 	write_pid();
 	run();
 	remove_pidfile();
-	
+
 	delete conf;
 	return 0;
 }
 
 void Application::usage(int argc, char **argv){
 	printf("Usage:\n");
-	printf("    %s [-d] /path/to/app.conf [-s start|stop|restart]\n", argv[0]);
+	printf("    %s [-d] [-c key1=val1] [-c key2=val2] [/path/to/app.conf] [-s start|stop|restart]\n", argv[0]);
 	printf("Options:\n");
 	printf("    -d    run as daemon\n");
 	printf("    -s    option to start|stop|restart the server\n");
+	printf("    -c    external config item, like server.ip=127.0.0.1\n");
 	printf("    -h    show this message\n");
 }
 
@@ -53,27 +54,50 @@ void Application::parse_args(int argc, char **argv){
 				fprintf(stderr, "Error: bad argument: '%s'\n", app_args.start_opt.c_str());
 				exit(1);
 			}
+		}else if(arg == "-c"){
+			if(argc > i + 1){
+				i ++;
+				if(strlen(argv[i]) == 0){
+					usage(argc, argv);
+					exit(1);
+				}
+				external_config_items.push_back(argv[i]);
+			}else{
+				usage(argc, argv);
+				exit(1);
+			}
 		}else{
 			app_args.conf_file = argv[i];
 		}
 	}
 
-	if(app_args.conf_file.empty()){
+	if(app_args.conf_file.empty() && external_config_items.empty()){
 		usage(argc, argv);
 		exit(1);
 	}
 }
 
 void Application::init(){
-	if(!is_file(app_args.conf_file.c_str())){
-		fprintf(stderr, "'%s' is not a file or not exists!\n", app_args.conf_file.c_str());
-		exit(1);
-	}
 	conf = Config::load(app_args.conf_file.c_str());
 	if(!conf){
 		fprintf(stderr, "error loading conf file: '%s'\n", app_args.conf_file.c_str());
 		exit(1);
 	}
+
+	for(std::vector<std::string>::const_iterator iter = external_config_items.begin();
+		iter != external_config_items.end();
+		++iter){
+		std::string external_config_item = *iter;
+		size_t split_point = external_config_item.find_first_of(":=");
+		if(split_point < 0 && split_point >= external_config_item.length()){
+			fprintf(stderr, "error parsing conf item: '%s'\n", external_config_item.c_str());
+			exit(1);
+		}
+		std::string key = external_config_item.substr(0, split_point);
+		std::string value = external_config_item.substr(split_point + 1);
+		conf->set(key.c_str(), value.c_str());
+	}
+
 	{
 		std::string conf_dir = real_dirname(app_args.conf_file.c_str());
 		if(chdir(conf_dir.c_str()) == -1){
@@ -93,9 +117,9 @@ void Application::init(){
 			kill_process();
 		}
 	}
-	
+
 	check_pidfile();
-	
+
 	{ // logger
 		std::string log_output;
 		std::string log_level_;
@@ -202,7 +226,7 @@ void Application::kill_process(){
 		fprintf(stderr, "could not kill process: %d(%s)\n", pid, strerror(errno));
 		exit(1);
 	}
-	
+
 	while(file_exists(app_args.pidfile)){
 		usleep(100 * 1000);
 	}

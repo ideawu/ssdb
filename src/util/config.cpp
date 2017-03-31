@@ -13,8 +13,17 @@ int is_kv_seperator(int ch){
 }
 
 Config* Config::load(const char *filename){
+	Config *root = new Config("root", "");
+	if(strlen(filename) == 0){
+		return root;
+	}
+
 	FILE *fp = NULL;
 	int lineno = 0;
+
+	Config *cfg = root;
+	int last_indent = 0;
+	char buf[CONFIG_MAX_LINE];
 
 	if(strcmp(filename, "stdout") == 0){
 		fp = stdin;
@@ -22,14 +31,10 @@ Config* Config::load(const char *filename){
 		fp = fopen(filename, "r");
 		if(!fp){
 			log_error("error opening file '%s': %s", filename, strerror(errno));
-			return NULL;
+			goto err;
 		}
 	}
 
-	Config *root = new Config("root", "");
-	Config *cfg = root;
-	int last_indent = 0;
-	char buf[CONFIG_MAX_LINE];
 	while(fgets(buf, sizeof(buf), fp)){
 		lineno++;
 
@@ -57,7 +62,7 @@ Config* Config::load(const char *filename){
 			log_error("invalid indent line(%d)", lineno);
 			goto err;
 		}
-		
+
 		if(isspace(*key)){
 			log_error("invalid line(%d): unexpected whitespace char '%c'", lineno, *key);
 			goto err;
