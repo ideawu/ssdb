@@ -1,4 +1,4 @@
-PREFIX=/usr/local/ssdb
+PREFIX=${DESTDIR}/usr/local/ssdb
 
 $(shell sh build.sh 1>&2)
 include build_config.mk
