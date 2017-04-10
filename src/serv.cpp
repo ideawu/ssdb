@@ -239,7 +239,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 
 	REG_PROC(dump, "b");
 	REG_PROC(sync140, "b");
-	REG_PROC(info, "r");
+	REG_PROC(info, "rt");
 	REG_PROC(version, "r");
 	REG_PROC(dbsize, "rt");
 	// doing compaction in a reader thread, because we have only one
