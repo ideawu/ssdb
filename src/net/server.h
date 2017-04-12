@@ -45,6 +45,7 @@ private:
 	bool readonly;
 
 	NetworkServer();
+	static NetworkServer* m_NetworkServer;
 
 protected:
 	void usage(int argc, char **argv);
