@@ -105,6 +105,10 @@ public:
 			std::vector<std::string> *list) = 0;
 	virtual int64_t zfix(const Bytes &name) = 0;
 	
+
+	// nset
+	virtual int nexpire_del(const Bytes &nkey, char log_type=BinlogType::SYNC) = 0;
+
 	virtual int64_t qsize(const Bytes &name) = 0;
 	// @return 0: empty queue, 1: item peeked, -1: error
 	virtual int qfront(const Bytes &name, std::string *item) = 0;

@@ -111,6 +111,15 @@ Iterator* SSDBImpl::iterator(const std::string &start, const std::string &end, u
 	}
 	return new Iterator(it, end, limit);
 }
+Iterator* SSDBImpl::iterator_ge(const std::string &start, const std::string &end, uint64_t limit){
+	leveldb::Iterator *it;
+	leveldb::ReadOptions iterate_options;
+	iterate_options.fill_cache = false;
+	it = ldb->NewIterator(iterate_options);
+	it->Seek(start);
+
+	return new Iterator(it, end, limit);
+}
 
 Iterator* SSDBImpl::rev_iterator(const std::string &start, const std::string &end, uint64_t limit){
 	leveldb::Iterator *it;
