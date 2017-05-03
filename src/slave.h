@@ -59,6 +59,10 @@ private:
 		return link != NULL;
 	}
 public:
+	// the max time wait for a noop or binlog message from master,
+	// after this time, the slave will disconnect from master.
+	// in seconds, default 30
+	int recv_timeout;
 	std::string auth;
 	Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror=false);
 	~Slave();

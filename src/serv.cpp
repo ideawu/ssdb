@@ -306,11 +306,15 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 				}
 				
 				std::string id = c->get_str("id");
+				int recv_timeout = c->get_num("recv_timeout");
 				
 				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
 				Slave *slave = new Slave(ssdb, meta, ip.c_str(), port, is_mirror);
 				if(!id.empty()){
 					slave->set_id(id);
+				}
+				if(recv_timeout > 0){
+					slave->recv_timeout = recv_timeout;
 				}
 				slave->auth = c->get_str("auth");
 				slave->start();

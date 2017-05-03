@@ -1,3 +1,6 @@
+* 1.9.5
+	* New features:
+		- Add slaveof.recv_timeout configuration(2017-05-03)
 * 1.9.4
 	* Incompatible changes:
 		- Treat unsupported redis command's reply as REPLY_MULTI_BULK(2016-07-26)
