@@ -169,7 +169,10 @@ int main(int argc, char **argv){
 		}
 	}
 	link->send("dump", "A", "", "-1");
-	link->flush();
+	if(link->flush() < 0){
+		fprintf(stderr, "ERROR: error sending dump!\n");
+		exit(1);
+	}
 
 	leveldb::DB* db;
 	leveldb::Options options;
