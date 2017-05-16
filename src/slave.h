@@ -52,6 +52,7 @@ private:
 	int proc_noop(const Binlog &log, const std::vector<Bytes> &req);
 	int proc_copy(const Binlog &log, const std::vector<Bytes> &req);
 	int proc_sync(const Binlog &log, const std::vector<Bytes> &req);
+	int update_master_seq();
 
 	unsigned int connect_retry;
 	int connect();

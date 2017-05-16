@@ -91,6 +91,12 @@ void* BackendSync::_run_thread(void *arg){
 #define TICK_INTERVAL_MS	300
 #define NOOP_IDLES			(3000/TICK_INTERVAL_MS)
 
+	const std::vector<Bytes> *req = NULL;
+	Fdevents backsync_select;
+	const Fdevents::events_t *backsync_events = NULL;
+	backsync_select.set(client.link->fd(),FDEVENT_IN,0,NULL);
+#define RECEIVE_SEQ_MS 5000
+
 	int idle = 0;
 	while(!backend->thread_quit){
 		// TODO: test
@@ -130,6 +136,12 @@ void* BackendSync::_run_thread(void *arg){
 			log_info("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
 			break;
 		}
+
+		//wait to receive seq only if expect_rec_seq > last_seq
+		if(client.status == Client::SYNC && client.expect_rec_seq > client.last_seq){
+			//log_debug("run_thread() wait for, client.expect_rec_seq=%"PRIu64 " > client.last_seq=%"PRIu64, client.expect_rec_seq,client.last_seq);
+			client.receive_seq(RECEIVE_SEQ_MS,backsync_select,backsync_events,req);
+		}		
 		if(backend->sync_speed > 0){
 			float data_size_mb = link->output->size() / 1024.0 / 1024.0;
 			usleep((data_size_mb / backend->sync_speed) * 1000 * 1000);
@@ -137,6 +149,7 @@ void* BackendSync::_run_thread(void *arg){
 	}
 
 	log_info("Sync Client quit, %s:%d fd: %d, delete link", link->remote_ip, link->remote_port, link->fd());
+	backsync_select.del(link->fd());
 	delete link;
 
 	Locking l(&backend->mutex);
@@ -156,6 +169,7 @@ BackendSync::Client::Client(const BackendSync *backend){
 	last_key = "";
 	is_mirror = false;
 	iter = NULL;
+	expect_rec_seq = 0;
 }
 
 BackendSync::Client::~Client(){
@@ -261,6 +275,7 @@ void BackendSync::Client::reset(){
 	this->status = Client::COPY;
 	this->last_seq = 0;
 	this->last_key = "";
+	this->expect_rec_seq = 0;
 
 	Binlog log(this->last_seq, BinlogType::COPY, BinlogCommand::BEGIN, "");
 	log_trace("fd: %d, %s", link->fd(), log.dumps().c_str());
@@ -399,10 +414,13 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 		}
 	
 		// update last_seq
-		this->last_seq = log.seq();
+		if(this->status != Client::SYNC){
+			this->last_seq = log.seq();
+		}
 
 		char type = log.type();
 		if(type == BinlogType::MIRROR && this->is_mirror){
+			this->last_seq = log.seq(); //update last_seq
 			if(this->last_seq - this->last_noop_seq >= 1000){
 				this->noop();
 				return 1;
@@ -443,5 +461,71 @@ int BackendSync::Client::sync(BinlogQueue *logs){
 			link->send(log.repr());
 			break;
 	}
+	if(this->status == Client::SYNC){
+		this->expect_rec_seq = log.seq();
+		//log_debug("client::sync() set expect_rec_seq=%" PRIu64 ", link->fd: %d, %s", expect_rec_seq,link->fd(), log.dumps().c_str());
+	}
 	return 1;
 }
+
+/*
+* receive seq from slave, and call update_client_seq to update client.last_seq.
+* note:this should be called only when client.status is SYNC and client.except_rec_seq is more than client.last_seq
+*/
+int BackendSync::Client::receive_seq(int wait_ms,Fdevents &bc_select,const Fdevents::events_t *bc_events,const std::vector<Bytes> *req){
+
+	bc_events= bc_select.wait(wait_ms);
+	if(bc_events== NULL){//shi
+		log_error("receive_seq() backsync_events.wait error: %s", strerror(errno)); 		
+	}
+	if(bc_events->empty()){//shi
+		return 0;
+	}
+	if(link->read() <= 0){
+		log_error("receive_seq() fd=%d link.read error: %s", link->fd(),strerror(errno));
+		return -1;
+	}
+	//log_debug("receive_seq() fd=%d link.read OK", link->fd());
+	while(1){
+		req = link->recv();
+		if(req == NULL){
+			log_error("receive_seq() fd=%d link.recv error: %s", link->fd(),strerror(errno));
+			break;
+		}else if(req->empty()){
+			//log_debug("receive_seq() fd=%d link.recv req empty", link->fd());
+			break;
+		}else{
+			this->update_client_seq(*req);
+		}
+	}
+	return 1;
+
+}
+
+int BackendSync::Client::update_client_seq(const std::vector<Bytes> &req){
+	Binlog log;
+	if(log.load(req[0]) == -1){
+		log_error("update_client_seq() BackendSync::Client::update_client_seq invalid binlog!");
+		return -1;
+	}
+	switch(log.type()){
+		case BinlogType::UPDATE_SEQ:
+			break;
+		default:
+			return 0;	
+	}
+	uint64_t seq = log.seq();
+	if(req.size() >= 2){
+		log_debug("update_client_seq() %s [%d]",log.dumps().c_str(), req[1].size());
+	}else{
+		log_debug("update_client_seq() %s",log.dumps().c_str());
+	}	
+	if(this->last_seq + 1 <= seq){
+		//log_debug("update_client_seq() BackendSync::Client::update_client_seq OK for this->last_seq=%"PRIu64 " to log.seq=%"PRIu64, this->last_seq,seq);
+		this->last_seq = seq;
+		return 1;
+	}
+	//log_debug("update_client_seq() BackendSync::Client::update_client_seq fail for this->last_seq=%"PRIu64 " + 1 > log.seq=%"PRIu64, this->last_seq,seq);
+	return 0;
+}
+

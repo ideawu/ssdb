@@ -310,7 +310,8 @@ int Slave::proc(const std::vector<Bytes> &req){
 		}
 		case BinlogType::SYNC:
 		case BinlogType::MIRROR:{
-			status = SYNC;
+			//when master and slave is in copy state,slave may recieve log.type = SYNC (set key to master, and key < client.last_key)
+			//status = SYNC;
 			if(++sync_count % 1000 == 1){
 				log_info("sync_count: %" PRIu64 ", last_seq: %" PRIu64 ", seq: %" PRIu64 "",
 					sync_count, this->last_seq, log.seq());
@@ -369,6 +370,15 @@ int Slave::proc_copy(const Binlog &log, const std::vector<Bytes> &req){
 }
 
 int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
+	if(log.type() == BinlogType::SYNC && this->status == SYNC){
+		if(this->last_seq >= log.seq()){
+			//this seq was processed before, only send seq to master backend_sync thread
+			sync_count--;
+			this->update_master_seq();
+			return 0;
+		}
+	}
+
 	switch(log.cmd()){
 		case BinlogCommand::KSET:
 			{
@@ -517,6 +527,33 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 		this->last_key = log.key().String();
 	}
 	this->save_status();
+
+	if(log.type() == BinlogType::SYNC && this->status == SYNC){
+		this->update_master_seq();
+	}
+
 	return 0;
+}
+
+/*
+* note:this should be called only when log.type is SYNC and status is SYNC
+* send slave.last_seq to client.last_seq of the master's backsync thread
+*/
+int Slave::update_master_seq(){
+	uint64_t seq;
+	seq = this->last_seq;
+	Binlog noop(seq, BinlogType::UPDATE_SEQ, BinlogCommand::NONE, "");
+	//log_debug("update_master_seq() fd: %d, %s", link->fd(), noop.dumps().c_str());
+	link->send(noop.repr());
+	int len =link->flush();
+	if(len == -1){
+		log_error("%s:%d fd: %d, send error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
+		return -1;
+	}else if(len == 0){
+		log_error("%s:%d fd: %d, for send len return 0, error: %s", link->remote_ip, link->remote_port, link->fd(), strerror(errno));
+		return -1;
+	}
+	//log_debug("update_master_seq() send seq to %s:%d fd: %d OK ,send len=%d", link->remote_ip, link->remote_port, link->fd(),len);
+	return len;
 }
 

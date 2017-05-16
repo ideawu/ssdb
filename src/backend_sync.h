@@ -16,6 +16,9 @@ found in the LICENSE file.
 #include "net/link.h"
 #include "util/thread.h"
 
+#include "net/fde.h"
+
+
 class BackendSync{
 private:
 	struct Client;
@@ -54,6 +57,7 @@ struct BackendSync::Client{
 	std::string last_key;
 	const BackendSync *backend;
 	bool is_mirror;
+	uint64_t expect_rec_seq; //(used for SYNC states, not be used in COPY) record the seq that has be sent to slave
 	
 	Iterator *iter;
 
@@ -65,6 +69,8 @@ struct BackendSync::Client{
 	int copy();
 	int sync(BinlogQueue *logs);
 	void out_of_sync();
+	int update_client_seq(const std::vector<Bytes> &req);
+	int receive_seq(int wait_ms,Fdevents &bc_select,const Fdevents::events_t *bc_events,const std::vector<Bytes> *req);
 
 	std::string stats();
 };
