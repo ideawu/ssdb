@@ -1,5 +1,6 @@
 * 1.9.5
 	* New features:
+		- ssdb-cli supports -a option to connect with password(2017-07-19)
 		- Add slaveof.recv_timeout configuration(2017-05-03)
 	* Incompatible changes:
 		- setbit/getbit will be compatible with Redis, from LSB 0 to MSB 0(2017-05-16)

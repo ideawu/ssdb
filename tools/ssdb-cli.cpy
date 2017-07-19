@@ -40,33 +40,27 @@ function show_command_help(){
 }
 
 function usage(){
-	print '';
 	print 'Usage:';
-	print '	ssdb-cli [-h] [HOST] [-p] [PORT]';
+	print '        ssdb-cli [-h] <host> [-p] <port>';
 	print '';
 	print 'Options:';
-	print '	-h 127.0.0.1';
-	print '		ssdb server hostname/ip address';
-	print '	-p 8888';
-	print '		ssdb server port';
-	print '	-v --help';
-	print '		show this message';
-	print '	-n [info, dbsize, replication, write_read]';
-	print '		choose nagios probe';
-	print '	-w INT';
-	print '		set nagios WARN level';
-	print '	-c INT';
-	print '		set nagios CRITICAL level';
+	print '  -h <host>      ssdb server hostname/ip address (default: 127.0.0.1)';
+	print '  -p <port>      ssdb server port (default: 8888)';
+	print '  -a <password>  Password to use when connecting to the server';
+	print '  -v             Show this message';
+	print '  --help         Show this message';
+	print '';
+	print '  -n <opt>       Choose nagios probe';
+	print '                 opt: info, dbsize, replication, write_read';
+	print '  -w <INT>       Set nagios WARN level';
+	print '  -c <INT>       Set nagios CRITICAL level';
 	print '';
 	print 'Examples:';
-	print '	ssdb-cli';
-	print '	ssdb-cli 8888';
-	print '	ssdb-cli 127.0.0.1 8888';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n dbsize -w 500000 -c 600000';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n replication';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n write_read';
-	print '	ssdb-cli -n info';
+	print '  ssdb-cli';
+	print '  ssdb-cli 8888';
+	print '  ssdb-cli 127.0.0.1 8888';
+	print '  ssdb-cli -h 127.0.0.1 -p 8888';
+	print '  ssdb-cli -h 127.0.0.1 -p 8888 -a xxxpasswordxxx';
 }
 
 function repr_data(s){
@@ -90,6 +84,7 @@ port = '';
 opt = '';
 args = [];
 run_nagios = false;
+password = false;
 
 foreach(sys.argv[1 ..] as arg){
 	if(opt == '' && arg.startswith('-')){
@@ -106,6 +101,10 @@ foreach(sys.argv[1 ..] as arg){
 				break;
 			case '-p':
 				port = arg;
+				opt = '';
+				break;
+			case '-a':
+				password = arg;
 				opt = '';
 				break;
 			// nagios
@@ -161,14 +160,15 @@ if(run_nagios){
 	nagios.run(link, sys.argv[1 ..]);
 	exit(0);
 }
+if(password){
+	resp = link.request('auth', [password]);	
+}
 
 welcome();
 if(sys.stdin.isatty()){
 	util.show_version(link);
 }
 
-
-password = false;
 
 function request_with_retry(cmd, args=null){
 	gs = globals();
