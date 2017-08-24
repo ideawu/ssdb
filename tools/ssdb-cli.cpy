@@ -396,11 +396,11 @@ while(true){
 
 		switch(resp.type){
 			case 'none':
-				printf(str(resp.data) + '\n');
+				printf(repr_data(resp.data) + '\n');
 				break;
 			case 'val':
 				if(resp.code == 'ok'){
-					printf(str(resp.data) + '\n');
+					printf(repr_data(resp.data) + '\n');
 				}else{
 					if(resp.data){
 						print repr_data(resp.code), repr_data(resp.data);
