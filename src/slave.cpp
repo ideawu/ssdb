@@ -10,6 +10,7 @@ found in the LICENSE file.
 
 Slave::Slave(SSDB *ssdb, SSDB *meta, const char *ip, int port, bool is_mirror){
 	thread_quit = false;
+	this->recv_timeout = 30;
 	this->ssdb = ssdb;
 	this->meta = meta;
 	this->status = DISCONNECTED;
@@ -210,8 +211,7 @@ void* Slave::_run_thread(void *arg){
 	bool reconnect = false;
 	
 #define RECV_TIMEOUT		200
-#define MAX_RECV_TIMEOUT	15 * 1000
-#define MAX_RECV_IDLE		MAX_RECV_TIMEOUT/RECV_TIMEOUT
+	int max_idle = (slave->recv_timeout * 1000) / RECV_TIMEOUT;
 
 	while(!slave->thread_quit){
 		if(reconnect){
@@ -237,7 +237,7 @@ void* Slave::_run_thread(void *arg){
 			sleep(1);
 			continue;
 		}else if(events->empty()){
-			if(idle++ >= MAX_RECV_IDLE){
+			if(idle++ >= max_idle){
 				log_error("the master hasn't responsed for awhile, reconnect...");
 				idle = 0;
 				reconnect = true;

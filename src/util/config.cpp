@@ -16,7 +16,7 @@ Config* Config::load(const char *filename){
 	FILE *fp = NULL;
 	int lineno = 0;
 
-	if(strcmp(filename, "stdout") == 0){
+	if(strcmp(filename, "stdin") == 0){
 		fp = stdin;
 	}else{
 		fp = fopen(filename, "r");

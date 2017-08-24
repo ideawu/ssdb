@@ -213,7 +213,8 @@ int SSDBImpl::setbit(const Bytes &key, int bitoffset, int on, char log_type){
 	}
 	
 	int len = bitoffset / 8;
-	int bit = bitoffset % 8;
+	// Bit Numbering: MSB 0
+	int bit = 7 - bitoffset % 8;
 	if(len >= val.size()){
 		val.resize(len + 1, 0);
 	}
@@ -243,7 +244,8 @@ int SSDBImpl::getbit(const Bytes &key, int bitoffset){
 	}
 	
 	int len = bitoffset / 8;
-	int bit = bitoffset % 8;
+	// Bit Numbering: MSB 0
+	int bit = 7 - bitoffset % 8;
 	if(len >= val.size()){
 		return 0;
 	}
