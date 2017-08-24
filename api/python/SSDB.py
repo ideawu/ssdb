@@ -434,7 +434,7 @@ class SSDB(object):
 				pass
 				break
 			data = this.recv_buf[spos : epos]
-			ret.append(data)
+			ret.append(data.encode("string_escape"))
 			spos = epos
 			epos = this.recv_buf.find('\n', spos)
 
