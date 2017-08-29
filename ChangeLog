@@ -1,5 +1,6 @@
 * 1.9.5
 	* New features:
+		- C++ SDK add disconnected() method(2017-08-29)
 		- ssdb-cli supports -a option to connect with password(2017-07-19)
 		- Add slaveof.recv_timeout configuration(2017-05-03)
 	* Incompatible changes:
