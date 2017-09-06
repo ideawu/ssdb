@@ -64,11 +64,12 @@ function usage(){
 }
 
 function repr_data(s){
+	s = str(s);
 	gs = globals();
 	if(gs['escape_data'] == false){
 		return s;
 	}
-	ret = str(s).encode('string-escape');
+	ret = s.encode('string-escape');
 	return ret;
 }
 
