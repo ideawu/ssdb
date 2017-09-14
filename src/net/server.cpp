@@ -229,7 +229,7 @@ void NetworkServer::serve(){
 	uint32_t last_ticks = g_ticks;
 	
 	while(!quit){
-		double loop_stime = millitime();
+		double loop_stime = microtime();
 
 		// status report
 		if((uint32_t)(g_ticks - last_ticks) >= STATUS_REPORT_TICKS){
@@ -251,7 +251,7 @@ void NetworkServer::serve(){
 			break;
 		}
 
-		double loop_time_0 = millitime() - loop_stime;
+		double loop_time_0 = microtime() - loop_stime;
 		
 		for(int i=0; i<(int)events->size(); i++){
 			const Fdevent *fde = events->at(i);
@@ -278,7 +278,7 @@ void NetworkServer::serve(){
 			}
 		}
 
-		double loop_time_1 = millitime() - loop_stime;
+		double loop_time_1 = microtime() - loop_stime;
 
 		for(it = ready_list.begin(); it != ready_list.end(); it ++){
 			Link *link = *it;
@@ -302,7 +302,7 @@ void NetworkServer::serve(){
 				continue;
 			}
 			
-			link->active_time = millitime();
+			link->active_time = microtime();
 
 			ProcJob *job = new ProcJob();
 			job->link = link;
@@ -318,7 +318,7 @@ void NetworkServer::serve(){
 			}
 		} // end foreach ready link
 
-		double loop_time = millitime() - loop_stime;
+		double loop_time = microtime() - loop_stime;
 		if(loop_time > 0.5){
 			log_warn("long loop time: %.3f %.3f %.3f", loop_time_0, loop_time_1, loop_time);
 		}
@@ -339,7 +339,7 @@ Link* NetworkServer::accept_link(){
 				
 	link->nodelay();
 	link->noblock();
-	link->create_time = millitime();
+	link->create_time = microtime();
 	link->active_time = link->create_time;
 	return link;
 }
@@ -404,7 +404,7 @@ int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_lis
 		int len = link->read();
 		//log_debug("fd: %d read: %d", link->fd(), len);
 		if(len <= 0){
-			double serv_time = millitime() - link->create_time;
+			double serv_time = microtime() - link->create_time;
 			log_debug("fd: %d, read: %d, delete link, s:%.3f", link->fd(), len, serv_time);
 			link->mark_error();
 			ready_list->push_back(link);
@@ -439,7 +439,7 @@ int NetworkServer::proc_client_event(const Fdevent *fde, ready_list_t *ready_lis
 int NetworkServer::proc(ProcJob *job){
 	job->serv = this;
 	job->result = PROC_OK;
-	job->stime = millitime();
+	job->stime = microtime();
 
 	const Request *req = job->req;
 
@@ -474,9 +474,9 @@ int NetworkServer::proc(ProcJob *job){
 		}
 
 		proc_t p = job->cmd->proc;
-		job->time_wait = 1000 * (millitime() - job->stime);
+		job->time_wait = 1000 * (microtime() - job->stime);
 		job->result = (*p)(this, job->link, *req, &job->resp);
-		job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
+		job->time_proc = 1000 * (microtime() - job->stime) - job->time_wait;
 	}while(0);
 	
 	if(job->link->send(job->resp.resp) == -1){

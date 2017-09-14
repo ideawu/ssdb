@@ -21,9 +21,9 @@ int ProcWorker::proc(ProcJob *job){
 	const Request *req = job->req;
 	
 	proc_t p = job->cmd->proc;
-	job->time_wait = 1000 * (millitime() - job->stime);
+	job->time_wait = 1000 * (microtime() - job->stime);
 	job->result = (*p)(job->serv, job->link, *req, &job->resp);
-	job->time_proc = 1000 * (millitime() - job->stime) - job->time_wait;
+	job->time_proc = 1000 * (microtime() - job->stime) - job->time_wait;
 
 	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
