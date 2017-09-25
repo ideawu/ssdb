@@ -76,7 +76,6 @@ case "$TARGET_OS" in
     CYGWIN_*)
         PLATFORM=OS_LINUX
         COMMON_FLAGS="$MEMCMP_FLAG -lpthread -DOS_LINUX -DCYGWIN"
-        COMMON_FLAGS="$MEMCMP_FLAG -lpthread -DOS_LINUX -DCYGWIN -std=gnu++0x"
         PLATFORM_LDFLAGS="-lpthread"
         PORT_FILE=port/port_posix.cc
         PORT_SSE_FILE=port/port_posix_sse.cc
@@ -203,18 +202,16 @@ EOF
         COMMON_FLAGS="$COMMON_FLAGS -DLEVELDB_PLATFORM_POSIX"
     fi
 
-#    # Test whether Snappy library is installed
-#    # http://code.google.com/p/snappy/
-#    $CXX $CXXFLAGS -x c++ - -o $CXXOUTPUT 2>/dev/null  <<EOF
-#      #include <snappy.h>
-#      int main() {}
-#EOF
-#    if [ "$?" = 0 ]; then
-#        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
-#        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
-#    fi
-    COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY -I../snappy-1.1.0"
-    PLATFORM_LIBS="$PLATFORM_LIBS ../snappy-1.1.0/.libs/libsnappy.a"
+    # Test whether Snappy library is installed
+    # http://code.google.com/p/snappy/
+    $CXX $CXXFLAGS -x c++ - -o $CXXOUTPUT 2>/dev/null  <<EOF
+      #include <snappy.h>
+      int main() {}
+EOF
+    if [ "$?" = 0 ]; then
+        COMMON_FLAGS="$COMMON_FLAGS -DSNAPPY"
+        PLATFORM_LIBS="$PLATFORM_LIBS -lsnappy"
+    fi
 
     # Test whether tcmalloc is available
     $CXX $CXXFLAGS -x c++ - -o $CXXOUTPUT -ltcmalloc 2>/dev/null  <<EOF
