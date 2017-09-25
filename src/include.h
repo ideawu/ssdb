@@ -34,7 +34,7 @@ found in the LICENSE file.
 #endif
 
 
-static inline double millitime(){
+static inline double microtime(){
 	struct timeval now;
 	gettimeofday(&now, NULL);
 	double ret = now.tv_sec + now.tv_usec/1000.0/1000.0;

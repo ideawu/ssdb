@@ -37,6 +37,9 @@ public:
 	bool error(){
 		return code_ != "ok";
 	}
+	bool disconnected(){
+		return code_ == "disconnected";
+	}
 	/**
 	 * The response code.
 	 */
@@ -49,6 +52,10 @@ public:
 		code_ = code;
 	}
 	Status(const std::vector<std::string> *resp){
+		if(resp == NULL){
+			code_ = "disconnected";
+			return;
+		}
 		if(resp && resp->size() > 0){
 			code_ = resp->at(0);
 		}else{

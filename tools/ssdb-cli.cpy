@@ -423,7 +423,7 @@ while(true){
 				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data['index'] as k){
 					v = resp.data['items'][k];
-					printf('  %-15s: %s\n', repr_data(repr_data(k)), v);
+					printf('  %-15s: %s\n', repr_data(k), repr_data(v));
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;
