@@ -37,6 +37,7 @@ SSDBImpl::~SSDBImpl(){
 
 SSDB* SSDB::open(const Options &opt, const std::string &dir){
 	SSDBImpl *ssdb = new SSDBImpl();
+	ssdb->options.max_file_size = 32 * 1048576; // leveldb 1.20
 	ssdb->options.create_if_missing = true;
 	ssdb->options.max_open_files = opt.max_open_files;
 	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
@@ -68,7 +69,7 @@ err:
 }
 
 int SSDBImpl::flushdb(){
-	Transaction trans(binlogs);
+	//Transaction trans(binlogs);
 	int ret = 0;
 	bool stop = false;
 	while(!stop){
@@ -84,7 +85,7 @@ int SSDBImpl::flushdb(){
 				stop = true;
 				break;
 			}
-			//log_debug("%s", hexmem(it->key().data(), it->key().size()).c_str());
+			log_debug("%s", hexmem(it->key().data(), it->key().size()).c_str());
 			leveldb::Status s = ldb->Delete(write_opts, it->key());
 			if(!s.ok()){
 				log_error("del error: %s", s.ToString().c_str());
