@@ -40,41 +40,36 @@ function show_command_help(){
 }
 
 function usage(){
-	print '';
 	print 'Usage:';
-	print '	ssdb-cli [-h] [HOST] [-p] [PORT]';
+	print '        ssdb-cli [-h] <host> [-p] <port>';
 	print '';
 	print 'Options:';
-	print '	-h 127.0.0.1';
-	print '		ssdb server hostname/ip address';
-	print '	-p 8888';
-	print '		ssdb server port';
-	print '	-v --help';
-	print '		show this message';
-	print '	-n [info, dbsize, replication, write_read]';
-	print '		choose nagios probe';
-	print '	-w INT';
-	print '		set nagios WARN level';
-	print '	-c INT';
-	print '		set nagios CRITICAL level';
+	print '  -h <host>      ssdb server hostname/ip address (default: 127.0.0.1)';
+	print '  -p <port>      ssdb server port (default: 8888)';
+	print '  -a <password>  Password to use when connecting to the server';
+	print '  -v             Show this message';
+	print '  --help         Show this message';
+	print '';
+	print '  -n <opt>       Choose nagios probe';
+	print '                 opt: info, dbsize, replication, write_read';
+	print '  -w <INT>       Set nagios WARN level';
+	print '  -c <INT>       Set nagios CRITICAL level';
 	print '';
 	print 'Examples:';
-	print '	ssdb-cli';
-	print '	ssdb-cli 8888';
-	print '	ssdb-cli 127.0.0.1 8888';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n dbsize -w 500000 -c 600000';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n replication';
-	print '	ssdb-cli -h 127.0.0.1 -p 8888 -n write_read';
-	print '	ssdb-cli -n info';
+	print '  ssdb-cli';
+	print '  ssdb-cli 8888';
+	print '  ssdb-cli 127.0.0.1 8888';
+	print '  ssdb-cli -h 127.0.0.1 -p 8888';
+	print '  ssdb-cli -h 127.0.0.1 -p 8888 -a xxxpasswordxxx';
 }
 
 function repr_data(s){
+	s = str(s);
 	gs = globals();
 	if(gs['escape_data'] == false){
 		return s;
 	}
-	ret = str(s).encode('string-escape');
+	ret = s.encode('string-escape');
 	return ret;
 }
 
@@ -90,6 +85,7 @@ port = '';
 opt = '';
 args = [];
 run_nagios = false;
+password = false;
 
 foreach(sys.argv[1 ..] as arg){
 	if(opt == '' && arg.startswith('-')){
@@ -106,6 +102,10 @@ foreach(sys.argv[1 ..] as arg){
 				break;
 			case '-p':
 				port = arg;
+				opt = '';
+				break;
+			case '-a':
+				password = arg;
 				opt = '';
 				break;
 			// nagios
@@ -161,14 +161,15 @@ if(run_nagios){
 	nagios.run(link, sys.argv[1 ..]);
 	exit(0);
 }
+if(password){
+	resp = link.request('auth', [password]);	
+}
 
 welcome();
 if(sys.stdin.isatty()){
 	util.show_version(link);
 }
 
-
-password = false;
 
 function request_with_retry(cmd, args=null){
 	gs = globals();
@@ -368,6 +369,10 @@ while(true){
 			case 'hset':
 			case 'del':
 			case 'zdel':
+			case 'add_allow_ip':
+			case 'del_allow_ip':
+			case 'add_deny_ip':
+			case 'del_deny_ip':
 				skip = true;
 				printf(str(resp.code) + '\n');
 				break;
@@ -392,11 +397,11 @@ while(true){
 
 		switch(resp.type){
 			case 'none':
-				printf(str(resp.data) + '\n');
+				printf(repr_data(resp.data) + '\n');
 				break;
 			case 'val':
 				if(resp.code == 'ok'){
-					printf(str(resp.data) + '\n');
+					printf(repr_data(resp.data) + '\n');
 				}else{
 					if(resp.data){
 						print repr_data(resp.code), repr_data(resp.data);
@@ -418,7 +423,7 @@ while(true){
 				sys.stderr.write('-' * 25 + '\n');
 				foreach(resp.data['index'] as k){
 					v = resp.data['items'][k];
-					printf('  %-15s: %s\n', repr_data(repr_data(k)), v);
+					printf('  %-15s: %s\n', repr_data(k), repr_data(v));
 				}
 				sys.stderr.write(sprintf('%d result(s) (%.3f sec)\n', len(resp.data['index']), time_consume));
 				break;

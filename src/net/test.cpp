@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 	// register command procedure
-	serv->proc_map.set_proc("hello", proc_hello);
+	serv->proc_map.set_proc("hello", "w", proc_hello);
 	serv->serve();
 	delete serv;
 	return 0;

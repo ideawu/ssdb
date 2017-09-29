@@ -11,6 +11,7 @@ found in the LICENSE file.
 static inline
 std::string encode_kv_key(const Bytes &key){
 	std::string buf;
+	buf.reserve(key.size() + 1);
 	buf.append(1, DataType::KV);
 	buf.append(key.data(), key.size());
 	return buf;

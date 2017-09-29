@@ -121,7 +121,7 @@ void bench(std::string cmd){
 	std::map<std::string, Data *>::iterator it;
 	it = ds->begin();
 	
-	double stime = millitime();
+	double stime = microtime();
 	while(1){
 		while(!free_links->empty()){
 			if(num_sent == total){
@@ -167,7 +167,7 @@ void bench(std::string cmd){
 				free_links->push_back(link);
 				finished ++;
 				if(finished == total){
-					double etime = millitime();
+					double etime = microtime();
 					double ts = (stime == etime)? 1 : (etime - stime);
 					double speed = total / ts;
 					printf("qps: %d, time: %.3f s\n", (int)speed, ts);

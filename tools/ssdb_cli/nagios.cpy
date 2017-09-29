@@ -48,6 +48,7 @@ function run(link, cli_args){
 		# - does total_calls is growing
 	}catch(Exception e){
 		sys.stderr.write(str(e) + '\n');
+		exit(2);
 	}
 	#sys.stderr.write('exit\n');
 	exit(0);

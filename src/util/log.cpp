@@ -8,10 +8,6 @@ found in the LICENSE file.
 
 static Logger logger;
 
-int log_open(FILE *fp, int level, bool is_threadsafe){
-	return logger.open(fp, level, is_threadsafe);
-}
-
 int log_open(const char *filename, int level, bool is_threadsafe, uint64_t rotate_size){
 	return logger.open(filename, level, is_threadsafe, rotate_size);
 }
@@ -59,7 +55,7 @@ Logger* Logger::shared(){
 }
 
 Logger::Logger(){
-	fp = stdout;
+	fd = STDOUT_FILENO;
 	level_ = LEVEL_DEBUG;
 	mutex = NULL;
 
@@ -113,15 +109,6 @@ void Logger::threadsafe(){
 	pthread_mutex_init(mutex, NULL);
 }
 
-int Logger::open(FILE *fp, int level, bool is_threadsafe){
-	this->fp = fp;
-	this->level_ = level;
-	if(is_threadsafe){
-		this->threadsafe();
-	}
-	return 0;
-}
-
 int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t rotate_size){
 	if(strlen(filename) > PATH_MAX - 20){
 		fprintf(stderr, "log filename too long!");
@@ -129,39 +116,43 @@ int Logger::open(const char *filename, int level, bool is_threadsafe, uint64_t r
 	}
 	this->level_ = level;
 	this->rotate_size_ = rotate_size;
+	if(is_threadsafe){
+		this->threadsafe();
+	}
 	strcpy(this->filename, filename);
 
-	FILE *fp;
 	if(strcmp(filename, "stdout") == 0){
-		fp = stdout;
+		this->fd = STDOUT_FILENO;
 	}else if(strcmp(filename, "stderr") == 0){
-		fp = stderr;
+		this->fd = STDERR_FILENO;
 	}else{
-		fp = fopen(filename, "a");
-		if(fp == NULL){
+		this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND, 0644);
+		if(this->fd == -1){
+			fprintf(stderr, "open log file %s error - %s\n", filename, strerror(errno));
 			return -1;
 		}
 
 		struct stat st;
-		int ret = fstat(fileno(fp), &st);
+		int ret = fstat(this->fd, &st);
 		if(ret == -1){
-			fprintf(stderr, "fstat log file %s error!", filename);
+			fprintf(stderr, "fstat log file %s error!\n", filename);
 			return -1;
 		}else{
 			stats.w_curr = st.st_size;
 		}
 	}
-	return this->open(fp, level, is_threadsafe);
+	return 0;
 }
 
 void Logger::close(){
-	if(fp != stdin && fp != stdout){
-		fclose(fp);
+	if(this->fd != STDOUT_FILENO && this->fd != STDERR_FILENO){
+		::close(this->fd);
 	}
 }
 
 void Logger::rotate(){
-	fclose(fp);
+	::close(this->fd);
+	
 	char newpath[PATH_MAX];
 	time_t time;
 	struct timeval tv;
@@ -179,8 +170,9 @@ void Logger::rotate(){
 	if(ret == -1){
 		return;
 	}
-	fp = fopen(this->filename, "a");
-	if(fp == NULL){
+	this->fd = ::open(filename, O_CREAT | O_WRONLY | O_APPEND, 0644);
+	if(this->fd == -1){
+		fprintf(stderr, "open log file %s error - %s\n", filename, strerror(errno));
 		return;
 	}
 	stats.w_curr = 0;
@@ -272,8 +264,7 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	if(this->mutex){
 		pthread_mutex_lock(this->mutex);
 	}
-	fwrite(buf, len, 1, this->fp);
-	fflush(this->fp);
+	write(this->fd, buf, len);
 
 	stats.w_curr += len;
 	stats.w_total += len;

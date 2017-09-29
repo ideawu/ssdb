@@ -87,39 +87,46 @@ std::string real_dirname(const char *filepath){
 }
 
 inline static
-std::string str_escape(const char *s, int size){
+void str_escape(const char *s, int size, std::string *ret){
 	static const char *hex = "0123456789abcdef";
-	std::string ret;
 	for(int i=0; i<size; i++){
 		char c = s[i];
 		switch(c){
 			case '\r':
-				ret.append("\\r");
+				ret->append("\\r");
 				break;
 			case '\n':
-				ret.append("\\n");
+				ret->append("\\n");
 				break;
 			case '\t':
-				ret.append("\\t");
+				ret->append("\\t");
 				break;
 			case '\\':
-				ret.append("\\\\");
+				ret->append("\\\\");
 				break;
 			case ' ':
-				ret.push_back(c);
+				ret->push_back(c);
 				break;
 			default:
 				if(c >= '!' && c <= '~'){
-					ret.push_back(c);
+					ret->push_back(c);
 				}else{
-					ret.append("\\x");
+					ret->append("\\x");
 					unsigned char d = c;
-					ret.push_back(hex[d >> 4]);
-					ret.push_back(hex[d & 0x0f]);
+					ret->push_back(hex[d >> 4]);
+					ret->push_back(hex[d & 0x0f]);
 				}
 				break;
 		}
 	}
+}
+
+inline static
+std::string str_escape(const char *s, int size){
+	std::string ret;
+	int capacity = (size < 20)? 32 : (size * 1.2);
+	ret.reserve(capacity);
+	str_escape(s, size, &ret);
 	return ret;
 }
 
@@ -138,12 +145,11 @@ int hex_int(char c){
 }
 
 inline static
-std::string str_unescape(const char *s, int size){
-	std::string ret;
+void str_unescape(const char *s, int size, std::string *ret){
 	for(int i=0; i<size; i++){
 		char c = s[i];
 		if(c != '\\'){
-			ret.push_back(c);
+			ret->push_back(c);
 		}else{
 			if(i >= size - 1){
 				continue;
@@ -151,42 +157,49 @@ std::string str_unescape(const char *s, int size){
 			char c2 = s[++i];
 			switch(c2){
 				case 'a':
-					ret.push_back('\a');
+					ret->push_back('\a');
 					break;
 				case 'b':
-					ret.push_back('\b');
+					ret->push_back('\b');
 					break;
 				case 'f':
-					ret.push_back('\f');
+					ret->push_back('\f');
 					break;
 				case 'v':
-					ret.push_back('\v');
+					ret->push_back('\v');
 					break;
 				case 'r':
-					ret.push_back('\r');
+					ret->push_back('\r');
 					break;
 				case 'n':
-					ret.push_back('\n');
+					ret->push_back('\n');
 					break;
 				case 't':
-					ret.push_back('\t');
+					ret->push_back('\t');
 					break;
 				case '\\':
-					ret.push_back('\\');
+					ret->push_back('\\');
 					break;
 				case 'x':
 					if(i < size - 2){
 						char c3 = s[++i];
 						char c4 = s[++i];
-						ret.push_back((char)((hex_int(c3) << 4) + hex_int(c4)));
+						ret->push_back((char)((hex_int(c3) << 4) + hex_int(c4)));
 					}
 					break;
 				default:
-					ret.push_back(c2);
+					ret->push_back(c2);
 					break;
 			}
 		}
 	}
+}
+
+inline static
+std::string str_unescape(const char *s, int size){
+	std::string ret;
+	ret.reserve(size);
+	str_unescape(s, size, &ret);
 	return ret;
 }
 
