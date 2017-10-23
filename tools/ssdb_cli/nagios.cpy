@@ -117,15 +117,15 @@ function nagios_replication(resp){
 }
 
 function nagios_write_read(link){
-    import datetime;
-    test_date = datetime.datetime.now().strftime("%Y%m%d%H%M");
+	import datetime;
+	test_date = datetime.datetime.now().strftime("%Y%m%d%H%M");
 	test_key = 'write_read_test_key' + str(test_date);
 	resp = link.request('set', [test_key, test_key]);
-    #print resp;
+	#print resp;
 	resp = link.request('get', [test_key]);
-    #print resp;
+	#print resp;
 	resp_del = link.request('del', [test_key]);
-    #print resp_del;
+	#print resp_del;
 	if (resp.data == test_key){
 		print 'OK: ' + str(resp.data);
 		exit(0);
