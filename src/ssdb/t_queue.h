@@ -17,6 +17,7 @@ const uint64_t QITEM_SEQ_INIT = QITEM_MAX_SEQ/2;
 inline static
 std::string encode_qsize_key(const Bytes &name){
 	std::string buf;
+	buf.reserve(name.size() + 1);
 	buf.append(1, DataType::QSIZE);
 	buf.append(name.data(), name.size());
 	return buf;
@@ -37,6 +38,7 @@ int decode_qsize_key(const Bytes &slice, std::string *name){
 inline static
 std::string encode_qitem_key(const Bytes &name, uint64_t seq){
 	std::string buf;
+	buf.reserve(128);
 	buf.append(1, DataType::QUEUE);
 	buf.append(1, (uint8_t)name.size());
 	buf.append(name.data(), name.size());

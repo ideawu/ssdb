@@ -46,7 +46,7 @@ class Logger{
 		std::string output_name();
 		uint64_t rotate_size();
 	private:
-		FILE *fp;
+		int fd;
 		char filename[PATH_MAX];
 		int level_;
 		pthread_mutex_t *mutex;
@@ -71,7 +71,6 @@ class Logger{
 			this->level_ = level;
 		}
 
-		int open(FILE *fp, int level=LEVEL_DEBUG, bool is_threadsafe=false);
 		int open(const char *filename, int level=LEVEL_DEBUG,
 			bool is_threadsafe=false, uint64_t rotate_size=0);
 		void close();
@@ -87,7 +86,6 @@ class Logger{
 };
 
 
-int log_open(FILE *fp, int level=Logger::LEVEL_DEBUG, bool is_threadsafe=false);
 int log_open(const char *filename, int level=Logger::LEVEL_DEBUG,
 	bool is_threadsafe=false, uint64_t rotate_size=0);
 int log_level();

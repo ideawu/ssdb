@@ -45,11 +45,13 @@ private:
 
 public:
 	bool allow_all;
+	bool deny_all;
 	std::set<std::string> deny;
 	std::set<std::string> allow;
 
 	IpFilter(){
 		allow_all = true;
+		deny_all = false;
 	}
 	
 	void add_allow(const std::string &ip_prefix){
@@ -74,7 +76,7 @@ public:
 	
 	void add_deny(const std::string &ip_prefix){
 		if(ip_prefix == "all" || ip_prefix == "*"){
-			// nothing
+			deny_all = true;
 		}else{
 			// deny_all is always true
 			// '@' and '=' is greater than any char in ip
@@ -85,7 +87,7 @@ public:
 
 	void del_deny(const std::string &ip_prefix){
 		if(ip_prefix == "all" || ip_prefix == "*"){
-			// nothing
+			deny_all = false;
 		}else{
 			std::string prefix = ip_prefix + (is_full_ip(ip_prefix)? "=" : "@");
 			deny.erase(prefix);
@@ -99,6 +101,9 @@ public:
 		}
 		if(check_hit(allow, ip)){
 			return true;
+		}
+		if(deny_all){
+			return false;
 		}
 		if(allow_all){
 			return true;

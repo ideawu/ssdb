@@ -98,7 +98,10 @@ void* BackendSync::_run_thread(void *arg){
 		
 		bool is_empty = true;
 		if(client.status == Client::OUT_OF_SYNC){
-			//
+			// will sleep afterwards.
+			// ssdb doesn't do anything, let people interfere, normally, people
+			// should make a backup of slave, stop, delete the meta and data
+			// folders, and startup again.
 		}else{
 			// WARN: MUST do first sync() before first copy(), because
 			// sync() will refresh last_seq, and copy() will not

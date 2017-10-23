@@ -68,33 +68,35 @@ err:
 }
 
 int SSDBImpl::flushdb(){
-	Transaction trans(binlogs);
 	int ret = 0;
 	bool stop = false;
-	while(!stop){
-		leveldb::Iterator *it;
-		leveldb::ReadOptions iterate_options;
-		iterate_options.fill_cache = false;
-		leveldb::WriteOptions write_opts;
+	{
+		Transaction trans(binlogs);
+		while(!stop){
+			leveldb::Iterator *it;
+			leveldb::ReadOptions iterate_options;
+			iterate_options.fill_cache = false;
+			leveldb::WriteOptions write_opts;
 
-		it = ldb->NewIterator(iterate_options);
-		it->SeekToFirst();
-		for(int i=0; i<10000; i++){
-			if(!it->Valid()){
-				stop = true;
-				break;
+			it = ldb->NewIterator(iterate_options);
+			it->SeekToFirst();
+			for(int i=0; i<10000; i++){
+				if(!it->Valid()){
+					stop = true;
+					break;
+				}
+				//log_debug("%s", hexmem(it->key().data(), it->key().size()).c_str());
+				leveldb::Status s = ldb->Delete(write_opts, it->key());
+				if(!s.ok()){
+					log_error("del error: %s", s.ToString().c_str());
+					stop = true;
+					ret = -1;
+					break;
+				}
+				it->Next();
 			}
-			//log_debug("%s", hexmem(it->key().data(), it->key().size()).c_str());
-			leveldb::Status s = ldb->Delete(write_opts, it->key());
-			if(!s.ok()){
-				log_error("del error: %s", s.ToString().c_str());
-				stop = true;
-				ret = -1;
-				break;
-			}
-			it->Next();
+			delete it;
 		}
-		delete it;
 	}
 	binlogs->flush();
 	return ret;

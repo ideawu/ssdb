@@ -1,9 +1,24 @@
+* 1.9.5
+	* New features:
+		- C++ SDK add disconnected() method(2017-08-29)
+		- ssdb-cli supports -a option to connect with password(2017-07-19)
+		- Add slaveof.recv_timeout configuration(2017-05-03)
+	* Incompatible changes:
+		- setbit/getbit will be compatible with Redis, from LSB 0 to MSB 0(2017-05-16)
+	* Bug fixes:
+		- Fix ssdb-cli escape bug(2017-08-24)
 * 1.9.4
 	* Incompatible changes:
 		- Treat unsupported redis command's reply as REPLY_MULTI_BULK(2016-07-26)
 		- Not writting pidfile when not running daemonized(2016-07-17)
 	* New features:
+		- Support readonly mode(2016-10-11)
 		- Add OUT_OF_SYNC status, slave not flushdb when this status(2016-06-17)
+		- Config default block_size as 32(2017-01-18)
+	* Bug fixes:
+		- Fix bug that busy expiration blocks setx request(2016-10-14)
+		- Fix issues/1003, binlogs null pointer error caused by multi-threading during shutdown(2016-10-20)
+		- Make RedisLink AUTH reply exactly as Redis(2017-01-17)
 * 1.9.3
 	* New features:
 		- Do not allow slave request binlogs with seq greater than max_seq(2016-03-18)
