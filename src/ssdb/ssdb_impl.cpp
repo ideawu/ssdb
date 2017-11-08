@@ -37,6 +37,7 @@ SSDBImpl::~SSDBImpl(){
 
 SSDB* SSDB::open(const Options &opt, const std::string &dir){
 	SSDBImpl *ssdb = new SSDBImpl();
+	ssdb->options.max_file_size = 32 * 1048576; // leveldb 1.20
 	ssdb->options.create_if_missing = true;
 	ssdb->options.max_open_files = opt.max_open_files;
 	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);

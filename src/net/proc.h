@@ -50,9 +50,9 @@ struct ProcJob{
 	NetworkServer *serv;
 	Link *link;
 	Command *cmd;
-	double stime;
-	double time_wait;
-	double time_proc;
+	double stime;     // in seconds
+	double time_wait; // in ms
+	double time_proc; // in ms
 	
 	const Request *req;
 	Response resp;
