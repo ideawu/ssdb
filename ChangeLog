@@ -1,6 +1,7 @@
 * 1.9.6
 	* New features:
-		- Upgrade leveldb to version 1.20(2017-09-25)
+		- Log slow query with WARN level(2017-11-08)
+		- Upgrade leveldb to version 1.20, fix MANIFEST file too large issue(2017-09-25)
 * 1.9.5
 	* New features:
 		- C++ SDK add disconnected() method(2017-08-29)

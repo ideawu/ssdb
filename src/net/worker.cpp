@@ -35,12 +35,5 @@ int ProcWorker::proc(ProcJob *job){
 		}
 	}
 
-	if(log_level() >= Logger::LEVEL_DEBUG){ // serialize_req is expensive
-		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-			job->time_wait, job->time_proc,
-			serialize_req(*job->req).c_str(),
-			serialize_req(job->resp.resp).c_str());
-	}
-
 	return 0;
 }
