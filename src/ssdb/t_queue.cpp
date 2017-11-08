@@ -42,6 +42,11 @@ static int qdel_one(SSDBImpl *ssdb, const Bytes &name, uint64_t seq){
 }
 
 static int qset_one(SSDBImpl *ssdb, const Bytes &name, uint64_t seq, const Bytes &item){
+	if(name.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(name.data(), name.size()).c_str());
+		return -1;
+	}
+
 	std::string key = encode_qitem_key(name, seq);
 	leveldb::Status s;
 
