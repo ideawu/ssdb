@@ -4,6 +4,8 @@
 		- Upgrade leveldb to version 1.20, fix MANIFEST file too large issue(2017-09-25)
 	* Incompatible changes:
 		- The SSDB_KEY_LEN_MAX limit will be applied to KV, as described in docs(2017-11-08)
+	* Bug fixes:
+		- Fix Xcode 9, iOS SDK 11 compile issue(2017-11-20)
 * 1.9.5
 	* New features:
 		- C++ SDK add disconnected() method(2017-08-29)
