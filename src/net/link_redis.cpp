@@ -199,31 +199,17 @@ int RedisLink::convert_req(){
 		}
 		return 0;
 	}
-	if(this->req_desc->strategy == STRATEGY_ZRANGE
-		|| this->req_desc->strategy == STRATEGY_ZREVRANGE)
-	{
-		recv_string.push_back(req_desc->ssdb_cmd);
+	if(this->req_desc->strategy == STRATEGY_ZRANGE || this->req_desc->strategy == STRATEGY_ZREVRANGE){
+		std::string cmd = "redis_";
+		cmd += req_desc->ssdb_cmd;
+		
+		recv_string.push_back(cmd);
+		recv_string.push_back(recv_bytes[1].String());
 		if(recv_bytes.size() >= 4){
-			int64_t start = recv_bytes[2].Int64();
-			int64_t end = recv_bytes[3].Int64();
-			
-			if((start >= 0 && end >= 0) || end == -1){
-				int64_t size;
-				if(end == -1){
-					size = -1;
-				}else{
-					if(this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE){
-						size = end;
-					}else{
-						size = end - start + 1;
-					}
-				}
-				recv_string.push_back(recv_bytes[1].String());
-				recv_string.push_back(recv_bytes[2].String());
-				recv_string.push_back(str(size));
-			}
+			recv_string.push_back(recv_bytes[2].String());
+			recv_string.push_back(recv_bytes[3].String());
 		}
-		if(recv_bytes.size() > 4){
+		if(recv_bytes.size() >= 5){
 			std::string s = recv_bytes[4].String();
 			strtolower(&s);
 			recv_string.push_back(s);
