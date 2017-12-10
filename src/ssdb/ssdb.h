@@ -49,7 +49,13 @@ public:
 	virtual int incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type=BinlogType::SYNC) = 0;
 	virtual int multi_set(const std::vector<Bytes> &kvs, int offset=0, char log_type=BinlogType::SYNC) = 0;
 	virtual int multi_del(const std::vector<Bytes> &keys, int offset=0, char log_type=BinlogType::SYNC) = 0;
+	// fix iOS 11 issue
+#ifdef setbit
+#define setbit_ setbit
+#undef setbit
 	virtual int setbit(const Bytes &key, int bitoffset, int on, char log_type=BinlogType::SYNC) = 0;
+#define setbit setbit_
+#endif
 	virtual int getbit(const Bytes &key, int bitoffset) = 0;
 	
 	virtual int get(const Bytes &key, std::string *val) = 0;

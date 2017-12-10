@@ -17,6 +17,10 @@ int SSDBImpl::multi_set(const std::vector<Bytes> &kvs, int offset, char log_type
 			return 0;
 			//return -1;
 		}
+		if(key.size() > SSDB_KEY_LEN_MAX ){
+			log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+			return 0;
+		}
 		const Bytes &val = *(it + 1);
 		std::string buf = encode_kv_key(key);
 		binlogs->Put(buf, slice(val));
@@ -55,6 +59,11 @@ int SSDBImpl::set(const Bytes &key, const Bytes &val, char log_type){
 		//return -1;
 		return 0;
 	}
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
+	}
+
 	Transaction trans(binlogs);
 
 	std::string buf = encode_kv_key(key);
@@ -73,6 +82,10 @@ int SSDBImpl::setnx(const Bytes &key, const Bytes &val, char log_type){
 		log_error("empty key!");
 		//return -1;
 		return 0;
+	}
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
 	}
 	Transaction trans(binlogs);
 
@@ -98,6 +111,10 @@ int SSDBImpl::getset(const Bytes &key, std::string *val, const Bytes &newval, ch
 		//return -1;
 		return 0;
 	}
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
+	}
 	Transaction trans(binlogs);
 
 	int found = this->get(key, val);
@@ -114,6 +131,10 @@ int SSDBImpl::getset(const Bytes &key, std::string *val, const Bytes &newval, ch
 
 
 int SSDBImpl::del(const Bytes &key, char log_type){
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
+	}
 	Transaction trans(binlogs);
 
 	std::string buf = encode_kv_key(key);
@@ -128,6 +149,10 @@ int SSDBImpl::del(const Bytes &key, char log_type){
 }
 
 int SSDBImpl::incr(const Bytes &key, int64_t by, int64_t *new_val, char log_type){
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
+	}
 	Transaction trans(binlogs);
 
 	std::string old;
@@ -203,6 +228,10 @@ int SSDBImpl::setbit(const Bytes &key, int bitoffset, int on, char log_type){
 	if(key.empty()){
 		log_error("empty key!");
 		return 0;
+	}
+	if(key.size() > SSDB_KEY_LEN_MAX ){
+		log_error("name too long! %s", hexmem(key.data(), key.size()).c_str());
+		return -1;
 	}
 	Transaction trans(binlogs);
 	

@@ -59,6 +59,7 @@ NetworkServer::NetworkServer(){
 	ip_filter = new IpFilter();
 	
 	readonly = false;
+	slowlog_timeout = 0;
 
 	// add built-in procs, can be overridden
 	proc_map.set_proc("ping", "r", proc_ping);
@@ -207,6 +208,17 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 	}
 	log_info("    readonly: %s", readonly.c_str());
 	
+	// slowlog_timeout
+	{
+		std::string t = conf.get_str("server.slowlog_timeout");
+		if(t.length() > 0){
+			double timeout = str_to_double(t.c_str(), t.length());
+			if(timeout > 0){
+				serv->slowlog_timeout = timeout;
+				log_info("    slowlog_timeout: %.3f ms", serv->slowlog_timeout);
+			}
+		}
+	}
 
 	return serv;
 }
@@ -348,6 +360,19 @@ int NetworkServer::proc_result(ProcJob *job, ready_list_t *ready_list){
 	Link *link = job->link;
 	int result = job->result;
 
+	if(log_level() >= Logger::LEVEL_DEBUG){ // serialize_req is expensive
+		if(this->slowlog_timeout > 0 && job->time_wait + job->time_proc >= this->slowlog_timeout){
+			log_warn("slowlog w:%.3f,p:%.3f, req: %s, resp: %s",
+				job->time_wait, job->time_proc,
+				serialize_req(*job->req).c_str(),
+				serialize_req(job->resp.resp).c_str());
+		}else{
+			log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
+				job->time_wait, job->time_proc,
+				serialize_req(*job->req).c_str(),
+				serialize_req(job->resp.resp).c_str());
+		}
+	}
 	if(job->cmd){
 		job->cmd->calls += 1;
 		job->cmd->time_wait += job->time_wait;
@@ -487,13 +512,6 @@ int NetworkServer::proc(ProcJob *job){
 		if(job->link->write() < 0){
 			job->result = PROC_ERROR;
 		}
-	}
-
-	if(log_level() >= Logger::LEVEL_DEBUG){ // serialize_req is expensive
-		log_debug("w:%.3f,p:%.3f, req: %s, resp: %s",
-			job->time_wait, job->time_proc,
-			serialize_req(*job->req).c_str(),
-			serialize_req(job->resp.resp).c_str());
 	}
 
 	return job->result;

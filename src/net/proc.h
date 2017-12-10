@@ -50,9 +50,9 @@ struct ProcJob{
 	NetworkServer *serv;
 	Link *link;
 	Command *cmd;
-	double stime;
-	double time_wait;
-	double time_proc;
+	double stime;     // in seconds
+	double time_wait; // in ms
+	double time_proc; // in ms
 	
 	const Request *req;
 	Response resp;
@@ -137,7 +137,7 @@ static std::string serialize_req(T &req){
 			ret.append(buf);
 			break;
 		}
-		if(((req[0] == "get" || req[0] == "set") && i == 1) || req[i].size() < 50){
+		if(req[i].size() < 50){
 			if(req[i].size() == 0){
 				ret.append("\"\"");
 			}else{
