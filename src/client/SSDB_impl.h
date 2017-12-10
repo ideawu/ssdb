@@ -102,6 +102,7 @@ public:
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret);
 	virtual Status qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret);
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL);
+	virtual Status qsize(const std::string &name, int64_t *ret);
 };
 
 }; // namespace ssdb

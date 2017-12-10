@@ -634,4 +634,9 @@ Status ClientImpl::qclear(const std::string &name, int64_t *ret){
 	return _read_int64(resp, ret);
 }
 
+Status ClientImpl::qsize(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qsize", name);
+	return _read_int64(resp, ret);
+}
 }; // namespace ssdb

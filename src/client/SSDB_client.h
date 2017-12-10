@@ -254,6 +254,7 @@ public:
 	virtual Status qslice(const std::string &name, int64_t begin, int64_t end, std::vector<std::string> *ret) = 0;
 	virtual Status qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret) = 0;
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL) = 0;
+	virtual Status qsize(const std::string &name, int64_t *ret) = 0;
 private:
 	// No copying allowed
 	Client(const Client&);
