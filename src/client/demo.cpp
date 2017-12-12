@@ -319,6 +319,31 @@ int main(int argc, char **argv){
 		list.clear();
 		s = client->qrange("q", 0, -1, &list);
 		assert(s.ok());
+
+		s = client->qpush_front("q", "A", &size);
+		assert(s.ok());
+		
+		list.push_back("B");
+		list.push_back("C");
+		s = client->qpush_front("q", list, &size2);
+		assert(s.ok());
+		assert(size2 = size + list.size());
+		
+		list.clear();
+		s = client->qpop_back("q", &item);
+		assert(s.ok());
+		assert(item == std::string("A"));
+
+		list.clear();
+		s = client->qpop_back("q", 2, &list);
+		assert(s.ok());
+		assert(list.size() == 2);
+		assert(list[0] == std::string("B"));
+		assert(list[1] == std::string("C"));
+
+		s = client->qsize("q", &size);
+		assert(s.ok());
+		assert(size == 0);
 	}
 	
 	delete client;
