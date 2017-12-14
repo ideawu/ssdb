@@ -103,6 +103,12 @@ public:
 	virtual Status qrange(const std::string &name, int64_t begin, int64_t limit, std::vector<std::string> *ret);
 	virtual Status qclear(const std::string &name, int64_t *ret=NULL);
 	virtual Status qsize(const std::string &name, int64_t *ret);
+	virtual Status qtrim_front(const std::string &name, int64_t limit, int64_t *ret=NULL);
+	virtual Status qtrim_back(const std::string &name, int64_t limit, int64_t *ret=NULL);
+	virtual Status qfront(const std::string &name, std::string *ret);
+	virtual Status qback(const std::string &name, std::string *ret);
+	virtual Status qset(const std::string &name, int64_t index, const std::string &val);
+	virtual Status qget(const std::string &name, int64_t index, std::string *val);
 };
 
 }; // namespace ssdb
