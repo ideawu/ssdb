@@ -52,7 +52,7 @@ int Fdevents::del(int fd){
 
 	struct Fdevent *fde = get_fde(fd);
 	fde->s_flags = FDEVENT_NONE;
-	while(maxfd >= 0 && this->events[maxfd]->s_flags == 0){
+	while(maxfd >= 0 && this->events[maxfd]->s_flags == FDEVENT_NONE){
 		maxfd --;
 	}
 	return 0;
@@ -67,7 +67,7 @@ int Fdevents::clr(int fd, int flags){
 	if(flags & FDEVENT_OUT) FD_CLR(fd, &writeset);
 
 	fde->s_flags &= ~flags;
-	while(this->events[maxfd]->s_flags == 0){
+	while(maxfd >= 0 && this->events[maxfd]->s_flags == FDEVENT_NONE){
 		maxfd --;
 	}
 	return 0;
