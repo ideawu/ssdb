@@ -212,11 +212,7 @@ int RedisLink::convert_req(){
 				if(end == -1){
 					size = -1;
 				}else{
-					if(this->req_desc->strategy == STRATEGY_REMRANGEBYSCORE){
-						size = end;
-					}else{
-						size = end - start + 1;
-					}
+					size = end - start + 1;
 				}
 				recv_string.push_back(recv_bytes[1].String());
 				recv_string.push_back(recv_bytes[2].String());
