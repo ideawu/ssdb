@@ -540,7 +540,11 @@ int RedisLink::parse_req(Buffer *input){
 		size -= (lf - ptr);
 		parsed += (lf - ptr);
 		
+		errno = 0;    /* To distinguish success/failure after call */
 		int len = (int)strtol(ptr + 1, NULL, 10); // ptr + 1: skip '$' or '*'
+		//first, errno may be ERANGE, val is LONG_MAX or LONG_MIN, means out of range
+		//secon, errno may be EINVAL, val is 0, means no digits seen
+		//here only check EINVAL, not check ERANGE
 		if(errno == EINVAL){
 			return -1;
 		}
