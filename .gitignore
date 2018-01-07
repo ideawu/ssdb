@@ -38,4 +38,13 @@ api/php/b.php
 api/php/c.php
 api/java/Test.java
 src/util/test_sorted_set
-
+.cproject
+.project
+.settings/language.settings.xml
+.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.core.runtime.prefs
+.vs/ProjectSettings.json
+.vs/VSWorkspaceState.json
+.vs/slnx.sqlite
+.vs/ssdb/v15/.suo
+.vs/ssdb/v15/Browse.VC.db
