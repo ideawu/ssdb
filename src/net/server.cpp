@@ -504,6 +504,7 @@ int NetworkServer::proc(ProcJob *job){
 		job->time_proc = 1000 * (microtime() - job->stime) - job->time_wait;
 	}while(0);
 	
+	//link->send just encode result to output buffer
 	if(job->link->send(job->resp.resp) == -1){
 		job->result = PROC_ERROR;
 	}else{
