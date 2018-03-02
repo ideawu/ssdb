@@ -101,7 +101,8 @@ int64_t SSDBImpl::zsize(const Bytes &name){
 		if(val.size() != sizeof(uint64_t)){
 			return 0;
 		}
-		int64_t ret = *(int64_t *)val.data();
+		int64_t ret; 
+		memcpy(&ret, val.data(), sizeof(int64_t));
 		return ret < 0? 0 : ret;
 	}
 }

@@ -205,7 +205,7 @@ public:
 			return -1;
 		}
 		if(ret){
-			*ret = *(int64_t *)p;
+			memcpy(ret, p, sizeof(int64_t));
 		}
 		p += sizeof(int64_t);
 		size -= sizeof(int64_t);
@@ -216,7 +216,7 @@ public:
 			return -1;
 		}
 		if(ret){
-			*ret = *(uint64_t *)p;
+			memcpy(ret, p, sizeof(uint64_t));
 		}
 		p += sizeof(uint64_t);
 		size -= sizeof(uint64_t);

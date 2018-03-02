@@ -6,6 +6,7 @@
 		- The SSDB_KEY_LEN_MAX limit will be applied to KV, as described in docs(2017-11-08)
 	* Bug fixes:
 		- Fix Xcode 9, iOS SDK 11 compile issue(2017-11-20)
+		- Fix Redis zrange, zrevrange, zremrangebyrank handle negative start/end bug(2017-12-05)
 * 1.9.5
 	* New features:
 		- C++ SDK add disconnected() method(2017-08-29)

@@ -218,6 +218,76 @@ int proc_zrrange(NetworkServer *net, Link *link, const Request &req, Response *r
 	return 0;
 }
 
+int proc_redis_zrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(4);
+
+	int64_t start = req[2].Int64();
+	int64_t end = req[3].Int64();
+	uint64_t limit;
+	if(start < 0 || end < 0){
+		int64_t size = serv->ssdb->zsize(req[1]);
+		if(start < 0){
+			start = size + start;
+			if(start < 0){
+				start = 0;
+			}
+		}
+		if(end < 0){
+			end = size + end;
+		}
+	}
+	if(end < 0 || start > end){
+		resp->push_back("ok");
+		return 0;
+	}
+	limit = end - start + 1;
+
+	ZIterator *it = serv->ssdb->zrange(req[1], start, limit);
+	resp->push_back("ok");
+	while(it->next()){
+		resp->push_back(it->key);
+		resp->push_back(it->score);
+	}
+	delete it;
+	return 0;
+}
+
+int proc_redis_zrrange(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(4);
+
+	int64_t start = req[2].Int64();
+	int64_t end = req[3].Int64();
+	uint64_t limit;
+	if(start < 0 || end < 0){
+		int64_t size = serv->ssdb->zsize(req[1]);
+		if(start < 0){
+			start = size + start;
+			if(start < 0){
+				start = 0;
+			}
+		}
+		if(end < 0){
+			end = size + end;
+		}
+	}
+	if(end < 0 || start > end){
+		resp->push_back("ok");
+		return 0;
+	}
+	limit = end - start + 1;
+
+	ZIterator *it = serv->ssdb->zrrange(req[1], start, limit);
+	resp->push_back("ok");
+	while(it->next()){
+		resp->push_back(it->key);
+		resp->push_back(it->score);
+	}
+	delete it;
+	return 0;
+}
+
 int proc_zclear(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
@@ -431,8 +501,25 @@ int proc_zremrangebyrank(NetworkServer *net, Link *link, const Request &req, Res
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(4);
 
-	uint64_t start = req[2].Uint64();
-	uint64_t end = req[3].Uint64();
+	int64_t start = req[2].Int64();
+	int64_t end = req[3].Int64();
+	if(start < 0 || end < 0){
+		int64_t size = serv->ssdb->zsize(req[1]);
+		if(start < 0){
+			start = size + start;
+			if(start < 0){
+				start = 0;
+			}
+		}
+		if(end < 0){
+			end = size + end;
+		}
+	}
+	if(end < 0 || start > end){
+		resp->reply_int(0, 0);
+		return 0;
+	}
+	
 	ZIterator *it = serv->ssdb->zrange(req[1], start, end - start + 1);
 	int64_t count = 0;
 	while(it->next()){

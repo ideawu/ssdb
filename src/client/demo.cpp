@@ -299,6 +299,9 @@ int main(int argc, char **argv){
 		int64_t size;
 		int64_t size2;
 		
+		s = client->qclear("q");
+		assert(s.ok());
+		
 		s = client->qpush("q", "a", &size);
 		assert(s.ok());
 		
@@ -319,6 +322,55 @@ int main(int argc, char **argv){
 		list.clear();
 		s = client->qrange("q", 0, -1, &list);
 		assert(s.ok());
+
+		s = client->qpush_front("q", "A", &size);
+		assert(s.ok());
+		
+		list.push_back("B");
+		list.push_back("C");
+		s = client->qpush_front("q", list, &size2);
+		assert(s.ok());
+		assert(size2 = size + list.size());
+		
+		list.clear();
+		s = client->qpop_back("q", &item);
+		assert(s.ok());
+		assert(item == std::string("A"));
+
+		list.clear();
+		s = client->qpop_back("q", 2, &list);
+		assert(s.ok());
+		assert(list.size() == 2);
+		assert(list[0] == std::string("B"));
+		assert(list[1] == std::string("C"));
+		
+		s = client->qpush("q", "1");
+		s = client->qpush("q", "2");
+
+		s = client->qfront("q", &item);
+		assert(s.ok());
+		assert(item == std::string("1"));
+
+		s = client->qback("q", &item);
+		assert(s.ok());
+		assert(item == std::string("2"));
+
+		s = client->qset("q", 0, "A");
+
+		s = client->qget("q", 0, &item);
+		printf("%s\n", s.code().c_str());
+		assert(s.ok());
+		assert(item == std::string("A"));
+
+		s = client->qtrim_front("q", 1);
+		assert(s.ok());
+		
+		s = client->qtrim_back("q", 1);
+		assert(s.ok());
+		
+		s = client->qsize("q", &size);
+		assert(s.ok());
+		assert(size == 0);
 	}
 	
 	delete client;

@@ -557,6 +557,34 @@ Status ClientImpl::qpush(const std::string &name, const std::vector<std::string>
 	return s;
 }
 
+Status ClientImpl::qpush_front(const std::string &name, const std::string &item, int64_t *ret_size){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpush_front", name, item);
+	Status s(resp);
+	if(ret_size != NULL && s.ok()){
+		if(resp->size() > 1){
+			*ret_size = str_to_int64(resp->at(1));
+		}else{
+			return Status("error");
+		}
+	}
+	return s;
+}
+
+Status ClientImpl::qpush_front(const std::string &name, const std::vector<std::string> &items, int64_t *ret_size){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpush_front", name, items);
+	Status s(resp);
+	if(ret_size != NULL && s.ok()){
+		if(resp->size() > 1){
+			*ret_size = str_to_int64(resp->at(1));
+		}else{
+			return Status("error");
+		}
+	}
+	return s;
+}
+
 Status ClientImpl::qpop(const std::string &name, std::string *item){
 	const std::vector<std::string> *resp;
 	resp = this->request("qpop", name);
@@ -566,6 +594,18 @@ Status ClientImpl::qpop(const std::string &name, std::string *item){
 Status ClientImpl::qpop(const std::string &name, int64_t limit, std::vector<std::string> *ret){
 	const std::vector<std::string> *resp;
 	resp = this->request("qpop", name, str(limit));
+	return _read_list(resp, ret);
+}
+
+Status ClientImpl::qpop_back(const std::string &name, std::string *item){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpop_back", name);
+	return _read_str(resp, item);
+}
+
+Status ClientImpl::qpop_back(const std::string &name, int64_t limit, std::vector<std::string> *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qpop_back", name, str(limit));
 	return _read_list(resp, ret);
 }
 
@@ -592,6 +632,53 @@ Status ClientImpl::qclear(const std::string &name, int64_t *ret){
 	const std::vector<std::string> *resp;
 	resp = this->request("qclear", name);
 	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::qsize(const std::string &name, int64_t *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qsize", name);
+	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::qtrim_front(const std::string &name, int64_t limit, int64_t *ret){
+	const std::vector<std::string> *resp;
+	std::string s_limit = str(limit);
+	resp = this->request("qtrim_front", name, s_limit);
+	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::qtrim_back(const std::string &name, int64_t limit, int64_t *ret){
+	const std::vector<std::string> *resp;
+	std::string s_limit = str(limit);
+	resp = this->request("qtrim_back", name, s_limit);
+	return _read_int64(resp, ret);
+}
+
+Status ClientImpl::qfront(const std::string &name, std::string *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qfront", name);
+	return _read_str(resp, ret);
+}
+
+Status ClientImpl::qback(const std::string &name, std::string *ret){
+	const std::vector<std::string> *resp;
+	resp = this->request("qback", name);
+	return _read_str(resp, ret);
+}
+
+Status ClientImpl::qset(const std::string &name, int64_t index, const std::string &val){
+	const std::vector<std::string> *resp;
+	std::string s_index = str(index);
+	resp = this->request("qset", name, s_index, val);
+	Status s(resp);
+	return s;
+}
+
+Status ClientImpl::qget(const std::string &name, int64_t index, std::string *val){
+	const std::vector<std::string> *resp;
+	std::string s_index = str(index);
+	resp = this->request("qget", name, s_index);
+	return _read_str(resp, val);
 }
 
 }; // namespace ssdb
