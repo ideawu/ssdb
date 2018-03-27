@@ -54,7 +54,7 @@ NetworkServer::NetworkServer(){
 	//conf = NULL;
 	serv_link = NULL;
 	link_count = 0;
-
+        connect_limit = 100000;
 	fdes = new Fdevents();
 	ip_filter = new IpFilter();
 	
@@ -219,7 +219,17 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 			}
 		}
 	}
-
+	// connect_limit
+	{
+		std::string cl = conf.get_str("server.connect_limit");
+		if(cl.length() > 0) {
+			int cln = str_to_int(cl);
+			if(cln > 0) {
+				serv->connect_limit = cln;
+				log_info("connect_limit: %d", serv->connect_limit);
+			}
+		}
+	}
 	return serv;
 }
 
@@ -270,10 +280,20 @@ void NetworkServer::serve(){
 			if(fde->data.ptr == serv_link){
 				Link *link = accept_link();
 				if(link){
-					this->link_count ++;				
-					log_debug("new link from %s:%d, fd: %d, links: %d",
-						link->remote_ip, link->remote_port, link->fd(), this->link_count);
-					fdes->set(link->fd(), FDEVENT_IN, 1, link);
+					this->link_count ++;
+					if(this->link_count <= this->connect_limit)
+					{
+						log_debug("new link from %s:%d, fd: %d, links: %d",
+								link->remote_ip, link->remote_port, link->fd(), this->link_count);
+						fdes->set(link->fd(), FDEVENT_IN, 1, link);
+					}
+					else
+					{
+						log_error("new link from %s:%d, fd: %d, links: %d, but more than limit:%d.delete it",
+								link->remote_ip, link->remote_port, link->fd(), this->link_count,this->connect_limit);
+						this->link_count --;
+						delete link;
+					}
 				}else{
 					log_debug("accept return NULL");
 				}
