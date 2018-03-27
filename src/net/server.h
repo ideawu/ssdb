@@ -57,7 +57,7 @@ public:
 	bool need_auth;
 	std::string password;
 	double slowlog_timeout; // in ms, but in config file, it's in seconds
-
+        int connect_limit;
 	~NetworkServer();
 	
 	// could be called only once
