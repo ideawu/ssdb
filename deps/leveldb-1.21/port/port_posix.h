@@ -47,7 +47,7 @@
 namespace leveldb {
 namespace port {
 
-static const bool kLittleEndian = !LEVELDB_IS_BIG_ENDIAN;
+static const bool kLittleEndian = PLATFORM_IS_LITTLE_ENDIAN;
 
 class CondVar;
 

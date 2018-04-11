@@ -2,7 +2,7 @@
 BASE_DIR=`pwd`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-4.1.0"
 LEVELDB_PATH="$BASE_DIR/deps/leveldb-1.21"
-SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
+SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.7"
 
 # dependency check
 which autoconf > /dev/null 2>&1
@@ -71,7 +71,7 @@ cd $SNAPPY_PATH
 if [ ! -f Makefile ]; then
 	echo ""
 	echo "##### building snappy... #####"
-	./configure $SNAPPY_HOST
+	cmake .
 	# FUCK! snappy compilation doesn't work on some linux!
 	find . | xargs touch
 	make
@@ -137,7 +137,7 @@ echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
 
 echo "CLIBS=" >> build_config.mk
 echo "CLIBS += \"$LEVELDB_PATH/out-static/libleveldb.a\"" >> build_config.mk
-echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
+echo "CLIBS += \"$SNAPPY_PATH/libsnappy.a\"" >> build_config.mk
 
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)

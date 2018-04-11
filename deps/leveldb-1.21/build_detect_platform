@@ -217,8 +217,8 @@ EOF
 #    else
 #        COMMON_FLAGS="$COMMON_FLAGS -DHAVE_SNAPPY=0"
 #    fi
-    COMMON_FLAGS="$COMMON_FLAGS -DHAVE_SNAPPY=1 -I../snappy-1.1.0"
-    PLATFORM_LIBS="$PLATFORM_LIBS ../snappy-1.1.0/.libs/libsnappy.a"
+    COMMON_FLAGS="$COMMON_FLAGS -DHAVE_SNAPPY=1 -I../snappy-1.1.7"
+    PLATFORM_LIBS="$PLATFORM_LIBS ../snappy-1.1.7/libsnappy.a"
 
     # Test whether tcmalloc is available
     $CXX $CXXFLAGS -x c++ - -o $CXXOUTPUT -ltcmalloc 2>/dev/null  <<EOF
