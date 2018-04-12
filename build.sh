@@ -13,6 +13,14 @@ if [ "$?" -ne 0 ]; then
 	exit 1
 fi
 
+which cmake > /dev/null 2>&1
+if [ "$?" -ne 0 ]; then
+	echo ""
+	echo "ERROR! cmake required! install cmake first"
+	echo ""
+	exit 1
+fi
+
 if test -z "$TARGET_OS"; then
 	TARGET_OS=`uname -s`
 fi
