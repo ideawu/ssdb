@@ -12,7 +12,7 @@ int main(int argc, char **argv){
 	set_log_level(Logger::LEVEL_TRACE);
 	std::string work_dir = "./tmp/a";
 	Options opt;
-	opt.compression = "no";
+    opt.compression = false;
 
 	SSDB *ssdb = NULL;
 	ssdb = SSDB::open(opt, work_dir);
