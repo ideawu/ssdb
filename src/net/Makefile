@@ -2,7 +2,7 @@ include ../../build_config.mk
 
 OBJS = server.o resp.o proc.o worker.o fde.o link.o
 UTIL_OBJS = ../util/log.o ../util/config.o ../util/bytes.o
-EXES = test
+EXES = test.out test2.out
 
 all: ${OBJS}
 	ar -cru ./libnet.a ${OBJS}
