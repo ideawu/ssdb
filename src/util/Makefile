@@ -1,7 +1,7 @@
 include ../../build_config.mk
 
 OBJS = log.o config.o bytes.o sorted_set.o app.o
-EXES = 
+EXES = test_sorted_set.out
 
 all: ${OBJS}
 	ar -cru ./libutil.a ${OBJS}
@@ -22,7 +22,7 @@ sorted_set.o: sorted_set.h sorted_set.cpp
 	${CXX} ${CFLAGS} -c sorted_set.cpp
 
 test:
-	$(CXX) ${CFLAGS} test_sorted_set.cpp $(OBJS)
+	$(CXX) -o test_sorted_set.out test_sorted_set.cpp ${CFLAGS} ${OBJS}
 
 clean:
 	rm -f ${EXES} ${OBJS} *.o *.exe *.a

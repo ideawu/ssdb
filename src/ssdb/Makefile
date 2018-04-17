@@ -3,6 +3,7 @@ include ../../build_config.mk
 OBJS = ssdb_impl.o iterator.o options.o \
 	t_kv.o t_hash.o t_zset.o t_queue.o binlog.o ttl.o
 LIBS = ../util/libutil.a
+EXES = test.out
 
 
 all: ssdb.h ${OBJS}
