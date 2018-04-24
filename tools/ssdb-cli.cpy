@@ -7,9 +7,22 @@ sys.path.append('../api/python');
 sys.path.append('/usr/local/ssdb/api/python');
 import SSDB.*;
 
+function save_cli_history(histfile){
+	readline.set_history_length(1000);
+	readline.write_history_file(histfile);
+	sys.stderr.write('\n');
+}
+
 try{
 	import readline;
+	import atexit;
+	histfile = '/tmp/ssdb-cli.history';
+	if(os.path.isfile(histfile)){
+		readline.read_history_file(histfile);
+	}
+	atexit.register(save_cli_history, histfile);
 }catch(Exception e){
+	sys.stderr.write(str(e) + '\n');
 }
 
 escape_data = false;
