@@ -3,10 +3,7 @@ Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
-/* hash */
-#include "serv.h"
-#include "net/proc.h"
-#include "net/server.h"
+#include "proc_hash.h"
 
 int proc_hexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	CHECK_NUM_PARAMS(3);

@@ -86,7 +86,11 @@ std::string Slave::stats() const{
 
 void Slave::start(){
 	migrate_old_status();
-	load_status();
+	if(last_seq != 0 || !last_key.empty()){
+		save_status();
+	}else{
+		load_status();
+	}
 	log_debug("last_seq: %" PRIu64 ", last_key: %s",
 		last_seq, hexmem(last_key.data(), last_key.size()).c_str());
 
