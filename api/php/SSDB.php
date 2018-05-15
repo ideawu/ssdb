@@ -62,6 +62,7 @@ class SSDB_Response
 	}
 }
 
+// Depricated, use SimpleSSDB instead!
 class SSDB
 {
 	private $debug = false;
