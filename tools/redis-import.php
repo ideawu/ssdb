@@ -42,6 +42,7 @@ if($ret === false){
 	echo "ERROR: could not connect to Redis server!\n";
 	die();
 }
+// $redis->auth('password');
 $redis->select($r_db);
 
 $ssdb = new Redis();
