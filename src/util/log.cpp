@@ -266,10 +266,12 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 	}
 	write(this->fd, buf, len);
 
-	stats.w_curr += len;
-	stats.w_total += len;
-	if(rotate_size_ > 0 && stats.w_curr > rotate_size_){
-		this->rotate();
+	if(this->fd != STDOUT_FILENO && this->fd != STDERR_FILENO){
+		stats.w_curr += len;
+		stats.w_total += len;
+		if(rotate_size_ > 0 && stats.w_curr > rotate_size_){
+			this->rotate();
+		}
 	}
 	if(this->mutex){
 		pthread_mutex_unlock(this->mutex);
