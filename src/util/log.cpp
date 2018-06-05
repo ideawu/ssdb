@@ -268,7 +268,7 @@ int Logger::logv(int level, const char *fmt, va_list ap){
 
 	stats.w_curr += len;
 	stats.w_total += len;
-	if(rotate_size_ > 0 && stats.w_curr > rotate_size_){
+	if(strcmp(this->filename, "stdout") != 0 && rotate_size_ > 0 && stats.w_curr > rotate_size_){
 		this->rotate();
 	}
 	if(this->mutex){
