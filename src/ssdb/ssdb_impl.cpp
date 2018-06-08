@@ -15,6 +15,8 @@ found in the LICENSE file.
 #include "t_zset.h"
 #include "t_queue.h"
 
+#include <iostream>
+
 SSDBImpl::SSDBImpl(){
 	ldb = NULL;
 	binlogs = NULL;
@@ -37,35 +39,41 @@ SSDBImpl::~SSDBImpl(){
 
 SSDB* SSDB::open(const Options &opt, const std::string &dir){
 	SSDBImpl *ssdb = new SSDBImpl();
-	ssdb->options.max_file_size = 32 * 1048576; // leveldb 1.20
+	ssdb->options.max_file_size = opt.max_file_size;
 	ssdb->options.create_if_missing = true;
 	ssdb->options.max_open_files = opt.max_open_files;
-	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+	ssdb->options.filter_policy = leveldb::NewBloomFilterPolicy(opt.bloom_filter_policy_size);
 	ssdb->options.block_cache = leveldb::NewLRUCache(opt.cache_size * 1048576);
 	ssdb->options.block_size = opt.block_size * 1024;
 	ssdb->options.write_buffer_size = opt.write_buffer_size * 1024 * 1024;
 	ssdb->options.compaction_speed = opt.compaction_speed;
-	if(opt.compression == "yes"){
+    if(opt.compression){
 		ssdb->options.compression = leveldb::kSnappyCompression;
 	}else{
 		ssdb->options.compression = leveldb::kNoCompression;
 	}
+	ssdb->options.create_if_missing = opt.create_if_missing;
+	ssdb->options.error_if_exists = opt.error_if_exists;
+	ssdb->options.paranoid_checks = opt.paranoid_checks;
+	ssdb->options.block_restart_interval = opt.block_restart_interval;
+	ssdb->options.reuse_logs = opt.reuse_logs;
 
 	leveldb::Status status;
 
 	status = leveldb::DB::Open(ssdb->options, dir, &ssdb->ldb);
-	if(!status.ok()){
-		log_error("open db failed: %s", status.ToString().c_str());
-		goto err;
+	if(status.ok()){
+		ssdb->binlogs = new BinlogQueue(ssdb->ldb, opt.binlog, opt.binlog_capacity);
+        return ssdb;
+	}else{
+        log_error("open db failed: %s", status.ToString().c_str());
+		if(ssdb){
+		    if (ssdb->options.filter_policy){
+			    delete ssdb->options.filter_policy;
+		    }
+		    delete ssdb;
+	    }
+	    return NULL;
 	}
-	ssdb->binlogs = new BinlogQueue(ssdb->ldb, opt.binlog, opt.binlog_capacity);
-
-	return ssdb;
-err:
-	if(ssdb){
-		delete ssdb;
-	}
-	return NULL;
 }
 
 int SSDBImpl::flushdb(){

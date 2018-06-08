@@ -11,7 +11,7 @@ found in the LICENSE file.
 class Options
 {
 public:
-	Options();
+    Options();
 	~Options(){}
 	
 	void load(const Config &conf);
@@ -21,9 +21,16 @@ public:
 	size_t write_buffer_size;
 	size_t block_size;
 	int compaction_speed;
-	std::string compression;
+    bool compression;
 	bool binlog;
 	size_t binlog_capacity;
+	size_t bloom_filter_policy_size;
+	bool create_if_missing = false;    // default for leveldb
+	bool error_if_exists = false;      // default for leveldb
+	bool paranoid_checks = false;      // default for leveldb
+	size_t block_restart_interval;
+	size_t max_file_size;
+	bool reuse_logs = false;           // default to leveldb
 };
 
 #endif

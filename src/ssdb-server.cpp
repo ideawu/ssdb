@@ -43,23 +43,30 @@ void MyApplication::run(){
 	std::string data_db_dir = app_args.work_dir + "/data";
 	std::string meta_db_dir = app_args.work_dir + "/meta";
 
-	log_info("ssdb-server %s", APP_VERSION);
-	log_info("conf_file        : %s", app_args.conf_file.c_str());
-	log_info("log_level        : %s", Logger::shared()->level_name().c_str());
-	log_info("log_output       : %s", Logger::shared()->output_name().c_str());
-	log_info("log_rotate_size  : %" PRId64, Logger::shared()->rotate_size());
+	log_info("ssdb-server version      : %s", APP_VERSION);
+	log_info("conf_file                : %s", app_args.conf_file.c_str());
+	log_info("log_level                : %s", Logger::shared()->level_name().c_str());
+	log_info("log_output               : %s", Logger::shared()->output_name().c_str());
+	log_info("log_rotate_size          : %" PRId64, Logger::shared()->rotate_size());
 
-	log_info("main_db          : %s", data_db_dir.c_str());
-	log_info("meta_db          : %s", meta_db_dir.c_str());
-	log_info("cache_size       : %d MB", option.cache_size);
-	log_info("block_size       : %d KB", option.block_size);
-	log_info("write_buffer     : %d MB", option.write_buffer_size);
-	log_info("max_open_files   : %d", option.max_open_files);
-	log_info("compaction_speed : %d MB/s", option.compaction_speed);
-	log_info("compression      : %s", option.compression.c_str());
-	log_info("binlog           : %s", option.binlog? "yes" : "no");
-	log_info("binlog_capacity  : %d", option.binlog_capacity);
-	log_info("sync_speed       : %d MB/s", conf->get_num("replication.sync_speed"));
+	log_info("main_db                  : %s", data_db_dir.c_str());
+	log_info("meta_db                  : %s", meta_db_dir.c_str());
+	log_info("cache_size               : %d MB", option.cache_size);
+	log_info("block_size               : %d KB", option.block_size);
+	log_info("write_buffer             : %d MB", option.write_buffer_size);
+	log_info("max_open_files           : %d", option.max_open_files);
+    log_info("compaction_speed         : %d MB/s", option.compaction_speed);
+    log_info("compression              : %s", option.compression ? "yes" : "no");
+    log_info("binlog                   : %s", option.binlog ? "yes" : "no");
+	log_info("binlog_capacity          : %d", option.binlog_capacity);
+	log_info("sync_speed               : %d MB/s", conf->get_num("replication.sync_speed"));
+	log_info("bloom_filter_policy_size : %d", option.bloom_filter_policy_size);
+	log_info("create_if_missing        : %s", option.create_if_missing ? "yes" : "no");
+	log_info("error_if_exists          : %s", option.error_if_exists ? "yes" : "no");
+	log_info("paranoid_checks          : %s", option.paranoid_checks ? "yes" : "no");
+	log_info("block_restart_interval   : %d", option.block_restart_interval);
+	log_info("max_file_size            : %d", option.max_file_size);
+	log_info("reuse_logs               : %s", option.reuse_logs ? "yes" : "no");
 
 	SSDB *data_db = NULL;
 	SSDB *meta_db = NULL;
