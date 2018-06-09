@@ -235,42 +235,42 @@ int proc_sync140(NetworkServer *net, Link *link, const Request &req, Response *r
 
 // slaveof id host port [type last_seq last_key auth]
 int proc_slaveof(NetworkServer *net, Link *link, const Request &req, Response *resp){
-        SSDBServer *serv = (SSDBServer *)net->data;
-        CHECK_NUM_PARAMS(3);
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(3);
 
-        std::string id = req[1].String();
-        std::string host = req[2].String();
-        int port = req[3].Int();
-        std::string auth;
-        uint64_t last_seq = 0;
-        std::string last_key;
-        bool type = false;
+	std::string id = req[1].String();
+	std::string host = req[2].String();
+	int port = req[3].Int();
+	std::string auth;
+	uint64_t last_seq = 0;
+	std::string last_key;
+	bool type = false;
 
-        log_info("start slaveof: %s:%d", host.c_str(), port);
-        log_info("    id: %s", id.c_str());
+	log_info("start slaveof: %s:%d", host.c_str(), port);
+	log_info("    id: %s", id.c_str());
 
-        // optional arguments
-        if(req.size() > 4 && !req[4].empty() && req[4] == "mirror"){
-                type = true;
-                log_info("    type: mirror");
-        } else {
-                log_info("    type: sync");
-        }
+	// optional arguments
+	if(req.size() > 4 && !req[4].empty() && req[4] == "mirror"){
+		type = true;
+		log_info("    type: mirror");
+	} else {
+		log_info("    type: sync");
+	}
 
-        if(req.size() > 5 && !req[5].empty()){
-                last_seq = req[5].Uint64();
-                log_info("    last_seq: %" PRIu64, last_seq);
-        }
+	if(req.size() > 5 && !req[5].empty()){
+		last_seq = req[5].Uint64();
+		log_info("    last_seq: %" PRIu64, last_seq);
+	}
 
-        if(req.size() > 6 && !req[6].empty()){
-                last_key = req[6].String();
-                log_info("    last_key: %s", hexmem(last_key.data(), last_key.size()).c_str());
-        }
+	if(req.size() > 6 && !req[6].empty()){
+		last_key = req[6].String();
+		log_info("    last_key: %s", hexmem(last_key.data(), last_key.size()).c_str());
+	}
 
-        if(req.size() > 7 && !req[7].empty()){
-                auth = req[7].String();
-                log_info("    auth: ***");
-        }
+	if(req.size() > 7 && !req[7].empty()){
+		auth = req[7].String();
+		log_info("    auth: ***");
+	}
 
         serv->slaveof(id, host, port, auth, last_seq, last_key, type, 0);
 
