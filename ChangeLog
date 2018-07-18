@@ -3,6 +3,7 @@
 		- Support slaveof command(2018-04-27)
 	* Bug fixes:
 		- Fix logrotate issue when log to stdout/stderr(2018-06-05)
+		- Fix coredump on exit(2018-07-18)
 * 1.9.6
 	* New features:
 		- ssdb-cli supports command history(2018-04-24)

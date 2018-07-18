@@ -352,6 +352,9 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 			::exit(0);
 			break;
 		}
+		if(!tp->started){
+			break;
+		}
 		worker->proc(job);
 		if(tp->results.push(job) == -1){
 			fprintf(stderr, "results.push error\n");
@@ -360,6 +363,7 @@ void* WorkerPool<W, JOB>::_run_worker(void *arg){
 		}
 	}
 	worker->destroy();
+	// fprintf(stderr, "  %d stopped\n", id);
 	return (void *)NULL;
 }
 
@@ -389,45 +393,70 @@ int WorkerPool<W, JOB>::start(int num_workers){
 
 template<class W, class JOB>
 int WorkerPool<W, JOB>::stop(){
-	// TODO: notify works quit and wait
+	// notify and wait workers quit
+	started = false;
+	// notify
+	for(int i=0; i<tids.size(); i++){
+		JOB j = NULL;
+		this->push(j);
+	}
+	// wait
 	for(int i=0; i<tids.size(); i++){
 #ifdef OS_ANDROID
+		// TODO:
 #else
-		pthread_cancel(tids[i]);
+		void *ret;
+		pthread_join(tids[i], &ret);
 #endif
 	}
-	started = false;
 	return 0;
 }
 
 
 
 #if 0
-class MyWorker : public WorkerPool<MyWorker, int>::Worker{
-	public:
-		int proc(int *job){
-			*job = (id + 1) * 100000 + *job;
-			return 0;
-		}
+// g++ log.o a.cpp
+
+class MyWorker : public WorkerPool<MyWorker, int*>::Worker{
+public:
+	MyWorker(const std::string &name){
+	}
+	
+	int proc(int *job){
+		usleep(200 * 1000);
+		*job = 100000 + *job;
+		return 0;
+	}
 };
 
+#define NUM_JOBS 10
+
 int main(){
-	int num_jobs = 1000;
-	WorkerPool<MyWorker, int> tp(10);
-	tp.start();
-	for(int i=0; i<num_jobs; i++){
+	int jobs[NUM_JOBS];
+	WorkerPool<MyWorker, int*> tp("test");
+	tp.start(3);
+	
+	log_debug("add begin");
+	for(int i=0; i<NUM_JOBS; i++){
 		//usleep(200 * 1000);
-		//printf("job: %d\n", i);
-		tp.push_job(i);
+		log_debug("    add job: %d", i);
+		jobs[i] = i;
+		tp.push(&jobs[i]);
 	}
-	printf("add end\n");
-	for(int i=0; i<num_jobs; i++){
-		int job;
-		tp.pop_result(&job);
-		printf("result: %d, %d\n", i, job);
+	log_debug("add end");
+	
+	log_debug("pop begin");
+	for(int i=0; i<NUM_JOBS-1; i++){
+		int *job;
+		tp.pop(&job);
+		log_debug("    result: %d, %d", i, *job);
 	}
-	printf("end\n");
-	//tp.stop();
+	log_debug("pop end");
+	
+	log_debug("stopping...");
+	tp.stop();
+	log_debug("stopped");
+
 	return 0;
 }
 #endif
