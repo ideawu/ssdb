@@ -85,8 +85,6 @@ int Fdevents::clr(int fd, int flags){
 }
 
 const Fdevents::events_t* Fdevents::wait(int timeout_ms){
-	struct Fdevent *fde;
-	struct epoll_event *epe;
 	ready_events.clear();
 
 	int nfds = epoll_wait(ep_fd, ep_events, MAX_FDS, timeout_ms);
@@ -98,8 +96,8 @@ const Fdevents::events_t* Fdevents::wait(int timeout_ms){
 	}
 
 	for(int i = 0; i < nfds; i++){
-		epe = &ep_events[i];
-		fde = (struct Fdevent *)epe->data.ptr;
+		struct epoll_event *epe = &ep_events[i];
+		struct Fdevent *fde = (struct Fdevent *)epe->data.ptr;
 
 		fde->events = FDEVENT_NONE;
 		if(epe->events & EPOLLIN)  fde->events |= FDEVENT_IN;
