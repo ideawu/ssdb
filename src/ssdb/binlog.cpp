@@ -163,6 +163,10 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	this->tran_seq = 0;
 	this->capacity = capacity;
 	this->enabled = enabled;
+
+	if(!this->enabled){
+		return;
+	}
 	
 	Binlog log;
 	if(this->find_last(&log) == 1){
@@ -180,23 +184,19 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->find_next(this->min_seq_, &log) == 1){
 		this->min_seq_ = log.seq();
 	}
-	if(this->enabled){
-		log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 ",",
-			this->capacity, this->min_seq_, this->last_seq);
-		// 这个方法有性能问题
-		// 但是, 如果不执行清理, 如果将 capacity 修改大, 可能会导致主从同步问题
-		//this->clean_obsolete_binlogs();
-	}
+	log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 "",
+		this->capacity, this->min_seq_, this->last_seq);
+	// 这个方法有性能问题
+	// 但是, 如果不执行清理, 如果将 capacity 修改大, 可能会导致主从同步问题
+	//this->clean_obsolete_binlogs();
 
 	// start cleaning thread
-	if(this->enabled){
-		thread_quit = false;
-		pthread_t tid;
-		int err = pthread_create(&tid, NULL, &BinlogQueue::log_clean_thread_func, this);
-		if(err != 0){
-			log_fatal("can't create thread: %s", strerror(err));
-			exit(0);
-		}
+	thread_quit = false;
+	pthread_t tid;
+	int err = pthread_create(&tid, NULL, &BinlogQueue::log_clean_thread_func, this);
+	if(err != 0){
+		log_fatal("can't create thread: %s", strerror(err));
+		exit(0);
 	}
 }
 
@@ -293,31 +293,56 @@ int BinlogQueue::find_next(uint64_t next_seq, Binlog *log) const{
 }
 
 int BinlogQueue::find_last(Binlog *log) const{
-	uint64_t ret = 0;
-	std::string key_str = encode_seq_key(UINT64_MAX);
-	leveldb::ReadOptions iterate_options;
-	leveldb::Iterator *it = db->NewIterator(iterate_options);
-	it->Seek(key_str);
-	if(!it->Valid()){
-		// Iterator::prev requires Valid, so we seek to last
-		it->SeekToLast();
-	}else{
-		// UINT64_MAX is not used 
-		it->Prev();
-	}
-	if(it->Valid()){
-		leveldb::Slice key = it->key();
-		if(decode_seq_key(key) != 0){
-			leveldb::Slice val = it->value();
-			if(log->load(val) == -1){
-				ret = -1;
+	// 二分查找比 Iterator 快！
+	{
+		uint64_t begin = 0;
+		uint64_t end = UINT64_MAX;
+		while(begin != end){
+			uint64_t curr = begin + (end - begin)/2;
+			if(this->get(curr, log) == 0){
+				// log_debug("[%" PRIu64 ", %" PRIu64 "] %" PRIu64 " not found", begin, end, curr);
+				end = curr;
 			}else{
-				ret = 1;
+				// log_debug("[%" PRIu64 ", %" PRIu64 "] %" PRIu64 " found", begin, end, curr);
+				begin = curr + 1;
 			}
 		}
+		if(end == 0){
+			// log_debug("max = 0");
+			return 0;
+		}else{
+			end -= 1; // end 总是指向找不到的元素
+			this->get(end, log);
+			// log_debug("max = %" PRIu64 "", end);
+			return 1;
+		}
 	}
-	delete it;
-	return ret;
+	
+	// int ret = 0;
+	// std::string key_str = encode_seq_key(UINT64_MAX);
+	// leveldb::ReadOptions iterate_options;
+	// leveldb::Iterator *it = db->NewIterator(iterate_options);
+	// it->Seek(key_str);
+	// if(!it->Valid()){
+	// 	// Iterator::prev requires Valid, so we seek to last
+	// 	it->SeekToLast();
+	// }else{
+	// 	// UINT64_MAX is not used
+	// 	it->Prev();
+	// }
+	// if(it->Valid()){
+	// 	leveldb::Slice key = it->key();
+	// 	if(decode_seq_key(key) != 0){
+	// 		leveldb::Slice val = it->value();
+	// 		if(log->load(val) == -1){
+	// 			ret = -1;
+	// 		}else{
+	// 			ret = 1;
+	// 		}
+	// 	}
+	// }
+	// delete it;
+	// return ret;
 }
 
 int BinlogQueue::get(uint64_t seq, Binlog *log) const{
