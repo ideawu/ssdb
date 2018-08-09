@@ -172,16 +172,7 @@ BinlogQueue::BinlogQueue(leveldb::DB *db, bool enabled, int capacity){
 	if(this->find_last(&log) == 1){
 		this->last_seq = log.seq();
 	}
-	// 下面这段代码是可能性能非常差!
-	//if(this->find_next(0, &log) == 1){
-	//	this->min_seq_ = log.seq();
-	//}
-	if(this->last_seq > this->capacity){
-		this->min_seq_ = this->last_seq - this->capacity;
-	}else{
-		this->min_seq_ = 0;
-	}
-	if(this->find_next(this->min_seq_, &log) == 1){
+	if(this->find_min(&log) == 1){
 		this->min_seq_ = log.seq();
 	}
 	log_info("binlogs capacity: %d, min: %" PRIu64 ", max: %" PRIu64 "",
@@ -292,10 +283,35 @@ int BinlogQueue::find_next(uint64_t next_seq, Binlog *log) const{
 	return ret;
 }
 
+int BinlogQueue::find_min(Binlog *log) const{
+	int ret = 0;
+	std::string key_str = encode_seq_key(0);
+	leveldb::ReadOptions iterate_options;
+	leveldb::Iterator *it = db->NewIterator(iterate_options);
+	it->Seek(key_str);
+	if(it->Valid()){
+		leveldb::Slice key = it->key();
+		if(decode_seq_key(key) != 0){
+			leveldb::Slice val = it->value();
+			if(log->load(val) == -1){
+				ret = -1;
+			}else{
+				ret = 1;
+			}
+		}
+	}
+	return ret;
+}
+
 int BinlogQueue::find_last(Binlog *log) const{
 	// 二分查找比 Iterator 快！
 	{
-		uint64_t begin = 0;
+		if(this->find_min(log) != 1){
+			return 0;
+		}
+		// log_debug("min = %" PRIu64 "", log->seq());
+
+		uint64_t begin = log->seq();
 		uint64_t end = UINT64_MAX;
 		while(begin != end){
 			uint64_t curr = begin + (end - begin)/2;
@@ -307,15 +323,11 @@ int BinlogQueue::find_last(Binlog *log) const{
 				begin = curr + 1;
 			}
 		}
-		if(end == 0){
-			// log_debug("max = 0");
-			return 0;
-		}else{
-			end -= 1; // end 总是指向找不到的元素
-			this->get(end, log);
-			// log_debug("max = %" PRIu64 "", end);
-			return 1;
-		}
+		
+		end -= 1; // end 总是指向找不到的元素
+		this->get(end, log);
+		// log_debug("max = %" PRIu64 "", end);
+		return 1;
 	}
 	
 	// int ret = 0;
