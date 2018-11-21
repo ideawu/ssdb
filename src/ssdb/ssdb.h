@@ -80,6 +80,7 @@ public:
 			std::vector<std::string> *list) = 0;
 	virtual HIterator* hscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) = 0;
 	virtual HIterator* hrscan(const Bytes &name, const Bytes &start, const Bytes &end, uint64_t limit) = 0;
+	virtual int64_t hfix(const Bytes &name) = 0;
 
 	/* zset */
 
