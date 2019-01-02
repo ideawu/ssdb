@@ -280,3 +280,23 @@ static int incr_hsize(SSDBImpl *ssdb, const Bytes &name, int64_t incr){
 	}
 	return 0;
 }
+
+int64_t SSDBImpl::hfix(const Bytes &name){
+	Transaction trans(binlogs);
+
+	uint64_t size = 0;
+	HIterator *it = this->hscan(name, "", "", UINT64_MAX);
+	while(it->next()){
+		size ++;
+	}
+	delete it;
+
+	std::string size_key = encode_hsize_key(name);
+	if(size == 0){
+		binlogs->Delete(size_key);
+	}else{
+		binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+	}
+	
+	return size;
+}

@@ -90,6 +90,7 @@ public:
 	 -1: error
 	 */
 	int find_next(uint64_t seq, Binlog *log) const;
+	int find_min(Binlog *log) const;
 	int find_last(Binlog *log) const;
 	
 	uint64_t min_seq() const{

@@ -3,10 +3,7 @@ Copyright (c) 2012-2014 The SSDB Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
-/* hash */
-#include "serv.h"
-#include "net/proc.h"
-#include "net/server.h"
+#include "proc_hash.h"
 
 int proc_hexists(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	CHECK_NUM_PARAMS(3);
@@ -296,4 +293,14 @@ int proc_hdecr(NetworkServer *net, Link *link, const Request &req, Response *res
 	return _hincr(serv->ssdb, req, resp, -1);
 }
 
+
+int proc_hfix(NetworkServer *net, Link *link, const Request &req, Response *resp){
+	SSDBServer *serv = (SSDBServer *)net->data;
+	CHECK_NUM_PARAMS(2);
+	
+	const Bytes &name = req[1];
+	int64_t ret = serv->ssdb->hfix(name);
+	resp->reply_int(ret, ret);
+	return 0;
+}
 
