@@ -297,6 +297,10 @@ int64_t SSDBImpl::hfix(const Bytes &name){
 	}else{
 		binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
+	leveldb::Status s = binlogs->commit();
+	if (!s.ok()) {
+		return -1;
+	}
 	
 	return size;
 }
