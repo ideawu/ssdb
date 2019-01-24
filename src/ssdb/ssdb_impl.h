@@ -8,6 +8,7 @@ found in the LICENSE file.
 
 #include "leveldb/db.h"
 #include "leveldb/slice.h"
+#include "../include.h"
 #include "../util/log.h"
 #include "../util/config.h"
 
