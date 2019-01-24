@@ -4,7 +4,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
 #include <limits.h>
-#include "../include.h"
 #include "t_zset.h"
 
 static const char *SSDB_SCORE_MIN		= "-9223372036854775808";
