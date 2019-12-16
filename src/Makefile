@@ -1,6 +1,6 @@
 include ../build_config.mk
 
-OBJS = proc_sys.o proc_kv.o proc_hash.o proc_zset.o proc_queue.o \
+OBJS = proc_sys.o proc_kv.o proc_hash.o proc_zset.o proc_queue.o proc_redis_compatible.o \
 	backend_dump.o backend_sync.o slave.o \
 	serv.o proc_cluster.o cluster.o cluster_store.o cluster_migrate.o
 LIBS = ./ssdb/libssdb.a ./util/libutil.a ./net/libnet.a
@@ -30,6 +30,8 @@ backend_sync.o: backend_sync.h backend_sync.cpp
 
 proc.o: serv.h proc.cpp
 	${CXX} ${CFLAGS} -c proc.cpp
+proc_redis_compatible.o: proc_redis_compatible.cpp
+	${CXX} ${CFLAGS} -c proc_redis_compatible.cpp
 proc_sys.o: proc_sys.cpp
 	${CXX} ${CFLAGS} -c proc_sys.cpp
 proc_kv.o: proc_kv.cpp
