@@ -9,6 +9,7 @@ found in the LICENSE file.
 #include "serv.h"
 #include "net/proc.h"
 #include "net/server.h"
+#include "proc_redis_compatible.h"
 #include "proc_sys.h"
 #include "proc_kv.h"
 #include "proc_hash.h"
@@ -22,12 +23,16 @@ DEF_PROC(cluster_set_kv_range);
 DEF_PROC(cluster_set_kv_status);
 DEF_PROC(cluster_migrate_kv_data);
 
-#define REG_PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
+#define REG_PROC(c, f) net->proc_map.set_proc(#c, f, proc_##c)
 
-void SSDBServer::reg_procs(NetworkServer *net){
+void SSDBServer::reg_procs(NetworkServer *net)
+{
+	// redis compatiable operations
+	REG_PROC(del, "wt");
+	// key-value operations
 	REG_PROC(get, "rt");
 	REG_PROC(set, "wt");
-	REG_PROC(del, "wt");
+	REG_PROC(kdel, "wt");
 	REG_PROC(setx, "wt");
 	REG_PROC(setnx, "wt");
 	REG_PROC(getset, "wt");
@@ -51,7 +56,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(multi_del, "wt");
 	REG_PROC(ttl, "rt");
 	REG_PROC(expire, "wt");
-
+	// hash operations
 	REG_PROC(hsize, "rt");
 	REG_PROC(hget, "rt");
 	REG_PROC(hset, "wt");
@@ -107,7 +112,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(multi_zdel, "wt");
 	REG_PROC(zpop_front, "wt");
 	REG_PROC(zpop_back, "wt");
-
+	// queue operations
 	REG_PROC(qsize, "rt");
 	REG_PROC(qfront, "rt");
 	REG_PROC(qback, "rt");
@@ -127,7 +132,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(qrange, "rt");
 	REG_PROC(qget, "rt");
 	REG_PROC(qset, "wt");
-
+	// sys operations
 	REG_PROC(clear_binlog, "wt");
 	REG_PROC(flushdb, "wt");
 
@@ -145,7 +150,7 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(get_key_range, "r");
 	REG_PROC(get_kv_range, "r");
 	REG_PROC(set_kv_range, "r");
-
+	// cluster operations
 	REG_PROC(cluster_add_kv_node, "r");
 	REG_PROC(cluster_del_kv_node, "r");
 	REG_PROC(cluster_kv_node_list, "r");
@@ -154,8 +159,8 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(cluster_migrate_kv_data, "r");
 }
 
-
-SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net){
+SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net)
+{
 	this->ssdb = (SSDBImpl *)ssdb;
 	this->meta = meta;
 
@@ -167,43 +172,52 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 	backend_dump = new BackendDump(this->ssdb);
 	backend_sync = new BackendSync(this->ssdb, sync_speed);
 	expiration = new ExpirationHandler(this->ssdb);
-	
+
 	cluster = new Cluster(this->ssdb);
-	if(cluster->init() == -1){
+	if (cluster->init() == -1)
+	{
 		log_fatal("cluster init failed!");
 		exit(1);
 	}
 
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
-		if(repl_conf != NULL){
+		if (repl_conf != NULL)
+		{
 			std::vector<Config *> children = repl_conf->children;
-			for(std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++){
+			for (std::vector<Config *>::iterator it = children.begin(); it != children.end(); it++)
+			{
 				Config *c = *it;
-				if(c->key != "slaveof"){
+				if (c->key != "slaveof")
+				{
 					continue;
 				}
 				std::string ip = c->get_str("ip");
 				int port = c->get_num("port");
-				if(ip == ""){
+				if (ip == "")
+				{
 					ip = c->get_str("host");
 				}
-				if(ip == "" || port <= 0 || port > 65535){
+				if (ip == "" || port <= 0 || port > 65535)
+				{
 					continue;
 				}
 				bool is_mirror = false;
 				std::string type = c->get_str("type");
-				if(type == "mirror"){
+				if (type == "mirror")
+				{
 					is_mirror = true;
-				}else{
+				}
+				else
+				{
 					type = "sync";
 					is_mirror = false;
 				}
-				
+
 				std::string id = c->get_str("id");
 				std::string auth = c->get_str("auth");
 				int recv_timeout = c->get_num("recv_timeout");
-				
+
 				log_info("slaveof: %s:%d, type: %s", ip.c_str(), port, type.c_str());
 				this->slaveof(id, ip, port, auth, 0, "", is_mirror, recv_timeout);
 			}
@@ -212,19 +226,21 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 
 	// load kv_range
 	int ret = this->get_kv_range(&this->kv_range_s, &this->kv_range_e);
-	if(ret == -1){
+	if (ret == -1)
+	{
 		log_fatal("load key_range failed!");
 		exit(1);
 	}
 	log_info("key_range.kv: \"%s\", \"%s\"",
-		str_escape(this->kv_range_s).c_str(),
-		str_escape(this->kv_range_e).c_str()
-		);
+			 str_escape(this->kv_range_s).c_str(),
+			 str_escape(this->kv_range_e).c_str());
 }
 
-SSDBServer::~SSDBServer(){
+SSDBServer::~SSDBServer()
+{
 	std::vector<Slave *>::iterator it;
-	for(it = slaves.begin(); it != slaves.end(); it++){
+	for (it = slaves.begin(); it != slaves.end(); it++)
+	{
 		Slave *slave = *it;
 		slave->stop();
 		delete slave;
@@ -238,12 +254,15 @@ SSDBServer::~SSDBServer(){
 	log_debug("SSDBServer finalized");
 }
 
-int SSDBServer::slaveof(const std::string &id, const std::string &host, int port, const std::string &auth, uint64_t last_seq, const std::string &last_key, bool is_mirror, int recv_timeout){
+int SSDBServer::slaveof(const std::string &id, const std::string &host, int port, const std::string &auth, uint64_t last_seq, const std::string &last_key, bool is_mirror, int recv_timeout)
+{
 	Slave *slave = new Slave(ssdb, meta, host.c_str(), port, is_mirror);
-	if(!id.empty()){
+	if (!id.empty())
+	{
 		slave->set_id(id);
 	}
-	if(recv_timeout > 0){
+	if (recv_timeout > 0)
+	{
 		slave->recv_timeout = recv_timeout;
 	}
 	slave->last_seq = last_seq;
@@ -254,11 +273,14 @@ int SSDBServer::slaveof(const std::string &id, const std::string &host, int port
 	return 0;
 }
 
-int SSDBServer::set_kv_range(const std::string &start, const std::string &end){
-	if(meta->hset("key_range", "kv_s", start) == -1){
+int SSDBServer::set_kv_range(const std::string &start, const std::string &end)
+{
+	if (meta->hset("key_range", "kv_s", start) == -1)
+	{
 		return -1;
 	}
-	if(meta->hset("key_range", "kv_e", end) == -1){
+	if (meta->hset("key_range", "kv_e", end) == -1)
+	{
 		return -1;
 	}
 
@@ -267,31 +289,33 @@ int SSDBServer::set_kv_range(const std::string &start, const std::string &end){
 	return 0;
 }
 
-int SSDBServer::get_kv_range(std::string *start, std::string *end){
-	if(meta->hget("key_range", "kv_s", start) == -1){
+int SSDBServer::get_kv_range(std::string *start, std::string *end)
+{
+	if (meta->hget("key_range", "kv_s", start) == -1)
+	{
 		return -1;
 	}
-	if(meta->hget("key_range", "kv_e", end) == -1){
+	if (meta->hget("key_range", "kv_e", end) == -1)
+	{
 		return -1;
 	}
 	return 0;
 }
 
-bool SSDBServer::in_kv_range(const Bytes &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
+bool SSDBServer::in_kv_range(const Bytes &key)
+{
+	if ((this->kv_range_s.size() && this->kv_range_s >= key) || (this->kv_range_e.size() && this->kv_range_e < key))
 	{
 		return false;
 	}
 	return true;
 }
 
-bool SSDBServer::in_kv_range(const std::string &key){
-	if((this->kv_range_s.size() && this->kv_range_s >= key)
-		|| (this->kv_range_e.size() && this->kv_range_e < key))
+bool SSDBServer::in_kv_range(const std::string &key)
+{
+	if ((this->kv_range_s.size() && this->kv_range_s >= key) || (this->kv_range_e.size() && this->kv_range_e < key))
 	{
 		return false;
 	}
 	return true;
 }
-

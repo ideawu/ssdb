@@ -4,9 +4,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
 /* kv commands */
-#include "serv.h"
 #include "net/proc.h"
 #include "net/server.h"
+#include "serv.h"
 
 DEF_PROC(get);
 DEF_PROC(set);
@@ -20,7 +20,7 @@ DEF_PROC(substr);
 DEF_PROC(getrange);
 DEF_PROC(strlen);
 DEF_PROC(bitcount);
-DEF_PROC(del);
+DEF_PROC(kdel);
 DEF_PROC(incr);
 DEF_PROC(decr);
 DEF_PROC(scan);
