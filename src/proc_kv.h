@@ -31,6 +31,6 @@ DEF_PROC(exists);
 DEF_PROC(multi_exists);
 DEF_PROC(multi_get);
 DEF_PROC(multi_set);
-DEF_PROC(multi_del);
+DEF_PROC(multi_kdel);
 DEF_PROC(ttl);
 DEF_PROC(expire);

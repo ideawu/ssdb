@@ -3,3 +3,4 @@
 #include "serv.h"
 
 DEF_PROC(del);
+DEF_PROC(multi_del);

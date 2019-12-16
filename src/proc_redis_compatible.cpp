@@ -62,3 +62,52 @@ int proc_del(NetworkServer *net, Link *link, const Request &req,
   resp->reply_int(0, count);
   return 0;
 }
+int proc_multi_del(NetworkServer *net, Link *link, const Request &req,
+                   Response *resp) {
+  SSDBServer *serv = (SSDBServer *)net->data;
+  CHECK_NUM_PARAMS(2);
+  // 删除Key-value
+  Locking *locker = new Locking(&serv->expiration->mutex);
+  if (serv->ssdb->multi_del(req, 1) != -1) {
+    for (Request::const_iterator it = req.begin() + 1; it != req.end(); it++) {
+      serv->expiration->del_ttl(*it);
+    }
+  } else {
+    resp->push_back("error");
+    return 0;
+  }
+  delete locker;
+  // 删除hash(hclear)
+  for (Request::const_iterator it = req.begin() + 1; it != req.end(); it++) {
+    serv->ssdb->hclear(*it);
+  }
+  // 删除zset
+  for (Request::const_iterator it = req.begin() + 1; it != req.end();) {
+    ZIterator *zit = serv->ssdb->zscan(*it, "", "", "", 1000);
+    int num = 0;
+    while (zit->next()) {
+      if (serv->ssdb->zdel(*it, zit->key) == -1) {
+        resp->push_back("error");
+        delete zit;
+        return 0;
+      }
+      num++;
+    }
+    delete zit;
+    if (num == 0) {
+      it++;
+    }
+  }
+  // 删除queue
+  for (Request::const_iterator it = req.begin() + 1; it != req.end(); it++) {
+    int ret;
+    while ((ret = serv->ssdb->qpop_front(*it, NULL))) {
+      if (ret == -1) {
+        resp->push_back("error");
+        return 0;
+      }
+    };
+  }
+  resp->reply_int(0, req.size() - 1);
+  return 0;
+}
