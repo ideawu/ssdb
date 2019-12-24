@@ -211,7 +211,7 @@ int Queue<T>::pop(T *data){
 		return -1;
 	}
 	{
-		// 必须放在循环中, 因为 pthread_cond_wait 可能抢不到锁而被其它处理了
+		// 必须放在循环中, 因为多个线程 pthread_cond_wait 可能同时返回(看具体实现策略)
 		while(items.empty()){
 			//fprintf(stderr, "%d wait\n", pthread_self());
 			if(pthread_cond_wait(&cond, &mutex) != 0){
