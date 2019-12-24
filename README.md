@@ -35,9 +35,7 @@ echo $resp; // output: 123
 
 ## Who's using SSDB?
 
-![all-ssdb-users](http://ssdb.io/img/ssdb-users/all-ssdb-users.jpg)
-
-[And more...](http://ssdb.io/docs/users.html)
+[SSDB users...](http://ssdb.io/docs/users.html)
 
 
 ## Documentation
