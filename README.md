@@ -11,7 +11,7 @@ SSDB is stable, production-ready and is widely used by many Internet companies i
 
 * LevelDB client-server support, written in C/C++
 * Designed to store collection data
-* Persistent key-value, key-zset, key-map('hashmap') storage
+* Persistent key-value, key-zset, key-map('hashmap'), key-list storage
 * Redis clients are supported
 * Client API supports including C++, PHP, Python, Cpy, Java, nodejs, Ruby, Go([see all](http://ssdb.io/docs/clients.html))
 * Persistent queue service
