@@ -15,13 +15,6 @@ found in the LICENSE file.
 #include "proc_zset.h"
 #include "proc_queue.h"
 
-DEF_PROC(cluster_add_kv_node);
-DEF_PROC(cluster_del_kv_node);
-DEF_PROC(cluster_kv_node_list);
-DEF_PROC(cluster_set_kv_range);
-DEF_PROC(cluster_set_kv_status);
-DEF_PROC(cluster_migrate_kv_data);
-
 #define REG_PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
 
 void SSDBServer::reg_procs(NetworkServer *net){
@@ -145,13 +138,6 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(get_key_range, "r");
 	REG_PROC(get_kv_range, "r");
 	REG_PROC(set_kv_range, "r");
-
-	REG_PROC(cluster_add_kv_node, "r");
-	REG_PROC(cluster_del_kv_node, "r");
-	REG_PROC(cluster_kv_node_list, "r");
-	REG_PROC(cluster_set_kv_range, "r");
-	REG_PROC(cluster_set_kv_status, "r");
-	REG_PROC(cluster_migrate_kv_data, "r");
 }
 
 
@@ -168,12 +154,6 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 	backend_sync = new BackendSync(this->ssdb, sync_speed);
 	expiration = new ExpirationHandler(this->ssdb);
 	
-	cluster = new Cluster(this->ssdb);
-	if(cluster->init() == -1){
-		log_fatal("cluster init failed!");
-		exit(1);
-	}
-
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
@@ -233,7 +213,6 @@ SSDBServer::~SSDBServer(){
 	delete backend_dump;
 	delete backend_sync;
 	delete expiration;
-	delete cluster;
 
 	log_debug("SSDBServer finalized");
 }

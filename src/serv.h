@@ -16,7 +16,6 @@ found in the LICENSE file.
 #include "backend_sync.h"
 #include "slave.h"
 #include "net/server.h"
-#include "cluster.h"
 
 class SSDBServer
 {
@@ -34,7 +33,6 @@ public:
 	BackendSync *backend_sync;
 	ExpirationHandler *expiration;
 	std::vector<Slave *> slaves;
-	Cluster *cluster;
 
 	SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer *net);
 	~SSDBServer();
