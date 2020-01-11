@@ -5,7 +5,7 @@ found in the LICENSE file.
 */
 #include "log.h"
 #include "config.h"
-#include "strings.h"
+#include "string_util.h"
 
 inline static
 int is_kv_seperator(int ch){

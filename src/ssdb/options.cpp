@@ -4,7 +4,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
 #include "options.h"
-#include "../util/strings.h"
+#include "../util/string_util.h"
 
 #ifdef NDEBUG
 	static const int LOG_QUEUE_SIZE  = 20 * 1000 * 1000;

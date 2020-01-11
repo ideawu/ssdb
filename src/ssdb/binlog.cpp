@@ -7,7 +7,7 @@ found in the LICENSE file.
 #include "const.h"
 #include "../include.h"
 #include "../util/log.h"
-#include "../util/strings.h"
+#include "../util/string_util.h"
 #include <map>
 
 /* Binlog */

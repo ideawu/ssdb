@@ -5,7 +5,7 @@ found in the LICENSE file.
 */
 #include "version.h"
 #include "util/log.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 #include "serv.h"
 #include "net/proc.h"
 #include "net/server.h"

@@ -21,7 +21,7 @@ all: $(OBJS)
 	ar -rs $(LIB) $(OBJS)
 	rm -rf $(OUTPUT_HEADER_DIR) $(OUTPUT_LIB_DIR)/$(LIB)
 	mkdir -p $(OUTPUT_HEADER_DIR)
-	cp -f config.h bytes.h strings.h $(OUTPUT_HEADER_DIR)
+	cp -f config.h bytes.h string_util.h $(OUTPUT_HEADER_DIR)
 	mv -f $(LIB) $(OUTPUT_LIB_DIR)
 
 .cpp.o:

@@ -3,7 +3,7 @@
 #include "file.h"
 #include "config.h"
 #include "daemon.h"
-#include "strings.h"
+#include "string_util.h"
 #include <stdio.h>
 
 int Application::main(int argc, char **argv){

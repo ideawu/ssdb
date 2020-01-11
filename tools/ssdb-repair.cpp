@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 #include "util/log.h"
 #include "util/file.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 
 void welcome(){
 	printf("ssdb-repair - SSDB repair tool\n");

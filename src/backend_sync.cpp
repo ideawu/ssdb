@@ -9,7 +9,7 @@ found in the LICENSE file.
 #include <string>
 #include "backend_sync.h"
 #include "util/log.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 
 BackendSync::BackendSync(SSDBImpl *ssdb, int sync_speed){
 	thread_quit = false;

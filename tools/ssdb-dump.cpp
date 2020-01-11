@@ -20,7 +20,7 @@ found in the LICENSE file.
 #include "net/link.h"
 #include "util/log.h"
 #include "util/file.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 
 struct Config {
 	std::string ip;
