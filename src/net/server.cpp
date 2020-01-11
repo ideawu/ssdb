@@ -4,7 +4,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 */
 #include "server.h"
-#include "../util/strings.h"
+#include "../util/string_util.h"
 #include "../util/file.h"
 #include "../util/config.h"
 #include "../util/log.h"

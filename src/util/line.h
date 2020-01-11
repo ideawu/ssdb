@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <string>
-#include "strings.h"
+#include "string_util.h"
 
 class LineEncoder{
 public:

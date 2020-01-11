@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "util/log.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 #include "SSDB_client.h"
 
 #define BATCH_SIZE 100

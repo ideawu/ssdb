@@ -6,7 +6,7 @@ found in the LICENSE file.
 #ifndef UTIL_BYTES_H_
 #define UTIL_BYTES_H_
 
-#include "strings.h"
+#include "string_util.h"
 
 // readonly
 // to replace std::string

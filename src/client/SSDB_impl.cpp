@@ -1,5 +1,5 @@
 #include "SSDB_impl.h"
-#include "util/strings.h"
+#include "util/string_util.h"
 #include <signal.h>
 
 namespace ssdb{
