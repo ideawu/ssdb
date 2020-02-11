@@ -88,6 +88,8 @@ int main(int argc, char **argv){
 				printf("%s\n", val.c_str());
 			}
 		}
+
+		delete db;
 	}
 
 	return 0;
