@@ -65,6 +65,30 @@ int main(int argc, char **argv){
 	}
 	
 	printf("leveldb repaired.\n");
+	
+	{
+		leveldb::DB* db;
+		leveldb::Options options;
+		leveldb::Status status;
+		options.create_if_missing = true;
+		options.write_buffer_size = 32 * 1024 * 1024;
+		options.compression = leveldb::kSnappyCompression;
+
+		status = leveldb::DB::Open(options, leveldb_folder.c_str(), &db);
+		if(!status.ok()){
+			fprintf(stderr, "ERROR: open leveldb: %s error!\n", leveldb_folder.c_str());
+			exit(1);
+		}
+		printf("compacting data...\n");
+		db->CompactRange(NULL, NULL);
+	
+		{
+			std::string val;
+			if(db->GetProperty("leveldb.stats", &val)){
+				printf("%s\n", val.c_str());
+			}
+		}
+	}
 
 	return 0;
 }
