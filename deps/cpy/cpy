@@ -3,8 +3,9 @@
 DIR=`dirname $0`
 
 which python2.7 > /dev/null 2>&1
-[ $? -eq 0 ] && { python2.7 $DIR/cpy.py $@; exit 0;}
+[ $? -eq 0 ] && { python2.7 $DIR/cpy.py $@; exit $?;}
 which python2 > /dev/null 2>&1
-[ $? -eq 0 ] && { python2 $DIR/cpy.py $@; exit 0;}
+[ $? -eq 0 ] && { python2 $DIR/cpy.py $@; exit $?;}
 
 python $DIR/cpy.py $@
+exit $?
