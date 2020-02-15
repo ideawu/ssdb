@@ -167,7 +167,12 @@ try{
 }catch(socket.error e){
 	sys.stderr.write(sprintf('Failed to connect to: %s:%d\n', host, port));
 	sys.stderr.write(sprintf('Connection error: %s\n', str(e)));
-	sys.exit(0);
+	if(run_nagios){
+		sys.stdout.write(sprintf('CRITICAL: Failed to connect\n'));
+		sys.exit(2);
+	} else {
+		sys.exit(0);
+	}
 }
 
 if(run_nagios){
