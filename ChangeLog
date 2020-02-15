@@ -1,3 +1,6 @@
+* 1.9.8
+	* New features:
+		- Support IP v6(2020-02-15)
 * 1.9.7
 	* New features:
 		- Support slaveof command(2018-04-27)
