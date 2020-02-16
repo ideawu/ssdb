@@ -21,13 +21,14 @@ class Link{
 		int sock;
 		bool noblock_;
 		bool error_;
+		bool ipv4;
 		std::vector<Bytes> recv_data;
 
 		RedisLink *redis;
 	public:
 		const static int MAX_PACKET_SIZE = 128 * 1024 * 1024;
 
-		char remote_ip[INET_ADDRSTRLEN];
+		char remote_ip[INET6_ADDRSTRLEN];
 		int remote_port;
 
 		bool auth;

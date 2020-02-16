@@ -169,7 +169,11 @@ class SSDB{
 	function init(host, port){
 		this.recv_buf = '';
 		this._closed = false;
-		this.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+		family = socket.AF_INET;
+		if(host.find(':') != -1){
+			family = socket.AF_INET6;
+		}
+		this.sock = socket.socket(family, socket.SOCK_STREAM);
 		this.sock.connect(tuple([host, port]));
 		this.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1);
 	}

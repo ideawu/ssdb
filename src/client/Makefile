@@ -9,7 +9,7 @@ lib: SSDB_client.h SSDB_impl.h SSDB_impl.cpp
 	ar -cru libssdb-client.a\
 		SSDB_impl.o\
 		../util/bytes.o\
-		../net/link.o
+		../net/link.o ../net/link_addr.o
 	cp SSDB_client.h libssdb-client.a ../../api/cpp
 
 clean:
