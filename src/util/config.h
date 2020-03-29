@@ -27,6 +27,7 @@ found in the LICENSE file.
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <stdio.h>
 
 #define CONFIG_MAX_LINE		4096
 
