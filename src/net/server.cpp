@@ -158,23 +158,32 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 		serv->serv_link->noblock();
 		log_info("server listen on %s:%d", ip, port);
 
-		std::string password;
-		password = conf.get_str("server.auth");
-		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
-			log_fatal("weak password is not allowed!");
-			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
-			exit(1);
-		}
-		if(password.empty()){
-			log_info("    auth    : off");
-		}else{
-			log_info("    auth    : on");
-		}
-		serv->need_auth = false;		
-		if(!password.empty()){
-			serv->need_auth = true;
-			serv->password = password;
-		}
+    	// init auth
+    	{
+    		Config *cc = (Config *)conf.get("server");
+    		if(cc != NULL){
+    			std::vector<Config *> *children = &cc->children;
+    			std::vector<Config *>::iterator it;
+    			for(it = children->begin(); it != children->end(); it++){
+    				if((*it)->key == "auth"){
+                		std::string password = (*it)->str();
+                		if(password.size() && (password.size() < 32 || password == "very-strong-password")){
+                			log_fatal("weak password is not allowed!");
+                			fprintf(stderr, "WARNING! Weak password is not allowed!\n");
+                			exit(1);
+                		}
+                        serv->passwords.insert(password);
+                    }
+                }
+            }
+    		if(serv->passwords.empty()){
+    			serv->need_auth = false;
+    			log_info("    auth    : off");
+    		}else{
+    			serv->need_auth = true;
+    			log_info("    auth    : on");
+    		}
+        }
 	}
 
 	// init ip_filter
@@ -549,7 +558,7 @@ static int proc_auth(NetworkServer *net, Link *link, const Request &req, Respons
 	if(req.size() != 2){
 		resp->push_back("client_error");
 	}else{
-		if(!net->need_auth || req[1] == net->password){
+		if(!net->need_auth || net->passwords.count(req[1].String()) != 0){
 			link->auth = true;
 			resp->push_back("ok");
 			resp->push_back("1");

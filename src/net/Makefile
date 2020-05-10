@@ -1,6 +1,6 @@
 include ../../build_config.mk
 
-OBJS = server.o resp.o proc.o worker.o fde.o link.o
+OBJS = server.o resp.o proc.o worker.o fde.o link.o link_addr.o
 UTIL_OBJS = ../util/log.o ../util/config.o ../util/bytes.o
 EXES = test
 
@@ -9,6 +9,8 @@ all: ${OBJS}
 
 fde.o: fde.h fde.cpp fde_select.cpp fde_epoll.cpp
 	${CXX} ${CFLAGS} -c fde.cpp
+link_addr.o: link_addr.h link_addr.cpp
+	${CXX} ${CFLAGS} -c link_addr.cpp
 link.o: link.h link.cpp link_redis.h link_redis.cpp
 	${CXX} ${CFLAGS} -c link.cpp
 resp.o: resp.h resp.cpp

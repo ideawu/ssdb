@@ -9,6 +9,7 @@ found in the LICENSE file.
 #include "../include.h"
 #include <string>
 #include <vector>
+#include <set>
 
 #include "fde.h"
 #include "proc.h"
@@ -55,7 +56,7 @@ public:
 	ProcMap proc_map;
 	int link_count;
 	bool need_auth;
-	std::string password;
+    std::set<std::string> passwords;
 	double slowlog_timeout; // in ms, but in config file, it's in seconds
 
 	~NetworkServer();

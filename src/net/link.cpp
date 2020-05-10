@@ -11,6 +11,7 @@ found in the LICENSE file.
 #include <netdb.h>
 
 #include "link.h"
+#include "link_addr.h"
 
 #include "link_redis.cpp"
 
@@ -77,6 +78,9 @@ void Link::noblock(bool enable){
 
 // TODO: check less than 256
 static bool is_ip(const char *host){
+	if(strchr(host, ':') != NULL){
+		return true;
+	}
 	int dot_count = 0;
 	int digit_count = 0;
 	for(const char *p = host; *p; p++){
@@ -100,7 +104,7 @@ Link* Link::connect(const char *host, int port){
 	Link *link;
 	int sock = -1;
 
-	char ip_resolve[INET_ADDRSTRLEN];
+	char ip_resolve[INET6_ADDRSTRLEN];
 	if(!is_ip(host)){
 		struct hostent *hptr = gethostbyname(host);
 		for(int i=0; hptr && hptr->h_addr_list[i] != NULL; i++){
@@ -113,21 +117,18 @@ Link* Link::connect(const char *host, int port){
 		}
 	}
 
-	struct sockaddr_in addr;
-	bzero(&addr, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons((short)port);
-	inet_pton(AF_INET, host, &addr.sin_addr);
+	LinkAddr addr(host, port);
 
-	if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
+	if((sock = ::socket(addr.family, SOCK_STREAM, 0)) == -1){
 		goto sock_err;
 	}
-	if(::connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
+	if(::connect(sock, addr.addr(), addr.addrlen) == -1){
 		goto sock_err;
 	}
 
 	//log_debug("fd: %d, connect to %s:%d", sock, ip, port);
 	link = new Link();
+	link->ipv4 = addr.ipv4;
 	link->sock = sock;
 	link->keepalive(true);
 	return link;
@@ -142,21 +143,16 @@ sock_err:
 Link* Link::listen(const char *ip, int port){
 	Link *link;
 	int sock = -1;
+	LinkAddr addr(ip, port);
 
 	int opt = 1;
-	struct sockaddr_in addr;
-	bzero(&addr, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons((short)port);
-	inet_pton(AF_INET, ip, &addr.sin_addr);
-
-	if((sock = ::socket(AF_INET, SOCK_STREAM, 0)) == -1){
+	if((sock = ::socket(addr.family, SOCK_STREAM, 0)) == -1){
 		goto sock_err;
 	}
 	if(::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1){
 		goto sock_err;
 	}
-	if(::bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == -1){
+	if(::bind(sock, addr.addr(), addr.addrlen) == -1){
 		goto sock_err;
 	}
 	if(::listen(sock, 1024) == -1){
@@ -165,6 +161,7 @@ Link* Link::listen(const char *ip, int port){
 	//log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
 
 	link = new Link(true);
+	link->ipv4 = addr.ipv4;
 	link->sock = sock;
 	snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", ip);
 	link->remote_port = port;
@@ -180,10 +177,9 @@ sock_err:
 Link* Link::accept(){
 	Link *link;
 	int client_sock;
-	struct sockaddr_in addr;
-	socklen_t addrlen = sizeof(addr);
+	LinkAddr addr(this->ipv4);
 
-	while((client_sock = ::accept(sock, (struct sockaddr *)&addr, &addrlen)) == -1){
+	while((client_sock = ::accept(sock, addr.addr(), &addr.addrlen)) == -1){
 		if(errno != EINTR){
 			//log_error("socket %d accept failed: %s", sock, strerror(errno));
 			return NULL;
@@ -200,8 +196,23 @@ Link* Link::accept(){
 	link = new Link();
 	link->sock = client_sock;
 	link->keepalive(true);
-	inet_ntop(AF_INET, &addr.sin_addr, link->remote_ip, sizeof(link->remote_ip));
-	link->remote_port = ntohs(addr.sin_port);
+	link->remote_port = addr.port();
+	inet_ntop(addr.family, addr.sin_addr(), link->remote_ip, sizeof(link->remote_ip));
+	if(!addr.ipv4){
+		if(strchr(link->remote_ip, '.')){
+			char *p = strrchr(link->remote_ip, ':');
+			if(p){
+				p += 1;
+				char *s = link->remote_ip;
+				while(*p != '\0'){
+					*s = *p;
+					s ++;
+					p ++;
+				}
+				*s = '\0';
+			}
+		}
+	}
 	return link;
 }
 

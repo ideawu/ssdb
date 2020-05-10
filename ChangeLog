@@ -1,3 +1,8 @@
+* 1.9.8
+	* New features:
+		- Support multi auth password configs(2020-05-10)
+		- Support IP v6(2020-02-15)
+		- Add add_slave and del_slave command(2020-02-19)
 * 1.9.7
 	* New features:
 		- Support slaveof command(2018-04-27)

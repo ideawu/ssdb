@@ -27,7 +27,7 @@ private:
 		int len = prefix.size() - 1;
 		if(prefix[len] == '='){
 			return prefix.compare(0, len, ip) == 0;
-		}else if(ip.size() > len){
+		}else if(ip.size() >= len){
 			return ip.compare(0, len, prefix, 0, len) == 0;
 		}
 		return false;
