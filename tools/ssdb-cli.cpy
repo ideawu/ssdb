@@ -13,6 +13,7 @@ function save_cli_history(histfile){
 	sys.stderr.write('\n');
 }
 
+if(sys.stdin.isatty()){
 try{
 	import readline;
 	import atexit;
@@ -23,6 +24,7 @@ try{
 	atexit.register(save_cli_history, histfile);
 }catch(Exception e){
 	sys.stderr.write(str(e) + '\n');
+}
 }
 
 escape_data = false;
@@ -183,8 +185,8 @@ if(password){
 	resp = link.request('auth', [password]);	
 }
 
-welcome();
 if(sys.stdin.isatty()){
+	welcome();
 	util.show_version(link);
 }
 
@@ -235,7 +237,11 @@ function request_with_retry(cmd, args=null){
 
 while(true){
 	line = '';
-	c = sprintf('ssdb %s:%s> ', host, str(port));
+	if(sys.stdin.isatty()){
+		c = sprintf('ssdb %s:%s> ', host, str(port));
+	}else{
+		c = '';
+	}
 	b = sys.stdout;
 	sys.stdout = sys.stderr;
 	try{
@@ -409,7 +415,9 @@ while(true){
 				break;
 		}
 		if(skip){
-			sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+			if(sys.stdin.isatty()){
+				sys.stderr.write(sprintf('(%.3f sec)\n', time_consume));
+			}
 			continue;
 		}
 
