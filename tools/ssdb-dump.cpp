@@ -176,6 +176,7 @@ int main(int argc, char **argv){
 	leveldb::Status status;
 	options.create_if_missing = true;
 	options.write_buffer_size = 32 * 1024 * 1024;
+	options.max_file_size = 32 * 1048576; // leveldb 1.20
 	options.compression = leveldb::kSnappyCompression;
 
 	status = leveldb::DB::Open(options, data_dir.c_str(), &db);

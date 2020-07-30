@@ -22,7 +22,7 @@ try{
 	}
 	atexit.register(save_cli_history, histfile);
 }catch(Exception e){
-	sys.stderr.write(str(e) + '\n');
+	sys.stderr.write('readline: ' + str(e) + '\n');
 }
 
 escape_data = false;

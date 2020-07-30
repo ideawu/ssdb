@@ -57,6 +57,7 @@ int main(int argc, char **argv){
 	printf("writing repair log into: repair.log\n");
 
 	leveldb::Options options;
+	options.max_file_size = 32 * 1048576; // leveldb 1.20
 	options.info_log = logger;
 	status = leveldb::RepairDB(leveldb_folder.c_str(), options);
 	if(!status.ok()){
@@ -71,6 +72,7 @@ int main(int argc, char **argv){
 		leveldb::Options options;
 		leveldb::Status status;
 		options.create_if_missing = true;
+    	options.max_file_size = 32 * 1048576; // leveldb 1.20
 		options.write_buffer_size = 32 * 1024 * 1024;
 		options.compression = leveldb::kSnappyCompression;
 

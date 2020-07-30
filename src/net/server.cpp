@@ -571,9 +571,11 @@ static int proc_auth(NetworkServer *net, Link *link, const Request &req, Respons
 }
 
 #define ENSURE_LOCALHOST() do{ \
-		if(strcmp(link->remote_ip, "127.0.0.1") != 0){ \
+		if(strcmp(link->remote_ip, "127.0.0.1") != 0 \
+			&& strcmp(link->remote_ip, "::1") != 0) \
+		{ \
 			resp->push_back("noauth"); \
-			resp->push_back("this command is only available from 127.0.0.1"); \
+			resp->push_back("this command is only available from localhost"); \
 			return 0; \
 		} \
 	}while(0)
