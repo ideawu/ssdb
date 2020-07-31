@@ -104,10 +104,12 @@ int64_t SSDBImpl::hsize(const Bytes &name){
 
 int64_t SSDBImpl::hclear(const Bytes &name){
 	int64_t count = 0;
+	std::string start;
 	while(1){
-		HIterator *it = this->hscan(name, "", "", 1000);
+		HIterator *it = this->hscan(name, start, "", 10000);
 		int num = 0;
 		while(it->next()){
+			start = it->key;
 			int ret = this->hdel(name, it->key);
 			if(ret == -1){
 				delete it;
