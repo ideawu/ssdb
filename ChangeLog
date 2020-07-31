@@ -1,5 +1,6 @@
 * 1.9.8
 	* New features:
+		- optimize hclear performance(2020-07-31)
 		- ssdb-repair/ssdb-dump set leveldb.option.max_file_size to 32MB(2020-07-30)
 		- Support multi auth password configs(2020-05-10)
 		- Support IP v6(2020-02-15)
