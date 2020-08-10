@@ -295,9 +295,9 @@ int64_t SSDBImpl::hfix(const Bytes &name){
 
 	std::string size_key = encode_hsize_key(name);
 	if(size == 0){
-		binlogs->Delete(size_key);
+		ldb->Delete(leveldb::WriteOptions(), size_key);
 	}else{
-		binlogs->Put(size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
+		ldb->Put(leveldb::WriteOptions(), size_key, leveldb::Slice((char *)&size, sizeof(int64_t)));
 	}
 	
 	return size;
