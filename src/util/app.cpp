@@ -147,9 +147,6 @@ int Application::read_pid(){
 }
 
 void Application::write_pid(){
-	if(!app_args.is_daemon){
-		return;
-	}
 	if(app_args.pidfile.empty()){
 		return;
 	}
