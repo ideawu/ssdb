@@ -160,9 +160,6 @@ void Application::write_pid(){
 }
 
 void Application::check_pidfile(){
-	if(!app_args.is_daemon){
-		return;
-	}
 	if(app_args.pidfile.size()){
 		if(access(app_args.pidfile.c_str(), F_OK) == 0){
 			fprintf(stderr, "Fatal error!\nPidfile %s already exists!\n"
@@ -175,9 +172,6 @@ void Application::check_pidfile(){
 }
 
 void Application::remove_pidfile(){
-	if(!app_args.is_daemon){
-		return;
-	}
 	if(app_args.pidfile.size()){
 		remove(app_args.pidfile.c_str());
 	}
