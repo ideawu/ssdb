@@ -4,6 +4,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <cstdlib>
 #include "db/filename.h"
 #include "db/dbformat.h"
 #include "leveldb/env.h"
@@ -61,7 +62,13 @@ std::string TempFileName(const std::string& dbname, uint64_t number) {
 }
 
 std::string InfoLogFileName(const std::string& dbname) {
-  return dbname + "/LOG";
+  const char *ldb_log_file = std::getenv("LDB_INFO_LOG");
+  if (! ldb_log_file) {
+    return dbname + "/LOG";
+  } else {
+    std::string ret(ldb_log_file);
+    return ret;
+  }
 }
 
 // Return the name of the old info log file for "dbname".
