@@ -53,6 +53,7 @@ NetworkServer::NetworkServer(){
 
 	//conf = NULL;
 	serv_link = NULL;
+	unixsocket_serve_link = NULL;
 	link_count = 0;
 
 	fdes = new Fdevents();
@@ -90,6 +91,7 @@ NetworkServer::NetworkServer(){
 	
 NetworkServer::~NetworkServer(){
 	//delete conf;
+	delete unixsocket_serve_link;
 	delete serv_link;
 	delete fdes;
 	delete ip_filter;
@@ -157,6 +159,20 @@ NetworkServer* NetworkServer::init(const Config &conf, int num_readers, int num_
 		// so, set server socket nonblock.
 		serv->serv_link->noblock();
 		log_info("server listen on %s:%d", ip, port);
+
+
+		const char *unixsocketpath = conf.get_str("server.unixsocket");
+
+		if(unixsocketpath != NULL){
+			serv->unixsocket_serve_link = Link::listen_unixsock(unixsocketpath);
+			if(serv->unixsocket_serve_link == NULL){
+				log_fatal("error opening unixsocket server socket! %s", strerror(errno));
+				fprintf(stderr, "error opening unixsocket server socket! %s\n", strerror(errno));
+				exit(1);
+			}
+			serv->unixsocket_serve_link->noblock();
+			log_info("unixsocket server listen on %s", unixsocketpath);
+		}
 
     	// init auth
     	{
@@ -244,6 +260,7 @@ void NetworkServer::serve(){
 	const Fdevents::events_t *events;
 
 	fdes->set(serv_link->fd(), FDEVENT_IN, 0, serv_link);
+	fdes->set(unixsocket_serve_link->fd(), FDEVENT_IN, 0, unixsocket_serve_link);
 	fdes->set(this->reader->fd(), FDEVENT_IN, 0, this->reader);
 	fdes->set(this->writer->fd(), FDEVENT_IN, 0, this->writer);
 	
@@ -278,6 +295,17 @@ void NetworkServer::serve(){
 			const Fdevent *fde = events->at(i);
 			if(fde->data.ptr == serv_link){
 				Link *link = accept_link();
+				if(link){
+					this->link_count ++;				
+					log_debug("new link from %s:%d, fd: %d, links: %d",
+						link->remote_ip, link->remote_port, link->fd(), this->link_count);
+					fdes->set(link->fd(), FDEVENT_IN, 1, link);
+				}else{
+					log_debug("accept return NULL");
+				}
+
+			}else if(fde->data.ptr == unixsocket_serve_link){
+				Link *link = accept_link(unixsocket_serve_link);
 				if(link){
 					this->link_count ++;				
 					log_debug("new link from %s:%d, fd: %d, links: %d",
@@ -346,8 +374,8 @@ void NetworkServer::serve(){
 	}
 }
 
-Link* NetworkServer::accept_link(){
-	Link *link = serv_link->accept();
+Link* NetworkServer::accept_link(Link* srv){
+	Link *link = (srv == NULL)?serv_link->accept():srv->accept();
 	if(link == NULL){
 		log_error("accept failed! %s", strerror(errno));
 		return NULL;

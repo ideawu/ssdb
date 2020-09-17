@@ -30,9 +30,10 @@ private:
 
 	//Config *conf;
 	Link *serv_link;
+	Link *unixsocket_serve_link;
 	Fdevents *fdes;
 
-	Link* accept_link();
+	Link* accept_link(Link* srv = NULL);
 	int proc_result(ProcJob *job, ready_list_t *ready_list);
 	int proc_client_event(const Fdevent *fde, ready_list_t *ready_list);
 
@@ -64,6 +65,7 @@ public:
 	// could be called only once
 	static NetworkServer* init(const char *conf_file, int num_readers=-1, int num_writers=-1);
 	static NetworkServer* init(const Config &conf, int num_readers=-1, int num_writers=-1);
+	static NetworkServer* init_sockets(const Config &conf, int num_readers=-1, int num_writers=-1);
 	void serve();
 };
 

@@ -8,7 +8,10 @@ found in the LICENSE file.
 #include <string.h>
 #include <stdarg.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netdb.h>
+
+#include <sys/un.h>
 
 #include "link.h"
 #include "link_addr.h"
@@ -165,6 +168,41 @@ Link* Link::listen(const char *ip, int port){
 	link->sock = sock;
 	snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", ip);
 	link->remote_port = port;
+	return link;
+sock_err:
+	//log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
+	if(sock >= 0){
+		::close(sock);
+	}
+	return NULL;
+}
+
+Link* Link::listen_unixsock(const char *unixsock_path){
+	Link *link;
+	int sock = -1;
+	struct sockaddr_un unaddr;
+	unaddr.sun_family = AF_UNIX;
+	unlink(unixsock_path);
+	strcpy(unaddr.sun_path,unixsock_path);
+
+	if((sock = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
+		goto sock_err;
+	}
+
+	if(::bind(sock, (struct sockaddr *)&unaddr,sizeof(unaddr)) == -1){
+		goto sock_err;
+	}
+	if(::listen(sock, 1024) == -1){
+		goto sock_err;
+	}
+	//log_debug("server socket fd: %d, listen on: %s:%d", sock, ip, port);
+
+	chmod(unixsock_path,ACCESSPERMS);
+
+	link = new Link(true);
+	link->sock = sock;
+	snprintf(link->remote_ip, sizeof(link->remote_ip), "%s", "");
+	link->remote_port = -1;
 	return link;
 sock_err:
 	//log_debug("listen %s:%d failed: %s", ip, port, strerror(errno));
