@@ -42,6 +42,7 @@ install:
 		tools/ssdb-repair \
 		${PREFIX}
 	cp -rf deps/cpy ${PREFIX}/deps
+	${PREFIX}/ssdb-cli -v > /dev/null
 	chmod 755 ${PREFIX}
 	rm -f ${PREFIX}/Makefile
 
