@@ -300,6 +300,7 @@ int BinlogQueue::find_min(Binlog *log) const{
 			}
 		}
 	}
+	delete it;
 	return ret;
 }
 
