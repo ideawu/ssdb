@@ -406,6 +406,13 @@ int BinlogQueue::del_range(uint64_t start, uint64_t end){
 			return -1;
 		}
 	}
+
+	std::string range_min = encode_seq_key(0);
+	std::string range_delete_end = encode_seq_key(end);
+
+	leveldb::Slice smin(range_min);
+	leveldb::Slice smax(range_delete_end);
+	this->db->CompactRange(&smin,&smax);
 	return 0;
 }
 
