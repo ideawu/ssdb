@@ -16,7 +16,7 @@ function save_cli_history(histfile){
 try{
 	import readline;
 	import atexit;
-	histfile = '/tmp/ssdb-cli.history';
+	histfile = os.path.expanduser('~/.ssdb-cli_history');
 	if(os.path.isfile(histfile)){
 		readline.read_history_file(histfile);
 	}
