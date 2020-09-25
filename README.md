@@ -150,7 +150,7 @@ SSDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Cl
 
 ## Authors
 
-@ideawu
+@ideawu(wuzuyang1@gmail.com)
 
 ## Thanks
 
