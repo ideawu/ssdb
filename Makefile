@@ -14,7 +14,7 @@ all:
 	cd src/client; ${MAKE}
 	cd src/ssdb; ${MAKE}
 	cd src; ${MAKE}
-	cd tools; ${MAKE}; ./ssdb-cli -v > /dev/null
+	cd tools; ${MAKE}
 
 .PHONY: ios
 	
@@ -39,7 +39,7 @@ install:
 		tools/ssdb-bench \
 		tools/ssdb-cli tools/ssdb_cli \
 		tools/ssdb-cli.cpy tools/ssdb-dump \
-		tools/ssdb-repair tools/_cpy_ \
+		tools/ssdb-repair \
 		${PREFIX}
 	cp -rf deps/cpy ${PREFIX}/deps
 	chmod 755 ${PREFIX}
