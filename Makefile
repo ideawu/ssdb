@@ -43,6 +43,7 @@ install:
 		${PREFIX}
 	cp -rf deps/cpy ${PREFIX}/deps
 	chmod 755 ${PREFIX}
+	chmod 777 ${PREFIX}/_cpy_
 	rm -f ${PREFIX}/Makefile
 
 clean:
