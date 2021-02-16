@@ -1,0 +1,9 @@
+{
+  "name": "ssdb",
+  "version": "master",
+  "repo": "ideawu/ssdb",
+  "description": "",
+  "keywords": [],
+  "license": "BSD 3",
+  "install": "make; make install PREFIX=${PREFIX:?}; "
+}
