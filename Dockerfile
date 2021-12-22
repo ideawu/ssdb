@@ -28,4 +28,4 @@ RUN mkdir -p /var/lib/ssdb && \
 ENV TZ Asia/Shanghai
 EXPOSE 8888
 VOLUME /var/lib/ssdb
-ENTRYPOINT /usr/bin/ssdb-server /etc/ssdb.conf
+ENTRYPOINT rm -f /run/ssdb.pid && /usr/bin/ssdb-server /etc/ssdb.conf
