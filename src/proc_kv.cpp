@@ -64,7 +64,7 @@ int proc_setx(NetworkServer *net, Link *link, const Request &req, Response *resp
 		resp->push_back("error");
 		return 0;
 	}
-	ret = serv->expiration->set_ttl(req[1], req[3].Int());
+	ret = serv->expiration->set_ttl(DataType::KV, req[1], req[3].Int());
 	if(ret == -1){
 		resp->push_back("error");
 	}else{
@@ -79,7 +79,10 @@ int proc_ttl(NetworkServer *net, Link *link, const Request &req, Response *resp)
 	CHECK_NUM_PARAMS(2);
 	CHECK_KV_KEY_RANGE(1);
 
-	int64_t ttl = serv->expiration->get_ttl(req[1]);
+	int64_t ttl = serv->expiration->get_ttl(DataType::KV, req[1]);
+   	if(ttl == -1){
+   		ttl = serv->expiration->get_ttl(DataType::HASH, req[1]);
+   	}
 	resp->push_back("ok");
 	resp->push_back(str(ttl));
 	return 0;
@@ -94,7 +97,16 @@ int proc_expire(NetworkServer *net, Link *link, const Request &req, Response *re
 	std::string val;
 	int ret = serv->ssdb->get(req[1], &val);
 	if(ret == 1){
-		ret = serv->expiration->set_ttl(req[1], req[2].Int());
+		ret = serv->expiration->set_ttl(DataType::KV, req[1], req[2].Int());
+		if(ret != -1){
+			resp->push_back("ok");
+			resp->push_back("1");
+		}else{
+			resp->push_back("error");
+		}
+		return 0;
+	}else if(serv->ssdb->hsize(req[1]) != 0){
+		ret = serv->expiration->set_ttl(DataType::HASH, req[1], req[2].Int());
 		if(ret != -1){
 			resp->push_back("ok");
 			resp->push_back("1");
@@ -163,7 +175,7 @@ int proc_multi_del(NetworkServer *net, Link *link, const Request &req, Response 
 	}else{
 		for(Request::const_iterator it=req.begin()+1; it!=req.end(); it++){
 			const Bytes key = *it;
-			serv->expiration->del_ttl(key);
+			serv->expiration->del_ttl(DataType::KV, key);
 		}
 		resp->reply_int(0, ret);
 	}
@@ -196,8 +208,8 @@ int proc_del(NetworkServer *net, Link *link, const Request &req, Response *resp)
 	if(ret == -1){
 		resp->push_back("error");
 	}else{
-		serv->expiration->del_ttl(req[1]);
-			
+		serv->expiration->del_ttl(DataType::KV, req[1]);
+
 		resp->push_back("ok");
 		resp->push_back("1");
 	}
