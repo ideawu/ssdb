@@ -160,9 +160,10 @@ int proc_hdel(NetworkServer *net, Link *link, const Request &req, Response *resp
 int proc_hclear(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	CHECK_NUM_PARAMS(2);
 	SSDBServer *serv = (SSDBServer *)net->data;
-	
+
 	const Bytes &name = req[1];
 	int64_t count = serv->ssdb->hclear(name);
+	serv->expiration->del_ttl(DataType::HASH, name);
 	resp->reply_int(0, count);
 
 	return 0;
@@ -297,7 +298,7 @@ int proc_hdecr(NetworkServer *net, Link *link, const Request &req, Response *res
 int proc_hfix(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	CHECK_NUM_PARAMS(2);
-	
+
 	const Bytes &name = req[1];
 	int64_t ret = serv->ssdb->hfix(name);
 	resp->reply_int(ret, ret);

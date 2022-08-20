@@ -11,6 +11,15 @@ found in the LICENSE file.
 #include "../util/sorted_set.h"
 #include <string>
 
+inline static
+std::string encode_ttl_key(char data_type, const Bytes &key){
+	std::string buf;
+	buf.reserve(key.String().length() + 1);
+	buf.append(1, data_type);
+	buf.append(key.String());
+	return buf;
+}
+
 class ExpirationHandler
 {
 public:
@@ -22,10 +31,10 @@ public:
 	// "In Redis 2.6 or older the command returns -1 if the key does not exist
 	// or if the key exist but has no associated expire. Starting with Redis 2.8.."
 	// I stick to Redis 2.6
-	int64_t get_ttl(const Bytes &key);
+	int64_t get_ttl(char data_type, const Bytes &key);
 	// The caller must hold mutex before calling set/del functions
-	int del_ttl(const Bytes &key);
-	int set_ttl(const Bytes &key, int64_t ttl);
+	int del_ttl(char data_type, const Bytes &key);
+	int set_ttl(char data_type, const Bytes &key, int64_t ttl);
 
 private:
 	SSDB *ssdb;

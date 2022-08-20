@@ -46,43 +46,45 @@ void ExpirationHandler::stop(){
 	}
 }
 
-int ExpirationHandler::set_ttl(const Bytes &key, int64_t ttl){
+int ExpirationHandler::set_ttl(char data_type, const Bytes &key, int64_t ttl){
 	int64_t expired = time_ms() + ttl * 1000;
 	std::string expire_str = str(expired);
-	int ret = ssdb->zset(this->list_name, key, expire_str);
+	std::string ttlkey = encode_ttl_key(data_type, key);
+	int ret = ssdb->zset(this->list_name, ttlkey.data(), expire_str);
 	if(ret == -1){
 		return -1;
 	}
 	if(expired < first_timeout){
 		first_timeout = expired;
 	}
-	std::string s_key = key.String();
 	if(!fast_keys.empty() && expired <= fast_keys.max_score()){
-		fast_keys.add(s_key, expired);
+		fast_keys.add(ttlkey, expired);
 		if(fast_keys.size() > BATCH_SIZE){
 			fast_keys.pop_back();
 		}
 	}else{
-		fast_keys.del(s_key);
+		fast_keys.del(ttlkey);
 		//log_debug("don't put in fast_keys");
 	}
-	
+
 	return 0;
 }
 
-int ExpirationHandler::del_ttl(const Bytes &key){
+int ExpirationHandler::del_ttl(char data_type, const Bytes &key){
 	// 这样用是有 bug 的, 虽然 fast_keys 为空, 不代表整个 ttl 队列为空
 	// if(!this->fast_keys.empty()){
 	if(first_timeout != INT64_MAX){
-		fast_keys.del(key.String());
-		ssdb->zdel(this->list_name, key);
+		std::string ttlkey = encode_ttl_key(data_type, key);
+		fast_keys.del(ttlkey);
+		ssdb->zdel(this->list_name, ttlkey.data());
 	}
 	return 0;
 }
 
-int64_t ExpirationHandler::get_ttl(const Bytes &key){
+int64_t ExpirationHandler::get_ttl(char data_type, const Bytes &key){
 	std::string score;
-	if(ssdb->zget(this->list_name, key, &score) == 1){
+	std::string ttlkey = encode_ttl_key(data_type, key);
+	if(ssdb->zget(this->list_name, ttlkey.data(), &score) == 1){
 		int64_t ex = str_to_int64(score);
 		return (ex - time_ms())/1000;
 	}
@@ -134,10 +136,16 @@ void ExpirationHandler::expire_loop(){
 	std::string key;
 	if(this->fast_keys.front(&key, &score)){
 		this->first_timeout = score;
-		
+
 		if(score <= time_ms()){
 			log_debug("expired %s", key.c_str());
-			ssdb->del(key);
+			const char data_type = key.at(0);
+			std::string real_key = key.substr(1, std::string::npos);
+			if(data_type == DataType::KV){
+				ssdb->del(real_key);
+   			}else if(data_type == DataType::HASH){
+				ssdb->hclear(real_key);
+   			}
 			ssdb->zdel(this->list_name, key);
 			this->fast_keys.pop_front();
 		}
@@ -146,7 +154,7 @@ void ExpirationHandler::expire_loop(){
 
 void* ExpirationHandler::thread_func(void *arg){
 	ExpirationHandler *handler = (ExpirationHandler *)arg;
-	
+
 	while(!handler->thread_quit){
 		bool need_sleep = false;
 		{
@@ -160,10 +168,10 @@ void* ExpirationHandler::thread_func(void *arg){
 			usleep(10 * 1000);
 			continue;
 		}
-		
+
 		handler->expire_loop();
 	}
-	
+
 	log_debug("ExpirationHandler thread quit");
 	handler->thread_quit = false;
 	return (void *)NULL;
